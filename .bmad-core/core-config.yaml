@@ -20,3 +20,15 @@ devLoadAlwaysFiles:
 devDebugLog: .ai/debug-log.md
 devStoryLocation: docs/stories
 slashPrefix: BMad
+rules:
+  # Project-specific rules that AI agents must follow
+  # Add rules here that are critical for preventing AI mistakes
+  # Examples:
+  # - "Never use console.log in production code - use logger"
+  # - "All API responses must use ApiResponse wrapper type"
+  # - "Database queries must use repository pattern, never direct ORM"
+  criticalRules: []
+  # Naming conventions (only if deviating from language defaults)
+  namingConventions: {}
+  # Language-specific rules
+  languageSpecifics: {}
