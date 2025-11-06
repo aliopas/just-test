@@ -28,7 +28,7 @@ export const requirePermission = (permissionName: string) => {
         });
       }
 
-      next();
+      return next();
     } catch (error) {
       return res.status(500).json({
         error: {
@@ -66,7 +66,7 @@ export const requireRole = (roleName: string) => {
         });
       }
 
-      next();
+      return next();
     } catch (error) {
       return res.status(500).json({
         error: {

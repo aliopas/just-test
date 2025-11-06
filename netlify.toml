@@ -1,0 +1,19 @@
+[build]
+  command = "npm install && npm run build"
+  functions = "netlify/functions"
+  publish = "."
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Redirect all requests to Netlify Function (catch-all)
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/server/:splat"
+  status = 200
+  force = true
+
+[functions]
+  node_bundler = "esbuild"
+  included_files = ["backend/src/**", "backend/dist/**"]
+

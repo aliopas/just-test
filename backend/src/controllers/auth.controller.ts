@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { AuthenticatedRequest } from '../middleware/auth.middleware';
 import { supabase } from '../lib/supabase';
 import {
   RegisterInput,
@@ -7,6 +8,7 @@ import {
 } from '../schemas/auth.schema';
 import { otpService } from '../services/otp.service';
 import { totpService } from '../services/totp.service';
+import { rbacService } from '../services/rbac.service';
 
 export const authController = {
   register: async (req: Request<{}, {}, RegisterInput>, res: Response) => {
@@ -64,6 +66,14 @@ export const authController = {
       if (userError) {
         console.error('Failed to create user record:', userError);
         // Don't fail registration, but log the error
+      } else {
+        // Assign investor role to user
+        try {
+          await rbacService.assignRole(data.user.id, 'investor');
+        } catch (roleError) {
+          console.error('Failed to assign role:', roleError);
+          // Don't fail registration, but log the error
+        }
       }
 
       // Create OTP for email verification
@@ -338,12 +348,11 @@ export const authController = {
     return res.status(204).send();
   },
 
-  setup2FA: async (req: Request, res: Response) => {
+  setup2FA: async (req: AuthenticatedRequest, res: Response) => {
     try {
-      // Get user from session (assuming middleware extracts user)
-      // For now, we'll get user from request body or session
-      const userId = (req as any).user?.id;
-      const userEmail = (req as any).user?.email;
+      // Get user from authenticated request
+      const userId = req.user?.id;
+      const userEmail = req.user?.email;
 
       if (!userId || !userEmail) {
         return res.status(401).json({
@@ -385,10 +394,10 @@ export const authController = {
     }
   },
 
-  verify2FA: async (req: Request, res: Response) => {
+  verify2FA: async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { token, secret } = req.body as { token: string; secret: string };
-      const userId = (req as any).user?.id;
+      const userId = req.user?.id;
 
       if (!userId) {
         return res.status(401).json({
@@ -436,9 +445,9 @@ export const authController = {
     }
   },
 
-  disable2FA: async (req: Request, res: Response) => {
+  disable2FA: async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const userId = (req as any).user?.id;
+      const userId = req.user?.id;
 
       if (!userId) {
         return res.status(401).json({

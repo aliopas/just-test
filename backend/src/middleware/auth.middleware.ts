@@ -66,7 +66,7 @@ export const authenticate = async (
       role: userData.role,
     };
 
-    next();
+    return next();
   } catch (error) {
     return res.status(500).json({
       error: {

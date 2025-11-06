@@ -514,6 +514,20 @@ POST /api/v1/auth/login
 
 المشروع يستخدم GitHub Actions للـ CI/CD. الـ workflow موجود في `.github/workflows/ci.yml`.
 
+### النشر على Netlify
+
+المشروع جاهز للنشر على Netlify. راجع `NETLIFY_DEPLOYMENT.md` للحصول على دليل شامل.
+
+**ملخص سريع:**
+1. تأكد من تثبيت الاعتمادات: `npm install`
+2. أضف متغيرات البيئة في Netlify Dashboard
+3. اربط المشروع مع GitHub repository
+4. Netlify سيقوم بالبناء والنشر تلقائياً
+
+**ملفات التكوين:**
+- `netlify.toml` - تكوين Netlify
+- `netlify/functions/server.ts` - Netlify Function wrapper
+
 ---
 
 ## 📝 الترخيص
