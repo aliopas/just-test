@@ -1,5 +1,6 @@
 import request from 'supertest';
 import app from '../src/app';
+import { requireSupabaseAdmin } from '../src/lib/supabase';
 
 describe('POST /api/v1/auth/register', () => {
   const validEmail = 'test@example.com';
@@ -176,8 +177,8 @@ describe('POST /api/v1/auth/verify-otp', () => {
 
     // Get OTP code from database (for testing purposes)
     // In real scenario, OTP would be sent via email
-    const { supabase } = require('../src/lib/supabase');
-    const { data } = await supabase
+    const adminClient = requireSupabaseAdmin();
+    const { data } = await adminClient
       .from('user_otps')
       .select('code')
       .eq('user_id', userId)

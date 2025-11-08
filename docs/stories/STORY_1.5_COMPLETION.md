@@ -234,6 +234,9 @@ No Content
    - الاختبارات تتطلب Supabase credentials في `.env` أو `.env.test`
    - يمكن تشغيل الاختبارات: `npm test -- auth.test.ts`
 
+6. **Supabase Admin Access:**
+   - تدفق الجلسات يعتمد على تحديث سجلات `users` و `user_roles` عبر عميل الخدمة، لذا يجب تهيئة `SUPABASE_SERVICE_ROLE_KEY`.
+
 ---
 
 **تم إنشاء التقرير بواسطة:** AI Assistant  

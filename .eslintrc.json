@@ -29,7 +29,10 @@
     "build/",
     ".next/",
     "coverage/",
-    "*.config.js"
+    "*.config.js",
+    "backend/tests/**",
+    "netlify/functions/**",
+    "frontend/**"
   ]
 }
 

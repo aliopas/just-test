@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
-import { supabase } from '../lib/supabase';
+import { supabase, requireSupabaseAdmin } from '../lib/supabase';
 import {
   RegisterInput,
   VerifyOTPInput,
@@ -10,8 +10,13 @@ import { otpService } from '../services/otp.service';
 import { totpService } from '../services/totp.service';
 import { rbacService } from '../services/rbac.service';
 
+type EmptyParams = Record<string, never>;
+
 export const authController = {
-  register: async (req: Request<{}, {}, RegisterInput>, res: Response) => {
+  register: async (
+    req: Request<EmptyParams, unknown, RegisterInput>,
+    res: Response
+  ) => {
     try {
       const { email, password, phone } = req.body;
 
@@ -27,7 +32,10 @@ export const authController = {
 
       if (error) {
         // Handle Supabase Auth errors
-        if (error.message.includes('already registered') || error.message.includes('already exists')) {
+        if (
+          error.message.includes('already registered') ||
+          error.message.includes('already exists')
+        ) {
           return res.status(409).json({
             error: {
               code: 'CONFLICT',
@@ -54,8 +62,10 @@ export const authController = {
         });
       }
 
+      const adminClient = requireSupabaseAdmin();
+
       // Create user record in users table (link Supabase Auth user with users table)
-      const { error: userError } = await supabase.from('users').insert({
+      const { error: userError } = await adminClient.from('users').insert({
         id: data.user.id,
         email: data.user.email,
         phone: phone || null,
@@ -65,15 +75,25 @@ export const authController = {
 
       if (userError) {
         console.error('Failed to create user record:', userError);
-        // Don't fail registration, but log the error
-      } else {
-        // Assign investor role to user
-        try {
-          await rbacService.assignRole(data.user.id, 'investor');
-        } catch (roleError) {
-          console.error('Failed to assign role:', roleError);
-          // Don't fail registration, but log the error
-        }
+        return res.status(500).json({
+          error: {
+            code: 'INTERNAL_ERROR',
+            message: 'Failed to persist user profile',
+          },
+        });
+      }
+
+      // Assign investor role to user
+      try {
+        await rbacService.assignRole(data.user.id, 'investor');
+      } catch (roleError) {
+        console.error('Failed to assign role:', roleError);
+        return res.status(500).json({
+          error: {
+            code: 'INTERNAL_ERROR',
+            message: 'Failed to assign role to user',
+          },
+        });
       }
 
       // Create OTP for email verification
@@ -105,12 +125,16 @@ export const authController = {
     }
   },
 
-  verifyOTP: async (req: Request<{}, {}, VerifyOTPInput>, res: Response) => {
+  verifyOTP: async (
+    req: Request<EmptyParams, unknown, VerifyOTPInput>,
+    res: Response
+  ) => {
     try {
       const { email, otp } = req.body;
 
       // Find user by email in users table
-      const { data: userData, error: userError } = await supabase
+      const adminClient = requireSupabaseAdmin();
+      const { data: userData, error: userError } = await adminClient
         .from('users')
         .select('id')
         .eq('email', email)
@@ -174,7 +198,7 @@ export const authController = {
       await otpService.invalidateUserOTPs(userId);
 
       // Update user status to 'active' in users table
-      const { error: updateError } = await supabase
+      const { error: updateError } = await adminClient
         .from('users')
         .update({ status: 'active' })
         .eq('id', userId);
@@ -200,12 +224,16 @@ export const authController = {
     }
   },
 
-  resendOTP: async (req: Request<{}, {}, ResendOTPInput>, res: Response) => {
+  resendOTP: async (
+    req: Request<EmptyParams, unknown, ResendOTPInput>,
+    res: Response
+  ) => {
     try {
       const { email } = req.body;
 
       // Find user by email in users table
-      const { data: userData, error: userError } = await supabase
+      const adminClient = requireSupabaseAdmin();
+      const { data: userData, error: userError } = await adminClient
         .from('users')
         .select('id')
         .eq('email', email)
@@ -253,7 +281,10 @@ export const authController = {
       };
 
       // Sign in with password
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
       if (error) {
         return res.status(401).json({
@@ -274,7 +305,8 @@ export const authController = {
       }
 
       // Check if 2FA is enabled
-      const { data: userData } = await supabase
+      const adminClient = requireSupabaseAdmin();
+      const { data: userData } = await adminClient
         .from('users')
         .select('mfa_enabled, mfa_secret')
         .eq('id', data.user.id)
@@ -318,7 +350,9 @@ export const authController = {
   refresh: async (req: Request, res: Response) => {
     try {
       const { refresh_token } = req.body as { refresh_token: string };
-      const { data, error } = await supabase.auth.refreshSession({ refresh_token });
+      const { data, error } = await supabase.auth.refreshSession({
+        refresh_token,
+      });
 
       if (error) {
         return res.status(401).json({
@@ -486,4 +520,3 @@ export const authController = {
     }
   },
 };
-

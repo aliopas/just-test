@@ -8,7 +8,7 @@
 ## ✅ ما تم إنجازه
 
 ### 1) Rate Limiting
-- ✅ Global limiter: 200 طلب/15 دقيقة لكل IP
+- ✅ Global limiter: 100 طلب/دقيقة لكل IP (مطابق للـ PRD)
 - ✅ Auth limiter: 10 طلب/دقيقة لكل IP (مطبّق على `/api/v1/auth`)
 
 ### 2) Security Headers & CSP
@@ -22,8 +22,8 @@
 - ✅ إعداد CORS عبر متغير `CORS_ORIGINS` (قائمة مفصولة بفواصل)
 - ✅ تمكين HPP للحماية من HTTP Parameter Pollution
 
-### 4) CSRF (اختياري)
-- ✅ إضافة تهيئة CSRF (مع cookies) — معطّلة افتراضيًا، فعّل عبر `ENABLE_CSRF=true`
+### 4) CSRF
+- ✅ تهيئة CSRF مفعّلة شرط توفر `ENABLE_CSRF=true` (يتم حقن الميدل وير تلقائيًا عند التفعيل)
 
 ### 5) توثيق README
 - ✅ إضافة قسم الأمن يشرح الإعدادات والمتغيرات

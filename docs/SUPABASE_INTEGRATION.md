@@ -54,13 +54,10 @@ supabase link --project-ref your-project-ref
 ### إعداد Supabase Client
 
 ```typescript
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = process.env.SUPABASE_URL
-const supabaseKey = process.env.SUPABASE_ANON_KEY
-
-export const supabase = createClient(supabaseUrl, supabaseKey)
+import { supabase, requireSupabaseAdmin } from '../lib/supabase'
 ```
+
+> **مهم:** أي عملية كتابة على الجداول التي تم تفعيل RLS لها (مثل `users`, `user_roles`, `user_otps`) يجب أن تستخدم عميل الخدمة (`requireSupabaseAdmin`) مع المتغير `SUPABASE_SERVICE_ROLE_KEY`.
 
 ### أمثلة الاستخدام
 
@@ -90,7 +87,9 @@ const { data, error } = await supabase
 #### 2. الإدراج (INSERT)
 
 ```typescript
-const { data, error } = await supabase
+const adminClient = requireSupabaseAdmin()
+
+const { data, error } = await adminClient
   .from('requests')
   .insert({
     user_id: userId,
@@ -104,7 +103,9 @@ const { data, error } = await supabase
 #### 3. التحديث (UPDATE)
 
 ```typescript
-const { data, error } = await supabase
+const adminClient = requireSupabaseAdmin()
+
+const { data, error } = await adminClient
   .from('requests')
   .update({ status: 'approved' })
   .eq('id', requestId)
@@ -113,7 +114,9 @@ const { data, error } = await supabase
 #### 4. الحذف (DELETE)
 
 ```typescript
-const { error } = await supabase
+const adminClient = requireSupabaseAdmin()
+
+const { error } = await adminClient
   .from('requests')
   .delete()
   .eq('id', requestId)

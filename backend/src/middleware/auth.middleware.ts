@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { supabase } from '../lib/supabase';
+import { supabase, requireSupabaseAdmin } from '../lib/supabase';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -44,7 +44,8 @@ export const authenticate = async (
     }
 
     // Get user from users table
-    const { data: userData, error: userError } = await supabase
+    const adminClient = requireSupabaseAdmin();
+    const { data: userData, error: userError } = await adminClient
       .from('users')
       .select('id, email, role')
       .eq('id', data.user.id)
@@ -76,4 +77,3 @@ export const authenticate = async (
     });
   }
 };
-

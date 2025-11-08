@@ -196,6 +196,7 @@ Content-Type: application/json
 1. **Environment Variables المطلوبة:**
    - `SUPABASE_URL` - رابط مشروع Supabase
    - `SUPABASE_ANON_KEY` - المفتاح العام
+   - `SUPABASE_SERVICE_ROLE_KEY` - مطلوب لكتابة السجلات في الجداول المحمية (users, user_roles, user_otps)
    - `EMAIL_REDIRECT_TO` (اختياري) - رابط إعادة التوجيه بعد تأكيد البريد
 
 2. **Supabase Dashboard Setup:**
@@ -204,7 +205,7 @@ Content-Type: application/json
    - ملء بيانات "From" و"Reply-To" في قوالب البريد
 
 3. **Testing:**
-   - الاختبارات تتطلب Supabase credentials في `.env` أو `.env.test`
+   - الاختبارات تتطلب Supabase credentials (بما في ذلك `SUPABASE_SERVICE_ROLE_KEY`) في `.env` أو `.env.test`
    - يمكن تشغيل الاختبارات: `npm test -- auth.test.ts`
 
 ---

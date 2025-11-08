@@ -155,11 +155,81 @@ https://your-site.netlify.app/api/v1/auth/login
 - راجع Netlify Function logs في Dashboard
 - تأكد من تثبيت `serverless-http`: `npm install`
 
-### المشكلة: متغيرات البيئة غير موجودة
+### المشكلة: متغيرات البيئة غير موجودة (حتى لو كانت موجودة في Dashboard)
 
-**الحل:**
-- تأكد من إضافة جميع المتغيرات في Netlify Dashboard
-- أعد نشر المشروع بعد إضافة المتغيرات
+**الأعراض:**
+- الخطأ: "Missing Supabase environment variables: SUPABASE_URL and SUPABASE_ANON_KEY are required"
+- المتغيرات موجودة في Netlify Dashboard لكن الخطأ ما زال يظهر
+
+**الحلول:**
+
+#### 1. التحقق من Scope (النطاق)
+
+1. **في صفحة Environment Variables:**
+   - اضغط على السهم ⬇️ بجانب كل متغير للتوسيع
+   - تحقق من أن **"Production"** مفعّل (محدد ✓)
+   - إذا لم يكن مفعّلاً:
+     - اضغط على **"Edit"** (تعديل)
+     - فعّل **"Production"** في قسم Scope
+     - احفظ التغييرات
+
+2. **المتغيرات المطلوبة:**
+   - ✅ `SUPABASE_URL` - يجب أن يكون Scope: **Production**
+   - ✅ `SUPABASE_ANON_KEY` - يجب أن يكون Scope: **Production**
+
+#### 2. التحقق من القيم
+
+1. **اضغط على السهم ⬇️ بجانب المتغير** للتوسيع
+2. **تحقق من القيمة:**
+   - `SUPABASE_URL` يجب أن يكون: `https://wtvvzthfpusnqztltkkv.supabase.co`
+   - `SUPABASE_ANON_KEY` يجب أن يبدأ بـ: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+3. **إذا كانت القيمة خاطئة:**
+   - اضغط على **"Edit"** (تعديل)
+   - صحح القيمة
+   - احفظ التغييرات
+
+#### 3. إعادة النشر (مهم جداً!)
+
+**⚠️ بعد أي تعديل على المتغيرات، يجب إعادة النشر:**
+
+1. **اذهب إلى صفحة Deploys:**
+   - من القائمة الجانبية، اضغط على **"Deploys"**
+2. **اضغط على "Trigger deploy":**
+   - اختر **"Deploy site"** (نشر الموقع)
+   - أو **"Clear cache and deploy site"** (مسح الكاش وإعادة النشر)
+3. **انتظر حتى يكتمل النشر:**
+   - قد يستغرق بضع دقائق
+   - تحقق من أن الحالة أصبحت **"Published"** (تم النشر)
+
+#### 4. التحقق من النجاح
+
+بعد إعادة النشر:
+
+1. **جرب الوصول إلى API:**
+   - افتح: `https://heartfelt-moxie-dfcdb4.netlify.app/api/v1/health`
+   - يجب أن يعمل بدون أخطاء
+   - يجب ألا ترى خطأ "Missing Supabase environment variables"
+
+2. **راجع Function Logs:**
+   - اذهب إلى **"Functions"** → **"server"**
+   - راجع السجلات (Logs) للتحقق من عدم وجود أخطاء
+
+#### 5. إذا استمرت المشكلة
+
+1. **احذف المتغيرات وأعد إضافتها:**
+   - احذف `SUPABASE_URL` و `SUPABASE_ANON_KEY`
+   - أعد إضافتها مرة أخرى مع التأكد من:
+     - Scope: **Production** ✓
+     - القيم صحيحة
+   - أعد النشر
+
+2. **تحقق من Build Logs:**
+   - اذهب إلى **"Deploys"** → اختر آخر نشر
+   - راجع **"Build logs"** للتحقق من الأخطاء
+
+3. **تحقق من Function Logs:**
+   - اذهب إلى **"Functions"** → **"server"**
+   - راجع **"Logs"** للتحقق من الأخطاء في وقت التشغيل
 
 ### المشكلة: CORS errors
 

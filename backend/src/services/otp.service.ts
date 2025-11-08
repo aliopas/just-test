@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase';
+import { requireSupabaseAdmin } from '../lib/supabase';
 import { generateOTP, getOTPExpiration } from '../utils/otp.util';
 
 export interface OTPRecord {
@@ -20,7 +20,9 @@ export const otpService = {
     const code = generateOTP();
     const expiresAt = getOTPExpiration(10); // 10 minutes
 
-    const { error } = await supabase.from('user_otps').insert({
+    const adminClient = requireSupabaseAdmin();
+
+    const { error } = await adminClient.from('user_otps').insert({
       user_id: userId,
       code,
       expires_at: expiresAt.toISOString(),
@@ -40,7 +42,8 @@ export const otpService = {
    * Find active OTP for a user
    */
   async findActiveOTP(userId: string): Promise<OTPRecord | null> {
-    const { data, error } = await supabase
+    const adminClient = requireSupabaseAdmin();
+    const { data, error } = await adminClient
       .from('user_otps')
       .select('*')
       .eq('user_id', userId)
@@ -65,6 +68,7 @@ export const otpService = {
    * Verify OTP code
    */
   async verifyOTP(userId: string, code: string): Promise<boolean> {
+    const adminClient = requireSupabaseAdmin();
     const otp = await this.findActiveOTP(userId);
 
     if (!otp) {
@@ -84,20 +88,22 @@ export const otpService = {
     // Check if code matches
     if (otp.code !== code) {
       // Increment attempts only if code is wrong
-      const { error: updateError } = await supabase
+      const { error: updateError } = await adminClient
         .from('user_otps')
         .update({ attempts: otp.attempts + 1 })
         .eq('id', otp.id);
 
       if (updateError) {
-        throw new Error(`Failed to update OTP attempts: ${updateError.message}`);
+        throw new Error(
+          `Failed to update OTP attempts: ${updateError.message}`
+        );
       }
 
       return false;
     }
 
     // Code matches - mark as verified
-    const { error: verifyError } = await supabase
+    const { error: verifyError } = await adminClient
       .from('user_otps')
       .update({ verified: true })
       .eq('id', otp.id);
@@ -126,7 +132,8 @@ export const otpService = {
    * Invalidate all OTPs for a user (after successful verification)
    */
   async invalidateUserOTPs(userId: string): Promise<void> {
-    const { error } = await supabase
+    const adminClient = requireSupabaseAdmin();
+    const { error } = await adminClient
       .from('user_otps')
       .update({ verified: true })
       .eq('user_id', userId)
@@ -137,4 +144,3 @@ export const otpService = {
     }
   },
 };
-

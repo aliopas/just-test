@@ -9,7 +9,7 @@ import { Express, RequestHandler } from 'express';
 // Configure CORS - adjust origins as needed
 const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:3000')
   .split(',')
-  .map((o) => o.trim());
+  .map(o => o.trim());
 
 export const corsOptions: CorsOptions = {
   origin: allowedOrigins,
@@ -20,8 +20,8 @@ export const corsOptions: CorsOptions = {
 
 // Global rate limiter (e.g., 200 req/15min per IP)
 export const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 200,
+  windowMs: 60 * 1000,
+  max: 100,
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -35,9 +35,10 @@ export const authLimiter = rateLimit({
 });
 
 // Optional CSRF protection (for cookie-based flows). Disabled by default for pure API/JWT.
-export const csrfProtection: RequestHandler | null = process.env.ENABLE_CSRF === 'true'
-  ? csrf({ cookie: { httpOnly: true, sameSite: 'lax', secure: false } })
-  : null;
+export const csrfProtection: RequestHandler | null =
+  process.env.ENABLE_CSRF === 'true'
+    ? csrf({ cookie: { httpOnly: true, sameSite: 'lax', secure: false } })
+    : null;
 
 export function applySecurity(app: Express): void {
   // Security headers + CSP
@@ -46,10 +47,10 @@ export function applySecurity(app: Express): void {
       contentSecurityPolicy: {
         useDefaults: true,
         directives: {
-          "default-src": ["'self'"],
-          "img-src": ["'self'", 'data:'],
-          "script-src": ["'self'"],
-          "style-src": ["'self'", "'unsafe-inline'"],
+          'default-src': ["'self'"],
+          'img-src': ["'self'", 'data:'],
+          'script-src': ["'self'"],
+          'style-src': ["'self'", "'unsafe-inline'"],
         },
       },
       crossOriginEmbedderPolicy: false,
@@ -64,6 +65,10 @@ export function applySecurity(app: Express): void {
 
   // Cookies (for CSRF if enabled)
   app.use(cookieParser());
+
+  if (csrfProtection) {
+    app.use(csrfProtection);
+  }
 
   // Global rate limiting
   app.use(globalLimiter);

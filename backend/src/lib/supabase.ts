@@ -28,3 +28,11 @@ export const supabaseAdmin = supabaseServiceRoleKey
     })
   : null;
 
+export function requireSupabaseAdmin() {
+  if (!supabaseAdmin) {
+    throw new Error(
+      'Supabase service role key is required for this operation. Please set SUPABASE_SERVICE_ROLE_KEY.'
+    );
+  }
+  return supabaseAdmin;
+}

@@ -1,6 +1,6 @@
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
-import { supabase } from '../lib/supabase';
+import { requireSupabaseAdmin } from '../lib/supabase';
 
 export interface TOTPSetupResult {
   secret: string;
@@ -12,7 +12,10 @@ export const totpService = {
   /**
    * Generate TOTP secret and QR code
    */
-  async generateSecret(_userId: string, userEmail: string): Promise<TOTPSetupResult> {
+  async generateSecret(
+    _userId: string,
+    userEmail: string
+  ): Promise<TOTPSetupResult> {
     const secret = speakeasy.generateSecret({
       name: `Bakurah Investors Portal (${userEmail})`,
       issuer: 'Bakurah Investors Portal',
@@ -45,7 +48,8 @@ export const totpService = {
    * Enable 2FA for user
    */
   async enable2FA(userId: string, secret: string): Promise<void> {
-    const { error } = await supabase
+    const adminClient = requireSupabaseAdmin();
+    const { error } = await adminClient
       .from('users')
       .update({
         mfa_enabled: true,
@@ -62,7 +66,8 @@ export const totpService = {
    * Disable 2FA for user
    */
   async disable2FA(userId: string): Promise<void> {
-    const { error } = await supabase
+    const adminClient = requireSupabaseAdmin();
+    const { error } = await adminClient
       .from('users')
       .update({
         mfa_enabled: false,
@@ -78,8 +83,11 @@ export const totpService = {
   /**
    * Get user's 2FA status
    */
-  async get2FAStatus(userId: string): Promise<{ enabled: boolean; hasSecret: boolean }> {
-    const { data, error } = await supabase
+  async get2FAStatus(
+    userId: string
+  ): Promise<{ enabled: boolean; hasSecret: boolean }> {
+    const adminClient = requireSupabaseAdmin();
+    const { data, error } = await adminClient
       .from('users')
       .select('mfa_enabled, mfa_secret')
       .eq('id', userId)
@@ -99,7 +107,8 @@ export const totpService = {
    * Get user's TOTP secret (for verification)
    */
   async getSecret(userId: string): Promise<string | null> {
-    const { data, error } = await supabase
+    const adminClient = requireSupabaseAdmin();
+    const { data, error } = await adminClient
       .from('users')
       .select('mfa_secret')
       .eq('id', userId)
@@ -112,4 +121,3 @@ export const totpService = {
     return data?.mfa_secret || null;
   },
 };
-

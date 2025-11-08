@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase';
+import { requireSupabaseAdmin } from '../lib/supabase';
 
 export interface Role {
   id: string;
@@ -22,14 +22,30 @@ export interface UserRole {
   created_at: string;
 }
 
+type UserRoleRow = {
+  roles: Role | null;
+};
+
+type RoleWithPermissionsRow = {
+  roles: {
+    role_permissions:
+      | {
+          permissions: Permission | null;
+        }[]
+      | null;
+  } | null;
+};
+
 export const rbacService = {
   /**
    * Get user roles
    */
   async getUserRoles(userId: string): Promise<Role[]> {
-    const { data, error } = await supabase
+    const adminClient = requireSupabaseAdmin();
+    const { data, error } = await adminClient
       .from('user_roles')
-      .select(`
+      .select(
+        `
         role_id,
         roles:role_id (
           id,
@@ -37,23 +53,29 @@ export const rbacService = {
           description,
           created_at
         )
-      `)
+      `
+      )
       .eq('user_id', userId);
 
     if (error) {
       throw new Error(`Failed to get user roles: ${error.message}`);
     }
 
-    return (data || []).map((item: any) => item.roles).filter(Boolean);
+    const rows = (data as UserRoleRow[] | null) ?? [];
+    return rows
+      .map(row => row.roles)
+      .filter((role): role is Role => Boolean(role));
   },
 
   /**
    * Get user permissions (via roles)
    */
   async getUserPermissions(userId: string): Promise<Permission[]> {
-    const { data, error } = await supabase
+    const adminClient = requireSupabaseAdmin();
+    const { data, error } = await adminClient
       .from('user_roles')
-      .select(`
+      .select(
+        `
         role_id,
         roles:role_id (
           role_permissions:role_permissions (
@@ -66,7 +88,8 @@ export const rbacService = {
             )
           )
         )
-      `)
+      `
+      )
       .eq('user_id', userId);
 
     if (error) {
@@ -74,19 +97,19 @@ export const rbacService = {
     }
 
     const permissions: Permission[] = [];
-    (data || []).forEach((item: any) => {
-      if (item.roles?.role_permissions) {
-        item.roles.role_permissions.forEach((rp: any) => {
-          if (rp.permissions) {
-            permissions.push(rp.permissions);
-          }
-        });
-      }
+    const rows = (data as RoleWithPermissionsRow[] | null) ?? [];
+    rows.forEach(row => {
+      const rolePermissions = row.roles?.role_permissions ?? [];
+      rolePermissions.forEach(rp => {
+        if (rp.permissions) {
+          permissions.push(rp.permissions);
+        }
+      });
     });
 
     // Remove duplicates
     const uniquePermissions = permissions.filter(
-      (perm, index, self) => index === self.findIndex((p) => p.id === perm.id)
+      (perm, index, self) => index === self.findIndex(p => p.id === perm.id)
     );
 
     return uniquePermissions;
@@ -95,9 +118,12 @@ export const rbacService = {
   /**
    * Check if user has a specific permission
    */
-  async hasPermission(userId: string, permissionName: string): Promise<boolean> {
+  async hasPermission(
+    userId: string,
+    permissionName: string
+  ): Promise<boolean> {
     const permissions = await this.getUserPermissions(userId);
-    return permissions.some((perm) => perm.name === permissionName);
+    return permissions.some(perm => perm.name === permissionName);
   },
 
   /**
@@ -105,15 +131,16 @@ export const rbacService = {
    */
   async hasRole(userId: string, roleName: string): Promise<boolean> {
     const roles = await this.getUserRoles(userId);
-    return roles.some((role) => role.name === roleName);
+    return roles.some(role => role.name === roleName);
   },
 
   /**
    * Assign role to user
    */
   async assignRole(userId: string, roleName: string): Promise<void> {
+    const adminClient = requireSupabaseAdmin();
     // Get role ID
-    const { data: roleData, error: roleError } = await supabase
+    const { data: roleData, error: roleError } = await adminClient
       .from('roles')
       .select('id')
       .eq('name', roleName)
@@ -124,7 +151,7 @@ export const rbacService = {
     }
 
     // Assign role
-    const { error } = await supabase.from('user_roles').insert({
+    const { error } = await adminClient.from('user_roles').insert({
       user_id: userId,
       role_id: roleData.id,
     });
@@ -142,8 +169,9 @@ export const rbacService = {
    * Remove role from user
    */
   async removeRole(userId: string, roleName: string): Promise<void> {
+    const adminClient = requireSupabaseAdmin();
     // Get role ID
-    const { data: roleData, error: roleError } = await supabase
+    const { data: roleData, error: roleError } = await adminClient
       .from('roles')
       .select('id')
       .eq('name', roleName)
@@ -154,7 +182,7 @@ export const rbacService = {
     }
 
     // Remove role
-    const { error } = await supabase
+    const { error } = await adminClient
       .from('user_roles')
       .delete()
       .eq('user_id', userId)
@@ -165,4 +193,3 @@ export const rbacService = {
     }
   },
 };
-

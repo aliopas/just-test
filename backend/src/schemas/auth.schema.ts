@@ -7,10 +7,7 @@ const phoneRegex = /^\+[1-9]\d{1,14}$/;
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
 
 export const registerSchema = z.object({
-  email: z
-    .string()
-    .email('Invalid email format')
-    .min(1, 'Email is required'),
+  email: z.string().email('Invalid email format').min(1, 'Email is required'),
   password: z
     .string()
     .min(8, 'Password must be at least 8 characters')
@@ -27,10 +24,7 @@ export const registerSchema = z.object({
 export type RegisterInput = z.infer<typeof registerSchema>;
 
 export const verifyOTPSchema = z.object({
-  email: z
-    .string()
-    .email('Invalid email format')
-    .min(1, 'Email is required'),
+  email: z.string().email('Invalid email format').min(1, 'Email is required'),
   otp: z
     .string()
     .length(6, 'OTP must be 6 digits')
@@ -40,10 +34,7 @@ export const verifyOTPSchema = z.object({
 export type VerifyOTPInput = z.infer<typeof verifyOTPSchema>;
 
 export const resendOTPSchema = z.object({
-  email: z
-    .string()
-    .email('Invalid email format')
-    .min(1, 'Email is required'),
+  email: z.string().email('Invalid email format').min(1, 'Email is required'),
 });
 
 export type ResendOTPInput = z.infer<typeof resendOTPSchema>;
@@ -69,4 +60,3 @@ export const totpVerifySchema = z.object({
 });
 
 export type TOTPVerifyInput = z.infer<typeof totpVerifySchema>;
-

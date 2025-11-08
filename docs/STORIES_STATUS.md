@@ -11,15 +11,19 @@
   - يغطي: Git/.gitignore, ESLint/Prettier, Husky (اختياري), CI/CD (GitHub Actions), .env.example, health-check, README
   - يتوافق مع Story 1.1 في `docs/prd/epic-1.md`
 
-- [x] `docs/stories/story-1.2-supabase-mcp.md`
+- [x] `docs/stories/story-1.2-visual-identity.md`
+  - يغطي: الهوية البصرية، theme.ts، مكوّن الشعار، دعم RTL، وثيقة design-system
+  - يتوافق مع Story 1.2 في Epic 1
+
+- [x] `docs/stories/story-1.3-supabase-mcp.md`
   - يغطي: ربط MCP، هجرة أولية (users, sessions, audit_logs)، list_tables, apply_migration, execute_sql (seed)
-  - يتوافق مع Story 1.2 (تهيئة قاعدة البيانات والهجرات عبر MCP)
+  - يتوافق مع Story 1.3 (تهيئة قاعدة البيانات والهجرات عبر MCP)
 
-- [x] `docs/stories/story-1.3-supabase-auth-register.md`
+- [x] `docs/stories/story-1.4-supabase-auth-register.md`
   - يغطي: Supabase Auth إعداد، Endpoint التسجيل، التحقق، العقود والاختبارات
-  - يتوافق مع Story 1.3 في Epic 1
+  - يتوافق مع Story 1.4 في Epic 1
 
-الحالة العامة: Stories Creation بدأت وتم إعداد 3 قصص أولى وفق PRD/Epic 1.
+الحالة العامة: تم تجهيز قصص Epic 1 حتى 1.4 مع الاعتماد على وثائق التنفيذ المحدثة.
 
 ---
 

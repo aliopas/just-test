@@ -13,4 +13,3 @@ export function getOTPExpiration(minutes: number = 10): Date {
   expiration.setMinutes(expiration.getMinutes() + minutes);
   return expiration;
 }
-

@@ -1,0 +1,134 @@
+export const palette = {
+  primary: '#2D6FA3',
+  primaryDark: '#1E3A5F',
+  text: '#111418',
+  border: '#9CA3AF',
+  surface: '#F9FAFB',
+  success: '#10B981',
+  warning: '#F59E0B',
+  error: '#EF4444',
+  white: '#FFFFFF',
+  black: '#000000',
+} as const;
+
+export type PaletteColor = keyof typeof palette;
+
+export interface TypographyScale {
+  fontFamily: string;
+  sizes: {
+    display: string;
+    heading: string;
+    subheading: string;
+    body: string;
+    caption: string;
+  };
+  weights: {
+    regular: number;
+    medium: number;
+    semibold: number;
+    bold: number;
+  };
+  lineHeights: {
+    tight: number;
+    normal: number;
+    relaxed: number;
+  };
+}
+
+export const typography: TypographyScale = {
+  fontFamily: "'Tajawal', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  sizes: {
+    display: '2.75rem',
+    heading: '2rem',
+    subheading: '1.5rem',
+    body: '1rem',
+    caption: '0.875rem',
+  },
+  weights: {
+    regular: 400,
+    medium: 500,
+    semibold: 600,
+    bold: 700,
+  },
+  lineHeights: {
+    tight: 1.1,
+    normal: 1.5,
+    relaxed: 1.75,
+  },
+};
+
+export const spacing = {
+  xs: '0.25rem',
+  sm: '0.5rem',
+  md: '1rem',
+  lg: '1.5rem',
+  xl: '2rem',
+  '2xl': '3rem',
+} as const;
+
+export const radius = {
+  sm: '4px',
+  md: '8px',
+  lg: '12px',
+  pill: '999px',
+} as const;
+
+export const shadow = {
+  subtle: '0 1px 2px rgba(17, 20, 24, 0.06)',
+  medium: '0 8px 20px rgba(17, 20, 24, 0.08)',
+  focus: '0 0 0 3px rgba(45, 111, 163, 0.35)',
+} as const;
+
+export const rtl = {
+  direction: 'rtl' as const,
+  logicalProperties: {
+    marginInlineStart: 'marginRight',
+    marginInlineEnd: 'marginLeft',
+    paddingInlineStart: 'paddingRight',
+    paddingInlineEnd: 'paddingLeft',
+  },
+};
+
+export const theme = {
+  palette,
+  typography,
+  spacing,
+  radius,
+  shadow,
+  rtl,
+};
+
+export type Theme = typeof theme;
+
+export function toCssVariables({ palette: colors, spacing: space, radius: radii, shadow: shadows, typography: type }: Theme) {
+  return {
+    '--color-primary': colors.primary,
+    '--color-primary-dark': colors.primaryDark,
+    '--color-text': colors.text,
+    '--color-border': colors.border,
+    '--color-surface': colors.surface,
+    '--color-success': colors.success,
+    '--color-warning': colors.warning,
+    '--color-error': colors.error,
+    '--spacing-xs': space.xs,
+    '--spacing-sm': space.sm,
+    '--spacing-md': space.md,
+    '--spacing-lg': space.lg,
+    '--spacing-xl': space.xl,
+    '--spacing-2xl': space['2xl'],
+    '--radius-sm': radii.sm,
+    '--radius-md': radii.md,
+    '--radius-lg': radii.lg,
+    '--radius-pill': radii.pill,
+    '--shadow-subtle': shadows.subtle,
+    '--shadow-medium': shadows.medium,
+    '--shadow-focus': shadows.focus,
+    '--font-family-base': type.fontFamily,
+    '--font-size-display': type.sizes.display,
+    '--font-size-heading': type.sizes.heading,
+    '--font-size-subheading': type.sizes.subheading,
+    '--font-size-body': type.sizes.body,
+    '--font-size-caption': type.sizes.caption,
+  } as const;
+}
+

@@ -80,6 +80,11 @@ invastors-bacura/
 │   │   ├── middleware/
 │   │   └── utils/
 │   └── tests/
+├── frontend/         # Design system assets & UI building blocks
+│   └── src/
+│       ├── components/
+│       ├── styles/
+│       └── assets/
 ├── docs/             # Documentation
 │   ├── prd/         # PRD and Epics
 │   ├── architecture/
@@ -109,6 +114,8 @@ invastors-bacura/
 
 - `JWT_SECRET` - سر JWT
 - `SESSION_SECRET` - سر الجلسة
+- `CORS_ORIGINS` - قائمة أصول موثوقة مفصولة بفواصل (افتراضي: `http://localhost:3000`)
+- `ENABLE_CSRF` - تفعيل حماية CSRF عبر cookies (ضع `true` لتمكينها في بيئات تستخدم cookies)
 
 ---
 
@@ -124,6 +131,8 @@ npm test
 npm test -- health.test.ts
 ```
 
+> **تنبيه:** تتطلب اختبارات المصادقة وجود المتغير `SUPABASE_SERVICE_ROLE_KEY` لكي تتمكن الخدمات من الكتابة إلى الجداول المحمية بـ RLS.
+
 ---
 
 ## 📚 الوثائق
@@ -132,6 +141,7 @@ npm test -- health.test.ts
 - **Epics:** `docs/prd/epic-*.md`
 - **Architecture:** `docs/architecture/`
 - **Stories:** `docs/stories/`
+- **Design System:** `docs/design-system.md` (مع ملفات `frontend/src/styles/theme.ts` و`frontend/src/components/Logo.tsx`)
 - **Supabase Integration:** `docs/SUPABASE_INTEGRATION.md`
 
 ---

@@ -324,6 +324,9 @@ Content-Type: application/json
    - الاختبارات الحالية تتطلب authentication middleware
    - يجب إضافة middleware mock للاختبارات الكاملة
 
+6. **Supabase Admin Access:**
+   - تفعيل/تعطيل 2FA يعتمد على تحديث جدول `users` عبر `SUPABASE_SERVICE_ROLE_KEY`.
+
 ---
 
 **تم إنشاء التقرير بواسطة:** AI Assistant  
