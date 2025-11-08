@@ -9,6 +9,18 @@ type StatusMeta = {
   progress: number;
 };
 
+export const REQUEST_STATUSES: RequestStatus[] = [
+  'draft',
+  'submitted',
+  'screening',
+  'pending_info',
+  'compliance_review',
+  'approved',
+  'rejected',
+  'settling',
+  'completed',
+];
+
 const STATUS_META: Record<RequestStatus, StatusMeta> = {
   draft: {
     label: { en: 'Draft', ar: 'مسودة' },

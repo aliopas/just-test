@@ -1,9 +1,24 @@
 import { Router } from 'express';
 import { adminUserController } from '../controllers/admin-user.controller';
+import { adminRequestController } from '../controllers/admin-request.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { requirePermission } from '../middleware/rbac.middleware';
 
 const adminRouter = Router();
+
+adminRouter.get(
+  '/requests',
+  authenticate,
+  requirePermission('admin.requests.review'),
+  adminRequestController.listRequests
+);
+
+adminRouter.get(
+  '/requests/:id',
+  authenticate,
+  requirePermission('admin.requests.review'),
+  adminRequestController.getRequestDetail
+);
 
 adminRouter.get(
   '/users',

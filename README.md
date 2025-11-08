@@ -143,6 +143,9 @@ npm test -- health.test.ts
 - **Stories:** `docs/stories/`
 - **Story 2.3 (Investor Profile UI):** `docs/stories/STORY_2.3_COMPLETION.md`
 - **Story 3.1–3.8 (Requests Backend & Investor Tracking):** `docs/stories/STORY_3.1_COMPLETION.md`, `STORY_3.2_COMPLETION.md`, `STORY_3.3_COMPLETION.md`, `STORY_3.5_COMPLETION.md`, `STORY_3.6_COMPLETION.md`, `STORY_3.7_COMPLETION.md`, `STORY_3.8_COMPLETION.md`
+- **Story 4.1 (Admin Requests Inbox API):** `docs/stories/STORY_4.1_COMPLETION.md`
+- **Story 4.2 (Admin Requests Inbox UI):** `docs/stories/STORY_4.2_COMPLETION.md`
+- **Story 4.3 (Admin Request Detail View):** `docs/stories/STORY_4.3_COMPLETION.md`
 - **Design System:** `docs/design-system.md` (مع ملفات `frontend/src/styles/theme.ts` و`frontend/src/components/Logo.tsx`)
 - **Supabase Integration:** `docs/SUPABASE_INTEGRATION.md`
 - **RBAC Matrix:** `docs/prd/rbac-matrix.md`

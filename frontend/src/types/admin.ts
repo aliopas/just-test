@@ -1,0 +1,87 @@
+import type { RequestStatus, RequestType, RequestCurrency } from './request';
+
+export interface AdminRequestInvestor {
+  id: string | null;
+  email: string | null;
+  fullName: string | null;
+  preferredName: string | null;
+  language: 'ar' | 'en' | null;
+}
+
+export interface AdminRequest {
+  id: string;
+  requestNumber: string;
+  status: RequestStatus;
+  type: RequestType;
+  amount: number;
+  currency: RequestCurrency;
+  targetPrice: number | null | undefined;
+  expiryAt: string | null | undefined;
+  createdAt: string;
+  updatedAt: string;
+  investor: AdminRequestInvestor;
+}
+
+export interface AdminRequestListMeta {
+  page: number;
+  limit: number;
+  total: number;
+  pageCount: number;
+  hasNext: boolean;
+}
+
+export interface AdminRequestListResponse {
+  requests: AdminRequest[];
+  meta: AdminRequestListMeta;
+}
+
+export interface AdminAttachment {
+  id: string;
+  filename: string;
+  mimeType: string | null;
+  size: number | null;
+  storageKey: string;
+  createdAt: string;
+}
+
+export interface AdminRequestEvent {
+  id: string;
+  fromStatus: string | null;
+  toStatus: string | null;
+  actorId: string | null;
+  note: string | null;
+  createdAt: string;
+}
+
+export interface AdminRequestComment {
+  id: string;
+  note: string;
+  createdAt: string;
+}
+
+export interface AdminRequestDetail {
+  request: AdminRequest & {
+    userId: string;
+    notes: string | null;
+  };
+  attachments: AdminAttachment[];
+  events: AdminRequestEvent[];
+  comments: AdminRequestComment[];
+}
+
+export type AdminRequestSortField = 'created_at' | 'amount' | 'status';
+export type AdminRequestSortOrder = 'asc' | 'desc';
+
+export interface AdminRequestFilters {
+  page?: number;
+  status?: RequestStatus | 'all';
+  type?: RequestType | 'all';
+  minAmount?: number | null;
+  maxAmount?: number | null;
+  createdFrom?: string | null;
+  createdTo?: string | null;
+  search?: string;
+  sortBy?: AdminRequestSortField;
+  order?: AdminRequestSortOrder;
+}
+
