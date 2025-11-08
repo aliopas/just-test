@@ -58,7 +58,8 @@ type MessageKey =
   | 'detail.updatedAt'
   | 'decision.approvedSuccess'
   | 'decision.rejectedSuccess'
-  | 'decision.notePlaceholder';
+  | 'decision.infoRequestedSuccess'
+  | 'decision.notePlaceholder'
   | 'decision.noteRequired';
 
 type MessageDictionary = Record<MessageKey, string>;
@@ -123,6 +124,7 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'detail.updatedAt': 'Last updated',
     'decision.approvedSuccess': 'Request approved successfully',
     'decision.rejectedSuccess': 'Request rejected successfully',
+    'decision.infoRequestedSuccess': 'Information request sent successfully',
     'decision.notePlaceholder': 'Add an internal note (optional, max 500 characters)…',
     'decision.noteRequired': 'Please enter a message before requesting additional information.',
   },
@@ -185,6 +187,7 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'detail.updatedAt': 'آخر تحديث',
     'decision.approvedSuccess': 'تمت الموافقة على الطلب بنجاح',
     'decision.rejectedSuccess': 'تم رفض الطلب بنجاح',
+    'decision.infoRequestedSuccess': 'تم إرسال طلب المعلومات الإضافية بنجاح',
     'decision.notePlaceholder': 'أضف ملاحظة داخلية (اختياري، بحد أقصى 500 حرف)…',
     'decision.noteRequired': 'يرجى إدخال رسالة قبل طلب معلومات إضافية.',
   },

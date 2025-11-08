@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { apiClient } from '../utils/api-client';
 import type {
   AdminRequestFilters,
@@ -89,10 +89,10 @@ export function useAdminRequests(filters: AdminRequestFilters) {
     ]
   );
 
-  const query = useQuery({
+  const query = useQuery<AdminRequestListResponse>({
     queryKey,
     queryFn: () => fetchAdminRequests(filters),
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
   });
 
   return {
