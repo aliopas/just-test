@@ -42,12 +42,17 @@ export type ResendOTPInput = z.infer<typeof resendOTPSchema>;
 export const loginSchema = z.object({
   email: z.string().email('Invalid email format').min(1, 'Email is required'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
+  totpToken: z
+    .string()
+    .length(6, 'TOTP token must be 6 digits')
+    .regex(/^\d{6}$/, 'TOTP token must contain only digits')
+    .optional(),
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;
 
 export const refreshSchema = z.object({
-  refresh_token: z.string().min(10, 'refresh_token is required'),
+  refresh_token: z.string().min(10, 'refresh_token is required').optional(),
 });
 
 export type RefreshInput = z.infer<typeof refreshSchema>;

@@ -333,14 +333,32 @@ describe('POST /api/v1/auth/resend-otp', () => {
 describe('Auth Session Flow', () => {
   const password = 'Test1234';
   let email: string;
-  let refreshToken: string | undefined;
+  let authCookies: string[] = [];
 
   beforeAll(async () => {
     email = `login-${Date.now()}@example.com`;
-    await request(app)
+    const registerResponse = await request(app)
       .post('/api/v1/auth/register')
       .send({ email, password })
       .expect(201);
+
+    const userId = registerResponse.body.user.id;
+    const adminClient = requireSupabaseAdmin();
+    const { data: otpData } = await adminClient
+      .from('user_otps')
+      .select('code')
+      .eq('user_id', userId)
+      .eq('verified', false)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (otpData?.code) {
+      await request(app)
+        .post('/api/v1/auth/verify-otp')
+        .send({ email, otp: otpData.code })
+        .expect(200);
+    }
   });
 
   it('should login with email and password', async () => {
@@ -350,25 +368,47 @@ describe('Auth Session Flow', () => {
       .expect(200);
 
     expect(res.body).toHaveProperty('user');
-    expect(res.body).toHaveProperty('session');
-    refreshToken = res.body.session?.refresh_token;
-    expect(typeof refreshToken).toBe('string');
+    expect(res.body).toHaveProperty('expiresIn');
+    expect(typeof res.body.expiresIn).toBe('number');
+
+    const cookies = res.get('Set-Cookie');
+    expect(Array.isArray(cookies)).toBe(true);
+    expect(
+      cookies?.some(cookie => cookie.startsWith('sb-access-token='))
+    ).toBe(true);
+    authCookies = cookies ?? [];
   });
 
   it('should refresh session with refresh_token', async () => {
-    if (!refreshToken) return;
+    if (authCookies.length === 0) return;
 
     const res = await request(app)
       .post('/api/v1/auth/refresh')
-      .send({ refresh_token: refreshToken })
+      .set('Cookie', authCookies)
+      .send({})
       .expect(200);
 
-    expect(res.body).toHaveProperty('session');
+    expect(res.body).toHaveProperty('refreshed', true);
     expect(res.body).toHaveProperty('user');
+
+    const refreshCookies = res.get('Set-Cookie');
+    if (refreshCookies) {
+      authCookies = refreshCookies;
+    }
   });
 
   it('should logout (client clears tokens)', async () => {
-    await request(app).post('/api/v1/auth/logout').send({}).expect(204);
+    const res = await request(app)
+      .post('/api/v1/auth/logout')
+      .set('Cookie', authCookies)
+      .send({})
+      .expect(200);
+
+    expect(res.body).toHaveProperty('loggedOut', true);
+    const clearedCookies = res.get('Set-Cookie') ?? [];
+    expect(
+      clearedCookies.some(cookie => cookie.startsWith('sb-access-token='))
+    ).toBe(true);
   });
 });
 

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { supabase, requireSupabaseAdmin } from '../lib/supabase';
+import { getAccessToken } from '../utils/auth.util';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -19,17 +20,15 @@ export const authenticate = async (
 ) => {
   try {
     // Get token from Authorization header
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const token = getAccessToken(req);
+    if (!token) {
       return res.status(401).json({
         error: {
           code: 'UNAUTHORIZED',
-          message: 'Missing or invalid authorization header',
+          message: 'Missing or invalid access token',
         },
       });
     }
-
-    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
     // Verify token with Supabase
     const { data, error } = await supabase.auth.getUser(token);

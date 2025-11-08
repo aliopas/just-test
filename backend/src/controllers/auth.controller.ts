@@ -5,12 +5,39 @@ import {
   RegisterInput,
   VerifyOTPInput,
   ResendOTPInput,
+  LoginInput,
 } from '../schemas/auth.schema';
 import { otpService } from '../services/otp.service';
 import { totpService } from '../services/totp.service';
 import { rbacService } from '../services/rbac.service';
+import {
+  clearAuthCookies,
+  getAccessToken,
+  getRefreshToken,
+  setAuthCookies,
+} from '../utils/auth.util';
 
 type EmptyParams = Record<string, never>;
+
+function decodeJwtSub(token: string): string | null {
+  try {
+    const payloadSegment = token.split('.')[1];
+    if (!payloadSegment) {
+      return null;
+    }
+    const normalized = payloadSegment.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalized.padEnd(
+      normalized.length + ((4 - (normalized.length % 4)) % 4),
+      '='
+    );
+    const decoded = Buffer.from(padded, 'base64').toString('utf-8');
+    const payload = JSON.parse(decoded) as { sub?: string };
+    return typeof payload.sub === 'string' ? payload.sub : null;
+  } catch (error) {
+    console.error('Failed to decode JWT payload:', error);
+    return null;
+  }
+}
 
 export const authController = {
   register: async (
@@ -272,13 +299,12 @@ export const authController = {
     }
   },
 
-  login: async (req: Request, res: Response) => {
+  login: async (
+    req: Request<EmptyParams, unknown, LoginInput>,
+    res: Response
+  ) => {
     try {
-      const { email, password, totpToken } = req.body as {
-        email: string;
-        password: string;
-        totpToken?: string;
-      };
+      const { email, password, totpToken } = req.body;
 
       // Sign in with password
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -295,7 +321,8 @@ export const authController = {
         });
       }
 
-      if (!data.user) {
+      if (!data.user || !data.session) {
+        await supabase.auth.signOut();
         return res.status(500).json({
           error: {
             code: 'INTERNAL_ERROR',
@@ -308,13 +335,24 @@ export const authController = {
       const adminClient = requireSupabaseAdmin();
       const { data: userData } = await adminClient
         .from('users')
-        .select('mfa_enabled, mfa_secret')
+        .select('mfa_enabled, mfa_secret, status')
         .eq('id', data.user.id)
         .single();
+
+      if (userData?.status && userData.status !== 'active') {
+        await supabase.auth.signOut();
+        return res.status(403).json({
+          error: {
+            code: 'ACCOUNT_INACTIVE',
+            message: 'Account is not activated. Please verify your email/OTP.',
+          },
+        });
+      }
 
       if (userData?.mfa_enabled && userData?.mfa_secret) {
         // 2FA is enabled - require TOTP token
         if (!totpToken) {
+          await supabase.auth.signOut();
           return res.status(200).json({
             requires2FA: true,
             message: '2FA token required',
@@ -324,6 +362,7 @@ export const authController = {
         // Verify TOTP token
         const isValid = totpService.verifyToken(userData.mfa_secret, totpToken);
         if (!isValid) {
+          await supabase.auth.signOut();
           return res.status(401).json({
             error: {
               code: 'INVALID_TOTP_TOKEN',
@@ -333,9 +372,15 @@ export const authController = {
         }
       }
 
+      setAuthCookies(res, data.session);
+
       return res.status(200).json({
-        user: data.user,
-        session: data.session,
+        user: {
+          id: data.user.id,
+          email: data.user.email,
+        },
+        expiresIn: data.session.expires_in ?? 3600,
+        tokenType: 'Bearer',
       });
     } catch (error) {
       return res.status(500).json({
@@ -349,9 +394,19 @@ export const authController = {
 
   refresh: async (req: Request, res: Response) => {
     try {
-      const { refresh_token } = req.body as { refresh_token: string };
+      const refreshToken = getRefreshToken(req);
+
+      if (!refreshToken) {
+        return res.status(401).json({
+          error: {
+            code: 'INVALID_REFRESH_TOKEN',
+            message: 'Refresh token is missing',
+          },
+        });
+      }
+
       const { data, error } = await supabase.auth.refreshSession({
-        refresh_token,
+        refresh_token: refreshToken,
       });
 
       if (error) {
@@ -363,9 +418,24 @@ export const authController = {
         });
       }
 
+      if (!data.session || !data.user) {
+        return res.status(401).json({
+          error: {
+            code: 'INVALID_REFRESH_TOKEN',
+            message: 'Failed to refresh session',
+          },
+        });
+      }
+
+      setAuthCookies(res, data.session);
+
       return res.status(200).json({
-        session: data.session,
-        user: data.user,
+        refreshed: true,
+        user: {
+          id: data.user.id,
+          email: data.user.email,
+        },
+        expiresIn: data.session.expires_in ?? 3600,
       });
     } catch (error) {
       return res.status(500).json({
@@ -377,9 +447,50 @@ export const authController = {
     }
   },
 
-  logout: async (_req: Request, res: Response) => {
-    // Client-managed tokens: instruct client to clear tokens
-    return res.status(204).send();
+  logout: async (req: Request, res: Response) => {
+    try {
+      const accessToken = getAccessToken(req);
+      const refreshToken = getRefreshToken(req);
+
+      if (accessToken) {
+        const userId = decodeJwtSub(accessToken);
+        if (userId) {
+          try {
+            const adminClient = requireSupabaseAdmin();
+            await adminClient.auth.admin.signOut(userId);
+          } catch (adminError) {
+            console.error('Failed to revoke user sessions:', adminError);
+          }
+        }
+      }
+
+      if (accessToken && refreshToken) {
+        try {
+          await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          await supabase.auth.signOut({ scope: 'local' });
+        } catch (signOutError) {
+          console.error('Failed to sign out current session:', signOutError);
+        }
+      }
+
+      clearAuthCookies(res);
+
+      return res.status(200).json({
+        loggedOut: true,
+        message: 'Session terminated successfully',
+      });
+    } catch (error) {
+      clearAuthCookies(res);
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'An unexpected error occurred',
+        },
+      });
+    }
   },
 
   setup2FA: async (req: AuthenticatedRequest, res: Response) => {
