@@ -14,6 +14,8 @@
 | 2024-11-06 | 1.0 | إنشاء Front End Spec الأولي | BMad Team |
 | 2025-11-08 | 1.1 | إضافة صفحة `/app/profile` واستراتيجية i18n/RTL للمستثمر | GPT-5 Codex |
 | 2025-11-08 | 1.2 | إضافة صفحة إنشاء الطلب `/app/new-request` مع نماذج وتوست ومقدمات API | GPT-5 Codex |
+| 2025-11-08 | 1.3 | إضافة صفحة متابعة الطلبات `/app/requests` بعرض الحالة والتفاصيل | GPT-5 Codex |
+| 2025-11-08 | 1.4 | دعم عرض تفاصيل الطلب مع المرفقات وسجل الأحداث | GPT-5 Codex |
 
 ---
 
@@ -56,6 +58,25 @@
 - **i18n:** يعتمد `LanguageProvider` مع قاموس `frontend/src/locales/newRequest.ts` لنصوص النموذج.
 - **التحليلات:** Placeholder عبر `analytics.track('request_created')` عند النجاح.
 - **ملاحظات:** تتطلب نفس التبعيات المذكورة أعلاه (React Query, Hook Form, Zod). عند إضافة اختبارات واجهة، استخدم `@testing-library/react`.
+
+### My Requests Experience (v1.3)
+
+- **Entry Route:** `/app/requests` (`frontend/src/app/requests/main.tsx`) مع دعم منفذ `drawer-root` لعرض التفاصيل.
+- **Core Components:** داخل `frontend/src/components/request/` وتشمل `RequestList`, `RequestListItem`, `RequestStatusBadge`, `RequestProgressBar`, `RequestDetailsDrawer`.
+- **Data Layer:** `useInvestorRequests` (TanStack Query) يستدعي `GET /investor/requests` مع pagination + فلترة حسب الحالة (`status` query).
+- **التفاعلات:** أزرار فلترة بحسب الحالة، أزرار Pagination، زر تحديث سريع، واختيار عنصر لفتح تفاصيل الطلب (Side Drawer).
+- **التصميم البصري:** بطاقات بطول كامل مع شريط تقدم يرمز للحالة، شارات ملونة للحالة، ولوح تفاصيل يغطي جانب الشاشة مع معلومات أساسية.
+- **i18n:** قاموس `frontend/src/locales/requestList.ts` يغطي النصوص، يعتمد نفس `LanguageProvider`.
+- **التكامل:** زر Call-to-Action في حالة عدم وجود طلبات ينقل إلى `/app/new-request`.
+
+### Request Detail Experience (v1.4)
+
+- **Entry Route:** نفس صفحة `/app/requests` عبر `RequestDetailsDrawer` (Portal إلى `#drawer-root`).
+- **Data Layer:** `useInvestorRequestDetail` (React Query) تستدعي `GET /investor/requests/:id` للحصول على تفاصيل الطلب، المرفقات، سجل الأحداث، والتعليقات.
+- **عرض المرفقات:** تضمين معلومات الملف (الاسم، الحجم، النوع) مع زر تنزيل يستعمل روابط موقّتة (Signed URL) عند توافرها.
+- **سجل الأحداث:** Timeline عمودي مع عرض الحالة، التاريخ، والملاحظات لكل انتقال.
+- **التعليقات:** تعتمد على ملاحظات الأحداث (notes) وتُعرض في قائمة منفصلة داخل الدراور.
+- **تجربة الاستخدام:** حالات تحميل/خطأ واضحة، زر تحديث، ودعم كامل لـ RTL والنصوص عبر `frontend/src/locales/requestList.ts`.
 
 ---
 

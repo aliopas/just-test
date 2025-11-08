@@ -9,6 +9,13 @@ import { requestController } from '../controllers/request.controller';
 const investorRouter = Router();
 
 investorRouter.get(
+  '/requests',
+  authenticate,
+  requirePermission(['investor.requests.read', 'admin.requests.review']),
+  requestController.list
+);
+
+investorRouter.post(
   '/profile',
   authenticate,
   requirePermission(['investor.profile.read', 'admin.users.manage']),
@@ -35,6 +42,13 @@ investorRouter.post(
   authenticate,
   requirePermission('investor.requests.submit'),
   requestController.submit
+);
+
+investorRouter.get(
+  '/requests/:id',
+  authenticate,
+  requirePermission(['investor.requests.read', 'admin.requests.review']),
+  requestController.detail
 );
 
 export { investorRouter };

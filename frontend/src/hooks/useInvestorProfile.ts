@@ -61,13 +61,13 @@ export function useInvestorProfile() {
   return useMemo(
     () => ({
       profile: query.data ?? null,
-      isLoading: query.isLoading,
+      isLoading: query.isPending,
       isFetching: query.isFetching,
       isError: query.isError,
       error: query.error,
       refetch: query.refetch,
       updateProfile: mutation.mutateAsync,
-      isUpdating: mutation.isLoading,
+      isUpdating: mutation.isPending,
       updateError: mutation.error,
       resetUpdate: mutation.reset,
     }),

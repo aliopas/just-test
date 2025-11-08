@@ -1,8 +1,13 @@
 import type { Response } from 'express';
 import type { AuthenticatedRequest } from '../middleware/auth.middleware';
 import { createRequestSchema } from '../schemas/request.schema';
-import { createInvestorRequest } from '../services/request.service';
-import { submitInvestorRequest } from '../services/request.service';
+import { requestListQuerySchema } from '../schemas/request-list.schema';
+import {
+  createInvestorRequest,
+  submitInvestorRequest,
+  listInvestorRequests,
+  getInvestorRequestDetail,
+} from '../services/request.service';
 
 export const requestController = {
   async create(req: AuthenticatedRequest, res: Response) {
@@ -52,6 +57,49 @@ export const requestController = {
     }
   },
 
+  async list(req: AuthenticatedRequest, res: Response) {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'User not authenticated',
+          },
+        });
+      }
+
+      const validation = requestListQuerySchema.safeParse(req.query);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid query parameters',
+            details: validation.error.issues.map(issue => ({
+              field: issue.path.join('.'),
+              message: issue.message,
+            })),
+          },
+        });
+      }
+
+      const result = await listInvestorRequests({
+        userId,
+        query: validation.data,
+      });
+
+      return res.status(200).json(result);
+    } catch (error) {
+      console.error('Failed to list requests:', error);
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to list requests',
+        },
+      });
+    }
+  },
+
   async submit(req: AuthenticatedRequest, res: Response) {
     try {
       const userId = req.user?.id;
@@ -84,10 +132,7 @@ export const requestController = {
         status: result.status,
       });
     } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message === 'REQUEST_NOT_FOUND'
-      ) {
+      if (error instanceof Error && error.message === 'REQUEST_NOT_FOUND') {
         return res.status(404).json({
           error: {
             code: 'NOT_FOUND',
@@ -96,10 +141,7 @@ export const requestController = {
         });
       }
 
-      if (
-        error instanceof Error &&
-        error.message === 'REQUEST_NOT_OWNED'
-      ) {
+      if (error instanceof Error && error.message === 'REQUEST_NOT_OWNED') {
         return res.status(403).json({
           error: {
             code: 'FORBIDDEN',
@@ -108,10 +150,7 @@ export const requestController = {
         });
       }
 
-      if (
-        error instanceof Error &&
-        error.message === 'REQUEST_NOT_DRAFT'
-      ) {
+      if (error instanceof Error && error.message === 'REQUEST_NOT_DRAFT') {
         return res.status(409).json({
           error: {
             code: 'INVALID_STATE',
@@ -120,10 +159,7 @@ export const requestController = {
         });
       }
 
-      if (
-        error instanceof Error &&
-        error.message === 'ATTACHMENTS_REQUIRED'
-      ) {
+      if (error instanceof Error && error.message === 'ATTACHMENTS_REQUIRED') {
         return res.status(400).json({
           error: {
             code: 'ATTACHMENTS_REQUIRED',
@@ -137,6 +173,84 @@ export const requestController = {
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to submit request',
+        },
+      });
+    }
+  },
+
+  async detail(req: AuthenticatedRequest, res: Response) {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'User not authenticated',
+          },
+        });
+      }
+
+      const requestId = req.params.id;
+      if (!requestId) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Request id is required',
+          },
+        });
+      }
+
+      const detail = await getInvestorRequestDetail({
+        requestId,
+        userId,
+      });
+
+      return res.status(200).json(detail);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'REQUEST_NOT_FOUND') {
+        return res.status(404).json({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Request not found',
+          },
+        });
+      }
+
+      if (error instanceof Error && error.message === 'REQUEST_NOT_OWNED') {
+        return res.status(403).json({
+          error: {
+            code: 'FORBIDDEN',
+            message: 'You do not have access to this request',
+          },
+        });
+      }
+
+      if (
+        error instanceof Error &&
+        error.message.startsWith('FAILED_ATTACHMENTS')
+      ) {
+        return res.status(500).json({
+          error: {
+            code: 'ATTACHMENT_ERROR',
+            message: 'Failed to load attachments',
+          },
+        });
+      }
+
+      if (error instanceof Error && error.message.startsWith('FAILED_EVENTS')) {
+        return res.status(500).json({
+          error: {
+            code: 'EVENT_ERROR',
+            message: 'Failed to load request events',
+          },
+        });
+      }
+
+      console.error('Failed to load request detail:', error);
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to load request detail',
         },
       });
     }

@@ -14,15 +14,30 @@ export class ApiError extends Error {
   }
 }
 
-const defaultHeaders: HeadersInit = {
+const defaultHeaders: Record<string, string> = {
   'Content-Type': 'application/json',
 };
+
+function applyHeaders(target: Headers, source?: HeadersInit) {
+  if (!source) return;
+  if (source instanceof Headers) {
+    source.forEach((value, key) => target.set(key, value));
+    return;
+  }
+  if (Array.isArray(source)) {
+    source.forEach(([key, value]) => target.set(key, value));
+    return;
+  }
+  Object.entries(source).forEach(([key, value]) => {
+    target.set(key, String(value));
+  });
+}
 
 function getBaseUrl(): string {
   if (typeof window !== 'undefined') {
     return window.__ENV__?.API_BASE_URL ?? '/api/v1';
   }
-  return process.env.VITE_API_BASE_URL ?? '/api/v1';
+  return import.meta.env.VITE_API_BASE_URL ?? '/api/v1';
 }
 
 export async function apiClient<TResponse>(
@@ -32,10 +47,8 @@ export async function apiClient<TResponse>(
   const baseUrl = getBaseUrl();
   const url = path.startsWith('http') ? path : `${baseUrl}${path}`;
 
-  const requestHeaders: HeadersInit = {
-    ...defaultHeaders,
-    ...headers,
-  };
+  const requestHeaders = new Headers(defaultHeaders);
+  applyHeaders(requestHeaders, headers);
 
   if (auth) {
     const token =
@@ -47,10 +60,10 @@ export async function apiClient<TResponse>(
             .find(item => item.startsWith('sb-access-token='))
             ?.split('=')[1] ??
           undefined
-        : process.env.TEST_ACCESS_TOKEN;
+        : import.meta.env.VITE_TEST_ACCESS_TOKEN;
 
     if (token) {
-      requestHeaders.Authorization = `Bearer ${token}`;
+      requestHeaders.set('Authorization', `Bearer ${token}`);
     }
   }
 
@@ -77,5 +90,4 @@ export async function apiClient<TResponse>(
 
   return payload as TResponse;
 }
-
 

@@ -1,17 +1,20 @@
 [build]
   command = "npm install && npm run build"
   functions = "netlify/functions"
-  publish = "."
+  publish = "frontend/dist"
 
 [build.environment]
-  NODE_VERSION = "20"
+  NODE_VERSION = "22"
 
-# Redirect all requests to Netlify Function (catch-all)
 [[redirects]]
-  from = "/*"
+  from = "/api/*"
   to = "/.netlify/functions/server/:splat"
   status = 200
-  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
 
 [functions]
   node_bundler = "esbuild"

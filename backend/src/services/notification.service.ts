@@ -12,18 +12,13 @@ type AdminSubmissionNotification = {
 export async function notifyInvestorOfSubmission(
   payload: InvestorSubmissionNotification
 ) {
-  console.info(
-    '[notifications] Investor submission queued',
-    JSON.stringify(payload)
-  );
+  void payload;
+  return Promise.resolve();
 }
 
 export async function notifyAdminsOfSubmission(
   payload: AdminSubmissionNotification
 ) {
-  console.info(
-    '[notifications] Admin submission queued',
-    JSON.stringify(payload)
-  );
+  void payload;
+  return Promise.resolve();
 }
-

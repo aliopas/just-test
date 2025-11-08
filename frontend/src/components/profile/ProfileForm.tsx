@@ -132,7 +132,7 @@ export function ProfileForm({
     };
 
     await onSubmit(payload);
-    analytics.track('investor_profile_updated', payload);
+    analytics.track('investor_profile_updated', payload as Record<string, unknown>);
     pushToast({
       message: getMessage('toast.saved', values.language),
       variant: 'success',

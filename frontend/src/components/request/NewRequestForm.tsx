@@ -206,12 +206,12 @@ export function NewRequestForm() {
             background: '#2D6FA3',
             color: '#FFFFFF',
             fontWeight: 700,
-            cursor: createRequest.isLoading ? 'progress' : 'pointer',
-            opacity: createRequest.isLoading ? 0.7 : 1,
+          cursor: createRequest.isPending ? 'progress' : 'pointer',
+          opacity: createRequest.isPending ? 0.7 : 1,
           }}
-          disabled={createRequest.isLoading}
+        disabled={createRequest.isPending}
         >
-          {createRequest.isLoading
+          {createRequest.isPending
             ? tRequest('status.submitting', language)
             : tRequest('form.submit', language)}
         </button>
@@ -238,7 +238,7 @@ export function NewRequestForm() {
               documents: [],
             })
           }
-          disabled={!isDirty}
+          disabled={!isDirty || createRequest.isPending}
         >
           {tRequest('form.reset', language)}
         </button>

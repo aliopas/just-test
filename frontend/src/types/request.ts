@@ -1,5 +1,15 @@
 export type RequestType = 'buy' | 'sell';
 export type RequestCurrency = 'SAR' | 'USD' | 'EUR';
+export type RequestStatus =
+  | 'draft'
+  | 'submitted'
+  | 'screening'
+  | 'pending_info'
+  | 'compliance_review'
+  | 'approved'
+  | 'rejected'
+  | 'settling'
+  | 'completed';
 
 export interface CreateRequestPayload {
   type: RequestType;
@@ -15,5 +25,79 @@ export interface CreateRequestResponse {
   requestId: string;
   requestNumber: string;
   status: string;
+}
+
+export interface RequestEventSnapshot {
+  id: string | null;
+  fromStatus: RequestStatus | null | string;
+  toStatus: RequestStatus | null | string;
+  actorId: string | null;
+  note: string | null;
+  createdAt: string | null;
+}
+
+export interface InvestorRequest {
+  id: string;
+  requestNumber: string;
+  type: RequestType;
+  amount: number;
+  currency: RequestCurrency;
+  targetPrice: number | null | undefined;
+  expiryAt: string | null | undefined;
+  status: RequestStatus;
+  createdAt: string;
+  updatedAt: string;
+  lastEvent: RequestEventSnapshot | null;
+  notes?: string | null;
+}
+
+export interface RequestListMeta {
+  page: number;
+  limit: number;
+  total: number;
+  pageCount: number;
+  hasNext: boolean;
+}
+
+export interface RequestListResponse {
+  requests: InvestorRequest[];
+  meta: RequestListMeta;
+}
+
+export interface RequestListFilters {
+  page?: number;
+  status?: RequestStatus | 'all';
+}
+
+export interface RequestAttachment {
+  id: string;
+  filename: string;
+  mimeType: string | null;
+  size: number | null;
+  createdAt: string;
+  storageKey: string;
+  downloadUrl: string | null;
+}
+
+export interface RequestEvent {
+  id: string;
+  fromStatus: string | null;
+  toStatus: string | null;
+  actorId: string | null;
+  note: string | null;
+  createdAt: string;
+}
+
+export interface RequestComment {
+  id: string;
+  note: string;
+  createdAt: string;
+}
+
+export interface InvestorRequestDetail {
+  request: InvestorRequest & { notes: string | null };
+  attachments: RequestAttachment[];
+  events: RequestEvent[];
+  comments: RequestComment[];
 }
 

@@ -5,9 +5,7 @@ const currencyOptions = ['SAR', 'USD', 'EUR'] as const;
 export const newRequestFormSchema = z.object({
   type: z.enum(['buy', 'sell']),
   amount: z.coerce
-    .number({
-      invalid_type_error: 'amount must be a number',
-    })
+    .number()
     .positive('amount must be greater than zero'),
   currency: z.enum(currencyOptions).default('SAR'),
   targetPrice: z
