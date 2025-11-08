@@ -7,6 +7,8 @@ import {
   approveAdminRequest,
   rejectAdminRequest,
   requestInfoFromInvestor,
+  listAdminRequestComments,
+  addAdminRequestComment,
 } from '../services/admin-request.service';
 
 export const adminRequestController = {
@@ -108,6 +110,18 @@ export const adminRequestController = {
           error: {
             code: 'EVENT_ERROR',
             message: 'Failed to load request events',
+          },
+        });
+      }
+
+      if (
+        error instanceof Error &&
+        error.message.startsWith('FAILED_COMMENTS')
+      ) {
+        return res.status(500).json({
+          error: {
+            code: 'COMMENT_ERROR',
+            message: 'Failed to load request comments',
           },
         });
       }
@@ -357,4 +371,107 @@ export const adminRequestController = {
       });
     }
   },
+
+  async listComments(req: AuthenticatedRequest, res: Response) {
+    try {
+      const actorId = req.user?.id;
+      if (!actorId) {
+        return res.status(401).json({
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'User not authenticated',
+          },
+        });
+      }
+
+      const requestId = req.params.id;
+      if (!requestId) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Request id is required',
+          },
+        });
+      }
+
+      const comments = await listAdminRequestComments({
+        actorId,
+        requestId,
+      });
+
+      return res.status(200).json({ comments });
+    } catch (error) {
+      console.error('Failed to list request comments:', error);
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to list request comments',
+        },
+      });
+    }
+  },
+
+  async addComment(req: AuthenticatedRequest, res: Response) {
+    try {
+      const actorId = req.user?.id;
+      if (!actorId) {
+        return res.status(401).json({
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'User not authenticated',
+          },
+        });
+      }
+
+      const requestId = req.params.id;
+      if (!requestId) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Request id is required',
+          },
+        });
+      }
+
+      const comment =
+        typeof req.body?.comment === 'string' ? req.body.comment : '';
+
+      if (!comment.trim()) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Comment is required',
+          },
+        });
+      }
+
+      const result = await addAdminRequestComment({
+        actorId,
+        requestId,
+        comment,
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'] ?? null,
+      });
+
+      return res.status(201).json(result);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'COMMENT_REQUIRED') {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Comment is required',
+          },
+        });
+      }
+
+      console.error('Failed to add request comment:', error);
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to add request comment',
+        },
+      });
+    }
+  },
+
 };

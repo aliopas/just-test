@@ -29,6 +29,7 @@ function AdminRequestDetailPageInner() {
   const { data, isLoading, isError, error, refetch, isFetching } =
     useAdminRequestDetail(requestId);
   const [decisionNote, setDecisionNote] = useState('');
+  const [newComment, setNewComment] = useState('');
 
   const approveMutation = useMutation({
     mutationFn: async (payload: { note?: string }) => {
@@ -120,6 +121,36 @@ function AdminRequestDetailPageInner() {
     },
   });
 
+  const addCommentMutation = useMutation({
+    mutationFn: async (payload: { comment: string }) => {
+      if (!requestId) {
+        throw new Error('Request id is missing');
+      }
+      return apiClient(`/admin/requests/${requestId}/comments`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+    },
+    onSuccess: () => {
+      pushToast({
+        message: tAdminRequests('comment.addSuccess', language),
+        variant: 'success',
+      });
+      setNewComment('');
+      refetch();
+    },
+    onError: (mutationError: unknown) => {
+      const message =
+        mutationError instanceof Error
+          ? mutationError.message
+          : tAdminRequests('comment.addError', language);
+      pushToast({
+        message,
+        variant: 'error',
+      });
+    },
+  });
+
   useEffect(() => {
     if (!isError) return;
     const message =
@@ -140,6 +171,7 @@ function AdminRequestDetailPageInner() {
     approveMutation.isPending ||
     rejectMutation.isPending ||
     requestInfoMutation.isPending;
+  const isCommentBusy = addCommentMutation.isPending;
 
   const amountFormatted = request
     ? new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
@@ -361,34 +393,102 @@ function AdminRequestDetailPageInner() {
             <CardTitle>{tAdminRequests('detail.comments', language)}</CardTitle>
             {isLoading || !data ? (
               <Skeleton />
-            ) : data.comments.length === 0 ? (
-              <EmptyState message={tAdminRequests('detail.noComments', language)} />
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {data.comments.map(comment => (
-                  <div
-                    key={comment.id}
-                    style={{
-                      background: '#F8FAFC',
-                      borderRadius: '0.85rem',
-                      padding: '0.75rem 1rem',
+              <>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {data.comments.length === 0 ? (
+                    <EmptyState message={tAdminRequests('detail.noComments', language)} />
+                  ) : (
+                    data.comments.map(comment => {
+                      const actorLabel = comment.actor
+                        ? comment.actor.preferredName ||
+                          comment.actor.fullName ||
+                          comment.actor.email ||
+                          tAdminRequests('detail.commentUnknownActor', language)
+                        : tAdminRequests('detail.commentUnknownActor', language);
+                      return (
+                        <div
+                          key={comment.id}
+                          style={{
+                            background: '#F8FAFC',
+                            borderRadius: '0.85rem',
+                            padding: '0.75rem 1rem',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '0.4rem',
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: 'flex',
+                              flexDirection: direction === 'rtl' ? 'row-reverse' : 'row',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              gap: '0.75rem',
+                            }}
+                          >
+                            <strong style={{ color: '#0F172A', fontSize: '0.9rem' }}>
+                              {actorLabel}
+                            </strong>
+                            <span
+                              style={{
+                                color: '#64748B',
+                                fontSize: '0.8rem',
+                              }}
+                            >
+                              {new Date(comment.createdAt).toLocaleString(
+                                language === 'ar' ? 'ar-SA' : 'en-US',
+                                { dateStyle: 'medium', timeStyle: 'short' }
+                              )}
+                            </span>
+                          </div>
+                          <div
+                            style={{
+                              color: '#475569',
+                              lineHeight: 1.5,
+                              whiteSpace: 'pre-wrap',
+                            }}
+                          >
+                            {comment.note}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+                <div
+                  style={{
+                    marginTop: '1.25rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.75rem',
+                  }}
+                >
+                  <textarea
+                    value={newComment}
+                    onChange={event => setNewComment(event.target.value)}
+                    maxLength={2000}
+                    placeholder={tAdminRequests('detail.commentPlaceholder', language)}
+                    style={{ ...textAreaStyle, direction, minHeight: '160px' }}
+                  />
+                  <ActionButton
+                    label={tAdminRequests('detail.commentSubmit', language)}
+                    onClick={() => {
+                      const trimmed = newComment.trim();
+                      if (!trimmed) {
+                        pushToast({
+                          message: tAdminRequests('comment.required', language),
+                          variant: 'error',
+                        });
+                        return;
+                      }
+                      addCommentMutation.mutate({ comment: trimmed });
                     }}
-                  >
-                    <div
-                      style={{
-                        color: '#64748B',
-                        fontSize: '0.8rem',
-                      }}
-                    >
-                      {new Date(comment.createdAt).toLocaleString(
-                        language === 'ar' ? 'ar-SA' : 'en-US',
-                        { dateStyle: 'medium', timeStyle: 'short' }
-                      )}
-                    </div>
-                    <div style={{ marginTop: '0.35rem' }}>{comment.note}</div>
-                  </div>
-                ))}
-              </div>
+                    disabled={isCommentBusy}
+                    loading={isCommentBusy}
+                  />
+                </div>
+              </>
             )}
           </Card>
         </div>
@@ -504,7 +604,7 @@ function AdminRequestDetailPageInner() {
                 fontSize: '0.85rem',
               }}
             >
-              * زر طلب المعلومات سيُفعَّل عند تنفيذ Story 4.5.
+              {`* ${tAdminRequests('detail.noteHelper', language)}`}
             </p>
           </Card>
 

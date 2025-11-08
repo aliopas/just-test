@@ -5,6 +5,8 @@ import {
   approveAdminRequest,
   rejectAdminRequest,
   requestInfoFromInvestor,
+  listAdminRequestComments,
+  addAdminRequestComment,
 } from '../src/services/admin-request.service';
 import { requireSupabaseAdmin } from '../src/lib/supabase';
 import type { AdminRequestListQuery } from '../src/schemas/admin-requests.schema';
@@ -333,6 +335,31 @@ describe('getAdminRequestDetail', () => {
       error: null,
     });
 
+    const commentSelectMock = jest.fn().mockReturnThis();
+    const commentEqMock = jest.fn().mockReturnThis();
+    const commentOrderMock = jest.fn().mockResolvedValue({
+      data: [
+        {
+          id: 'com-1',
+          comment: 'Internal follow-up required',
+          actor_id: 'admin-42',
+          created_at: '2025-01-01T03:00:00Z',
+          actor: {
+            id: 'admin-42',
+            email: 'admin@example.com',
+            profile: [
+              {
+                full_name: 'Admin reviewer',
+                preferred_name: 'Lead Reviewer',
+                language: 'en',
+              },
+            ],
+          },
+        },
+      ],
+      error: null,
+    });
+
     const fromMock = jest.fn((table: string) => {
       if (table === 'requests') {
         return {
@@ -353,6 +380,13 @@ describe('getAdminRequestDetail', () => {
           select: eventsSelectMock,
           eq: eventsEqMock,
           order: eventsOrderMock,
+        };
+      }
+      if (table === 'request_comments') {
+        return {
+          select: commentSelectMock,
+          eq: commentEqMock,
+          order: commentOrderMock,
         };
       }
       throw new Error(`Unhandled table ${table}`);
@@ -389,6 +423,15 @@ describe('getAdminRequestDetail', () => {
     );
     expect(result.events).toHaveLength(1);
     expect(result.comments).toHaveLength(1);
+    expect(result.comments[0]).toEqual(
+      expect.objectContaining({
+        note: 'Internal follow-up required',
+        actor: expect.objectContaining({
+          email: 'admin@example.com',
+          preferredName: 'Lead Reviewer',
+        }),
+      })
+    );
   });
 });
 
@@ -557,6 +600,141 @@ describe('requestInfoFromInvestor', () => {
         userId: 'user-3',
         requestNumber: 'INV-2025-000003',
         message: expect.stringContaining('Please upload'),
+      })
+    );
+  });
+});
+
+describe('listAdminRequestComments', () => {
+  it('returns mapped comments', async () => {
+    const selectMock = jest.fn().mockReturnThis();
+    const eqMock = jest.fn().mockReturnThis();
+    const orderMock = jest.fn().mockResolvedValue({
+      data: [
+        {
+          id: 'com-1',
+          comment: 'Need more details',
+          actor_id: 'admin-1',
+          created_at: '2025-01-01T02:00:00Z',
+          actor: {
+            id: 'admin-1',
+            email: 'admin@example.com',
+            profile: [
+              {
+                full_name: 'Admin User',
+                preferred_name: 'Admin',
+                language: 'ar',
+              },
+            ],
+          },
+        },
+      ],
+      error: null,
+    });
+
+    mockRequireSupabaseAdmin.mockReturnValue({
+      from: jest.fn().mockReturnValue({
+        select: selectMock,
+        eq: eqMock,
+        order: orderMock,
+      }),
+    });
+
+    const comments = await listAdminRequestComments({
+      actorId: 'admin-1',
+      requestId: 'req-1',
+    });
+
+    expect(orderMock).toHaveBeenCalledWith('created_at', { ascending: true });
+    expect(comments).toHaveLength(1);
+    expect(comments[0]).toEqual(
+      expect.objectContaining({
+        note: 'Need more details',
+        actor: expect.objectContaining({
+          email: 'admin@example.com',
+          fullName: 'Admin User',
+        }),
+      })
+    );
+  });
+});
+
+describe('addAdminRequestComment', () => {
+  it('requires non-empty comment', async () => {
+    await expect(
+      addAdminRequestComment({
+        actorId: 'admin-1',
+        requestId: 'req-1',
+        comment: '   ',
+      } as any)
+    ).rejects.toThrow('COMMENT_REQUIRED');
+  });
+
+  it('inserts comment and logs audit', async () => {
+    const auditInsertMock = jest.fn().mockResolvedValue({ error: null });
+    const insertMock = jest.fn().mockReturnThis();
+    const selectMock = jest.fn().mockReturnThis();
+    const singleMock = jest.fn().mockResolvedValue({
+      data: {
+        id: 'com-99',
+        comment: 'Reviewed documents',
+        actor_id: 'admin-1',
+        created_at: '2025-01-01T03:00:00Z',
+        actor: {
+          id: 'admin-1',
+          email: 'admin@example.com',
+          profile: [
+            {
+              full_name: 'Admin User',
+              preferred_name: 'Admin',
+              language: 'en',
+            },
+          ],
+        },
+      },
+      error: null,
+    });
+
+    const fromMock = jest.fn((table: string) => {
+      if (table === 'request_comments') {
+        return {
+          insert: insertMock,
+          select: selectMock,
+          single: singleMock,
+        };
+      }
+      if (table === 'audit_logs') {
+        return { insert: auditInsertMock };
+      }
+      throw new Error(`Unhandled table: ${table}`);
+    });
+
+    mockRequireSupabaseAdmin.mockReturnValue({
+      from: fromMock,
+    });
+
+    const result = await addAdminRequestComment({
+      actorId: 'admin-1',
+      requestId: 'req-1',
+      comment: 'Reviewed documents',
+    });
+
+    expect(insertMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        request_id: 'req-1',
+        actor_id: 'admin-1',
+      })
+    );
+    expect(auditInsertMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'request.comment_added',
+        target_id: 'req-1',
+      })
+    );
+    expect(result).toEqual(
+      expect.objectContaining({
+        note: 'Reviewed documents',
+        actor: expect.objectContaining({ email: 'admin@example.com' }),
       })
     );
   });

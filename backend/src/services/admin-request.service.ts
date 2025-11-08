@@ -215,6 +215,22 @@ type AdminEventRow = {
   created_at: string;
 };
 
+type AdminCommentRow = {
+  id: string;
+  comment: string;
+  actor_id: string;
+  created_at: string;
+  actor?: MaybeArray<{
+    id: string;
+    email: string | null;
+    profile?: MaybeArray<{
+      full_name: string | null;
+      preferred_name: string | null;
+      language: string | null;
+    }>;
+  }>;
+};
+
 function normalizeNumber(value: string | number | null | undefined) {
   if (value == null) {
     return null;
@@ -266,7 +282,7 @@ export async function getAdminRequestDetail(params: {
     throw new Error('REQUEST_NOT_FOUND');
   }
 
-  const [attachmentsResult, eventsResult] = await Promise.all([
+  const [attachmentsResult, eventsResult, commentsResult] = await Promise.all([
     adminClient
       .from('attachments')
       .select(
@@ -295,6 +311,27 @@ export async function getAdminRequestDetail(params: {
       )
       .eq('request_id', params.requestId)
       .order('created_at', { ascending: true }),
+    adminClient
+      .from('request_comments')
+      .select(
+        `
+          id,
+          comment,
+          actor_id,
+          created_at,
+          actor:users!request_comments_actor_id_fkey (
+            id,
+            email,
+            profile:investor_profiles (
+              full_name,
+              preferred_name,
+              language
+            )
+          )
+        `
+      )
+      .eq('request_id', params.requestId)
+      .order('created_at', { ascending: true }),
   ]);
 
   if (attachmentsResult.error) {
@@ -305,6 +342,12 @@ export async function getAdminRequestDetail(params: {
 
   if (eventsResult.error) {
     throw new Error(`FAILED_EVENTS:${eventsResult.error.message ?? 'unknown'}`);
+  }
+
+  if (commentsResult?.error) {
+    throw new Error(
+      `FAILED_COMMENTS:${commentsResult.error.message ?? 'unknown'}`
+    );
   }
 
   const user = firstOrNull(requestRow.users ?? null);
@@ -332,6 +375,26 @@ export async function getAdminRequestDetail(params: {
       createdAt: event.created_at,
     })) ?? [];
 
+  const comments =
+    (commentsResult?.data as AdminCommentRow[] | null)?.map(comment => {
+      const actorRow = firstOrNull(comment.actor ?? null);
+      const actorProfile = actorRow
+        ? firstOrNull(actorRow.profile ?? null)
+        : null;
+      return {
+        id: comment.id,
+        note: comment.comment,
+        createdAt: comment.created_at,
+        actor: {
+          id: actorRow?.id ?? null,
+          email: actorRow?.email ?? null,
+          fullName: actorProfile?.full_name ?? null,
+          preferredName: actorProfile?.preferred_name ?? null,
+          language: actorProfile?.language ?? null,
+        },
+      };
+    }) ?? [];
+
   return {
     request: {
       id: requestRow.id,
@@ -356,13 +419,7 @@ export async function getAdminRequestDetail(params: {
     },
     attachments,
     events,
-    comments: events
-      .filter(event => event.note && event.note.trim().length > 0)
-      .map(event => ({
-        id: event.id,
-        note: event.note!,
-        createdAt: event.createdAt,
-      })),
+    comments,
   };
 }
 
@@ -506,4 +563,136 @@ export async function requestInfoFromInvestor(params: InfoRequestParams) {
   });
 
   return transition;
+}
+
+export async function listAdminRequestComments(params: {
+  actorId: string;
+  requestId: string;
+}) {
+  const adminClient = requireSupabaseAdmin();
+  const { data, error } = await adminClient
+    .from('request_comments')
+    .select(
+      `
+        id,
+        comment,
+        actor_id,
+        created_at,
+        actor:users!request_comments_actor_id_fkey (
+          id,
+          email,
+          profile:investor_profiles (
+            full_name,
+            preferred_name,
+            language
+          )
+        )
+      `
+    )
+    .eq('request_id', params.requestId)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    throw new Error(`Failed to list request comments: ${error.message}`);
+  }
+
+  const rows = (data as AdminCommentRow[] | null) ?? [];
+  return rows.map(row => {
+    const actorRow = firstOrNull(row.actor ?? null);
+    const actorProfile = actorRow
+      ? firstOrNull(actorRow.profile ?? null)
+      : null;
+    return {
+      id: row.id,
+      note: row.comment,
+      actor: {
+        id: actorRow?.id ?? null,
+        email: actorRow?.email ?? null,
+        fullName: actorProfile?.full_name ?? null,
+        preferredName: actorProfile?.preferred_name ?? null,
+        language: actorProfile?.language ?? null,
+      },
+      createdAt: row.created_at,
+    };
+  });
+}
+
+export async function addAdminRequestComment(params: {
+  actorId: string;
+  requestId: string;
+  comment: string;
+  ipAddress?: string | null;
+  userAgent?: string | null;
+}) {
+  const trimmed = params.comment.trim();
+  if (!trimmed) {
+    throw new Error('COMMENT_REQUIRED');
+  }
+
+  const adminClient = requireSupabaseAdmin();
+  const finalComment = trimmed.slice(0, 2000);
+
+  const { data, error } = await adminClient
+    .from('request_comments')
+    .insert({
+      request_id: params.requestId,
+      actor_id: params.actorId,
+      comment: finalComment,
+    })
+    .select(
+      `
+        id,
+        comment,
+        actor_id,
+        created_at,
+        actor:users!request_comments_actor_id_fkey (
+          id,
+          email,
+          profile:investor_profiles (
+            full_name,
+            preferred_name,
+            language
+          )
+        )
+      `
+    )
+    .single<AdminCommentRow>();
+
+  if (error || !data) {
+    throw new Error(
+      `Failed to add request comment: ${error?.message ?? 'unknown'}`
+    );
+  }
+
+  await logRequestAudit({
+    actorId: params.actorId,
+    action: 'request.comment_added',
+    requestId: params.requestId,
+    diff: {
+      comment: {
+        before: null,
+        after: finalComment,
+      },
+    },
+    ipAddress: params.ipAddress,
+    userAgent: params.userAgent,
+  });
+
+  const actorRow = firstOrNull(data.actor ?? null);
+  const actorProfile = actorRow
+    ? firstOrNull(actorRow.profile ?? null)
+    : null;
+
+  return {
+    id: data.id,
+    note: data.comment,
+    actor: {
+      id: actorRow?.id ?? null,
+      email: actorRow?.email ?? null,
+      fullName: actorProfile?.full_name ?? null,
+      preferredName: actorProfile?.preferred_name ?? null,
+      language: actorProfile?.language ?? null,
+    },
+    createdAt: data.created_at,
+  };
 }

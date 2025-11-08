@@ -48,6 +48,10 @@ type MessageKey =
   | 'detail.attachments'
   | 'detail.timeline'
   | 'detail.comments'
+  | 'detail.commentPlaceholder'
+  | 'detail.commentSubmit'
+  | 'detail.commentUnknownActor'
+  | 'detail.noteHelper'
   | 'detail.noAttachments'
   | 'detail.noEvents'
   | 'detail.noComments'
@@ -60,7 +64,10 @@ type MessageKey =
   | 'decision.rejectedSuccess'
   | 'decision.infoRequestedSuccess'
   | 'decision.notePlaceholder'
-  | 'decision.noteRequired';
+  | 'decision.noteRequired'
+  | 'comment.addSuccess'
+  | 'comment.addError'
+  | 'comment.required';
 
 type MessageDictionary = Record<MessageKey, string>;
 
@@ -114,6 +121,10 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'detail.attachments': 'Attachments',
     'detail.timeline': 'Timeline',
     'detail.comments': 'Comments',
+    'detail.commentPlaceholder': 'Share an internal update or note for the review team…',
+    'detail.commentSubmit': 'Add Comment',
+    'detail.commentUnknownActor': 'Unknown user',
+    'detail.noteHelper': 'Use the note field to add context. Notes are required when requesting info.',
     'detail.noAttachments': 'No attachments uploaded.',
     'detail.noEvents': 'No workflow events yet.',
     'detail.noComments': 'No internal comments yet.',
@@ -127,6 +138,9 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'decision.infoRequestedSuccess': 'Information request sent successfully',
     'decision.notePlaceholder': 'Add an internal note (optional, max 500 characters)…',
     'decision.noteRequired': 'Please enter a message before requesting additional information.',
+    'comment.addSuccess': 'Comment added successfully.',
+    'comment.addError': 'Failed to add comment. Please try again.',
+    'comment.required': 'Please enter a comment before submitting.',
   },
   ar: {
     pageTitle: 'صندوق وارد الطلبات',
@@ -177,6 +191,10 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'detail.attachments': 'المرفقات',
     'detail.timeline': 'سجل الأحداث',
     'detail.comments': 'التعليقات الداخلية',
+    'detail.commentPlaceholder': 'شارك تحديثاً داخلياً أو ملاحظة لفريق المراجعة…',
+    'detail.commentSubmit': 'إضافة تعليق',
+    'detail.commentUnknownActor': 'مستخدم غير معروف',
+    'detail.noteHelper': 'استخدم حقل الملاحظات لإضافة سياق، وهو مطلوب عند طلب معلومات إضافية.',
     'detail.noAttachments': 'لم يتم رفع أي مرفقات.',
     'detail.noEvents': 'لا يوجد سجل أحداث بعد.',
     'detail.noComments': 'لا توجد تعليقات داخلية بعد.',
@@ -190,6 +208,9 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'decision.infoRequestedSuccess': 'تم إرسال طلب المعلومات الإضافية بنجاح',
     'decision.notePlaceholder': 'أضف ملاحظة داخلية (اختياري، بحد أقصى 500 حرف)…',
     'decision.noteRequired': 'يرجى إدخال رسالة قبل طلب معلومات إضافية.',
+    'comment.addSuccess': 'تمت إضافة التعليق بنجاح.',
+    'comment.addError': 'فشل في إضافة التعليق، حاول مرة أخرى.',
+    'comment.required': 'يرجى كتابة التعليق قبل الإرسال.',
   },
 };
 

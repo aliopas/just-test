@@ -42,6 +42,20 @@ adminRouter.post(
 );
 
 adminRouter.get(
+  '/requests/:id/comments',
+  authenticate,
+  requirePermission('admin.requests.review'),
+  adminRequestController.listComments
+);
+
+adminRouter.post(
+  '/requests/:id/comments',
+  authenticate,
+  requirePermission('admin.requests.review'),
+  adminRequestController.addComment
+);
+
+adminRouter.get(
   '/users',
   authenticate,
   requirePermission('admin.users.manage'),

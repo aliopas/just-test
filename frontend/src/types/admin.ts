@@ -53,10 +53,19 @@ export interface AdminRequestEvent {
   createdAt: string;
 }
 
+export interface AdminRequestCommentActor {
+  id: string | null;
+  email: string | null;
+  fullName: string | null;
+  preferredName: string | null;
+  language: 'ar' | 'en' | null;
+}
+
 export interface AdminRequestComment {
   id: string;
   note: string;
   createdAt: string;
+  actor: AdminRequestCommentActor | null;
 }
 
 export interface AdminRequestDetail {

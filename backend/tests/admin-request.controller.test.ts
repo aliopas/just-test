@@ -9,6 +9,8 @@ import {
   approveAdminRequest,
   rejectAdminRequest,
   requestInfoFromInvestor,
+  listAdminRequestComments,
+  addAdminRequestComment,
 } from '../src/services/admin-request.service';
 import type { AuthenticatedRequest } from '../src/middleware/auth.middleware';
 import type { Response } from 'express';
@@ -19,6 +21,8 @@ jest.mock('../src/services/admin-request.service', () => ({
   approveAdminRequest: jest.fn(),
   rejectAdminRequest: jest.fn(),
   requestInfoFromInvestor: jest.fn(),
+  listAdminRequestComments: jest.fn(),
+  addAdminRequestComment: jest.fn(),
 }));
 
 const mockedListAdminRequests = listAdminRequests as jest.Mock;
@@ -26,6 +30,8 @@ const mockedGetAdminRequestDetail = getAdminRequestDetail as jest.Mock;
 const mockedApproveAdminRequest = approveAdminRequest as jest.Mock;
 const mockedRejectAdminRequest = rejectAdminRequest as jest.Mock;
 const mockedRequestInfo = requestInfoFromInvestor as jest.Mock;
+const mockedListComments = listAdminRequestComments as jest.Mock;
+const mockedAddComment = addAdminRequestComment as jest.Mock;
 
 const createMockResponse = () => {
   const res: Partial<Response> = {};
@@ -431,6 +437,104 @@ describe('adminRequestController.requestInfo', () => {
         status: 'pending_info',
       })
     );
+  });
+});
+
+describe('adminRequestController.listComments', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns 401 when user not authenticated', async () => {
+    const req = {
+      params: { id: 'req-4' },
+      user: undefined,
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.listComments(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+  });
+
+  it('returns 200 with comments', async () => {
+    const comments = [{ id: 'com-1', note: 'Test', createdAt: '2025-01-01' }];
+    mockedListComments.mockResolvedValueOnce(comments);
+
+    const req = {
+      params: { id: 'req-4' },
+      user: { id: 'admin-5', email: 'admin@example.com' },
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.listComments(req, res);
+
+    expect(mockedListComments).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actorId: 'admin-5',
+        requestId: 'req-4',
+      })
+    );
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({ comments });
+  });
+});
+
+describe('adminRequestController.addComment', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns 401 when user not authenticated', async () => {
+    const req = {
+      params: { id: 'req-5' },
+      body: { comment: 'Hello' },
+      user: undefined,
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.addComment(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+  });
+
+  it('returns 400 when comment missing', async () => {
+    const req = {
+      params: { id: 'req-5' },
+      body: { comment: '   ' },
+      user: { id: 'admin-6', email: 'admin@example.com' },
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.addComment(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  it('returns 201 on success', async () => {
+    const commentResponse = { id: 'com-9', note: 'New note' };
+    mockedAddComment.mockResolvedValueOnce(commentResponse);
+
+    const req = {
+      params: { id: 'req-5' },
+      body: { comment: 'New note' },
+      user: { id: 'admin-6', email: 'admin@example.com' },
+      ip: '::1',
+      headers: { 'user-agent': 'jest' },
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.addComment(req, res);
+
+    expect(mockedAddComment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actorId: 'admin-6',
+        requestId: 'req-5',
+        comment: 'New note',
+      })
+    );
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.json).toHaveBeenCalledWith(commentResponse);
   });
 });
 
