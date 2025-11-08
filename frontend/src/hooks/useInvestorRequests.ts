@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { apiClient } from '../utils/api-client';
 import type {
   InvestorRequest,
@@ -36,10 +36,10 @@ export function useInvestorRequests(filters: RequestListFilters) {
     [filters.status, filters.page]
   );
 
-  const query = useQuery({
+  const query = useQuery<RequestListResponse>({
     queryKey,
     queryFn: () => fetchInvestorRequests(filters),
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
   });
 
   return {
