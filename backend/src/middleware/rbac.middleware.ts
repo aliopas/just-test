@@ -5,7 +5,11 @@ import { rbacService } from '../services/rbac.service';
 /**
  * RBAC middleware - checks if user has required permission
  */
-export const requirePermission = (permissionName: string) => {
+export const requirePermission = (permissionSlug: string | string[]) => {
+  const required = Array.isArray(permissionSlug)
+    ? permissionSlug
+    : [permissionSlug];
+
   return async (
     req: AuthenticatedRequest,
     res: Response,
@@ -21,10 +25,10 @@ export const requirePermission = (permissionName: string) => {
         });
       }
 
-      const hasPermission = await rbacService.hasPermission(
-        req.user.id,
-        permissionName
-      );
+      const hasPermission =
+        required.length === 1
+          ? await rbacService.hasPermission(req.user.id, required[0])
+          : await rbacService.hasAnyPermission(req.user.id, required);
 
       if (!hasPermission) {
         return res.status(403).json({
@@ -34,6 +38,11 @@ export const requirePermission = (permissionName: string) => {
           },
         });
       }
+
+      const permissions = await rbacService.getUserPermissionSlugs(
+        req.user.id
+      );
+      req.user.permissions = Array.from(permissions);
 
       return next();
     } catch (error) {
@@ -50,7 +59,9 @@ export const requirePermission = (permissionName: string) => {
 /**
  * RBAC middleware - checks if user has required role
  */
-export const requireRole = (roleName: string) => {
+export const requireRole = (roleSlug: string | string[]) => {
+  const required = Array.isArray(roleSlug) ? roleSlug : [roleSlug];
+
   return async (
     req: AuthenticatedRequest,
     res: Response,
@@ -66,7 +77,8 @@ export const requireRole = (roleName: string) => {
         });
       }
 
-      const hasRole = await rbacService.hasRole(req.user.id, roleName);
+      const userHasRole = await rbacService.getUserRoleSlugs(req.user.id);
+      const hasRole = required.some(slug => userHasRole.has(slug));
 
       if (!hasRole) {
         return res.status(403).json({
@@ -76,6 +88,8 @@ export const requireRole = (roleName: string) => {
           },
         });
       }
+
+      req.user.roles = Array.from(userHasRole);
 
       return next();
     } catch (error) {

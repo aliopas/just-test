@@ -143,6 +143,7 @@ npm test -- health.test.ts
 - **Stories:** `docs/stories/`
 - **Design System:** `docs/design-system.md` (مع ملفات `frontend/src/styles/theme.ts` و`frontend/src/components/Logo.tsx`)
 - **Supabase Integration:** `docs/SUPABASE_INTEGRATION.md`
+- **RBAC Matrix:** `docs/prd/rbac-matrix.md`
 
 ---
 

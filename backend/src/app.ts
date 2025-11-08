@@ -1,6 +1,7 @@
 import express from 'express';
 import { healthRouter } from './routes/health.routes';
 import { authRouter } from './routes/auth.routes';
+import { investorRouter } from './routes/investor.routes';
 import { applySecurity, authLimiter } from './middleware/security';
 
 const app = express();
@@ -19,6 +20,7 @@ app.get('/', (_req, res) => {
     endpoints: {
       health: '/api/v1/health',
       auth: '/api/v1/auth',
+      investor: '/api/v1/investor',
     },
   });
 });
@@ -26,5 +28,6 @@ app.get('/', (_req, res) => {
 // Routes
 app.use('/api/v1/health', healthRouter);
 app.use('/api/v1/auth', authLimiter, authRouter);
+app.use('/api/v1/investor', investorRouter);
 
 export default app;

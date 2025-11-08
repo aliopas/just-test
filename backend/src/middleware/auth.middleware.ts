@@ -2,12 +2,16 @@ import { Request, Response, NextFunction } from 'express';
 import { supabase, requireSupabaseAdmin } from '../lib/supabase';
 import { getAccessToken } from '../utils/auth.util';
 
+export type AuthenticatedUser = {
+  id: string;
+  email: string;
+  role?: string;
+  roles?: string[];
+  permissions?: string[];
+};
+
 export interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-    role?: string;
-  };
+  user?: AuthenticatedUser;
 }
 
 /**
@@ -64,6 +68,8 @@ export const authenticate = async (
       id: userData.id,
       email: userData.email,
       role: userData.role,
+      roles: userData.role ? [userData.role] : [],
+      permissions: [],
     };
 
     return next();
