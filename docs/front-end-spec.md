@@ -12,6 +12,7 @@
 | Date | Version | Description | Author |
 |------|---------|-------------|--------|
 | 2024-11-06 | 1.0 | إنشاء Front End Spec الأولي | BMad Team |
+| 2025-11-08 | 1.1 | إضافة صفحة `/app/profile` واستراتيجية i18n/RTL للمستثمر | GPT-5 Codex |
 
 ---
 
@@ -24,6 +25,23 @@
 - ملف الألوان والقيم المحوسبة: `frontend/src/styles/theme.ts`.
 - مكوّن الشعار المعياري: `frontend/src/components/Logo.tsx` (يستخدم الأصل `frontend/src/assets/logo.jpg`).
 - يلتزم النظام بتباين WCAG AA ويعتمد خط **Tajawal** للعربية مع دعم كامل لـ RTL.
+
+### New Investor Profile Experience (v1.1)
+
+- **Entry Route:** `/app/profile` (Vite entry point located at `frontend/src/app/profile/main.tsx`).
+- **State Management:** [`@tanstack/react-query`](https://tanstack.com/query/latest) for caching `GET /investor/profile` and invalidating on `PATCH`.
+- **Forms & Validation:** [`react-hook-form`](https://react-hook-form.com/) + [`@hookform/resolvers/zod`](https://github.com/react-hook-form/resolvers) with the shared rules in `frontend/src/schemas/investorProfileSchema.ts`.
+- **i18n & RTL:** Lightweight context in `frontend/src/context/LanguageContext.tsx` backed by `localStorage`, flipping the document direction and strings defined in `frontend/src/locales/investorProfile.ts`.
+- **Notifications & Analytics:** Toast stack (`ToastProvider`, `ToastStack`) for inline success/error messages, and a temporary `analytics` shim logging events until Segment is integrated.
+- **Responsive Layout:** Flex + CSS grid—works from 320px mobile up to 1440px desktop, with summary sidebar collapsing on smaller widths.
+- **File Upload Placeholder:** UI accepts files and tracks names locally; actual upload workflow to Supabase Storage will be wired alongside Story 3 (requests).
+- **Dependencies To Install When Bootstrapping Frontend:**
+  - `react`, `react-dom`, `@types/react`, `@types/react-dom`
+  - `@tanstack/react-query`
+  - `react-hook-form`
+  - `@hookform/resolvers`
+  - `zod`
+  - Optional for testing/E2E: `@testing-library/react`, `@testing-library/jest-dom`, `playwright` (see Story 2.3 completion notes)
 
 ---
 

@@ -33,8 +33,8 @@ function mapViewToResponse(view: InvestorProfileView) {
     kycStatus: view.kyc_status,
     kycUpdatedAt: view.kyc_updated_at,
     language: view.language,
-    communicationPreferences: view
-      .communication_preferences as CommunicationPreferences,
+    communicationPreferences:
+      view.communication_preferences as CommunicationPreferences,
     riskProfile: view.risk_profile,
     kycDocuments: toArray(view.kyc_documents),
     createdAt: view.created_at,
@@ -162,56 +162,54 @@ export const investorProfileController = {
         full_name:
           payload.fullName !== undefined
             ? payload.fullName
-            : beforeRecord?.full_name ?? null,
+            : (beforeRecord?.full_name ?? null),
         preferred_name:
           payload.preferredName !== undefined
             ? payload.preferredName
-            : beforeRecord?.preferred_name ?? null,
+            : (beforeRecord?.preferred_name ?? null),
         id_type:
           payload.idType !== undefined
             ? payload.idType
-            : beforeRecord?.id_type ?? null,
+            : (beforeRecord?.id_type ?? null),
         id_number:
           payload.idNumber !== undefined
             ? payload.idNumber
-            : beforeRecord?.id_number ?? null,
+            : (beforeRecord?.id_number ?? null),
         id_expiry:
           payload.idExpiry !== undefined
             ? payload.idExpiry
-            : beforeRecord?.id_expiry ?? null,
+            : (beforeRecord?.id_expiry ?? null),
         nationality:
           payload.nationality !== undefined
             ? payload.nationality
-            : beforeRecord?.nationality ?? null,
+            : (beforeRecord?.nationality ?? null),
         residency_country:
           payload.residencyCountry !== undefined
             ? payload.residencyCountry
-            : beforeRecord?.residency_country ?? null,
+            : (beforeRecord?.residency_country ?? null),
         city:
           payload.city !== undefined
             ? payload.city
-            : beforeRecord?.city ?? null,
-        kyc_status:
-          payload.kycStatus ?? beforeRecord?.kyc_status ?? 'pending',
+            : (beforeRecord?.city ?? null),
+        kyc_status: payload.kycStatus ?? beforeRecord?.kyc_status ?? 'pending',
         language: payload.language ?? beforeRecord?.language ?? 'ar',
         communication_preferences: communicationPreferences,
         risk_profile:
           payload.riskProfile !== undefined
             ? payload.riskProfile
-            : beforeRecord?.risk_profile ?? null,
+            : (beforeRecord?.risk_profile ?? null),
         kyc_documents:
           payload.kycDocuments !== undefined
             ? payload.kycDocuments
-            : beforeRecord?.kyc_documents ?? null,
+            : (beforeRecord?.kyc_documents ?? null),
         kyc_updated_at:
           payload.kycStatus && payload.kycStatus !== beforeRecord?.kyc_status
             ? new Date().toISOString()
-            : beforeRecord?.kyc_updated_at ?? null,
+            : (beforeRecord?.kyc_updated_at ?? null),
       };
 
-      const { record, view } = await investorProfileService.upsertProfile(
-        updatePayload
-      );
+      const { record, view } =
+        await investorProfileService.upsertProfile(updatePayload);
 
       const beforeAudit = mapRecordToAuditShape(beforeRecord) ?? {};
       const afterAudit = mapRecordToAuditShape(record) ?? {};
@@ -252,4 +250,3 @@ export const investorProfileController = {
     }
   },
 };
-

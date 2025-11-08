@@ -2,6 +2,7 @@ import express from 'express';
 import { healthRouter } from './routes/health.routes';
 import { authRouter } from './routes/auth.routes';
 import { investorRouter } from './routes/investor.routes';
+import { adminRouter } from './routes/admin.routes';
 import { applySecurity, authLimiter } from './middleware/security';
 
 const app = express();
@@ -21,6 +22,7 @@ app.get('/', (_req, res) => {
       health: '/api/v1/health',
       auth: '/api/v1/auth',
       investor: '/api/v1/investor',
+      admin: '/api/v1/admin',
     },
   });
 });
@@ -29,5 +31,6 @@ app.get('/', (_req, res) => {
 app.use('/api/v1/health', healthRouter);
 app.use('/api/v1/auth', authLimiter, authRouter);
 app.use('/api/v1/investor', investorRouter);
+app.use('/api/v1/admin', adminRouter);
 
 export default app;

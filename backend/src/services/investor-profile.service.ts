@@ -66,11 +66,7 @@ function normalizeCommunicationPreferences(
 
   if (value) {
     Object.entries(value).forEach(([key, preferenceValue]) => {
-      if (
-        key === 'email' ||
-        key === 'sms' ||
-        key === 'push'
-      ) {
+      if (key === 'email' || key === 'sms' || key === 'push') {
         base[key] = Boolean(preferenceValue);
       }
     });
@@ -104,7 +100,9 @@ export const investorProfileService = {
     };
   },
 
-  async getProfileRecord(userId: string): Promise<InvestorProfileRecord | null> {
+  async getProfileRecord(
+    userId: string
+  ): Promise<InvestorProfileRecord | null> {
     const adminClient = requireSupabaseAdmin();
     const { data, error } = await adminClient
       .from('investor_profiles')
@@ -113,7 +111,9 @@ export const investorProfileService = {
       .maybeSingle();
 
     if (error && !isNotFound(error)) {
-      throw new Error(`Failed to fetch investor profile record: ${error.message}`);
+      throw new Error(
+        `Failed to fetch investor profile record: ${error.message}`
+      );
     }
 
     if (!data) {
@@ -202,4 +202,3 @@ export const investorProfileService = {
     }
   },
 };
-

@@ -68,4 +68,3 @@ export function getRefreshToken(req: Request): string | undefined {
 
   return undefined;
 }
-

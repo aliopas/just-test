@@ -47,10 +47,10 @@ async function fetchUserRoles(userId: string): Promise<Set<string>> {
     .from('user_roles')
     .select(
       `
-      roles:role_id (
+        roles:role_id (
         slug
-      )
-    `
+        )
+      `
     )
     .eq('user_id', userId);
 
@@ -164,7 +164,10 @@ export const rbacService = {
   /**
    * Check if user has a specific permission slug
    */
-  async hasPermission(userId: string, permissionSlug: string): Promise<boolean> {
+  async hasPermission(
+    userId: string,
+    permissionSlug: string
+  ): Promise<boolean> {
     const permissions = await this.getUserPermissionSlugs(userId);
     return permissions.has(permissionSlug);
   },
@@ -227,10 +230,7 @@ export const rbacService = {
   /**
    * Remove role from user by slug
    */
-  async removeRole(
-    userId: string,
-    roleSlug: string
-  ): Promise<void> {
+  async removeRole(userId: string, roleSlug: string): Promise<void> {
     const adminClient = requireSupabaseAdmin();
     const { data: roleData, error: roleError } = await adminClient
       .from('roles')

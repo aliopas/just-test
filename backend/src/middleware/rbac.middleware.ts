@@ -39,9 +39,7 @@ export const requirePermission = (permissionSlug: string | string[]) => {
         });
       }
 
-      const permissions = await rbacService.getUserPermissionSlugs(
-        req.user.id
-      );
+      const permissions = await rbacService.getUserPermissionSlugs(req.user.id);
       req.user.permissions = Array.from(permissions);
 
       return next();

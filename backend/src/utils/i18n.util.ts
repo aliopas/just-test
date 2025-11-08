@@ -49,4 +49,3 @@ export function t(key: keyof typeof messages, lang: SupportedLanguage): string {
   }
   return translation[lang] ?? translation.en;
 }
-

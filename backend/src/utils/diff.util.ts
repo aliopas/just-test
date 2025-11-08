@@ -67,4 +67,3 @@ export function diffObjects(
 
   return diff;
 }
-

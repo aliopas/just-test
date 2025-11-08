@@ -23,4 +23,3 @@ investorRouter.patch(
 );
 
 export { investorRouter };
-

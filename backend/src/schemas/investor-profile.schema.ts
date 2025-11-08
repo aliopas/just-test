@@ -44,11 +44,7 @@ export const investorProfileUpdateSchema = z
       .optional()
       .nullable(),
     idType: z
-      .enum(['national_id', 'iqama', 'passport', 'other'], {
-        errorMap: () => ({
-          message: 'idType must be one of national_id, iqama, passport, other',
-        }),
-      })
+      .enum(['national_id', 'iqama', 'passport', 'other'])
       .optional()
       .nullable(),
     idNumber: z
@@ -66,7 +62,9 @@ export const investorProfileUpdateSchema = z
       .max(120, 'City must be less than 120 characters')
       .optional()
       .nullable(),
-    kycStatus: z.enum(['pending', 'in_review', 'approved', 'rejected']).optional(),
+    kycStatus: z
+      .enum(['pending', 'in_review', 'approved', 'rejected'])
+      .optional(),
     language: z.enum(['ar', 'en']).optional(),
     communicationPreferences: communicationPreferencesSchema.optional(),
     riskProfile: z
@@ -75,16 +73,11 @@ export const investorProfileUpdateSchema = z
       .nullable(),
     kycDocuments: z.array(z.string().min(1)).max(20).optional().nullable(),
   })
-  .refine(
-    data =>
-      Object.values(data).some(value => value !== undefined),
-    {
-      message: 'At least one field must be provided',
-      path: [],
-    }
-  );
+  .refine(data => Object.values(data).some(value => value !== undefined), {
+    message: 'At least one field must be provided',
+    path: [],
+  });
 
 export type InvestorProfileUpdateInput = z.infer<
   typeof investorProfileUpdateSchema
 >;
-
