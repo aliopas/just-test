@@ -55,7 +55,11 @@ type MessageKey =
   | 'detail.approve'
   | 'detail.reject'
   | 'detail.requestInfoAction'
-  | 'detail.updatedAt';
+  | 'detail.updatedAt'
+  | 'decision.approvedSuccess'
+  | 'decision.rejectedSuccess'
+  | 'decision.notePlaceholder';
+  | 'decision.noteRequired';
 
 type MessageDictionary = Record<MessageKey, string>;
 
@@ -117,6 +121,10 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'detail.reject': 'Reject',
     'detail.requestInfoAction': 'Request info',
     'detail.updatedAt': 'Last updated',
+    'decision.approvedSuccess': 'Request approved successfully',
+    'decision.rejectedSuccess': 'Request rejected successfully',
+    'decision.notePlaceholder': 'Add an internal note (optional, max 500 characters)…',
+    'decision.noteRequired': 'Please enter a message before requesting additional information.',
   },
   ar: {
     pageTitle: 'صندوق وارد الطلبات',
@@ -175,6 +183,10 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'detail.reject': 'رفض',
     'detail.requestInfoAction': 'طلب معلومات',
     'detail.updatedAt': 'آخر تحديث',
+    'decision.approvedSuccess': 'تمت الموافقة على الطلب بنجاح',
+    'decision.rejectedSuccess': 'تم رفض الطلب بنجاح',
+    'decision.notePlaceholder': 'أضف ملاحظة داخلية (اختياري، بحد أقصى 500 حرف)…',
+    'decision.noteRequired': 'يرجى إدخال رسالة قبل طلب معلومات إضافية.',
   },
 };
 

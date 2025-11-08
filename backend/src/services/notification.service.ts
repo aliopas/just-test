@@ -22,3 +22,25 @@ export async function notifyAdminsOfSubmission(
   void payload;
   return Promise.resolve();
 }
+
+type InvestorDecisionNotification = InvestorSubmissionNotification & {
+  decision: 'approved' | 'rejected';
+};
+
+export async function notifyInvestorOfDecision(
+  payload: InvestorDecisionNotification
+) {
+  void payload;
+  return Promise.resolve();
+}
+
+type InvestorInfoRequestNotification = InvestorSubmissionNotification & {
+  message: string;
+};
+
+export async function notifyInvestorOfInfoRequest(
+  payload: InvestorInfoRequestNotification
+) {
+  void payload;
+  return Promise.resolve();
+}

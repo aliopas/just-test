@@ -68,6 +68,7 @@ type RequestRecord = {
   id: string;
   status: RequestStatus;
   user_id: string;
+  request_number: string;
 };
 
 export async function transitionRequestStatus({
@@ -80,7 +81,7 @@ export async function transitionRequestStatus({
 
   const { data: requestRecord, error: fetchError } = await adminClient
     .from('requests')
-    .select('id,status,user_id')
+    .select('id,status,user_id,request_number')
     .eq('id', requestId)
     .single<RequestRecord>();
 

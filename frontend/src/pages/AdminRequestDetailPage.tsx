@@ -1,7 +1,8 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   QueryClient,
   QueryClientProvider,
+  useMutation,
 } from '@tanstack/react-query';
 import { LanguageProvider, useLanguage } from '../context/LanguageContext';
 import { ToastProvider, useToast } from '../context/ToastContext';
@@ -10,6 +11,7 @@ import { useAdminRequestDetail } from '../hooks/useAdminRequestDetail';
 import { tAdminRequests } from '../locales/adminRequests';
 import { RequestStatusBadge } from '../components/request/RequestStatusBadge';
 import { getStatusLabel } from '../utils/requestStatus';
+import { apiClient } from '../utils/api-client';
 
 const queryClient = new QueryClient();
 
@@ -26,18 +28,118 @@ function AdminRequestDetailPageInner() {
   const requestId = useMemo(resolveRequestId, []);
   const { data, isLoading, isError, error, refetch, isFetching } =
     useAdminRequestDetail(requestId);
+  const [decisionNote, setDecisionNote] = useState('');
 
-  const request = data?.request;
+  const approveMutation = useMutation({
+    mutationFn: async (payload: { note?: string }) => {
+      if (!requestId) {
+        throw new Error('Request id is missing');
+      }
+      return apiClient(`/admin/requests/${requestId}/approve`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      });
+    },
+    onSuccess: () => {
+      pushToast({
+        message: tAdminRequests('decision.approvedSuccess', language),
+        variant: 'success',
+      });
+      setDecisionNote('');
+      refetch();
+    },
+    onError: (mutationError: unknown) => {
+      const message =
+        mutationError instanceof Error
+          ? mutationError.message
+          : tAdminRequests('table.error', language);
+      pushToast({
+        message,
+        variant: 'error',
+      });
+    },
+  });
 
-  if (isError) {
+  const rejectMutation = useMutation({
+    mutationFn: async (payload: { note?: string }) => {
+      if (!requestId) {
+        throw new Error('Request id is missing');
+      }
+      return apiClient(`/admin/requests/${requestId}/reject`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      });
+    },
+    onSuccess: () => {
+      pushToast({
+        message: tAdminRequests('decision.rejectedSuccess', language),
+        variant: 'success',
+      });
+      setDecisionNote('');
+      refetch();
+    },
+    onError: (mutationError: unknown) => {
+      const message =
+        mutationError instanceof Error
+          ? mutationError.message
+          : tAdminRequests('table.error', language);
+      pushToast({
+        message,
+        variant: 'error',
+      });
+    },
+  });
+
+  const requestInfoMutation = useMutation({
+    mutationFn: async (payload: { message: string }) => {
+      if (!requestId) {
+        throw new Error('Request id is missing');
+      }
+      return apiClient(`/admin/requests/${requestId}/request-info`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+    },
+    onSuccess: () => {
+      pushToast({
+        message: tAdminRequests('decision.infoRequestedSuccess', language),
+        variant: 'success',
+      });
+      setDecisionNote('');
+      refetch();
+    },
+    onError: (mutationError: unknown) => {
+      const message =
+        mutationError instanceof Error
+          ? mutationError.message
+          : tAdminRequests('table.error', language);
+      pushToast({
+        message,
+        variant: 'error',
+      });
+    },
+  });
+
+  useEffect(() => {
+    if (!isError) return;
+    const message =
+      error instanceof Error
+        ? error.message
+        : tAdminRequests('table.error', language);
     pushToast({
-      message:
-        error instanceof Error
-          ? error.message
-          : tAdminRequests('table.error', language),
+      message,
       variant: 'error',
     });
-  }
+  }, [isError, error, pushToast, language]);
+
+  const request = data?.request;
+  const isDecisionFinal = request
+    ? request.status === 'approved' || request.status === 'rejected'
+    : false;
+  const isActionBusy =
+    approveMutation.isPending ||
+    rejectMutation.isPending ||
+    requestInfoMutation.isPending;
 
   const amountFormatted = request
     ? new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
@@ -349,14 +451,50 @@ function AdminRequestDetailPageInner() {
                 gap: '0.75rem',
               }}
             >
-              <ActionButton label={tAdminRequests('detail.approve', language)} />
+              <textarea
+                value={decisionNote}
+                onChange={event => setDecisionNote(event.target.value)}
+                maxLength={500}
+                placeholder={tAdminRequests('decision.notePlaceholder', language)}
+                style={{ ...textAreaStyle, direction }}
+              />
+              <ActionButton
+                label={tAdminRequests('detail.approve', language)}
+                onClick={() =>
+                  approveMutation.mutate({
+                    note: decisionNote.trim() ? decisionNote.trim() : undefined,
+                  })
+                }
+                disabled={isDecisionFinal || isActionBusy || !request}
+                loading={approveMutation.isPending}
+              />
               <ActionButton
                 label={tAdminRequests('detail.reject', language)}
                 variant="danger"
+                onClick={() =>
+                  rejectMutation.mutate({
+                    note: decisionNote.trim() ? decisionNote.trim() : undefined,
+                  })
+                }
+                disabled={isDecisionFinal || isActionBusy || !request}
+                loading={rejectMutation.isPending}
               />
               <ActionButton
                 label={tAdminRequests('detail.requestInfoAction', language)}
                 variant="secondary"
+                onClick={() => {
+                  const message = decisionNote.trim();
+                  if (!message) {
+                    pushToast({
+                      message: tAdminRequests('decision.noteRequired', language),
+                      variant: 'error',
+                    });
+                    return;
+                  }
+                  requestInfoMutation.mutate({ message });
+                }}
+                disabled={isActionBusy || !request}
+                loading={requestInfoMutation.isPending}
               />
             </div>
             <p
@@ -366,7 +504,7 @@ function AdminRequestDetailPageInner() {
                 fontSize: '0.85rem',
               }}
             >
-              * سيتم ربط الأزرار بواجهات Story 4.4 و4.5.
+              * زر طلب المعلومات سيُفعَّل عند تنفيذ Story 4.5.
             </p>
           </Card>
 
@@ -522,12 +660,30 @@ function InfoGrid({
   );
 }
 
+const textAreaStyle: React.CSSProperties = {
+  width: '100%',
+  minHeight: '120px',
+  borderRadius: '0.85rem',
+  border: '1px solid #CBD5F5',
+  background: '#FFFFFF',
+  color: '#0F172A',
+  fontSize: '0.95rem',
+  padding: '0.75rem 1rem',
+  resize: 'vertical',
+};
+
 function ActionButton({
   label,
   variant = 'primary',
+  onClick,
+  disabled = false,
+  loading = false,
 }: {
   label: string;
   variant?: 'primary' | 'secondary' | 'danger';
+  onClick?: () => void;
+  disabled?: boolean;
+  loading?: boolean;
 }) {
   const colors: Record<typeof variant, string> = {
     primary: '#2563EB',
@@ -537,6 +693,7 @@ function ActionButton({
   return (
     <button
       type="button"
+      onClick={onClick}
       style={{
         padding: '0.75rem 1.4rem',
         borderRadius: '0.85rem',
@@ -544,12 +701,12 @@ function ActionButton({
         background: colors[variant],
         color: '#FFFFFF',
         fontWeight: 700,
-        cursor: 'not-allowed',
-        opacity: 0.75,
+        cursor: disabled || loading ? 'not-allowed' : 'pointer',
+        opacity: disabled || loading ? 0.6 : 1,
       }}
-      disabled
+      disabled={disabled || loading}
     >
-      {label}
+      {loading ? '…' : label}
     </button>
   );
 }

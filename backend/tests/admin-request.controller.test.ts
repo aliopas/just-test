@@ -6,6 +6,9 @@ import { adminRequestController } from '../src/controllers/admin-request.control
 import {
   listAdminRequests,
   getAdminRequestDetail,
+  approveAdminRequest,
+  rejectAdminRequest,
+  requestInfoFromInvestor,
 } from '../src/services/admin-request.service';
 import type { AuthenticatedRequest } from '../src/middleware/auth.middleware';
 import type { Response } from 'express';
@@ -13,10 +16,16 @@ import type { Response } from 'express';
 jest.mock('../src/services/admin-request.service', () => ({
   listAdminRequests: jest.fn(),
   getAdminRequestDetail: jest.fn(),
+  approveAdminRequest: jest.fn(),
+  rejectAdminRequest: jest.fn(),
+  requestInfoFromInvestor: jest.fn(),
 }));
 
 const mockedListAdminRequests = listAdminRequests as jest.Mock;
 const mockedGetAdminRequestDetail = getAdminRequestDetail as jest.Mock;
+const mockedApproveAdminRequest = approveAdminRequest as jest.Mock;
+const mockedRejectAdminRequest = rejectAdminRequest as jest.Mock;
+const mockedRequestInfo = requestInfoFromInvestor as jest.Mock;
 
 const createMockResponse = () => {
   const res: Partial<Response> = {};
@@ -164,6 +173,262 @@ describe('adminRequestController.getRequestDetail', () => {
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         request: expect.objectContaining({ id: 'req-1' }),
+      })
+    );
+  });
+});
+
+describe('adminRequestController.approveRequest', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns 401 when user not authenticated', async () => {
+    const req = {
+      params: { id: 'req-1' },
+      body: {},
+      user: undefined,
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.approveRequest(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+  });
+
+  it('returns 404 when request not found', async () => {
+    mockedApproveAdminRequest.mockRejectedValueOnce(new Error('Request req-404 not found'));
+
+    const req = {
+      params: { id: 'req-404' },
+      body: {},
+      user: { id: 'admin-1', email: 'admin@example.com' },
+      ip: '::1',
+      headers: {},
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.approveRequest(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+  });
+
+  it('returns 409 for invalid state', async () => {
+    mockedApproveAdminRequest.mockRejectedValueOnce(
+      new Error('Transition from "draft" to "approved" is not permitted')
+    );
+
+    const req = {
+      params: { id: 'req-1' },
+      body: { note: 'approve please' },
+      user: { id: 'admin-1', email: 'admin@example.com' },
+      ip: '::1',
+      headers: {},
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.approveRequest(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(409);
+  });
+
+  it('returns 200 on success', async () => {
+    mockedApproveAdminRequest.mockResolvedValueOnce({
+      request: { status: 'approved' },
+    });
+
+    const req = {
+      params: { id: 'req-1' },
+      body: { note: 'Looks good' },
+      user: { id: 'admin-1', email: 'admin@example.com' },
+      ip: '::1',
+      headers: { 'user-agent': 'jest' },
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.approveRequest(req, res);
+
+    expect(mockedApproveAdminRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actorId: 'admin-1',
+        requestId: 'req-1',
+        note: 'Looks good',
+      })
+    );
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        requestId: 'req-1',
+        status: 'approved',
+      })
+    );
+  });
+});
+
+describe('adminRequestController.rejectRequest', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns 401 when user not authenticated', async () => {
+    const req = {
+      params: { id: 'req-2' },
+      body: {},
+      user: undefined,
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.rejectRequest(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+  });
+
+  it('returns 404 when request not found', async () => {
+    mockedRejectAdminRequest.mockRejectedValueOnce(new Error('Request req-2 not found'));
+
+    const req = {
+      params: { id: 'req-2' },
+      body: {},
+      user: { id: 'admin-8', email: 'admin@example.com' },
+      ip: '::1',
+      headers: {},
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.rejectRequest(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+  });
+
+  it('returns 409 for invalid state', async () => {
+    mockedRejectAdminRequest.mockRejectedValueOnce(
+      new Error('Request is already in the target status')
+    );
+
+    const req = {
+      params: { id: 'req-2' },
+      body: { note: 'Reject reason' },
+      user: { id: 'admin-8', email: 'admin@example.com' },
+      ip: '::1',
+      headers: {},
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.rejectRequest(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(409);
+  });
+
+  it('returns 200 on success', async () => {
+    mockedRejectAdminRequest.mockResolvedValueOnce({
+      request: { status: 'rejected' },
+    });
+
+    const req = {
+      params: { id: 'req-2' },
+      body: { note: 'Rejected due to risk' },
+      user: { id: 'admin-8', email: 'admin@example.com' },
+      ip: '::1',
+      headers: { 'user-agent': 'jest' },
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.rejectRequest(req, res);
+
+    expect(mockedRejectAdminRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actorId: 'admin-8',
+        requestId: 'req-2',
+        note: 'Rejected due to risk',
+      })
+    );
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        requestId: 'req-2',
+        status: 'rejected',
+      })
+    );
+  });
+});
+
+describe('adminRequestController.requestInfo', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns 401 when user not authenticated', async () => {
+    const req = {
+      params: { id: 'req-3' },
+      body: { message: 'Need more documents' },
+      user: undefined,
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.requestInfo(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+  });
+
+  it('returns 400 when message missing', async () => {
+    const req = {
+      params: { id: 'req-3' },
+      body: { message: '' },
+      user: { id: 'admin-4', email: 'admin@example.com' },
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.requestInfo(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(mockedRequestInfo).not.toHaveBeenCalled();
+  });
+
+  it('returns 404 when request not found', async () => {
+    mockedRequestInfo.mockRejectedValueOnce(new Error('Request req-3 not found'));
+
+    const req = {
+      params: { id: 'req-3' },
+      body: { message: 'Please upload updated bank statement.' },
+      user: { id: 'admin-4', email: 'admin@example.com' },
+      ip: '::1',
+      headers: {},
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.requestInfo(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+  });
+
+  it('returns 200 on success', async () => {
+    mockedRequestInfo.mockResolvedValueOnce({
+      request: { status: 'pending_info' },
+    });
+
+    const req = {
+      params: { id: 'req-3' },
+      body: { message: 'Please provide additional documentation.' },
+      user: { id: 'admin-4', email: 'admin@example.com' },
+      ip: '::1',
+      headers: { 'user-agent': 'jest' },
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.requestInfo(req, res);
+
+    expect(mockedRequestInfo).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actorId: 'admin-4',
+        requestId: 'req-3',
+        message: expect.stringContaining('Please provide'),
+      })
+    );
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        requestId: 'req-3',
+        status: 'pending_info',
       })
     );
   });

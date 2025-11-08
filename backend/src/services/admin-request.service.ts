@@ -1,6 +1,11 @@
 import { requireSupabaseAdmin } from '../lib/supabase';
 import type { AdminRequestListQuery } from '../schemas/admin-requests.schema';
 import type { RequestStatus } from './request-state.service';
+import { transitionRequestStatus } from './request-state.service';
+import {
+  notifyInvestorOfDecision,
+  notifyInvestorOfInfoRequest,
+} from './notification.service';
 
 type MaybeArray<T> = T | T[] | null | undefined;
 
@@ -359,4 +364,146 @@ export async function getAdminRequestDetail(params: {
         createdAt: event.createdAt,
       })),
   };
+}
+
+async function logRequestAudit(params: {
+  actorId: string;
+  action: string;
+  requestId: string;
+  diff: Record<string, { before: unknown; after: unknown }>;
+  ipAddress?: string | null;
+  userAgent?: string | null;
+}) {
+  const adminClient = requireSupabaseAdmin();
+  const { error } = await adminClient.from('audit_logs').insert({
+    actor_id: params.actorId,
+    action: params.action,
+    target_type: 'request',
+    target_id: params.requestId,
+    diff: params.diff,
+    ip_address: params.ipAddress ?? null,
+    user_agent: params.userAgent ?? null,
+  });
+
+  if (error) {
+    console.error('Failed to write audit log for request decision:', error);
+  }
+}
+
+type DecisionParams = {
+  actorId: string;
+  requestId: string;
+  note?: string;
+  ipAddress?: string | null;
+  userAgent?: string | null;
+};
+
+export async function approveAdminRequest(params: DecisionParams) {
+  const transition = await transitionRequestStatus({
+    requestId: params.requestId,
+    actorId: params.actorId,
+    toStatus: 'approved',
+    note: params.note ?? null,
+  });
+
+  await logRequestAudit({
+    actorId: params.actorId,
+    action: 'request.approved',
+    requestId: params.requestId,
+    diff: {
+      status: {
+        before: transition.event.from_status,
+        after: transition.event.to_status,
+      },
+    },
+    ipAddress: params.ipAddress,
+    userAgent: params.userAgent,
+  });
+
+  await notifyInvestorOfDecision({
+    userId: transition.request.user_id,
+    requestId: params.requestId,
+    requestNumber: transition.request.request_number,
+    decision: 'approved',
+  });
+
+  return transition;
+}
+
+export async function rejectAdminRequest(params: DecisionParams) {
+  const transition = await transitionRequestStatus({
+    requestId: params.requestId,
+    actorId: params.actorId,
+    toStatus: 'rejected',
+    note: params.note ?? null,
+  });
+
+  await logRequestAudit({
+    actorId: params.actorId,
+    action: 'request.rejected',
+    requestId: params.requestId,
+    diff: {
+      status: {
+        before: transition.event.from_status,
+        after: transition.event.to_status,
+      },
+    },
+    ipAddress: params.ipAddress,
+    userAgent: params.userAgent,
+  });
+
+  await notifyInvestorOfDecision({
+    userId: transition.request.user_id,
+    requestId: params.requestId,
+    requestNumber: transition.request.request_number,
+    decision: 'rejected',
+  });
+
+  return transition;
+}
+
+type InfoRequestParams = DecisionParams & {
+  message: string;
+};
+
+export async function requestInfoFromInvestor(params: InfoRequestParams) {
+  if (!params.message || params.message.trim().length === 0) {
+    throw new Error('INFO_MESSAGE_REQUIRED');
+  }
+
+  const trimmedMessage = params.message.trim().slice(0, 1000);
+
+  const transition = await transitionRequestStatus({
+    requestId: params.requestId,
+    actorId: params.actorId,
+    toStatus: 'pending_info',
+    note: trimmedMessage,
+  });
+
+  await logRequestAudit({
+    actorId: params.actorId,
+    action: 'request.info_requested',
+    requestId: params.requestId,
+    diff: {
+      status: {
+        before: transition.event.from_status,
+        after: transition.event.to_status,
+      },
+      message: {
+        before: null,
+        after: trimmedMessage,
+      },
+    },
+    ipAddress: params.ipAddress,
+    userAgent: params.userAgent,
+  });
+
+  await notifyInvestorOfInfoRequest({
+    userId: transition.request.user_id,
+    requestId: params.requestId,
+    requestNumber: transition.request.request_number,
+    message: trimmedMessage,
+  });
+
+  return transition;
 }

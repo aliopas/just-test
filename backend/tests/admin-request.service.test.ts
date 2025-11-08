@@ -2,16 +2,55 @@ import {
   listAdminRequests,
   escapeLikePattern,
   getAdminRequestDetail,
+  approveAdminRequest,
+  rejectAdminRequest,
+  requestInfoFromInvestor,
 } from '../src/services/admin-request.service';
 import { requireSupabaseAdmin } from '../src/lib/supabase';
 import type { AdminRequestListQuery } from '../src/schemas/admin-requests.schema';
 import type { RequestStatus } from '../src/services/request-state.service';
+import { transitionRequestStatus } from '../src/services/request-state.service';
+import {
+  notifyInvestorOfDecision,
+  notifyInvestorOfInfoRequest,
+} from '../src/services/notification.service';
+
+jest.mock('../src/services/request-state.service', () => ({
+  transitionRequestStatus: jest.fn(),
+  REQUEST_STATUSES: [
+    'draft',
+    'submitted',
+    'screening',
+    'pending_info',
+    'compliance_review',
+    'approved',
+    'rejected',
+    'settling',
+    'completed',
+  ],
+}));
+
+jest.mock('../src/services/notification.service', () => ({
+  notifyInvestorOfSubmission: jest.fn(),
+  notifyInvestorOfDecision: jest.fn(),
+  notifyInvestorOfInfoRequest: jest.fn(),
+}));
 
 jest.mock('../src/lib/supabase', () => ({
   requireSupabaseAdmin: jest.fn(),
 }));
 
 const mockRequireSupabaseAdmin = requireSupabaseAdmin as jest.Mock;
+const mockTransition = transitionRequestStatus as jest.Mock;
+const mockNotifyDecision = notifyInvestorOfDecision as jest.Mock;
+const mockNotifyInfoRequest = notifyInvestorOfInfoRequest as jest.Mock;
+
+beforeEach(() => {
+  mockRequireSupabaseAdmin.mockReset();
+  mockTransition.mockReset();
+  mockNotifyDecision.mockReset();
+  mockNotifyInfoRequest.mockReset();
+});
 
 describe('escapeLikePattern', () => {
   it('escapes percent and underscore characters', () => {
@@ -350,6 +389,176 @@ describe('getAdminRequestDetail', () => {
     );
     expect(result.events).toHaveLength(1);
     expect(result.comments).toHaveLength(1);
+  });
+});
+
+describe('approveAdminRequest', () => {
+  it('transitions status, logs audit, and notifies investor', async () => {
+    const auditInsertMock = jest.fn().mockResolvedValue({ error: null });
+    mockRequireSupabaseAdmin.mockReturnValue({
+      from: jest.fn((table: string) => {
+        if (table === 'audit_logs') {
+          return { insert: auditInsertMock };
+        }
+        throw new Error(`Unhandled table: ${table}`);
+      }),
+    });
+
+    mockTransition.mockResolvedValue({
+      request: {
+        id: 'req-1',
+        user_id: 'user-1',
+        request_number: 'INV-2025-000001',
+        status: 'approved',
+      },
+      event: {
+        from_status: 'compliance_review',
+        to_status: 'approved',
+      },
+    });
+
+    await approveAdminRequest({
+      actorId: 'admin-1',
+      requestId: 'req-1',
+      note: 'Looks good',
+    });
+
+    expect(mockTransition).toHaveBeenCalledWith(
+      expect.objectContaining({
+        requestId: 'req-1',
+        toStatus: 'approved',
+      })
+    );
+    expect(auditInsertMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'request.approved',
+        target_id: 'req-1',
+      })
+    );
+    expect(mockNotifyDecision).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'user-1',
+        requestNumber: 'INV-2025-000001',
+        decision: 'approved',
+      })
+    );
+  });
+});
+
+describe('rejectAdminRequest', () => {
+  it('transitions status, logs audit, and notifies investor', async () => {
+    const auditInsertMock = jest.fn().mockResolvedValue({ error: null });
+    mockRequireSupabaseAdmin.mockReturnValue({
+      from: jest.fn((table: string) => {
+        if (table === 'audit_logs') {
+          return { insert: auditInsertMock };
+        }
+        throw new Error(`Unhandled table: ${table}`);
+      }),
+    });
+
+    mockTransition.mockResolvedValue({
+      request: {
+        id: 'req-2',
+        user_id: 'user-2',
+        request_number: 'INV-2025-000002',
+        status: 'rejected',
+      },
+      event: {
+        from_status: 'screening',
+        to_status: 'rejected',
+      },
+    });
+
+    await rejectAdminRequest({
+      actorId: 'admin-2',
+      requestId: 'req-2',
+      note: 'Insufficient documents',
+    });
+
+    expect(mockTransition).toHaveBeenCalledWith(
+      expect.objectContaining({
+        requestId: 'req-2',
+        toStatus: 'rejected',
+      })
+    );
+    expect(auditInsertMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'request.rejected',
+        target_id: 'req-2',
+      })
+    );
+    expect(mockNotifyDecision).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'user-2',
+        requestNumber: 'INV-2025-000002',
+        decision: 'rejected',
+      })
+    );
+  });
+});
+
+describe('requestInfoFromInvestor', () => {
+  it('requires non-empty message', async () => {
+    await expect(
+      requestInfoFromInvestor({
+        actorId: 'admin-1',
+        requestId: 'req-1',
+        message: '',
+      } as any)
+    ).rejects.toThrow('INFO_MESSAGE_REQUIRED');
+  });
+
+  it('transitions status, logs audit, and notifies investor', async () => {
+    const auditInsertMock = jest.fn().mockResolvedValue({ error: null });
+    mockRequireSupabaseAdmin.mockReturnValue({
+      from: jest.fn((table: string) => {
+        if (table === 'audit_logs') {
+          return { insert: auditInsertMock };
+        }
+        throw new Error(`Unhandled table: ${table}`);
+      }),
+    });
+
+    mockTransition.mockResolvedValue({
+      request: {
+        id: 'req-3',
+        user_id: 'user-3',
+        request_number: 'INV-2025-000003',
+        status: 'pending_info',
+      },
+      event: {
+        from_status: 'screening',
+        to_status: 'pending_info',
+      },
+    });
+
+    await requestInfoFromInvestor({
+      actorId: 'admin-3',
+      requestId: 'req-3',
+      message: 'Please upload proof of funds within 48 hours.',
+    });
+
+    expect(mockTransition).toHaveBeenCalledWith(
+      expect.objectContaining({
+        requestId: 'req-3',
+        toStatus: 'pending_info',
+        note: expect.stringContaining('Please upload'),
+      })
+    );
+    expect(auditInsertMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'request.info_requested',
+        target_id: 'req-3',
+      })
+    );
+    expect(mockNotifyInfoRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'user-3',
+        requestNumber: 'INV-2025-000003',
+        message: expect.stringContaining('Please upload'),
+      })
+    );
   });
 });
 

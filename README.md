@@ -146,6 +146,8 @@ npm test -- health.test.ts
 - **Story 4.1 (Admin Requests Inbox API):** `docs/stories/STORY_4.1_COMPLETION.md`
 - **Story 4.2 (Admin Requests Inbox UI):** `docs/stories/STORY_4.2_COMPLETION.md`
 - **Story 4.3 (Admin Request Detail View):** `docs/stories/STORY_4.3_COMPLETION.md`
+- **Story 4.4 (Admin Request Decision APIs & UI):** `docs/stories/STORY_4.4_COMPLETION.md`
+- **Story 4.5 (Admin Request Info Workflow):** `docs/stories/STORY_4.5_COMPLETION.md`
 - **Design System:** `docs/design-system.md` (مع ملفات `frontend/src/styles/theme.ts` و`frontend/src/components/Logo.tsx`)
 - **Supabase Integration:** `docs/SUPABASE_INTEGRATION.md`
 - **RBAC Matrix:** `docs/prd/rbac-matrix.md`

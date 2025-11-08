@@ -20,6 +20,27 @@ adminRouter.get(
   adminRequestController.getRequestDetail
 );
 
+adminRouter.patch(
+  '/requests/:id/approve',
+  authenticate,
+  requirePermission('admin.requests.review'),
+  adminRequestController.approveRequest
+);
+
+adminRouter.patch(
+  '/requests/:id/reject',
+  authenticate,
+  requirePermission('admin.requests.review'),
+  adminRequestController.rejectRequest
+);
+
+adminRouter.post(
+  '/requests/:id/request-info',
+  authenticate,
+  requirePermission('admin.requests.review'),
+  adminRequestController.requestInfo
+);
+
 adminRouter.get(
   '/users',
   authenticate,
