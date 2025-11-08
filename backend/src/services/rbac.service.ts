@@ -22,18 +22,16 @@ export interface UserRole {
   created_at: string;
 }
 
-type UserRoleRow = {
-  roles: Role | null;
+type RolesJoinRow = {
+  roles?: Role[];
 };
 
-type RoleWithPermissionsRow = {
-  roles: {
-    role_permissions:
-      | {
-          permissions: Permission | null;
-        }[]
-      | null;
-  } | null;
+type RolePermissionsJoinRow = {
+  roles?: Array<{
+    role_permissions?: Array<{
+      permissions?: Permission[];
+    }>;
+  }>;
 };
 
 export const rbacService = {
@@ -61,9 +59,9 @@ export const rbacService = {
       throw new Error(`Failed to get user roles: ${error.message}`);
     }
 
-    const rows = (data as UserRoleRow[] | null) ?? [];
+    const rows = (data as RolesJoinRow[] | null) ?? [];
     return rows
-      .map(row => row.roles)
+      .map(row => row.roles?.[0] ?? null)
       .filter((role): role is Role => Boolean(role));
   },
 
@@ -97,13 +95,13 @@ export const rbacService = {
     }
 
     const permissions: Permission[] = [];
-    const rows = (data as RoleWithPermissionsRow[] | null) ?? [];
+    const rows = (data as RolePermissionsJoinRow[] | null) ?? [];
     rows.forEach(row => {
-      const rolePermissions = row.roles?.role_permissions ?? [];
+      const rolePermissions = row.roles?.[0]?.role_permissions ?? [];
       rolePermissions.forEach(rp => {
-        if (rp.permissions) {
-          permissions.push(rp.permissions);
-        }
+        (rp.permissions ?? []).forEach(permission => {
+          permissions.push(permission);
+        });
       });
     });
 
