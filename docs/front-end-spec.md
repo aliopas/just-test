@@ -13,6 +13,7 @@
 |------|---------|-------------|--------|
 | 2024-11-06 | 1.0 | إنشاء Front End Spec الأولي | BMad Team |
 | 2025-11-08 | 1.1 | إضافة صفحة `/app/profile` واستراتيجية i18n/RTL للمستثمر | GPT-5 Codex |
+| 2025-11-08 | 1.2 | إضافة صفحة إنشاء الطلب `/app/new-request` مع نماذج وتوست ومقدمات API | GPT-5 Codex |
 
 ---
 
@@ -42,6 +43,19 @@
   - `@hookform/resolvers`
   - `zod`
   - Optional for testing/E2E: `@testing-library/react`, `@testing-library/jest-dom`, `playwright` (see Story 2.3 completion notes)
+
+### New Request Experience (v1.2)
+
+- **Entry Route:** `/app/new-request` (`frontend/src/app/new-request/main.tsx`)。
+- **Core Components:** `NewRequestPage`, `NewRequestForm`, `UploadDropzone` في `frontend/src/components/request/`.
+- **State & Data Flow:**
+  - `useCreateRequest` (TanStack Query mutation) يستدعي `POST /investor/requests`.
+  - التحقق عبر `newRequestFormSchema` (Zod) + `react-hook-form`.
+  - Toast notifications (`ToastProvider` + `ToastStack`) لتغذية رسائل النجاح/الفشل.
+- **المرفقات:** المكون الحالي يحفظ الملفات محليًا (Placeholder) مع دعم السحب والإفلات، وسيتم ربطه بـ Story 3.4 لرفع الملفات الفعلي.
+- **i18n:** يعتمد `LanguageProvider` مع قاموس `frontend/src/locales/newRequest.ts` لنصوص النموذج.
+- **التحليلات:** Placeholder عبر `analytics.track` عند النجاح.
+- **ملاحظات:** تتطلب نفس التبعيات المذكورة أعلاه (React Query, Hook Form, Zod). عند إضافة اختبارات واجهة، استخدم `@testing-library/react`.
 
 ---
 

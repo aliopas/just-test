@@ -10,7 +10,7 @@ jest.mock('../src/lib/supabase', () => ({
 }));
 
 describe('request-state.service', () => {
-  beforeEach(() => {
+  beforeEach(() => {    
     jest.clearAllMocks();
   });
 

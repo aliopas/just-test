@@ -4,6 +4,7 @@ import { authenticate } from '../middleware/auth.middleware';
 import { requirePermission } from '../middleware/rbac.middleware';
 import { validate } from '../middleware/validation.middleware';
 import { investorProfileUpdateSchema } from '../schemas/investor-profile.schema';
+import { requestController } from '../controllers/request.controller';
 
 const investorRouter = Router();
 
@@ -20,6 +21,20 @@ investorRouter.patch(
   requirePermission(['investor.profile.update', 'admin.users.manage']),
   validate(investorProfileUpdateSchema),
   investorProfileController.updateProfile
+);
+
+investorRouter.post(
+  '/requests',
+  authenticate,
+  requirePermission('investor.requests.create'),
+  requestController.create
+);
+
+investorRouter.post(
+  '/requests/:id/submit',
+  authenticate,
+  requirePermission('investor.requests.submit'),
+  requestController.submit
 );
 
 export { investorRouter };

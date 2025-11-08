@@ -142,6 +142,7 @@ npm test -- health.test.ts
 - **Architecture:** `docs/architecture/`
 - **Stories:** `docs/stories/`
 - **Story 2.3 (Investor Profile UI):** `docs/stories/STORY_2.3_COMPLETION.md`
+- **Story 3.1–3.3 (Requests Backend & New Request UI):** `docs/stories/STORY_3.1_COMPLETION.md`, `STORY_3.2_COMPLETION.md`, `STORY_3.3_COMPLETION.md`
 - **Design System:** `docs/design-system.md` (مع ملفات `frontend/src/styles/theme.ts` و`frontend/src/components/Logo.tsx`)
 - **Supabase Integration:** `docs/SUPABASE_INTEGRATION.md`
 - **RBAC Matrix:** `docs/prd/rbac-matrix.md`

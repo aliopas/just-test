@@ -36,3 +36,5 @@ export function requireSupabaseAdmin() {
   }
   return supabaseAdmin;
 }
+
+export { supabaseServiceRoleKey };
