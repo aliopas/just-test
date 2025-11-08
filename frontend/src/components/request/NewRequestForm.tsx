@@ -50,7 +50,7 @@ export function NewRequestForm() {
         notes: values.notes ?? undefined,
       });
 
-      analytics.track('investor_profile_updated', {
+      analytics.track('request_created', {
         type: values.type,
         amount: values.amount,
       });

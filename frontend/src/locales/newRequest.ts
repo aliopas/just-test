@@ -36,12 +36,13 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'form.submit': 'Submit request',
     'form.reset': 'Reset form',
     'form.uploadHint': 'Drag & drop files here or click to browse (PDF/JPG/PNG).',
-    'status.submitting': 'Submitting request…',
-    'status.success': 'Request submitted successfully',
-    'status.error': 'Unable to submit request. Please try again.',
+    'status.submitting': 'Saving request…',
+    'status.success':
+      'Request saved as draft. Submit after attaching required documents.',
+    'status.error': 'Unable to save request. Please try again.',
     'summary.title': 'Before you submit',
     'summary.autoSubmit':
-      'Requests are moved to “Submitted” automatically. You can track progress from the Requests dashboard.',
+      'Draft requests stay pending until you submit them after attaching documents.',
   },
   ar: {
     pageTitle: 'طلب استثماري جديد',
@@ -58,12 +59,13 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'form.reset': 'إعادة تعيين النموذج',
     'form.uploadHint':
       'اسحب الملفات هنا أو اضغط للاختيار (PDF/JPG/PNG).',
-    'status.submitting': 'جاري إرسال الطلب…',
-    'status.success': 'تم إرسال الطلب بنجاح',
-    'status.error': 'تعذر إرسال الطلب. حاول مرة أخرى.',
+    'status.submitting': 'جاري حفظ الطلب…',
+    'status.success':
+      'تم حفظ الطلب كمسودة. أرسل الطلب بعد إرفاق المستندات المطلوبة.',
+    'status.error': 'تعذر حفظ الطلب. حاول مرة أخرى.',
     'summary.title': 'قبل الإرسال',
     'summary.autoSubmit':
-      'يتم نقل الطلب تلقائياً إلى حالة "مرسل". يمكنك متابعة التقدم من لوحة الطلبات.',
+      'تظل الطلبات في حالة مسودة حتى تقوم بإرسالها بعد إرفاق المستندات المطلوبة.',
   },
 };
 
