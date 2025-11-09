@@ -98,7 +98,7 @@ export function AdminNewsFilterBar({
           }}
         >
           {isPublishPending || isPublishing
-            ? `${tAdminNews('list.actions.publishScheduled', language)}â€¦`
+            ? `${tAdminNews('list.actions.publishScheduled', language)}…`
             : tAdminNews('list.actions.publishScheduled', language)}
         </button>
         <button type="button" onClick={onCreate} style={primaryButtonStyle}>

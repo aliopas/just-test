@@ -11,16 +11,25 @@
 
 ### 1.1 لوحة الألوان الأساسية
 
-| الدور | الاسم | Hex | استخدامات أساسية |
-|-------|-------|-----|-------------------|
-| Primary | Bacura Blue | `#2D6FA3` | الأزرار الأساسية، الروابط، العناصر التفاعلية |
-| Primary Dark | Navy Tech | `#1E3A5F` | رؤوس الصفحات، الخلفيات الداكنة، التدرج الفاتح |
-| Text / Ink | Near Black | `#111418` | النصوص الأساسية، العناوين |
-| Border / Muted | Gray 400 | `#9CA3AF` | الحدود، النصوص الثانوية، الأيقونات الرمادية |
-| Surface | Gray 50 | `#F9FAFB` | خلفيات البطاقات، اللوحات |
-| Success | Emerald | `#10B981` | حالات النجاح، شارات الحالة |
-| Warning | Amber | `#F59E0B` | التحذيرات، التنبيهات |
-| Error | Red | `#EF4444` | الأخطاء، رسائل التحقق |
+| الدور | الاسم | Hex | الاستخدامات |
+|-------|-------|-----|-------------|
+| Brand Primary | Bacura Indigo | `#2364A4` | CTA الأساسية، الروابط البارزة، حالات التركيز |
+| Brand Primary Strong | Gulf Stream | `#2C74CC` | التحويم على الأزرار، الأشرطة البارزة، المؤشرات الفعالة |
+| Brand Primary Muted | Horizon Blue | `#327CB6` | الشرائح الثانوية، الحواف التفاعلية |
+| Brand Secondary | Deep Slate | `#55677A` | النصوص الثانوية الداكنة، الأيقونات المحايدة |
+| Brand Accent | Skyline Teal | `#3E6A95` | العناوين الفرعية، الشرائط التوضيحية |
+| Background Base | Mist Base | `#E5EFF2` | خلفية التطبيق الافتراضية، المناطق الواسعة |
+| Background Surface | Cloud Surface | `#F6FAFA` | البطاقات، اللوحات، المقاطع المتدرجة |
+| Background Highlight | Dew Highlight | `#DCF5F9` | تمييز المربعات، حالات التفاعل الخفيفة |
+| Neutral Border | Mist Border | `#A2AEBA` | حدود البطاقات والنماذج |
+| Neutral Muted | Urban Gray | `#7C7C7C` | النصوص المساعدة، الروابط غير النشطة |
+| Text Primary | Carbon Ink | `#080809` | العناوين، نصوص الفقرات |
+| Text Secondary | Steel Blue | `#31566F` | التوضيحات والشرح |
+| Text On Brand | Snow | `#F6FAFA` | النص فوق الحقول الزرقاء الداكنة |
+| Text On Inverse | Polar White | `#F6FAFA` | النص فوق الخلفيات الداكنة (`#042C54`) |
+| Success | Emerald | `#10B981` | حالات النجاح، التبليغات الإيجابية |
+| Warning | Amber | `#F59E0B` | التحذيرات، التنبيهات المتوسطة |
+| Error | Signal Red | `#EF4444` | رسائل التحقق، الأخطاء الحرجة |
 
 ### 1.2 التباين والوصولية
 - نسبة التباين المستهدفة للنص الأساسي ≥ 4.5:1.  
@@ -90,15 +99,15 @@
 
 ### 5.1 الزر الأساسي (Primary Button)
 ```
-background-color: #2D6FA3;
-color: #FFFFFF;
+background-color: var(--color-brand-primary);
+color: var(--color-text-on-brand);
 padding: 12px 20px;
 border-radius: 8px;
 font-weight: 600;
 transition: all 0.2s ease;
 ```
-- حالة التحويم: لون خلفية `#245A84`.  
-- حالة التعطيل: خلفية `#9CA3AF` مع نص أبيض بنسبة شفافية 0.7.  
+- حالة التحويم: التدرج `linear-gradient(135deg, #326FAE 0%, #2C74CC 100%)`.  
+- حالة التعطيل: خلفية `rgba(172, 204, 227, 0.6)` مع نص `var(--color-text-muted)`.  
 - مساحة الضغط القابلة للنقر ≥ 44px ارتفاعًا.
 
 ### 5.2 الحقول النصية

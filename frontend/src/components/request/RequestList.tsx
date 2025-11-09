@@ -62,7 +62,7 @@ export function RequestList({
             fontSize: '0.85rem',
           }}
         >
-          Loadingâ€¦
+          Loading…
         </div>
       )}
     </div>

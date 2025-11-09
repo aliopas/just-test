@@ -878,6 +878,14 @@ graph TD
 
 ---
 
+## Notifications Roadmap (Epic 6)
+
+- **Backend foundation:** Notifications and preferences tables created in Supabase with realtime publication (Story 6.1).
+- **Frontend impact:** Upcoming stories will add notification center UI, unread badges, and preference management that consume these endpoints.
+- **Channels:** Email, SMS, and in-app notifications share the same payload contract to ensure consistent rendering across delivery mechanisms.
+
+---
+
 ## Internationalization (i18n)
 
 ### Supported Languages

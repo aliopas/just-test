@@ -36,7 +36,7 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'form.submit': 'Submit request',
     'form.reset': 'Reset form',
     'form.uploadHint': 'Drag & drop files here or click to browse (PDF/JPG/PNG).',
-    'status.submitting': 'Saving requestâ€¦',
+    'status.submitting': 'Saving request…',
     'status.success':
       'Request saved as draft. Submit after attaching required documents.',
     'status.error': 'Unable to save request. Please try again.',
@@ -45,27 +45,27 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
       'Draft requests stay pending until you submit them after attaching documents.',
   },
   ar: {
-    pageTitle: 'Ø·Ù„Ø¨ Ø§Ø³ØªØ«Ù…Ø§Ø±ÙŠ Ø¬Ø¯ÙŠØ¯',
+    pageTitle: 'طلب استثماري جديد',
     pageSubtitle:
-      'Ù‚Ø¯Ù‘Ù… Ø·Ù„Ø¨ Ø´Ø±Ø§Ø¡ Ø£Ùˆ Ø¨ÙŠØ¹. Ø³ÙŠØªÙ… Ù…Ø±Ø§Ø¬Ø¹ØªÙ‡ Ù…Ù† Ù‚Ø¨Ù„ Ø§Ù„ÙØ±ÙŠÙ‚ Ø§Ù„Ù…Ø®ØªØµ Ø¨Ø¹Ø¯ Ø§Ù„Ø¥Ø±Ø³Ø§Ù„.',
-    'form.type': 'Ù†ÙˆØ¹ Ø§Ù„Ø·Ù„Ø¨',
-    'form.amount': 'Ø§Ù„Ù…Ø¨Ù„Øº',
-    'form.currency': 'Ø§Ù„Ø¹Ù…Ù„Ø©',
-    'form.targetPrice': 'Ø§Ù„Ø³Ø¹Ø± Ø§Ù„Ù…Ø³ØªÙ‡Ø¯Ù (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)',
-    'form.expiry': 'ØªØ§Ø±ÙŠØ® Ø§Ù„ØµÙ„Ø§Ø­ÙŠØ©',
-    'form.notes': 'Ù…Ù„Ø§Ø­Ø¸Ø§Øª (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)',
-    'form.documents': 'Ø§Ù„Ù…Ø±ÙÙ‚Ø§Øª',
-    'form.submit': 'Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ø·Ù„Ø¨',
-    'form.reset': 'Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹ÙŠÙŠÙ† Ø§Ù„Ù†Ù…ÙˆØ°Ø¬',
+      'قدّم طلب شراء أو بيع. سيتم مراجعته من قبل الفريق المختص بعد الإرسال.',
+    'form.type': 'نوع الطلب',
+    'form.amount': 'المبلغ',
+    'form.currency': 'العملة',
+    'form.targetPrice': 'السعر المستهدف (اختياري)',
+    'form.expiry': 'تاريخ الصلاحية',
+    'form.notes': 'ملاحظات (اختياري)',
+    'form.documents': 'المرفقات',
+    'form.submit': 'إرسال الطلب',
+    'form.reset': 'إعادة تعيين النموذج',
     'form.uploadHint':
-      'Ø§Ø³Ø­Ø¨ Ø§Ù„Ù…Ù„ÙØ§Øª Ù‡Ù†Ø§ Ø£Ùˆ Ø§Ø¶ØºØ· Ù„Ù„Ø§Ø®ØªÙŠØ§Ø± (PDF/JPG/PNG).',
-    'status.submitting': 'Ø¬Ø§Ø±ÙŠ Ø­ÙØ¸ Ø§Ù„Ø·Ù„Ø¨â€¦',
+      'اسحب الملفات هنا أو اضغط للاختيار (PDF/JPG/PNG).',
+    'status.submitting': 'جاري حفظ الطلب…',
     'status.success':
-      'ØªÙ… Ø­ÙØ¸ Ø§Ù„Ø·Ù„Ø¨ ÙƒÙ…Ø³ÙˆØ¯Ø©. Ø£Ø±Ø³Ù„ Ø§Ù„Ø·Ù„Ø¨ Ø¨Ø¹Ø¯ Ø¥Ø±ÙØ§Ù‚ Ø§Ù„Ù…Ø³ØªÙ†Ø¯Ø§Øª Ø§Ù„Ù…Ø·Ù„ÙˆØ¨Ø©.',
-    'status.error': 'ØªØ¹Ø°Ø± Ø­ÙØ¸ Ø§Ù„Ø·Ù„Ø¨. Ø­Ø§ÙˆÙ„ Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.',
-    'summary.title': 'Ù‚Ø¨Ù„ Ø§Ù„Ø¥Ø±Ø³Ø§Ù„',
+      'تم حفظ الطلب كمسودة. أرسل الطلب بعد إرفاق المستندات المطلوبة.',
+    'status.error': 'تعذّر حفظ الطلب. حاول مرة أخرى.',
+    'summary.title': 'قبل الإرسال',
     'summary.autoSubmit':
-      'ØªØ¸Ù„ Ø§Ù„Ø·Ù„Ø¨Ø§Øª ÙÙŠ Ø­Ø§Ù„Ø© Ù…Ø³ÙˆØ¯Ø© Ø­ØªÙ‰ ØªÙ‚ÙˆÙ… Ø¨Ø¥Ø±Ø³Ø§Ù„Ù‡Ø§ Ø¨Ø¹Ø¯ Ø¥Ø±ÙØ§Ù‚ Ø§Ù„Ù…Ø³ØªÙ†Ø¯Ø§Øª Ø§Ù„Ù…Ø·Ù„ÙˆØ¨Ø©.',
+      'تظل الطلبات في حالة مسودة حتى تقوم بإرسالها بعد إرفاق المستندات المطلوبة.',
   },
 };
 

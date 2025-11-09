@@ -117,7 +117,7 @@ export function AdminRequestsTable({
       {content}
       {isFetching && !isLoading && (
         <div style={loadingOverlayStyle}>
-          <span>â€¦</span>
+          <span>…</span>
         </div>
       )}
     </div>

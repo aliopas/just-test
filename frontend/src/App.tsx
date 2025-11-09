@@ -11,14 +11,14 @@ import { palette } from './styles/theme';
 
 const navLinkStyle: React.CSSProperties = {
   borderRadius: '0.75rem',
-  border: `1px solid ${palette.brandSecondarySoft}`,
-  padding: '0.75rem 1.5rem',
+  border: `1px solid ${palette.neutralBorderSoft}`,
+  padding: '0.65rem 1.35rem',
   fontWeight: 600,
   cursor: 'pointer',
   transition: 'all 0.2s ease',
   textDecoration: 'none',
   background: 'transparent',
-  color: palette.textOnInverse,
+  color: palette.textPrimary,
 };
 
 function HeaderNav() {
@@ -28,24 +28,27 @@ function HeaderNav() {
   return (
     <header
       style={{
-        background: palette.backgroundInverse,
-        color: palette.textOnInverse,
-        padding: '1.5rem 2rem',
+        background: palette.backgroundSurface,
+        color: palette.textPrimary,
+        padding: '1rem 2rem',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        gap: '1rem',
+        gap: '0.75rem',
         flexWrap: 'wrap',
+        rowGap: '0.5rem',
+        borderBottom: `1px solid ${palette.neutralBorderSoft}`,
       }}
     >
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '1rem',
+          gap: '1.25rem',
+          flexWrap: 'wrap',
         }}
       >
-        <Logo size={72} variant="inverse" showWordmark={false} />
+        <Logo size={72} stacked tagline={language === 'ar' ? 'منصة المستثمرين' : 'Investors Platform'} />
         <div>
           <h1
             style={{
@@ -60,7 +63,7 @@ function HeaderNav() {
           <p
             style={{
               margin: '0.35rem 0 0',
-              color: `${palette.textOnInverse}CC`,
+              color: `${palette.textSecondary}`,
               fontSize: '0.95rem',
             }}
           >
@@ -80,32 +83,32 @@ function HeaderNav() {
           to="/"
           style={({ isActive }) => ({
             ...navLinkStyle,
-            background: isActive ? palette.brandSecondarySoft : 'transparent',
-            color: isActive ? palette.textPrimary : palette.textOnInverse,
+            background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
+            color: isActive ? palette.textPrimary : palette.textSecondary,
           })}
           end
         >
-          {language === 'ar' ? 'Ø§Ù„ØµÙØ­Ø© Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©' : 'Home'}
+        {language === 'ar' ? 'الصفحة الرئيسية' : 'Home'}
         </NavLink>
         <NavLink
           to="/requests/new"
           style={({ isActive }) => ({
             ...navLinkStyle,
-            background: isActive ? palette.brandSecondarySoft : 'transparent',
-            color: isActive ? palette.textPrimary : palette.textOnInverse,
+            background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
+            color: isActive ? palette.textPrimary : palette.textSecondary,
           })}
         >
-          {language === 'ar' ? 'Ø·Ù„Ø¨ Ø§Ø³ØªØ«Ù…Ø§Ø±ÙŠ' : 'New Request'}
+          {language === 'ar' ? 'طلب استثماري' : 'New Request'}
         </NavLink>
         <NavLink
           to="/profile"
           style={({ isActive }) => ({
             ...navLinkStyle,
-            background: isActive ? palette.brandSecondarySoft : 'transparent',
-            color: isActive ? palette.textPrimary : palette.textOnInverse,
+            background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
+            color: isActive ? palette.textPrimary : palette.textSecondary,
           })}
         >
-          {language === 'ar' ? 'Ø§Ù„Ù…Ù„Ù Ø§Ù„Ø§Ø³ØªØ«Ù…Ø§Ø±ÙŠ' : 'Investor Profile'}
+          {language === 'ar' ? 'الملف الاستثماري' : 'Investor Profile'}
         </NavLink>
         <button
           type="button"
@@ -120,10 +123,10 @@ function HeaderNav() {
         >
           {logout.isPending
             ? language === 'ar'
-              ? 'Ø¬Ø§Ø±Ù ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø®Ø±ÙˆØ¬â€¦'
-              : 'Signing outâ€¦'
+              ? 'جارٍ تسجيل الخروج…'
+              : 'Signing out…'
             : language === 'ar'
-              ? 'ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø®Ø±ÙˆØ¬'
+              ? 'تسجيل الخروج'
               : 'Sign out'}
         </button>
       </nav>
@@ -136,13 +139,19 @@ function AppFooter() {
     <footer
       style={{
         textAlign: 'center',
-        padding: '2rem 1rem 3rem',
+        padding: '2.5rem 1rem 3.5rem',
         color: palette.textSecondary,
-        fontSize: '0.9rem',
         background: palette.backgroundBase,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '1rem',
       }}
     >
-      Powered by Supabase & Netlify â€“ Bakurah Investors Portal
+      <Logo size={96} stacked tagline="Bacura · Empowering smart capital" />
+      <span style={{ fontSize: '0.95rem', color: palette.textSecondary }}>
+        Powered by Supabase & Netlify – Bakurah Investors Portal
+      </span>
     </footer>
   );
 }

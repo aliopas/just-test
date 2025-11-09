@@ -14,11 +14,11 @@ if (!container) {
   throw new Error('Root element with id="root" was not found');
 }
 
-const faviconHref = new URL('./assets/logo.jpg', import.meta.url).href;
+const faviconHref = new URL('./assets/logo.png', import.meta.url).href;
 const existingFavicon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
 const favicon = existingFavicon ?? document.createElement('link');
 favicon.rel = 'icon';
-favicon.type = 'image/jpeg';
+favicon.type = 'image/png';
 favicon.href = faviconHref;
 if (!existingFavicon) {
   document.head.appendChild(favicon);

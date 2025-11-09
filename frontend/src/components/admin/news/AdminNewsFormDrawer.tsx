@@ -315,7 +315,7 @@ export function AdminNewsFormDrawer({
               </small>
               {isUploading && (
                 <small style={{ color: 'var(--color-brand-primary-strong)' }}>
-                  {language === 'ar' ? 'Ø¬Ø§Ø±Ù Ø±ÙØ¹ Ø§Ù„ØµÙˆØ±Ø©â€¦' : 'Uploading imageâ€¦'}
+                  {language === 'ar' ? 'جارٍ رفع الصورة…' : 'Uploading image…'}
                 </small>
               )}
               {values.coverKey && (
@@ -329,7 +329,7 @@ export function AdminNewsFormDrawer({
                   }}
                 >
                   <strong style={{ color: 'var(--color-text-primary)', fontSize: '0.9rem' }}>
-                    {language === 'ar' ? 'Ø§Ù„Ù…ÙØªØ§Ø­ Ø§Ù„ØªØ®Ø²ÙŠÙ†ÙŠ:' : 'Storage key:'}
+                    {language === 'ar' ? 'المفتاح التخزيني:' : 'Storage key:'}
                   </strong>
                   <div style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem', marginTop: '0.3rem' }}>
                     {values.coverKey}
@@ -357,7 +357,7 @@ export function AdminNewsFormDrawer({
                       borderColor: '#FECACA',
                     }}
                   >
-                    {language === 'ar' ? 'Ø¥Ø²Ø§Ù„Ø© Ø§Ù„ØµÙˆØ±Ø©' : 'Remove image'}
+                    {language === 'ar' ? 'إزالة الصورة' : 'Remove image'}
                   </button>
                 </div>
               )}
@@ -385,7 +385,7 @@ export function AdminNewsFormDrawer({
               }}
             >
               <strong style={{ display: 'block', marginBottom: '0.5rem' }}>
-                {language === 'ar' ? 'Ù…Ø¹Ø§ÙŠÙ†Ø© Ø³Ø±ÙŠØ¹Ø©' : 'Quick preview'}
+                {language === 'ar' ? 'معاينة سريعة' : 'Quick preview'}
               </strong>
               <pre
                 style={{
@@ -395,7 +395,7 @@ export function AdminNewsFormDrawer({
                   margin: 0,
                 }}
               >
-                {values.bodyMd || (language === 'ar' ? 'Ø£Ø¶Ù Ø§Ù„Ù…Ø­ØªÙˆÙ‰ Ù‡Ù†Ø§â€¦' : 'Start typingâ€¦')}
+                {values.bodyMd || (language === 'ar' ? 'أضف المحتوى هنا…' : 'Start typing…')}
               </pre>
             </div>
           </section>
@@ -476,7 +476,7 @@ export function AdminNewsFormDrawer({
                 style={deleteButtonStyle}
                 disabled={Boolean(deleting)}
               >
-                {deleting ? 'â€¦' : tAdminNews('form.deleteConfirmAccept', language)}
+                {deleting ? '…' : tAdminNews('form.deleteConfirmAccept', language)}
               </button>
             )}
             <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -492,7 +492,7 @@ export function AdminNewsFormDrawer({
                   opacity: submitting || isUploading ? 0.65 : 1,
                 }}
               >
-                {submitting ? `${tAdminNews('form.save', language)}â€¦` : tAdminNews('form.save', language)}
+                {submitting ? `${tAdminNews('form.save', language)}…` : tAdminNews('form.save', language)}
               </button>
             </div>
           </footer>

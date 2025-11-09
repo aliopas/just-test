@@ -324,7 +324,7 @@ function InvestorNewsListPageInner() {
               }}
             >
               {isFetching
-                ? `${tInvestorNews('list.loadMore', language)}â€¦`
+                ? `${tInvestorNews('list.loadMore', language)}…`
                 : tInvestorNews('list.loadMore', language)}
             </button>
           </div>

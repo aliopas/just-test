@@ -1039,7 +1039,7 @@ function ActionButton({
       }}
       disabled={disabled || loading}
     >
-      {loading ? 'â€¦' : label}
+      {loading ? '…' : label}
     </button>
   );
 }
