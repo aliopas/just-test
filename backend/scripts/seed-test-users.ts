@@ -153,13 +153,13 @@ async function main() {
   try {
     await ensureUser({
       email: 'admin.demo@invastors.dev',
-      password: 'AdminDemo123!',
+      password: '000000',
       roleSlug: 'admin',
     });
 
     await ensureUser({
       email: 'investor.demo@invastors.dev',
-      password: 'InvestorDemo123!',
+      password: '000000',
       roleSlug: 'investor',
     });
 
