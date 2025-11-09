@@ -1,3 +1,5 @@
+import type { NewsStatus } from '../schemas/news.schema';
+
 type InvestorSubmissionNotification = {
   userId: string;
   requestId: string;
@@ -66,6 +68,37 @@ type NewsPublishNotification = {
 
 export async function notifyInvestorsOfPublishedNews(
   payload: NewsPublishNotification
+) {
+  void payload;
+  return Promise.resolve();
+}
+
+type NewsAuthorApprovalNotification = {
+  newsId: string;
+  authorId: string;
+  reviewerId: string;
+  title: string;
+  status: NewsStatus;
+  comment: string | null;
+};
+
+export async function notifyAuthorOfNewsApproval(
+  payload: NewsAuthorApprovalNotification
+) {
+  void payload;
+  return Promise.resolve();
+}
+
+type NewsAuthorRejectionNotification = {
+  newsId: string;
+  authorId: string;
+  reviewerId: string;
+  title: string;
+  comment: string | null;
+};
+
+export async function notifyAuthorOfNewsRejection(
+  payload: NewsAuthorRejectionNotification
 ) {
   void payload;
   return Promise.resolve();

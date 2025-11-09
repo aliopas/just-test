@@ -1,4 +1,4 @@
-import type { RequestStatus, RequestType, RequestCurrency } from './request';
+﻿import type { RequestStatus, RequestType, RequestCurrency } from './request';
 
 export interface AdminRequestInvestor {
   id: string | null;
@@ -103,4 +103,5 @@ export interface AdminRequestFilters {
   sortBy?: AdminRequestSortField;
   order?: AdminRequestSortOrder;
 }
+
 

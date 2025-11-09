@@ -1,6 +1,15 @@
 import { z } from 'zod';
 
-export const newsStatusEnum = z.enum(['draft', 'scheduled', 'published']);
+export const NEWS_STATUSES = [
+  'draft',
+  'pending_review',
+  'scheduled',
+  'published',
+  'rejected',
+  'archived',
+] as const;
+
+export const newsStatusEnum = z.enum(NEWS_STATUSES);
 
 const slugSchema = z
   .string()
@@ -123,3 +132,23 @@ export type NewsUpdateInput = z.infer<typeof newsUpdateSchema>;
 export type NewsListQuery = z.infer<typeof newsListQuerySchema>;
 export type NewsStatus = z.infer<typeof newsStatusEnum>;
 export type NewsImagePresignInput = z.infer<typeof newsImagePresignSchema>;
+
+export const newsApproveSchema = z.object({
+  comment: z
+    .string()
+    .trim()
+    .max(2000, 'Comment must be 2000 characters or less')
+    .optional(),
+});
+
+export type NewsApproveInput = z.infer<typeof newsApproveSchema>;
+
+export const newsRejectSchema = z.object({
+  comment: z
+    .string()
+    .trim()
+    .min(3, 'Comment is required when rejecting news')
+    .max(2000, 'Comment must be 2000 characters or less'),
+});
+
+export type NewsRejectInput = z.infer<typeof newsRejectSchema>;

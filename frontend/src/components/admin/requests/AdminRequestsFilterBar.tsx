@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+﻿import { useMemo } from 'react';
 import type { AdminRequestFilters, AdminRequestSortField } from '../../../types/admin';
 import { tAdminRequests } from '../../../locales/adminRequests';
 import { useLanguage } from '../../../context/LanguageContext';
@@ -211,7 +211,7 @@ export function AdminRequestsFilterBar({ filters, onChange, onReset }: Props) {
           onClick={() => update({ order: filters.order === 'asc' ? 'desc' : 'asc' })}
           style={applyButtonStyle}
         >
-          {filters.order === 'asc' ? '↑' : '↓'}
+          {filters.order === 'asc' ? 'â†‘' : 'â†“'}
         </button>
       </div>
     </div>
@@ -220,16 +220,16 @@ export function AdminRequestsFilterBar({ filters, onChange, onReset }: Props) {
 
 const labelStyle: React.CSSProperties = {
   fontSize: '0.85rem',
-  color: '#475569',
+  color: 'var(--color-text-secondary)',
   fontWeight: 600,
 };
 
 const selectStyle: React.CSSProperties = {
   padding: '0.65rem 0.85rem',
   borderRadius: '0.85rem',
-  border: '1px solid #CBD5F5',
-  background: '#FFFFFF',
-  color: '#0F172A',
+  border: '1px solid var(--color-brand-secondary-soft)',
+  background: 'var(--color-background-surface)',
+  color: 'var(--color-text-primary)',
   fontSize: '0.95rem',
   appearance: 'none',
 };
@@ -237,18 +237,18 @@ const selectStyle: React.CSSProperties = {
 const inputStyle: React.CSSProperties = {
   padding: '0.65rem 0.85rem',
   borderRadius: '0.85rem',
-  border: '1px solid #CBD5F5',
-  background: '#FFFFFF',
-  color: '#0F172A',
+  border: '1px solid var(--color-brand-secondary-soft)',
+  background: 'var(--color-background-surface)',
+  color: 'var(--color-text-primary)',
   fontSize: '0.95rem',
 };
 
 const resetButtonStyle: React.CSSProperties = {
   padding: '0.65rem 1.5rem',
   borderRadius: '0.85rem',
-  border: '1px solid #CBD5F5',
-  background: '#FFFFFF',
-  color: '#1E3A5F',
+  border: '1px solid var(--color-brand-secondary-soft)',
+  background: 'var(--color-background-surface)',
+  color: 'var(--color-brand-accent-deep)',
   fontWeight: 600,
   cursor: 'pointer',
 };
@@ -257,8 +257,10 @@ const applyButtonStyle: React.CSSProperties = {
   padding: '0.65rem 1.5rem',
   borderRadius: '0.85rem',
   border: 'none',
-  background: '#2563EB',
-  color: '#FFFFFF',
+  background: 'var(--color-brand-primary-strong)',
+  color: 'var(--color-text-on-brand)',
   fontWeight: 700,
   cursor: 'pointer',
 };
+
+

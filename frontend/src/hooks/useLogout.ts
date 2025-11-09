@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+﻿import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../utils/api-client';
 import { useToast } from '../context/ToastContext';
@@ -38,7 +38,7 @@ export function useLogout() {
       pushToast({
         message:
           language === 'ar'
-            ? 'تم تسجيل الخروج بنجاح.'
+            ? 'ØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø®Ø±ÙˆØ¬ Ø¨Ù†Ø¬Ø§Ø­.'
             : 'You have been signed out successfully.',
         variant: 'success',
       });
@@ -49,7 +49,7 @@ export function useLogout() {
       pushToast({
         message:
           language === 'ar'
-            ? 'تعذر تسجيل الخروج، تم مسح بيانات الجلسة محلياً.'
+            ? 'ØªØ¹Ø°Ø± ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø®Ø±ÙˆØ¬ØŒ ØªÙ… Ù…Ø³Ø­ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¬Ù„Ø³Ø© Ù…Ø­Ù„ÙŠØ§Ù‹.'
             : 'Unable to reach the server. Your local session was cleared.',
         variant: 'error',
       });
@@ -57,4 +57,5 @@ export function useLogout() {
     },
   });
 }
+
 

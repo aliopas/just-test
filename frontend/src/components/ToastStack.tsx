@@ -1,11 +1,11 @@
-import type { Toast } from '../context/ToastContext';
+﻿import type { Toast } from '../context/ToastContext';
 import { useToast } from '../context/ToastContext';
 import { useLanguage } from '../context/LanguageContext';
 
 const variantColor: Record<Toast['variant'], { bg: string; border: string }> = {
   success: { bg: '#ECFDF5', border: '#34D399' },
   error: { bg: '#FEF2F2', border: '#F87171' },
-  info: { bg: '#EFF6FF', border: '#60A5FA' },
+  info: { bg: 'var(--color-background-alt)', border: 'var(--color-brand-secondary-soft)' },
 };
 
 export function ToastStack() {
@@ -56,7 +56,7 @@ export function ToastStack() {
               <span
                 style={{
                   fontSize: '0.95rem',
-                  color: '#111418',
+                  color: 'var(--color-text-primary)',
                   lineHeight: 1.4,
                 }}
               >
@@ -71,10 +71,10 @@ export function ToastStack() {
                   background: 'transparent',
                   cursor: 'pointer',
                   fontSize: '1rem',
-                  color: '#6B7280',
+                  color: 'var(--color-text-muted)',
                 }}
               >
-                ×
+                Ã—
               </button>
             </div>
           </div>
@@ -83,4 +83,5 @@ export function ToastStack() {
     </div>
   );
 }
+
 

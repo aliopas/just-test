@@ -1,4 +1,4 @@
-import { getStatusColor, getStatusProgress } from '../../utils/requestStatus';
+﻿import { getStatusColor, getStatusProgress } from '../../utils/requestStatus';
 import type { RequestStatus } from '../../types/request';
 
 interface RequestProgressBarProps {
@@ -13,7 +13,7 @@ export function RequestProgressBar({ status }: RequestProgressBarProps) {
     <div
       style={{
         width: '100%',
-        background: '#E2E8F0',
+        background: 'var(--color-border)',
         borderRadius: '999px',
         height: '0.5rem',
         overflow: 'hidden',
@@ -30,4 +30,5 @@ export function RequestProgressBar({ status }: RequestProgressBarProps) {
     </div>
   );
 }
+
 

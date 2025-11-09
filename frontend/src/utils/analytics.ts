@@ -1,4 +1,4 @@
-type AnalyticsEventName =
+﻿type AnalyticsEventName =
   | 'investor_profile_viewed'
   | 'investor_profile_updated'
   | 'investor_language_changed'
@@ -16,5 +16,6 @@ class AnalyticsClient {
 }
 
 export const analytics = new AnalyticsClient();
+
 
 

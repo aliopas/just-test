@@ -98,6 +98,23 @@
 - **Decision Actions:** أزرار (قبول، رفض) تستدعي واجهات Story 4.4 مع ملاحظات داخلية اختيارية وتغذية راجعة فورية؛ زر طلب المعلومات يسمح بإرسال رسالة إلزامية للمستثمر (Story 4.5) وينقل الحالة إلى Pending Info؛ نموذج تعليق داخلي (Story 4.6) بسرية داخلية مع Toasts للنجاح/الفشل وإعادة التحديث التلقائية.
 - **التجربة:** حالات تحميل/خطأ واضحة، زر تحديث، دعم للـ RTL والنصوص عبر `frontend/src/locales/adminRequests.ts`.
 
+### Admin News Management (v1.0)
+
+- **Entry Route:** `/app/admin/news` (`frontend/src/app/admin-news/main.tsx`) ضمن بيئة الأدمن.
+- **Data Layer:** طبقة التفاعل تستخدم `useAdminNewsList`, `useCreateNewsMutation`, `useUpdateNewsMutation`, `useDeleteNewsMutation`, `usePublishScheduledMutation`, `useNewsImagePresignMutation` للوصول إلى `/admin/news*`.
+- **Layout:** لوحة رئيسية تحتوي على شريط تحكم (`AdminNewsFilterBar`) للبحث وتغيير الحالة ونشر العناصر المجدولة، جدول (`AdminNewsTable`) يعرض العنوان، الحالة، توقيت الجدولة/النشر، وآخر تحديث، بالإضافة إلى `AdminNewsPagination`.
+- **Editing Drawer:** النموذج الجانبي (`AdminNewsFormDrawer`) يوفّر الحقول الكاملة (العنوان، slug، الحالة، التواريخ، المحتوى بنسق Markdown) مع رفع صورة الغلاف عبر presigned URL ومعاينة محلية ومولد تلقائي للـ slug.
+- **Review Workflow:** أزرار الموافقة/الرفض تظهر لعناصر `pending_review` مع طلب تعليق، توستات للنجاح/الفشل، وسجل مراجعات داخل النموذج يعرض القرارات مع التاريخ والمراجع والتعليق.
+- **Feedback:** Toasts للنجاح والأخطاء، تعطيل للأزرار أثناء العمليات (حفظ، حذف، نشر، رفع)، دعم RTL كامل والنصوص عبر `frontend/src/locales/adminNews.ts`.
+
+### Investor News Feed (v1.0)
+
+- **Entry Routes:** `/app/news` (`frontend/src/app/news/main.tsx`) لقائمة الأخبار، و`/app/news/:id` (`frontend/src/app/news-detail/main.tsx`) لعرض التفاصيل.
+- **Data Layer:** `useInvestorNewsList` و`useInvestorNewsDetail` تتعامل مع API العام (`GET /api/v1/news`, `GET /api/v1/news/:id`) بدون مصادقة، مع caching عبر React Query (`keepPreviousData`).
+- **List Experience:** شبكة بطاقات (داخل `InvestorNewsListPage`) تعرض العنوان، مقتطف مختصر، تاريخ النشر، وزر “قراءة المزيد”، إضافة إلى زر “تحميل المزيد” لاسترجاع الصفحة التالية. تشمل حالات التحميل والحالة الفارغة وتوست عند الفشل باستخدام `ToastProvider`.
+- **Detail Experience:** صفحة المقال (`InvestorNewsDetailPage`) تعرض صورة الغلاف (إن وجدت)، العنوان، تواريخ النشر/التحديث، وتحويل Markdown مبسّط إلى عناصر React مع دعم RTL.
+- **Storage Integration:** يتم توليد رابط الصورة عبر متغير البيئة `SUPABASE_STORAGE_URL` المتاح في `window.__ENV__` أو متغيرات البناء، مع fallback مرئي عند غياب الصورة.
+
 ---
 
 ## UX Goals & Principles

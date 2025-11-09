@@ -1,5 +1,6 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { palette } from '../styles/theme';
 
 type NewsItem = {
   id: string;
@@ -24,7 +25,7 @@ const newsItems: NewsItem[] = [
     id: '2',
     title: 'Bakurah portfolio company closes Series A round',
     summary:
-      'Our fintech portfolio company “RiyadhPay” has completed a SAR 75M Series A to accelerate AI-driven credit scoring.',
+      'Our fintech portfolio company â€œRiyadhPayâ€ has completed a SAR 75M Series A to accelerate AI-driven credit scoring.',
     category: 'Portfolio',
     publishedAt: '2025-10-28',
   },
@@ -48,7 +49,7 @@ export function HomePage() {
         direction,
         minHeight: 'calc(100vh - 180px)',
         padding: '3rem 1.5rem 4rem',
-        background: '#F1F5F9',
+        background: palette.backgroundBase,
       }}
     >
       <section
@@ -73,24 +74,24 @@ export function HomePage() {
               style={{
                 margin: 0,
                 fontSize: '2.4rem',
-                color: '#0F172A',
+                color: palette.textPrimary,
                 lineHeight: 1.1,
               }}
             >
               {language === 'ar'
-                ? 'مرحبا بك في باكورة للاستثمار'
+                ? 'Ù…Ø±Ø­Ø¨Ø§ Ø¨Ùƒ ÙÙŠ Ø¨Ø§ÙƒÙˆØ±Ø© Ù„Ù„Ø§Ø³ØªØ«Ù…Ø§Ø±'
                 : 'Welcome to Bakurah Investors Portal'}
             </h2>
             <p
               style={{
                 marginTop: '1rem',
                 fontSize: '1.05rem',
-                color: '#475569',
+                color: palette.textSecondary,
                 lineHeight: 1.6,
               }}
             >
               {language === 'ar'
-                ? 'تابع آخر أخبار السوق ومبادرات باكورة، وابدأ رحلة طلبك الاستثماري بخطوات واضحة وسلسة.'
+                ? 'ØªØ§Ø¨Ø¹ Ø¢Ø®Ø± Ø£Ø®Ø¨Ø§Ø± Ø§Ù„Ø³ÙˆÙ‚ ÙˆÙ…Ø¨Ø§Ø¯Ø±Ø§Øª Ø¨Ø§ÙƒÙˆØ±Ø©ØŒ ÙˆØ§Ø¨Ø¯Ø£ Ø±Ø­Ù„Ø© Ø·Ù„Ø¨Ùƒ Ø§Ù„Ø§Ø³ØªØ«Ù…Ø§Ø±ÙŠ Ø¨Ø®Ø·ÙˆØ§Øª ÙˆØ§Ø¶Ø­Ø© ÙˆØ³Ù„Ø³Ø©.'
                 : 'Stay on top of market headlines and Bakurah initiatives, and launch your investment requests with a clear, guided journey.'}
             </p>
             <div
@@ -105,41 +106,41 @@ export function HomePage() {
                 to="/requests/new"
                 style={{
                   padding: '0.85rem 2rem',
-                  background: '#1D4ED8',
-                  color: '#FFFFFF',
+                  background: palette.brandPrimaryStrong,
+                  color: palette.textOnBrand,
                   borderRadius: '0.85rem',
                   fontWeight: 600,
                   textDecoration: 'none',
                 }}
               >
-                {language === 'ar' ? 'ابدأ طلب جديد' : 'Start a new request'}
+                {language === 'ar' ? 'Ø§Ø¨Ø¯Ø£ Ø·Ù„Ø¨ Ø¬Ø¯ÙŠØ¯' : 'Start a new request'}
               </Link>
               <Link
                 to="/profile"
                 style={{
                   padding: '0.85rem 2rem',
-                  background: '#FFFFFF',
-                  color: '#1E293B',
+                  background: palette.backgroundSurface,
+                  color: palette.brandAccentDeep,
                   borderRadius: '0.85rem',
-                  border: '1px solid #CBD5F5',
+                  border: `1px solid ${palette.brandSecondarySoft}`,
                   fontWeight: 600,
                   textDecoration: 'none',
                 }}
               >
-                {language === 'ar' ? 'عرض الملف الاستثماري' : 'View investor profile'}
+                {language === 'ar' ? 'Ø¹Ø±Ø¶ Ø§Ù„Ù…Ù„Ù Ø§Ù„Ø§Ø³ØªØ«Ù…Ø§Ø±ÙŠ' : 'View investor profile'}
               </Link>
             </div>
           </div>
           <div
             style={{
-              background: 'linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%)',
+              background: `linear-gradient(135deg, ${palette.backgroundInverse} 0%, ${palette.brandPrimary} 100%)`,
               borderRadius: '1.5rem',
-              color: '#FFFFFF',
+              color: palette.textOnInverse,
               padding: '2rem',
               display: 'flex',
               flexDirection: 'column',
               gap: '0.75rem',
-              boxShadow: '0 24px 60px rgba(15, 23, 42, 0.25)',
+              boxShadow: '0 24px 60px rgba(4, 44, 84, 0.25)',
             }}
           >
             <span
@@ -147,31 +148,37 @@ export function HomePage() {
                 fontSize: '0.85rem',
                 letterSpacing: '0.18em',
                 textTransform: 'uppercase',
-                color: 'rgba(255,255,255,0.7)',
+                color: `${palette.textOnInverse}B3`,
               }}
             >
-              {language === 'ar' ? 'مستجدات باكورة' : 'Bakurah Pulse'}
+              {language === 'ar' ? 'Ù…Ø³ØªØ¬Ø¯Ø§Øª Ø¨Ø§ÙƒÙˆØ±Ø©' : 'Bakurah Pulse'}
             </span>
             <strong style={{ fontSize: '1.4rem', lineHeight: 1.4 }}>
               {language === 'ar'
-                ? 'تجربة موحدة لإدارة المستثمرين، مع إشعارات مباشرة وركائز أمان مدعومة بسوبابيس.'
+                ? 'ØªØ¬Ø±Ø¨Ø© Ù…ÙˆØ­Ø¯Ø© Ù„Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù…Ø³ØªØ«Ù…Ø±ÙŠÙ†ØŒ Ù…Ø¹ Ø¥Ø´Ø¹Ø§Ø±Ø§Øª Ù…Ø¨Ø§Ø´Ø±Ø© ÙˆØ±ÙƒØ§Ø¦Ø² Ø£Ù…Ø§Ù† Ù…Ø¯Ø¹ÙˆÙ…Ø© Ø¨Ø³ÙˆØ¨Ø§Ø¨ÙŠØ³.'
                 : 'A unified investor journey with real-time updates and secure Supabase foundations.'}
             </strong>
-            <p style={{ margin: 0, color: 'rgba(255,255,255,0.7)', lineHeight: 1.6 }}>
+            <p
+              style={{
+                margin: 0,
+                color: `${palette.textOnInverse}B3`,
+                lineHeight: 1.6,
+              }}
+            >
               {language === 'ar'
-                ? 'استفد من مركز التوعية لتجد مقالات مختارة حول الفرص واللوائح المالية في المملكة.'
-                : 'Explore curated guidance on opportunities and regulatory movements shaping the Kingdom’s financial landscape.'}
+                ? 'Ø§Ø³ØªÙØ¯ Ù…Ù† Ù…Ø±ÙƒØ² Ø§Ù„ØªÙˆØ¹ÙŠØ© Ù„ØªØ¬Ø¯ Ù…Ù‚Ø§Ù„Ø§Øª Ù…Ø®ØªØ§Ø±Ø© Ø­ÙˆÙ„ Ø§Ù„ÙØ±Øµ ÙˆØ§Ù„Ù„ÙˆØ§Ø¦Ø­ Ø§Ù„Ù…Ø§Ù„ÙŠØ© ÙÙŠ Ø§Ù„Ù…Ù…Ù„ÙƒØ©.'
+                : 'Explore curated guidance on opportunities and regulatory movements shaping the Kingdomâ€™s financial landscape.'}
             </p>
           </div>
         </header>
 
         <section
           style={{
-            background: '#FFFFFF',
+            background: palette.backgroundSurface,
             borderRadius: '1.5rem',
-            border: '1px solid #E2E8F0',
+            border: `1px solid ${palette.neutralBorder}`,
             padding: '2rem',
-            boxShadow: '0 24px 60px rgba(15, 23, 42, 0.06)',
+            boxShadow: '0 24px 60px rgba(4, 44, 84, 0.08)',
           }}
         >
           <header
@@ -189,14 +196,14 @@ export function HomePage() {
                 style={{
                   margin: 0,
                   fontSize: '1.6rem',
-                  color: '#0F172A',
+                  color: palette.textPrimary,
                 }}
               >
-                {language === 'ar' ? 'آخر الأخبار' : 'Latest updates'}
+                {language === 'ar' ? 'Ø¢Ø®Ø± Ø§Ù„Ø£Ø®Ø¨Ø§Ø±' : 'Latest updates'}
               </h3>
-              <p style={{ margin: '0.4rem 0 0', color: '#64748B' }}>
+              <p style={{ margin: '0.4rem 0 0', color: palette.textSecondary }}>
                 {language === 'ar'
-                  ? 'اطلع على أبرز أخبار السوق والتقنية والصفقات.'
+                  ? 'Ø§Ø·Ù„Ø¹ Ø¹Ù„Ù‰ Ø£Ø¨Ø±Ø² Ø£Ø®Ø¨Ø§Ø± Ø§Ù„Ø³ÙˆÙ‚ ÙˆØ§Ù„ØªÙ‚Ù†ÙŠØ© ÙˆØ§Ù„ØµÙÙ‚Ø§Øª.'
                   : 'A snapshot of market, technology, and deal-flow highlights.'}
               </p>
             </div>
@@ -205,13 +212,13 @@ export function HomePage() {
               style={{
                 padding: '0.6rem 1.4rem',
                 borderRadius: '0.75rem',
-                border: '1px solid #94A3B8',
-                color: '#0F172A',
+                border: `1px solid ${palette.brandSecondaryMuted}`,
+                color: palette.textPrimary,
                 textDecoration: 'none',
                 fontWeight: 600,
               }}
             >
-              {language === 'ar' ? 'انتقل لنموذج الطلب' : 'Go to request form'}
+              {language === 'ar' ? 'Ø§Ù†ØªÙ‚Ù„ Ù„Ù†Ù…ÙˆØ°Ø¬ Ø§Ù„Ø·Ù„Ø¨' : 'Go to request form'}
             </Link>
           </header>
 
@@ -226,13 +233,13 @@ export function HomePage() {
               <article
                 key={item.id}
                 style={{
-                  border: '1px solid #E2E8F0',
+                  border: `1px solid ${palette.neutralBorder}`,
                   borderRadius: '1.25rem',
                   padding: '1.5rem',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '0.75rem',
-                  background: '#F8FAFC',
+                  background: palette.backgroundSurface,
                 }}
               >
                 <span
@@ -241,7 +248,7 @@ export function HomePage() {
                     alignItems: 'center',
                     gap: '0.4rem',
                     fontSize: '0.85rem',
-                    color: '#1D4ED8',
+                    color: palette.brandPrimaryStrong,
                     fontWeight: 600,
                     textTransform: 'uppercase',
                     letterSpacing: '0.12em',
@@ -253,10 +260,10 @@ export function HomePage() {
                       width: '6px',
                       height: '6px',
                       borderRadius: '50%',
-                      background: '#CBD5F5',
+                      background: palette.brandSecondarySoft,
                     }}
                   />
-                  <time style={{ color: '#64748B', textTransform: 'none' }}>
+                  <time style={{ color: palette.textSecondary, textTransform: 'none' }}>
                     {new Date(item.publishedAt).toLocaleDateString(
                       language === 'ar' ? 'ar-SA' : 'en-GB',
                       { month: 'short', day: 'numeric' }
@@ -267,7 +274,7 @@ export function HomePage() {
                   style={{
                     margin: 0,
                     fontSize: '1.1rem',
-                    color: '#0F172A',
+                    color: palette.textPrimary,
                   }}
                 >
                   {item.title}
@@ -275,7 +282,7 @@ export function HomePage() {
                 <p
                   style={{
                     margin: 0,
-                    color: '#475569',
+                    color: palette.textSecondary,
                     lineHeight: 1.5,
                     flexGrow: 1,
                   }}
@@ -289,22 +296,22 @@ export function HomePage() {
                     rel="noreferrer"
                     style={{
                       marginTop: 'auto',
-                      color: '#1D4ED8',
+                      color: palette.brandPrimaryStrong,
                       fontWeight: 600,
                       textDecoration: 'none',
                     }}
                   >
-                    {language === 'ar' ? 'قراءة المزيد' : 'Read article →'}
+                    {language === 'ar' ? 'Ù‚Ø±Ø§Ø¡Ø© Ø§Ù„Ù…Ø²ÙŠØ¯' : 'Read article â†’'}
                   </a>
                 ) : (
                   <span
                     style={{
                       marginTop: 'auto',
-                      color: '#1E293B',
+                      color: palette.brandAccentDeep,
                       fontWeight: 600,
                     }}
                   >
-                    {language === 'ar' ? 'تحديث داخلي' : 'Internal update'}
+                    {language === 'ar' ? 'ØªØ­Ø¯ÙŠØ« Ø¯Ø§Ø®Ù„ÙŠ' : 'Internal update'}
                   </span>
                 )}
               </article>
@@ -315,4 +322,5 @@ export function HomePage() {
     </div>
   );
 }
+
 

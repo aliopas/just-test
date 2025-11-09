@@ -4,6 +4,8 @@ jest.mock('../src/lib/supabase', () => ({
 
 jest.mock('../src/services/notification.service', () => ({
   notifyInvestorsOfPublishedNews: jest.fn(),
+  notifyAuthorOfNewsApproval: jest.fn(),
+  notifyAuthorOfNewsRejection: jest.fn(),
 }));
 
 jest.mock('crypto', () => ({
@@ -13,27 +15,156 @@ jest.mock('crypto', () => ({
 }));
 
 import {
+  approveNews,
   createNews,
   deleteNews,
   getNewsById,
   createNewsImageUploadUrl,
   listNews,
   publishScheduledNews,
+  listPublishedNews,
+  getPublishedNewsById,
+  rejectNews,
   updateNews,
 } from '../src/services/news.service';
 import type { NewsCreateInput, NewsUpdateInput } from '../src/schemas/news.schema';
 import { requireSupabaseAdmin } from '../src/lib/supabase';
 import * as crypto from 'crypto';
-import { notifyInvestorsOfPublishedNews } from '../src/services/notification.service';
+import {
+  notifyAuthorOfNewsApproval,
+  notifyAuthorOfNewsRejection,
+  notifyInvestorsOfPublishedNews,
+} from '../src/services/notification.service';
 
 const mockRequireSupabaseAdmin = requireSupabaseAdmin as jest.Mock;
 const mockNotifyPublished = notifyInvestorsOfPublishedNews as jest.Mock;
+const mockNotifyAuthorApproval =
+  notifyAuthorOfNewsApproval as jest.Mock;
+const mockNotifyAuthorRejection =
+  notifyAuthorOfNewsRejection as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();
   mockNotifyPublished.mockReset();
+  mockNotifyAuthorApproval.mockReset();
+  mockNotifyAuthorRejection.mockReset();
+  mockRequireSupabaseAdmin.mockReset();
 });
 
+function setupAdminClient(overrides: Partial<Record<string, unknown>> = {}) {
+  const baseRecord: any = {
+    id: 'news-1',
+    title: 'Breaking update',
+    slug: 'breaking-update',
+    body_md: '# content',
+    cover_key: null,
+    status: 'pending_review',
+    scheduled_at: null,
+    published_at: null,
+    author_id: 'author-1',
+    category_id: null,
+    created_at: '2025-01-01T00:00:00Z',
+    updated_at: '2025-01-01T00:00:00Z',
+    category: null,
+    author: [{ id: 'author-1', email: 'author@example.com' }],
+  };
+
+  const newsRecord: any = { ...baseRecord, ...overrides };
+  const reviews: any[] = [];
+
+  const newsBuilder: any = {
+    select: jest.fn(() => newsBuilder),
+    eq: jest.fn(() => newsBuilder),
+    single: jest.fn(async () => ({
+      data: {
+        ...newsRecord,
+        reviews: reviews.length > 0 ? reviews : null,
+      },
+      error: null,
+    })),
+    update: jest.fn((payload: Record<string, unknown>) => {
+      Object.assign(newsRecord, payload);
+      return {
+        eq: jest.fn().mockResolvedValue({ data: null, error: null }),
+      };
+    }),
+    delete: jest.fn().mockReturnValue({
+      eq: jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          single: jest.fn().mockResolvedValue({
+            data: { id: newsRecord.id },
+            error: null,
+          }),
+        }),
+      }),
+    }),
+  };
+
+  const newsReviewsBuilder = {
+    insert: jest
+      .fn()
+      .mockImplementation(
+        (payload: {
+          news_id: string;
+          reviewer_id: string;
+          action: 'approve' | 'reject';
+          comment: string | null;
+          created_at: string;
+        }) => {
+          const reviewRow = {
+            id: `review-${reviews.length + 1}`,
+            action: payload.action,
+            comment: payload.comment,
+            created_at: payload.created_at,
+            reviewer: [
+              {
+                id: payload.reviewer_id,
+                email: 'reviewer@example.com',
+              },
+            ],
+          };
+          reviews.push(reviewRow);
+          return {
+            select: jest.fn().mockReturnValue({
+              single: jest.fn().mockResolvedValue({
+                data: reviewRow,
+                error: null,
+              }),
+            }),
+          };
+        }
+      ),
+  };
+
+  const auditLogsBuilder = {
+    insert: jest.fn().mockResolvedValue({ error: null }),
+  };
+
+  const adminClient = {
+    from: jest.fn((table: string) => {
+      if (table === 'news') {
+        return newsBuilder;
+      }
+      if (table === 'news_reviews') {
+        return newsReviewsBuilder;
+      }
+      if (table === 'audit_logs') {
+        return auditLogsBuilder;
+      }
+      throw new Error(`Unexpected table ${table}`);
+    }),
+  };
+
+  mockRequireSupabaseAdmin.mockReturnValue(adminClient);
+
+  return {
+    newsRecord,
+    reviews,
+    newsBuilder,
+    newsReviewsBuilder,
+    auditLogsBuilder,
+  };
+}
 describe('news.service', () => {
   describe('createNewsImageUploadUrl', () => {
     beforeEach(() => {
@@ -600,6 +731,336 @@ describe('news.service', () => {
       });
 
       await expect(deleteNews('missing')).rejects.toThrow('NEWS_NOT_FOUND');
+    });
+  });
+
+  describe('approveNews', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2025-03-01T12:00:00Z'));
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('publishes immediately and notifies interested parties', async () => {
+      const { newsBuilder } = setupAdminClient();
+
+      const result = await approveNews({
+        newsId: 'news-1',
+        reviewerId: 'reviewer-1',
+        input: { comment: 'Looks good' },
+        ipAddress: '127.0.0.1',
+        userAgent: 'jest',
+      });
+
+      expect(newsBuilder.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'published',
+          published_at: '2025-03-01T12:00:00.000Z',
+        })
+      );
+      expect(result.news.status).toBe('published');
+      expect(result.review).toEqual(
+        expect.objectContaining({
+          action: 'approve',
+          comment: 'Looks good',
+        })
+      );
+      expect(result.news.reviews).toHaveLength(1);
+      expect(mockNotifyPublished).toHaveBeenCalledWith(
+        expect.objectContaining({
+          newsId: 'news-1',
+          slug: 'breaking-update',
+        })
+      );
+      expect(mockNotifyAuthorApproval).toHaveBeenCalledWith(
+        expect.objectContaining({
+          newsId: 'news-1',
+          authorId: 'author-1',
+          status: 'published',
+          comment: 'Looks good',
+        })
+      );
+      expect(mockNotifyAuthorRejection).not.toHaveBeenCalled();
+    });
+
+    it('keeps scheduled status when scheduled in the future', async () => {
+      const futureDate = '2025-04-01T10:00:00Z';
+      const { newsRecord, newsBuilder } = setupAdminClient({
+        scheduled_at: futureDate,
+      });
+      newsRecord.status = 'pending_review';
+
+      const result = await approveNews({
+        newsId: 'news-1',
+        reviewerId: 'reviewer-1',
+        input: {},
+      });
+
+      expect(newsBuilder.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'scheduled',
+        })
+      );
+      expect(result.news.status).toBe('scheduled');
+      expect(result.news.publishedAt).toBeNull();
+      expect(mockNotifyPublished).not.toHaveBeenCalled();
+      expect(mockNotifyAuthorApproval).toHaveBeenCalledWith(
+        expect.objectContaining({
+          newsId: 'news-1',
+          status: 'scheduled',
+        })
+      );
+    });
+
+    it('throws when news is not pending review', async () => {
+      setupAdminClient({ status: 'draft' });
+
+      await expect(
+        approveNews({
+          newsId: 'news-1',
+          reviewerId: 'reviewer-1',
+          input: {},
+        })
+      ).rejects.toThrow('NEWS_INVALID_STATE');
+
+      expect(mockNotifyPublished).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('rejectNews', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2025-03-01T12:00:00Z'));
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('rejects news and records review', async () => {
+      const { newsBuilder } = setupAdminClient();
+
+      const result = await rejectNews({
+        newsId: 'news-1',
+        reviewerId: 'reviewer-1',
+        input: { comment: 'Needs more sources' },
+        ipAddress: '127.0.0.1',
+        userAgent: 'jest',
+      });
+
+      expect(newsBuilder.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'rejected',
+          scheduled_at: null,
+          published_at: null,
+        })
+      );
+      expect(result.news.status).toBe('rejected');
+      expect(result.review.action).toBe('reject');
+      expect(result.review.comment).toBe('Needs more sources');
+      expect(result.news.reviews).toHaveLength(1);
+      expect(mockNotifyAuthorRejection).toHaveBeenCalledWith(
+        expect.objectContaining({
+          newsId: 'news-1',
+          authorId: 'author-1',
+          comment: 'Needs more sources',
+        })
+      );
+      expect(mockNotifyAuthorApproval).not.toHaveBeenCalled();
+      expect(mockNotifyPublished).not.toHaveBeenCalled();
+    });
+
+    it('requires comment when rejecting', async () => {
+      setupAdminClient();
+
+      await expect(
+        rejectNews({
+          newsId: 'news-1',
+          reviewerId: 'reviewer-1',
+          input: { comment: '   ' },
+        })
+      ).rejects.toThrow('NEWS_REVIEW_COMMENT_REQUIRED');
+    });
+
+    it('throws when news is not pending review', async () => {
+      setupAdminClient({ status: 'draft' });
+
+      await expect(
+        rejectNews({
+          newsId: 'news-1',
+          reviewerId: 'reviewer-1',
+          input: { comment: 'Invalid state' },
+        })
+      ).rejects.toThrow('NEWS_INVALID_STATE');
+    });
+  });
+
+  describe('listPublishedNews', () => {
+    it('returns published news with pagination', async () => {
+      const rangeMock = jest.fn().mockResolvedValue({
+        data: [
+          {
+            id: 'news-1',
+            title: 'Published item',
+            slug: 'published-item',
+            body_md: '# content',
+            cover_key: null,
+            published_at: '2025-03-01T12:00:00Z',
+            created_at: '2025-02-28T00:00:00Z',
+          },
+        ],
+        error: null,
+        count: 1,
+      });
+
+      const builder: any = {
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        order: jest.fn().mockReturnThis(),
+        range: rangeMock,
+      };
+      builder.order.mockReturnValue(builder);
+
+      mockRequireSupabaseAdmin.mockReturnValue({
+        from: jest.fn().mockReturnValue(builder),
+      });
+
+      const result = await listPublishedNews({ page: 1, limit: 5 });
+
+      expect(builder.eq).toHaveBeenCalledWith('status', 'published');
+      expect(rangeMock).toHaveBeenCalledWith(0, 4);
+      expect(result.news).toHaveLength(1);
+      expect(result.news[0]).toEqual(
+        expect.objectContaining({
+          id: 'news-1',
+          slug: 'published-item',
+          publishedAt: '2025-03-01T12:00:00Z',
+        })
+      );
+      expect(result.meta).toEqual(
+        expect.objectContaining({
+          page: 1,
+          limit: 5,
+          total: 1,
+          pageCount: 1,
+          hasNext: false,
+        })
+      );
+    });
+
+    it('throws when query fails', async () => {
+      const rangeMock = jest.fn().mockResolvedValue({
+        data: null,
+        error: { message: 'boom' },
+        count: null,
+      });
+
+      const builder: any = {
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        order: jest.fn().mockReturnThis(),
+        range: rangeMock,
+      };
+      builder.order.mockReturnValue(builder);
+
+      mockRequireSupabaseAdmin.mockReturnValue({
+        from: jest.fn().mockReturnValue(builder),
+      });
+
+      await expect(listPublishedNews({ page: 1, limit: 5 })).rejects.toThrow(
+        'Failed to list published news: boom'
+      );
+    });
+  });
+
+  describe('getPublishedNewsById', () => {
+    it('returns published news detail', async () => {
+      const singleMock = jest.fn().mockResolvedValue({
+        data: {
+          id: 'news-1',
+          title: 'Breaking update',
+          slug: 'breaking-update',
+          body_md: '# content',
+          cover_key: null,
+          published_at: '2025-03-01T12:00:00Z',
+          created_at: '2025-02-28T00:00:00Z',
+          updated_at: '2025-03-01T12:00:00Z',
+          status: 'published',
+        },
+        error: null,
+      });
+
+      mockRequireSupabaseAdmin.mockReturnValue({
+        from: jest.fn().mockReturnValue({
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnValue({
+            single: singleMock,
+          }),
+        }),
+      });
+
+      const result = await getPublishedNewsById('news-1');
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          id: 'news-1',
+          slug: 'breaking-update',
+          bodyMd: '# content',
+        })
+      );
+    });
+
+    it('throws when news is missing', async () => {
+      const singleMock = jest.fn().mockResolvedValue({
+        data: null,
+        error: { code: 'PGRST116', message: 'not found' },
+      });
+
+      mockRequireSupabaseAdmin.mockReturnValue({
+        from: jest.fn().mockReturnValue({
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnValue({
+            single: singleMock,
+          }),
+        }),
+      });
+
+      await expect(getPublishedNewsById('missing')).rejects.toThrow(
+        'NEWS_NOT_FOUND'
+      );
+    });
+
+    it('throws when news is not published', async () => {
+      const singleMock = jest.fn().mockResolvedValue({
+        data: {
+          id: 'news-1',
+          title: 'Draft',
+          slug: 'draft',
+          body_md: '# content',
+          cover_key: null,
+          published_at: null,
+          created_at: '2025-01-01T00:00:00Z',
+          updated_at: '2025-01-01T00:00:00Z',
+          status: 'draft',
+        },
+        error: null,
+      });
+
+      mockRequireSupabaseAdmin.mockReturnValue({
+        from: jest.fn().mockReturnValue({
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnValue({
+            single: singleMock,
+          }),
+        }),
+      });
+
+      await expect(getPublishedNewsById('news-1')).rejects.toThrow(
+        'NEWS_NOT_FOUND'
+      );
     });
   });
 });

@@ -1,4 +1,4 @@
-import type { InvestorLanguage } from '../../types/investor';
+﻿import type { InvestorLanguage } from '../../types/investor';
 import { useLanguage } from '../../context/LanguageContext';
 import { getMessage } from '../../locales/investorProfile';
 
@@ -14,9 +14,9 @@ export function LanguageSwitcher({ onChange }: LanguageSwitcherProps) {
       style={{
         display: 'inline-flex',
         borderRadius: '999px',
-        border: '1px solid #E5E7EB',
+        border: '1px solid var(--color-border-soft)',
         overflow: 'hidden',
-        background: '#FFFFFF',
+        background: 'var(--color-background-surface)',
       }}
     >
       {(['ar', 'en'] as const).map(option => (
@@ -33,8 +33,8 @@ export function LanguageSwitcher({ onChange }: LanguageSwitcherProps) {
             cursor: 'pointer',
             fontSize: '0.95rem',
             fontWeight: 500,
-            background: language === option ? '#2D6FA3' : 'transparent',
-            color: language === option ? '#FFFFFF' : '#111418',
+            background: language === option ? 'var(--color-brand-primary)' : 'transparent',
+            color: language === option ? '#FFFFFF' : 'var(--color-text-primary)',
             transition: 'background 0.2s ease',
           }}
         >
@@ -44,4 +44,6 @@ export function LanguageSwitcher({ onChange }: LanguageSwitcherProps) {
     </div>
   );
 }
+
+
 

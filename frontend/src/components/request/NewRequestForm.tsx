@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+﻿import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { NewRequestFormValues } from '../../schemas/newRequestSchema';
@@ -108,8 +108,8 @@ export function NewRequestForm() {
           style={selectStyle}
           aria-label={tRequest('form.type', language)}
         >
-          <option value="buy">{language === 'ar' ? 'شراء' : 'Buy'}</option>
-          <option value="sell">{language === 'ar' ? 'بيع' : 'Sell'}</option>
+          <option value="buy">{language === 'ar' ? 'Ø´Ø±Ø§Ø¡' : 'Buy'}</option>
+          <option value="sell">{language === 'ar' ? 'Ø¨ÙŠØ¹' : 'Sell'}</option>
         </select>
       </Field>
 
@@ -123,7 +123,7 @@ export function NewRequestForm() {
             step="0.01"
             {...register('amount')}
             style={inputStyle}
-            placeholder={language === 'ar' ? 'المبلغ الإجمالي' : 'Total amount'}
+            placeholder={language === 'ar' ? 'Ø§Ù„Ù…Ø¨Ù„Øº Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ' : 'Total amount'}
           />
         </Field>
 
@@ -152,7 +152,7 @@ export function NewRequestForm() {
             {...register('targetPrice')}
             style={inputStyle}
             placeholder={
-              language === 'ar' ? 'سعر مستهدف (اختياري)' : 'Optional target price'
+              language === 'ar' ? 'Ø³Ø¹Ø± Ù…Ø³ØªÙ‡Ø¯Ù (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)' : 'Optional target price'
             }
           />
         </Field>
@@ -178,7 +178,7 @@ export function NewRequestForm() {
           style={{ ...inputStyle, minHeight: '6rem', resize: 'vertical' }}
           placeholder={
             language === 'ar'
-              ? 'أدخل ملاحظات إضافية (اختياري)'
+              ? 'Ø£Ø¯Ø®Ù„ Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ø¥Ø¶Ø§ÙÙŠØ© (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)'
               : 'Additional notes (optional)'
           }
         />
@@ -203,8 +203,8 @@ export function NewRequestForm() {
             padding: '0.75rem 1.75rem',
             borderRadius: '0.85rem',
             border: 'none',
-            background: '#2D6FA3',
-            color: '#FFFFFF',
+            background: 'var(--color-brand-primary)',
+            color: 'var(--color-text-on-brand)',
             fontWeight: 700,
           cursor: createRequest.isPending ? 'progress' : 'pointer',
           opacity: createRequest.isPending ? 0.7 : 1,
@@ -221,9 +221,9 @@ export function NewRequestForm() {
           style={{
             padding: '0.75rem 1.75rem',
             borderRadius: '0.85rem',
-            border: '1px solid #CBD5F5',
-            background: '#FFFFFF',
-            color: '#1E3A5F',
+            border: '1px solid var(--color-brand-secondary-soft)',
+            background: 'var(--color-background-surface)',
+            color: 'var(--color-brand-accent-deep)',
             fontWeight: 600,
             cursor: 'pointer',
           }}
@@ -265,7 +265,7 @@ const Field = ({ label, error, children }: FieldProps) => (
       style={{
         fontWeight: 600,
         fontSize: '0.95rem',
-        color: '#111418',
+        color: 'var(--color-text-primary)',
       }}
     >
       {label}
@@ -293,9 +293,9 @@ const gridStyle: React.CSSProperties = {
 const inputStyle: React.CSSProperties = {
   padding: '0.75rem 1rem',
   borderRadius: '0.85rem',
-  border: '1px solid #D1D5DB',
-  background: '#FFFFFF',
-  color: '#111418',
+  border: '1px solid var(--color-border-muted)',
+  background: 'var(--color-background-surface)',
+  color: 'var(--color-text-primary)',
   fontSize: '0.95rem',
 };
 
@@ -303,4 +303,6 @@ const selectStyle: React.CSSProperties = {
   ...inputStyle,
   appearance: 'none',
 };
+
+
 

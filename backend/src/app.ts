@@ -3,6 +3,7 @@ import { healthRouter } from './routes/health.routes';
 import { authRouter } from './routes/auth.routes';
 import { investorRouter } from './routes/investor.routes';
 import { adminRouter } from './routes/admin.routes';
+import { newsRouter } from './routes/news.routes';
 import { applySecurity, authLimiter } from './middleware/security';
 
 const app = express();
@@ -23,6 +24,7 @@ app.get('/', (_req, res) => {
       auth: '/api/v1/auth',
       investor: '/api/v1/investor',
       admin: '/api/v1/admin',
+      news: '/api/v1/news',
     },
   });
 });
@@ -32,5 +34,6 @@ app.use('/api/v1/health', healthRouter);
 app.use('/api/v1/auth', authLimiter, authRouter);
 app.use('/api/v1/investor', investorRouter);
 app.use('/api/v1/admin', adminRouter);
+app.use('/api/v1/news', newsRouter);
 
 export default app;

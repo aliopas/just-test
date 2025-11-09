@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+﻿import { useMemo } from 'react';
 import {
   useMutation,
   useQuery,
@@ -74,4 +74,5 @@ export function useInvestorProfile() {
     [mutation, query]
   );
 }
+
 

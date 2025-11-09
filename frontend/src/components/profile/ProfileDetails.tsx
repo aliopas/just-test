@@ -1,4 +1,4 @@
-import type { InvestorProfile } from '../../types/investor';
+﻿import type { InvestorProfile } from '../../types/investor';
 import { useLanguage } from '../../context/LanguageContext';
 import { getMessage } from '../../locales/investorProfile';
 
@@ -15,14 +15,14 @@ function InfoPair({ label, value }: { label: string; value?: string | null }) {
         gap: '0.35rem',
         padding: '0.75rem 1rem',
         borderRadius: '0.85rem',
-        border: '1px solid #E5E7EB',
-        background: '#FFFFFF',
+        border: '1px solid var(--color-border-soft)',
+        background: 'var(--color-background-surface)',
       }}
     >
       <span
         style={{
           fontSize: '0.85rem',
-          color: '#6B7280',
+          color: 'var(--color-text-muted)',
           fontWeight: 500,
         }}
       >
@@ -31,11 +31,11 @@ function InfoPair({ label, value }: { label: string; value?: string | null }) {
       <span
         style={{
           fontWeight: 600,
-          color: '#111418',
+          color: 'var(--color-text-primary)',
           minHeight: '1.25rem',
         }}
       >
-        {value || '—'}
+        {value || 'â€”'}
       </span>
     </div>
   );
@@ -47,15 +47,15 @@ export function ProfileDetails({ profile }: ProfileDetailsProps) {
   const riskLabel =
     profile.riskProfile === 'conservative'
       ? language === 'ar'
-        ? 'حذر'
+        ? 'Ø­Ø°Ø±'
         : 'Conservative'
       : profile.riskProfile === 'balanced'
       ? language === 'ar'
-        ? 'متوازن'
+        ? 'Ù…ØªÙˆØ§Ø²Ù†'
         : 'Balanced'
       : profile.riskProfile === 'aggressive'
       ? language === 'ar'
-        ? 'مغامر'
+        ? 'Ù…ØºØ§Ù…Ø±'
         : 'Aggressive'
       : null;
 
@@ -89,10 +89,10 @@ export function ProfileDetails({ profile }: ProfileDetailsProps) {
         value={
           profile.idType
             ? {
-                national_id: language === 'ar' ? 'هوية وطنية' : 'National ID',
-                iqama: language === 'ar' ? 'إقامة' : 'Iqama',
-                passport: language === 'ar' ? 'جواز سفر' : 'Passport',
-                other: language === 'ar' ? 'أخرى' : 'Other',
+                national_id: language === 'ar' ? 'Ù‡ÙˆÙŠØ© ÙˆØ·Ù†ÙŠØ©' : 'National ID',
+                iqama: language === 'ar' ? 'Ø¥Ù‚Ø§Ù…Ø©' : 'Iqama',
+                passport: language === 'ar' ? 'Ø¬ÙˆØ§Ø² Ø³ÙØ±' : 'Passport',
+                other: language === 'ar' ? 'Ø£Ø®Ø±Ù‰' : 'Other',
               }[profile.idType]
             : null
         }
@@ -142,22 +142,24 @@ function formatPreferences(
   const pairs: string[] = [];
   if (profile.communicationPreferences.email) {
     pairs.push(
-      getMessage('fields.communication.email', language).replace('إشعارات ', '').replace('notifications', '').trim()
+      getMessage('fields.communication.email', language).replace('Ø¥Ø´Ø¹Ø§Ø±Ø§Øª ', '').replace('notifications', '').trim()
     );
   }
   if (profile.communicationPreferences.sms) {
     pairs.push(
-      getMessage('fields.communication.sms', language).replace('إشعارات ', '').replace('notifications', '').trim()
+      getMessage('fields.communication.sms', language).replace('Ø¥Ø´Ø¹Ø§Ø±Ø§Øª ', '').replace('notifications', '').trim()
     );
   }
   if (profile.communicationPreferences.push) {
     pairs.push(
-      getMessage('fields.communication.push', language).replace('إشعارات ', '').replace('notifications', '').trim()
+      getMessage('fields.communication.push', language).replace('Ø¥Ø´Ø¹Ø§Ø±Ø§Øª ', '').replace('notifications', '').trim()
     );
   }
   if (pairs.length === 0) {
-    return language === 'ar' ? 'لا توجد تفضيلات محددة' : 'No channels enabled';
+    return language === 'ar' ? 'Ù„Ø§ ØªÙˆØ¬Ø¯ ØªÙØ¶ÙŠÙ„Ø§Øª Ù…Ø­Ø¯Ø¯Ø©' : 'No channels enabled';
   }
-  return pairs.join(language === 'ar' ? '، ' : ', ');
+  return pairs.join(language === 'ar' ? 'ØŒ ' : ', ');
 }
+
+
 

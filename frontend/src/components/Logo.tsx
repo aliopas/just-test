@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 
 const logoSrc = new URL('../assets/logo.jpg', import.meta.url).href;
 
@@ -17,7 +17,7 @@ export const Logo: React.FC<LogoProps> = ({
 }) => {
   const background =
     variant === 'inverse'
-      ? { backgroundColor: '#1E3A5F', padding: '8px', borderRadius: '12px' }
+      ? { backgroundColor: 'var(--color-brand-accent-deep)', padding: '8px', borderRadius: '12px' }
       : {};
 
   return (
@@ -64,11 +64,11 @@ export const Logo: React.FC<LogoProps> = ({
             fontWeight: 600,
             fontSize: '1.5rem',
             lineHeight: 1.2,
-            color: variant === 'inverse' ? '#FFFFFF' : '#1E3A5F',
+            color: variant === 'inverse' ? '#FFFFFF' : 'var(--color-brand-accent-deep)',
             letterSpacing: '0.02em',
           }}
         >
-          باكورة الاستثمارية
+          Ø¨Ø§ÙƒÙˆØ±Ø© Ø§Ù„Ø§Ø³ØªØ«Ù…Ø§Ø±ÙŠØ©
         </figcaption>
       )}
     </figure>
@@ -76,5 +76,6 @@ export const Logo: React.FC<LogoProps> = ({
 };
 
 Logo.displayName = 'Logo';
+
 
 

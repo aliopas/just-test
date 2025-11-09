@@ -1,4 +1,4 @@
-import { createRoot } from 'react-dom/client';
+﻿import { createRoot } from 'react-dom/client';
 import { StrictMode } from 'react';
 import { ProfilePage } from '../../pages/ProfilePage';
 
@@ -21,5 +21,6 @@ if (document.readyState === 'loading') {
 } else {
   bootstrap();
 }
+
 
 

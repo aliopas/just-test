@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+﻿import { useMemo } from 'react';
 import type { AdminRequest } from '../../../types/admin';
 import { useLanguage } from '../../../context/LanguageContext';
 import { tAdminRequests } from '../../../locales/adminRequests';
@@ -37,7 +37,7 @@ export function AdminRequestsTable({
           <span>{tAdminRequests('table.error', language)}</span>
           {onRetry && (
             <button type="button" onClick={onRetry} style={retryButtonStyle}>
-              ⟳
+              âŸ³
             </button>
           )}
         </div>
@@ -47,7 +47,7 @@ export function AdminRequestsTable({
     if (requests.length === 0) {
       return (
         <div style={emptyStateStyle}>
-          <div style={{ fontSize: '1.4rem' }}>📭</div>
+          <div style={{ fontSize: '1.4rem' }}>ðŸ“­</div>
           <strong>{tAdminRequests('table.emptyTitle', language)}</strong>
           <span>{tAdminRequests('table.emptySubtitle', language)}</span>
         </div>
@@ -71,7 +71,7 @@ export function AdminRequestsTable({
               request.investor?.fullName ??
               request.investor?.preferredName ??
               request.investor?.email ??
-              '—';
+              'â€”';
             const amountFormatted = new Intl.NumberFormat(
               language === 'ar' ? 'ar-SA' : 'en-US',
               {
@@ -88,7 +88,7 @@ export function AdminRequestsTable({
                 <td>
                   <a
                     href={`/app/admin/requests/${request.id}`}
-                    style={{ color: '#2563EB', textDecoration: 'none', fontWeight: 600 }}
+                    style={{ color: 'var(--color-brand-primary-strong)', textDecoration: 'none', fontWeight: 600 }}
                   >
                     {request.requestNumber}
                   </a>
@@ -98,7 +98,7 @@ export function AdminRequestsTable({
                 <td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <RequestStatusBadge status={request.status} />
-                    <span style={{ color: '#64748B', fontSize: '0.8rem' }}>
+                    <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.8rem' }}>
                       {getStatusLabel(request.status, language)}
                     </span>
                   </div>
@@ -117,7 +117,7 @@ export function AdminRequestsTable({
       {content}
       {isFetching && !isLoading && (
         <div style={loadingOverlayStyle}>
-          <span>…</span>
+          <span>â€¦</span>
         </div>
       )}
     </div>
@@ -131,13 +131,13 @@ const tableStyle: React.CSSProperties = {
   borderRadius: '1rem',
   overflow: 'hidden',
   boxShadow: '0 12px 32px rgba(15, 23, 42, 0.1)',
-  background: '#FFFFFF',
+  background: 'var(--color-background-surface)',
 };
 
 const loadingContainerStyle: React.CSSProperties = {
   padding: '1.5rem',
   textAlign: 'center',
-  color: '#475569',
+  color: 'var(--color-text-secondary)',
 };
 
 const errorContainerStyle: React.CSSProperties = {
@@ -156,21 +156,21 @@ const retryButtonStyle: React.CSSProperties = {
   borderRadius: '0.65rem',
   border: 'none',
   background: '#B91C1C',
-  color: '#FFFFFF',
+  color: 'var(--color-text-on-brand)',
   cursor: 'pointer',
   fontWeight: 700,
 };
 
 const emptyStateStyle: React.CSSProperties = {
   padding: '2.5rem 1.5rem',
-  border: '1px dashed #CBD5F5',
+  border: '1px dashed var(--color-brand-secondary-soft)',
   borderRadius: '1.5rem',
-  background: '#F8FBFF',
+  background: 'var(--color-background-highlight)',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
   gap: '0.75rem',
-  color: '#1E3A5F',
+  color: 'var(--color-brand-accent-deep)',
   textAlign: 'center',
 };
 
@@ -182,6 +182,8 @@ const loadingOverlayStyle: React.CSSProperties = {
   alignItems: 'center',
   justifyContent: 'center',
   fontSize: '2rem',
-  color: '#2563EB',
+  color: 'var(--color-brand-primary-strong)',
 };
+
+
 

@@ -1,4 +1,4 @@
-import { useLanguage } from '../context/LanguageContext';
+﻿import { useLanguage } from '../context/LanguageContext';
 import { NewRequestForm } from '../components/request/NewRequestForm';
 import { tRequest } from '../locales/newRequest';
 
@@ -12,7 +12,7 @@ function NewRequestPageInner() {
         margin: '0 auto',
         padding: '2rem 1.5rem 4rem',
         minHeight: '100vh',
-        background: '#F1F5F9',
+        background: 'var(--color-background-base)',
         direction,
         display: 'flex',
         flexDirection: 'column',
@@ -24,7 +24,7 @@ function NewRequestPageInner() {
           style={{
             fontSize: '2.25rem',
             fontWeight: 700,
-            color: '#111418',
+            color: 'var(--color-text-primary)',
             margin: 0,
           }}
         >
@@ -33,7 +33,7 @@ function NewRequestPageInner() {
         <p
           style={{
             marginTop: '0.5rem',
-            color: '#475569',
+            color: 'var(--color-text-secondary)',
             fontSize: '1rem',
             maxWidth: '38rem',
           }}
@@ -44,9 +44,9 @@ function NewRequestPageInner() {
 
       <section
         style={{
-          background: '#FFFFFF',
+          background: 'var(--color-background-surface)',
           borderRadius: '1.25rem',
-          border: '1px solid #E2E8F0',
+          border: '1px solid var(--color-border)',
           padding: '1.75rem',
           boxShadow: '0 20px 40px rgba(15, 23, 42, 0.08)',
           display: 'flex',
@@ -56,10 +56,10 @@ function NewRequestPageInner() {
       >
         <div
           style={{
-            background: '#EFF6FF',
+            background: 'var(--color-background-alt)',
             borderRadius: '1rem',
             padding: '1.25rem',
-            color: '#1E3A5F',
+            color: 'var(--color-brand-accent-deep)',
             fontSize: '0.95rem',
             display: 'flex',
             flexDirection: 'column',
@@ -79,4 +79,6 @@ function NewRequestPageInner() {
 export function NewRequestPage() {
   return <NewRequestPageInner />;
 }
+
+
 

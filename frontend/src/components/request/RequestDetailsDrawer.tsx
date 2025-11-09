@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+﻿import { useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import type { InvestorRequest } from '../../types/request';
@@ -39,7 +39,7 @@ export function RequestDetailsDrawer({
   }, [language, detailRequest.amount, detailRequest.currency]);
 
   const targetPriceDisplay = useMemo(() => {
-    if (detailRequest.targetPrice == null) return '—';
+    if (detailRequest.targetPrice == null) return 'â€”';
     try {
       return new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
         style: 'currency',
@@ -55,7 +55,7 @@ export function RequestDetailsDrawer({
         language === 'ar' ? 'ar-SA' : 'en-US',
         { dateStyle: 'medium' }
       )
-    : '—';
+    : 'â€”';
 
   const updatedAtDisplay = new Date(detailRequest.updatedAt).toLocaleString(
     language === 'ar' ? 'ar-SA' : 'en-US',
@@ -63,8 +63,8 @@ export function RequestDetailsDrawer({
   );
 
   const typeLabels = {
-    buy: { en: 'Buy request', ar: 'طلب شراء' },
-    sell: { en: 'Sell request', ar: 'طلب بيع' },
+    buy: { en: 'Buy request', ar: 'Ø·Ù„Ø¨ Ø´Ø±Ø§Ø¡' },
+    sell: { en: 'Sell request', ar: 'Ø·Ù„Ø¨ Ø¨ÙŠØ¹' },
   };
 
   return createPortal(
@@ -90,7 +90,7 @@ export function RequestDetailsDrawer({
         onClick={event => event.stopPropagation()}
         style={{
           width: 'min(420px, 90vw)',
-          background: '#FFFFFF',
+          background: 'var(--color-background-surface)',
           padding: '2rem',
           overflowY: 'auto',
           boxShadow: '0 20px 60px rgba(15, 23, 42, 0.25)',
@@ -112,7 +112,7 @@ export function RequestDetailsDrawer({
               style={{
                 margin: 0,
                 fontSize: '1.6rem',
-                color: '#0F172A',
+                color: 'var(--color-text-primary)',
               }}
             >
               {tRequestList('details.title', language)}
@@ -120,7 +120,7 @@ export function RequestDetailsDrawer({
             <p
               style={{
                 margin: '0.35rem 0 0',
-                color: '#64748B',
+                color: 'var(--color-text-secondary)',
                 fontSize: '0.95rem',
               }}
             >
@@ -132,8 +132,8 @@ export function RequestDetailsDrawer({
             onClick={onClose}
             style={{
               border: 'none',
-              background: '#E2E8F0',
-              color: '#0F172A',
+              background: 'var(--color-border)',
+              color: 'var(--color-text-primary)',
               borderRadius: '999px',
               width: '2.5rem',
               height: '2.5rem',
@@ -143,7 +143,7 @@ export function RequestDetailsDrawer({
             }}
             aria-label="Close"
           >
-            ×
+            Ã—
           </button>
         </header>
 
@@ -151,9 +151,9 @@ export function RequestDetailsDrawer({
           <div
             style={{
               padding: '0.85rem 1rem',
-              background: '#F1F5F9',
+              background: 'var(--color-background-base)',
               borderRadius: '0.85rem',
-              color: '#475569',
+              color: 'var(--color-text-secondary)',
               fontSize: '0.9rem',
             }}
           >
@@ -182,14 +182,14 @@ export function RequestDetailsDrawer({
               style={{
                 border: 'none',
                 background: '#B91C1C',
-                color: '#FFFFFF',
+                color: 'var(--color-text-on-brand)',
                 borderRadius: '0.65rem',
                 padding: '0.35rem 0.9rem',
                 cursor: 'pointer',
                 fontWeight: 600,
               }}
             >
-              ⟳
+              âŸ³
             </button>
           </div>
         )}
@@ -205,7 +205,7 @@ export function RequestDetailsDrawer({
           <div
             style={{
               fontSize: '0.9rem',
-              color: '#475569',
+              color: 'var(--color-text-secondary)',
             }}
           >
             {getStatusLabel(detailRequest.status, language)}
@@ -240,13 +240,13 @@ export function RequestDetailsDrawer({
         {detailRequest.notes && (
           <section
             style={{
-              background: '#F8FAFC',
+              background: 'var(--color-background-surface)',
               borderRadius: '1rem',
               padding: '1rem 1.25rem',
               display: 'flex',
               flexDirection: 'column',
               gap: '0.5rem',
-              color: '#0F172A',
+              color: 'var(--color-text-primary)',
             }}
           >
             <strong>{tRequestList('details.notes', language)}</strong>
@@ -272,7 +272,7 @@ export function RequestDetailsDrawer({
           {attachments.length === 0 ? (
             <span
               style={{
-                color: '#94A3B8',
+                color: 'var(--color-brand-secondary-muted)',
                 fontSize: '0.9rem',
               }}
             >
@@ -293,7 +293,7 @@ export function RequestDetailsDrawer({
                 <li
                   key={attachment.id}
                   style={{
-                    border: '1px solid #E2E8F0',
+                    border: '1px solid var(--color-border)',
                     borderRadius: '0.85rem',
                     padding: '0.75rem 1rem',
                     display: 'flex',
@@ -308,20 +308,20 @@ export function RequestDetailsDrawer({
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '0.25rem',
-                      color: '#0F172A',
+                      color: 'var(--color-text-primary)',
                     }}
                   >
                     <span style={{ fontWeight: 600 }}>{attachment.filename}</span>
                     <span
                       style={{
-                        color: '#64748B',
+                        color: 'var(--color-text-secondary)',
                         fontSize: '0.85rem',
                       }}
                     >
-                      {attachment.mimeType ?? '—'} •{' '}
+                      {attachment.mimeType ?? 'â€”'} â€¢{' '}
                       {attachment.size != null
                         ? `${(attachment.size / (1024 * 1024)).toFixed(2)} MB`
-                        : '—'}
+                        : 'â€”'}
                     </span>
                   </div>
                   <button
@@ -335,9 +335,9 @@ export function RequestDetailsDrawer({
                     style={{
                       padding: '0.6rem 1.2rem',
                       borderRadius: '0.75rem',
-                      border: '1px solid #CBD5F5',
-                      background: attachment.downloadUrl ? '#FFFFFF' : '#F8FAFC',
-                      color: '#1E3A5F',
+                      border: '1px solid var(--color-brand-secondary-soft)',
+                      background: attachment.downloadUrl ? '#FFFFFF' : 'var(--color-background-surface)',
+                      color: 'var(--color-brand-accent-deep)',
                       cursor: attachment.downloadUrl ? 'pointer' : 'not-allowed',
                       fontWeight: 600,
                     }}
@@ -361,9 +361,9 @@ export function RequestDetailsDrawer({
           <div
             style={{
               borderLeft:
-                direction === 'rtl' ? 'none' : '2px solid #E2E8F0',
+                direction === 'rtl' ? 'none' : '2px solid var(--color-border)',
               borderRight:
-                direction === 'rtl' ? '2px solid #E2E8F0' : 'none',
+                direction === 'rtl' ? '2px solid var(--color-border)' : 'none',
               padding: direction === 'rtl' ? '0 1rem 0 0.5rem' : '0 0.5rem 0 1rem',
               display: 'flex',
               flexDirection: 'column',
@@ -373,7 +373,7 @@ export function RequestDetailsDrawer({
             {events.length === 0 ? (
               <span
                 style={{
-                  color: '#94A3B8',
+                  color: 'var(--color-brand-secondary-muted)',
                   fontSize: '0.9rem',
                 }}
               >
@@ -398,13 +398,13 @@ export function RequestDetailsDrawer({
                       width: '0.8rem',
                       height: '0.8rem',
                       borderRadius: '999px',
-                      background: '#2563EB',
+                      background: 'var(--color-brand-primary-strong)',
                     }}
                   />
                   <div
                     style={{
                       fontWeight: 600,
-                      color: '#0F172A',
+                      color: 'var(--color-text-primary)',
                     }}
                   >
                     {getStatusLabel(
@@ -414,7 +414,7 @@ export function RequestDetailsDrawer({
                   </div>
                   <div
                     style={{
-                      color: '#64748B',
+                      color: 'var(--color-text-secondary)',
                       fontSize: '0.85rem',
                     }}
                   >
@@ -427,7 +427,7 @@ export function RequestDetailsDrawer({
                     <p
                       style={{
                         margin: '0.35rem 0 0',
-                        color: '#475569',
+                        color: 'var(--color-text-secondary)',
                       }}
                     >
                       {event.note}
@@ -450,7 +450,7 @@ export function RequestDetailsDrawer({
           {comments.length === 0 ? (
             <span
               style={{
-                color: '#94A3B8',
+                color: 'var(--color-brand-secondary-muted)',
                 fontSize: '0.9rem',
               }}
             >
@@ -471,15 +471,15 @@ export function RequestDetailsDrawer({
                 <li
                   key={comment.id}
                   style={{
-                    background: '#F8FAFC',
+                    background: 'var(--color-background-surface)',
                     borderRadius: '0.85rem',
                     padding: '0.75rem 1rem',
-                    color: '#0F172A',
+                    color: 'var(--color-text-primary)',
                   }}
                 >
                   <div
                     style={{
-                      color: '#64748B',
+                      color: 'var(--color-text-secondary)',
                       fontSize: '0.8rem',
                     }}
                   >
@@ -517,7 +517,7 @@ function DetailItem({ title, value }: DetailItemProps) {
       <dt
         style={{
           fontSize: '0.85rem',
-          color: '#94A3B8',
+          color: 'var(--color-brand-secondary-muted)',
           fontWeight: 600,
         }}
       >
@@ -527,7 +527,7 @@ function DetailItem({ title, value }: DetailItemProps) {
         style={{
           margin: 0,
           fontSize: '1rem',
-          color: '#0F172A',
+          color: 'var(--color-text-primary)',
           fontWeight: 600,
         }}
       >
@@ -536,4 +536,6 @@ function DetailItem({ title, value }: DetailItemProps) {
     </div>
   );
 }
+
+
 

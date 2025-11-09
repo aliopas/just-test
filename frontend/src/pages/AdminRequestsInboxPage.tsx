@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import {
   QueryClient,
   QueryClientProvider,
@@ -50,7 +50,7 @@ function AdminRequestsInboxPageInner() {
         margin: '0 auto',
         padding: '2rem 1.5rem 4rem',
         minHeight: '100vh',
-        background: '#F1F5F9',
+        background: 'var(--color-background-base)',
         direction,
         display: 'flex',
         flexDirection: 'column',
@@ -62,7 +62,7 @@ function AdminRequestsInboxPageInner() {
           style={{
             fontSize: '2.25rem',
             fontWeight: 700,
-            color: '#0F172A',
+            color: 'var(--color-text-primary)',
             margin: 0,
           }}
         >
@@ -71,7 +71,7 @@ function AdminRequestsInboxPageInner() {
         <p
           style={{
             marginTop: '0.5rem',
-            color: '#475569',
+            color: 'var(--color-text-secondary)',
             fontSize: '1rem',
             maxWidth: '46rem',
           }}
@@ -85,7 +85,7 @@ function AdminRequestsInboxPageInner() {
           display: 'flex',
           flexDirection: 'column',
           gap: '1.5rem',
-          background: '#FFFFFF',
+          background: 'var(--color-background-surface)',
           borderRadius: '1.5rem',
           padding: '1.5rem',
           boxShadow: '0 24px 48px rgba(15, 23, 42, 0.08)',
@@ -131,4 +131,6 @@ export function AdminRequestsInboxPage() {
     </QueryClientProvider>
   );
 }
+
+
 

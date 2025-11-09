@@ -1,4 +1,4 @@
-import { useLanguage } from '../../context/LanguageContext';
+﻿import { useLanguage } from '../../context/LanguageContext';
 import type { RequestStatus } from '../../types/request';
 import { getStatusColor, getStatusLabel } from '../../utils/requestStatus';
 
@@ -38,4 +38,5 @@ export function RequestStatusBadge({ status }: RequestStatusBadgeProps) {
     </span>
   );
 }
+
 

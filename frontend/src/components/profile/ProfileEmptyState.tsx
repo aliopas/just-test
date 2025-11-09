@@ -1,4 +1,4 @@
-import { useLanguage } from '../../context/LanguageContext';
+﻿import { useLanguage } from '../../context/LanguageContext';
 import { getMessage } from '../../locales/investorProfile';
 
 interface ProfileEmptyStateProps {
@@ -15,11 +15,11 @@ export function ProfileEmptyState({
   return (
     <div
       style={{
-        border: '2px dashed #CBD5F5',
+        border: '2px dashed var(--color-brand-secondary-soft)',
         borderRadius: '1.5rem',
         padding: '2.5rem',
         textAlign: 'center',
-        background: '#F9FAFB',
+        background: 'var(--color-background-surface)',
       }}
     >
       <div
@@ -27,26 +27,26 @@ export function ProfileEmptyState({
           fontSize: '3rem',
         }}
       >
-        🗂️
+        ðŸ—‚ï¸
       </div>
       <h2
         style={{
           fontSize: '1.5rem',
           margin: '0.75rem 0 0.5rem',
-          color: '#111418',
+          color: 'var(--color-text-primary)',
         }}
       >
         {getMessage('status.empty', language)}
       </h2>
       <p
         style={{
-          color: '#6B7280',
+          color: 'var(--color-text-muted)',
           maxWidth: '32rem',
           margin: '0 auto 1.5rem',
         }}
       >
         {language === 'ar'
-          ? 'ابدأ بإضافة بياناتك الشخصية لإكمال التحقق من الهوية والاستفادة من الخدمات الموجهة لك.'
+          ? 'Ø§Ø¨Ø¯Ø£ Ø¨Ø¥Ø¶Ø§ÙØ© Ø¨ÙŠØ§Ù†Ø§ØªÙƒ Ø§Ù„Ø´Ø®ØµÙŠØ© Ù„Ø¥ÙƒÙ…Ø§Ù„ Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù† Ø§Ù„Ù‡ÙˆÙŠØ© ÙˆØ§Ù„Ø§Ø³ØªÙØ§Ø¯Ø© Ù…Ù† Ø§Ù„Ø®Ø¯Ù…Ø§Øª Ø§Ù„Ù…ÙˆØ¬Ù‡Ø© Ù„Ùƒ.'
           : 'Start by adding your personal details to complete verification and unlock tailored services.'}
       </p>
       <button
@@ -57,8 +57,8 @@ export function ProfileEmptyState({
           padding: '0.85rem 1.6rem',
           borderRadius: '0.9rem',
           border: 'none',
-          background: '#2D6FA3',
-          color: '#FFFFFF',
+          background: 'var(--color-brand-primary)',
+          color: 'var(--color-text-on-brand)',
           cursor: isCreating ? 'progress' : 'pointer',
           fontWeight: 700,
         }}
@@ -70,4 +70,6 @@ export function ProfileEmptyState({
     </div>
   );
 }
+
+
 

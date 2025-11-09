@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import {
   QueryClient,
   QueryClientProvider,
@@ -259,10 +259,10 @@ function AdminRequestDetailPageInner() {
         style: 'currency',
         currency: request.currency ?? 'SAR',
       }).format(request.amount)
-    : '—';
+    : 'â€”';
 
   const formatDateTime = (value?: string | null) => {
-    if (!value) return '—';
+    if (!value) return 'â€”';
     try {
       return new Date(value).toLocaleString(
         language === 'ar' ? 'ar-SA' : 'en-US',
@@ -287,7 +287,7 @@ function AdminRequestDetailPageInner() {
         margin: '0 auto',
         padding: '2rem 1.5rem 4rem',
         minHeight: '100vh',
-        background: '#F1F5F9',
+        background: 'var(--color-background-base)',
         direction,
         display: 'flex',
         flexDirection: 'column',
@@ -304,14 +304,14 @@ function AdminRequestDetailPageInner() {
         <a
           href="/app/admin/requests"
           style={{
-            color: '#2563EB',
+            color: 'var(--color-brand-primary-strong)',
             fontWeight: 600,
             textDecoration: 'none',
             fontSize: '0.95rem',
             alignSelf: direction === 'rtl' ? 'flex-end' : 'flex-start',
           }}
         >
-          ← {tAdminRequests('detail.back', language)}
+          â† {tAdminRequests('detail.back', language)}
         </a>
         <div
           style={{
@@ -325,7 +325,7 @@ function AdminRequestDetailPageInner() {
             style={{
               fontSize: '2.25rem',
               fontWeight: 700,
-              color: '#0F172A',
+              color: 'var(--color-text-primary)',
               margin: 0,
             }}
           >
@@ -336,8 +336,8 @@ function AdminRequestDetailPageInner() {
           )}
         </div>
         {request && (
-          <div style={{ color: '#475569', fontSize: '0.95rem' }}>
-            #{request.requestNumber} ·{' '}
+          <div style={{ color: 'var(--color-text-secondary)', fontSize: '0.95rem' }}>
+            #{request.requestNumber} Â·{' '}
             {tAdminRequests('detail.updatedAt', language)}:{' '}
             {new Date(request.updatedAt).toLocaleString(
               language === 'ar' ? 'ar-SA' : 'en-US',
@@ -405,15 +405,15 @@ function AdminRequestDetailPageInner() {
                       request.investor?.fullName ??
                       request.investor?.preferredName ??
                       request.investor?.email ??
-                      '—',
+                      'â€”',
                   },
                   {
                     label: 'Email',
-                    value: request.investor?.email ?? '—',
+                    value: request.investor?.email ?? 'â€”',
                   },
                   {
                     label: 'Language',
-                    value: request.investor?.language ?? '—',
+                    value: request.investor?.language ?? 'â€”',
                   },
                 ]}
               />
@@ -432,8 +432,8 @@ function AdminRequestDetailPageInner() {
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '1rem',
-                  borderLeft: direction === 'rtl' ? 'none' : '2px solid #E2E8F0',
-                  borderRight: direction === 'rtl' ? '2px solid #E2E8F0' : 'none',
+                  borderLeft: direction === 'rtl' ? 'none' : '2px solid var(--color-border)',
+                  borderRight: direction === 'rtl' ? '2px solid var(--color-border)' : 'none',
                   paddingInlineStart: direction === 'rtl' ? 0 : '1.25rem',
                   paddingInlineEnd: direction === 'rtl' ? '1.25rem' : 0,
                 }}
@@ -449,22 +449,22 @@ function AdminRequestDetailPageInner() {
                         width: '0.7rem',
                         height: '0.7rem',
                         borderRadius: '999px',
-                        background: '#2563EB',
+                        background: 'var(--color-brand-primary-strong)',
                       }}
                     />
                     <div
                       style={{
                         fontWeight: 600,
-                        color: '#0F172A',
+                        color: 'var(--color-text-primary)',
                       }}
                     >
                       {event.toStatus
                         ? getStatusLabel(event.toStatus as any, language)
-                        : '—'}
+                        : 'â€”'}
                     </div>
                     <div
                       style={{
-                        color: '#64748B',
+                        color: 'var(--color-text-secondary)',
                         fontSize: '0.85rem',
                       }}
                     >
@@ -477,7 +477,7 @@ function AdminRequestDetailPageInner() {
                       <p
                         style={{
                           margin: '0.35rem 0 0',
-                          color: '#475569',
+                          color: 'var(--color-text-secondary)',
                         }}
                       >
                         {event.note}
@@ -502,7 +502,7 @@ function AdminRequestDetailPageInner() {
                         'detail.settlementReference',
                         language
                       ),
-                      value: settlement?.reference?.trim() || '—',
+                      value: settlement?.reference?.trim() || 'â€”',
                     },
                     {
                       label: tAdminRequests(
@@ -524,7 +524,7 @@ function AdminRequestDetailPageInner() {
                   <p
                     style={{
                       marginTop: '0.75rem',
-                      color: '#475569',
+                      color: 'var(--color-text-secondary)',
                       lineHeight: 1.6,
                       whiteSpace: 'pre-wrap',
                     }}
@@ -557,7 +557,7 @@ function AdminRequestDetailPageInner() {
                         <div
                           key={comment.id}
                           style={{
-                            background: '#F8FAFC',
+                            background: 'var(--color-background-surface)',
                             borderRadius: '0.85rem',
                             padding: '0.75rem 1rem',
                             display: 'flex',
@@ -574,12 +574,12 @@ function AdminRequestDetailPageInner() {
                               gap: '0.75rem',
                             }}
                           >
-                            <strong style={{ color: '#0F172A', fontSize: '0.9rem' }}>
+                            <strong style={{ color: 'var(--color-text-primary)', fontSize: '0.9rem' }}>
                               {actorLabel}
                             </strong>
                             <span
                               style={{
-                                color: '#64748B',
+                                color: 'var(--color-text-secondary)',
                                 fontSize: '0.8rem',
                               }}
                             >
@@ -591,7 +591,7 @@ function AdminRequestDetailPageInner() {
                           </div>
                           <div
                             style={{
-                              color: '#475569',
+                              color: 'var(--color-text-secondary)',
                               lineHeight: 1.5,
                               whiteSpace: 'pre-wrap',
                             }}
@@ -668,7 +668,7 @@ function AdminRequestDetailPageInner() {
                   <li
                     key={attachment.id}
                     style={{
-                      border: '1px solid #E2E8F0',
+                      border: '1px solid var(--color-border)',
                       borderRadius: '0.85rem',
                       padding: '0.75rem 1rem',
                       display: 'flex',
@@ -676,10 +676,10 @@ function AdminRequestDetailPageInner() {
                       gap: '0.35rem',
                     }}
                   >
-                    <strong style={{ color: '#0F172A' }}>{attachment.filename}</strong>
+                    <strong style={{ color: 'var(--color-text-primary)' }}>{attachment.filename}</strong>
                     <span
                       style={{
-                        color: '#2563EB',
+                        color: 'var(--color-brand-primary-strong)',
                         fontSize: '0.75rem',
                         fontWeight: 600,
                         textTransform: 'uppercase',
@@ -688,11 +688,11 @@ function AdminRequestDetailPageInner() {
                     >
                       {attachmentCategoryLabel(attachment.category)}
                     </span>
-                    <span style={{ color: '#64748B', fontSize: '0.85rem' }}>
-                      {attachment.mimeType ?? '—'} ·{' '}
+                    <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem' }}>
+                      {attachment.mimeType ?? 'â€”'} Â·{' '}
                       {attachment.size != null
                         ? `${(attachment.size / (1024 * 1024)).toFixed(2)} MB`
-                        : '—'}
+                        : 'â€”'}
                     </span>
                   </li>
                 ))}
@@ -723,7 +723,7 @@ function AdminRequestDetailPageInner() {
                   justifyContent: direction === 'rtl' ? 'flex-end' : 'flex-start',
                   alignItems: 'center',
                   fontSize: '0.85rem',
-                  color: '#475569',
+                  color: 'var(--color-text-secondary)',
                   fontWeight: 600,
                 }}
               >
@@ -823,7 +823,7 @@ function AdminRequestDetailPageInner() {
             <p
               style={{
                 marginTop: '0.75rem',
-                color: '#94A3B8',
+                color: 'var(--color-brand-secondary-muted)',
                 fontSize: '0.85rem',
               }}
             >
@@ -838,14 +838,14 @@ function AdminRequestDetailPageInner() {
             ) : (
               <div
                 style={{
-                  background: '#F8FAFC',
+                  background: 'var(--color-background-surface)',
                   borderRadius: '0.85rem',
                   padding: '0.75rem 1rem',
-                  color: '#0F172A',
+                  color: 'var(--color-text-primary)',
                   minHeight: '4rem',
                 }}
               >
-                {request.notes ?? '—'}
+                {request.notes ?? 'â€”'}
               </div>
             )}
           </Card>
@@ -860,14 +860,14 @@ function AdminRequestDetailPageInner() {
           alignSelf: direction === 'rtl' ? 'flex-start' : 'flex-end',
           padding: '0.65rem 1.4rem',
           borderRadius: '0.85rem',
-          border: '1px solid #CBD5F5',
-          background: '#FFFFFF',
-          color: '#1E3A5F',
+          border: '1px solid var(--color-brand-secondary-soft)',
+          background: 'var(--color-background-surface)',
+          color: 'var(--color-brand-accent-deep)',
           fontWeight: 600,
           cursor: isFetching ? 'progress' : 'pointer',
         }}
       >
-        ⟳
+        âŸ³
       </button>
     </div>
   );
@@ -881,7 +881,7 @@ function Card({ children }: CardProps) {
   return (
     <div
       style={{
-        background: '#FFFFFF',
+        background: 'var(--color-background-surface)',
         borderRadius: '1.25rem',
         padding: '1.5rem',
         boxShadow: '0 16px 40px rgba(15, 23, 42, 0.08)',
@@ -902,7 +902,7 @@ function CardTitle({ children }: { children: React.ReactNode }) {
         margin: 0,
         fontSize: '1.1rem',
         fontWeight: 700,
-        color: '#0F172A',
+        color: 'var(--color-text-primary)',
       }}
     >
       {children}
@@ -918,7 +918,7 @@ function Skeleton() {
         width: '100%',
         borderRadius: '0.85rem',
         background:
-          'linear-gradient(90deg, #F1F5F9 0%, #E2E8F0 50%, #F1F5F9 100%)',
+          'linear-gradient(90deg, var(--color-background-base) 0%, var(--color-border) 50%, var(--color-background-base) 100%)',
         animation: 'pulse 1.5s ease-in-out infinite',
       }}
     />
@@ -931,8 +931,8 @@ function EmptyState({ message }: { message: string }) {
       style={{
         padding: '1rem',
         borderRadius: '0.85rem',
-        background: '#F8FAFC',
-        color: '#475569',
+        background: 'var(--color-background-surface)',
+        color: 'var(--color-text-secondary)',
         textAlign: 'center',
         fontSize: '0.9rem',
       }}
@@ -960,7 +960,7 @@ function InfoGrid({
         <div key={item.label} style={{ display: 'flex', flexDirection: 'column' }}>
           <dt
             style={{
-              color: '#94A3B8',
+              color: 'var(--color-brand-secondary-muted)',
               fontSize: '0.8rem',
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
@@ -972,7 +972,7 @@ function InfoGrid({
             style={{
               margin: '0.25rem 0 0',
               fontWeight: 600,
-              color: '#0F172A',
+              color: 'var(--color-text-primary)',
             }}
           >
             {item.value}
@@ -987,9 +987,9 @@ const textAreaStyle: React.CSSProperties = {
   width: '100%',
   minHeight: '120px',
   borderRadius: '0.85rem',
-  border: '1px solid #CBD5F5',
-  background: '#FFFFFF',
-  color: '#0F172A',
+  border: '1px solid var(--color-brand-secondary-soft)',
+  background: 'var(--color-background-surface)',
+  color: 'var(--color-text-primary)',
   fontSize: '0.95rem',
   padding: '0.75rem 1rem',
   resize: 'vertical',
@@ -998,9 +998,9 @@ const textAreaStyle: React.CSSProperties = {
 const inputStyle: React.CSSProperties = {
   width: '100%',
   borderRadius: '0.85rem',
-  border: '1px solid #CBD5F5',
-  background: '#FFFFFF',
-  color: '#0F172A',
+  border: '1px solid var(--color-brand-secondary-soft)',
+  background: 'var(--color-background-surface)',
+  color: 'var(--color-text-primary)',
   fontSize: '0.95rem',
   padding: '0.65rem 1rem',
 };
@@ -1019,8 +1019,8 @@ function ActionButton({
   loading?: boolean;
 }) {
   const colors: Record<typeof variant, string> = {
-    primary: '#2563EB',
-    secondary: '#0EA5E9',
+    primary: 'var(--color-brand-primary-strong)',
+    secondary: 'var(--color-brand-primary-muted)',
     danger: '#DC2626',
   };
   return (
@@ -1032,14 +1032,14 @@ function ActionButton({
         borderRadius: '0.85rem',
         border: 'none',
         background: colors[variant],
-        color: '#FFFFFF',
+        color: 'var(--color-text-on-brand)',
         fontWeight: 700,
         cursor: disabled || loading ? 'not-allowed' : 'pointer',
         opacity: disabled || loading ? 0.6 : 1,
       }}
       disabled={disabled || loading}
     >
-      {loading ? '…' : label}
+      {loading ? 'â€¦' : label}
     </button>
   );
 }
@@ -1056,4 +1056,6 @@ export function AdminRequestDetailPage() {
     </QueryClientProvider>
   );
 }
+
+
 

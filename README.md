@@ -154,6 +154,9 @@ npm test -- health.test.ts
 - **Story 5.2 (News CRUD API):** `docs/stories/STORY_5.2_COMPLETION.md`
 - **Story 5.3 (News Image Upload Presign):** `docs/stories/STORY_5.3_COMPLETION.md`
 - **Story 5.4 (News Scheduling):** `docs/stories/STORY_5.4_COMPLETION.md`
+- **Story 5.5 (News Management UI):** `docs/stories/STORY_5.5_COMPLETION.md`
+- **Story 5.6 (News Approval Workflow):** `docs/stories/STORY_5.6_COMPLETION.md`
+- **Story 5.7 (Investor News Feed):** `docs/stories/STORY_5.7_COMPLETION.md`
 - **Design System:** `docs/design-system.md` (مع ملفات `frontend/src/styles/theme.ts` و`frontend/src/components/Logo.tsx`)
 - **Supabase Integration:** `docs/SUPABASE_INTEGRATION.md`
 - **RBAC Matrix:** `docs/prd/rbac-matrix.md`

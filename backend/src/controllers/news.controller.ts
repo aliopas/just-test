@@ -5,6 +5,8 @@ import {
   newsImagePresignSchema,
   newsListQuerySchema,
   newsUpdateSchema,
+  newsApproveSchema,
+  newsRejectSchema,
 } from '../schemas/news.schema';
 import {
   createNews,
@@ -14,6 +16,8 @@ import {
   listNews,
   publishScheduledNews,
   updateNews,
+  approveNews,
+  rejectNews,
 } from '../services/news.service';
 
 export const newsController = {
@@ -264,6 +268,162 @@ export const newsController = {
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to publish scheduled news',
+        },
+      });
+    }
+  },
+
+  async approve(req: AuthenticatedRequest, res: Response) {
+    try {
+      const newsId = req.params.id;
+      if (!newsId) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'News id is required',
+          },
+        });
+      }
+
+      if (!req.user?.id) {
+        return res.status(401).json({
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'User is not authenticated',
+          },
+        });
+      }
+
+      const validation = newsApproveSchema.safeParse(req.body ?? {});
+      if (!validation.success) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid request payload',
+            details: validation.error.issues.map(issue => ({
+              field: issue.path.join('.'),
+              message: issue.message,
+            })),
+          },
+        });
+      }
+
+      const result = await approveNews({
+        newsId,
+        reviewerId: req.user.id,
+        input: validation.data,
+        ipAddress: req.ip,
+        userAgent: req.headers?.['user-agent'] ?? null,
+      });
+
+      return res.status(200).json(result);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === 'NEWS_NOT_FOUND') {
+          return res.status(404).json({
+            error: {
+              code: 'NOT_FOUND',
+              message: 'News item not found',
+            },
+          });
+        }
+        if (error.message === 'NEWS_INVALID_STATE') {
+          return res.status(409).json({
+            error: {
+              code: 'INVALID_STATE',
+              message: 'News item cannot be approved from its current status',
+            },
+          });
+        }
+      }
+
+      console.error('Failed to approve news item:', error);
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to approve news item',
+        },
+      });
+    }
+  },
+
+  async reject(req: AuthenticatedRequest, res: Response) {
+    try {
+      const newsId = req.params.id;
+      if (!newsId) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'News id is required',
+          },
+        });
+      }
+
+      if (!req.user?.id) {
+        return res.status(401).json({
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'User is not authenticated',
+          },
+        });
+      }
+
+      const validation = newsRejectSchema.safeParse(req.body ?? {});
+      if (!validation.success) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid request payload',
+            details: validation.error.issues.map(issue => ({
+              field: issue.path.join('.'),
+              message: issue.message,
+            })),
+          },
+        });
+      }
+
+      const result = await rejectNews({
+        newsId,
+        reviewerId: req.user.id,
+        input: validation.data,
+        ipAddress: req.ip,
+        userAgent: req.headers?.['user-agent'] ?? null,
+      });
+
+      return res.status(200).json(result);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === 'NEWS_NOT_FOUND') {
+          return res.status(404).json({
+            error: {
+              code: 'NOT_FOUND',
+              message: 'News item not found',
+            },
+          });
+        }
+        if (error.message === 'NEWS_INVALID_STATE') {
+          return res.status(409).json({
+            error: {
+              code: 'INVALID_STATE',
+              message: 'News item cannot be rejected from its current status',
+            },
+          });
+        }
+        if (error.message === 'NEWS_REVIEW_COMMENT_REQUIRED') {
+          return res.status(400).json({
+            error: {
+              code: 'VALIDATION_ERROR',
+              message: 'Comment is required when rejecting news',
+            },
+          });
+        }
+      }
+
+      console.error('Failed to reject news item:', error);
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to reject news item',
         },
       });
     }

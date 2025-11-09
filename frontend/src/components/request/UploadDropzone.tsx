@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+﻿import { useCallback, useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { tRequest } from '../../locales/newRequest';
 
@@ -29,7 +29,7 @@ export function UploadDropzone({ onFilesChange }: UploadDropzoneProps) {
           display: 'block',
           fontWeight: 600,
           marginBottom: '0.5rem',
-          color: '#111418',
+          color: 'var(--color-text-primary)',
         }}
       >
         {tRequest('form.documents', language)}
@@ -49,11 +49,11 @@ export function UploadDropzone({ onFilesChange }: UploadDropzoneProps) {
           handleFiles(event.dataTransfer?.files ?? null);
         }}
         style={{
-          border: `2px dashed ${isDragging ? '#2D6FA3' : '#CBD5F5'}`,
+          border: `2px dashed ${isDragging ? 'var(--color-brand-primary)' : 'var(--color-brand-secondary-soft)'}`,
           borderRadius: '1rem',
           padding: '1.5rem',
-          background: isDragging ? '#EFF6FF' : '#F9FAFB',
-          color: '#1E3A5F',
+          background: isDragging ? 'var(--color-background-alt)' : 'var(--color-background-surface)',
+          color: 'var(--color-brand-accent-deep)',
           textAlign: 'center',
           cursor: 'pointer',
           transition: 'all 0.2s ease',
@@ -68,7 +68,7 @@ export function UploadDropzone({ onFilesChange }: UploadDropzoneProps) {
           onChange={event => handleFiles(event.target.files)}
         />
         <label htmlFor="attachments" style={{ cursor: 'pointer' }}>
-          <strong>⬆️</strong>
+          <strong>â¬†ï¸</strong>
           <div style={{ marginTop: '0.5rem', fontSize: '0.95rem' }}>
             {tRequest('form.uploadHint', language)}
           </div>
@@ -89,8 +89,8 @@ export function UploadDropzone({ onFilesChange }: UploadDropzoneProps) {
             <li
               key={file.name}
               style={{
-                background: '#FFFFFF',
-                border: '1px solid #E5E7EB',
+                background: 'var(--color-background-surface)',
+                border: '1px solid var(--color-border-soft)',
                 borderRadius: '0.75rem',
                 padding: '0.6rem 0.85rem',
                 display: 'flex',
@@ -98,10 +98,10 @@ export function UploadDropzone({ onFilesChange }: UploadDropzoneProps) {
                 alignItems: 'center',
               }}
             >
-              <span style={{ color: '#111418', fontSize: '0.9rem' }}>
-                📄 {file.name}
+              <span style={{ color: 'var(--color-text-primary)', fontSize: '0.9rem' }}>
+                ðŸ“„ {file.name}
               </span>
-              <span style={{ color: '#6B7280', fontSize: '0.85rem' }}>
+              <span style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
                 {(file.size / (1024 * 1024)).toFixed(2)} MB
               </span>
             </li>
@@ -111,4 +111,6 @@ export function UploadDropzone({ onFilesChange }: UploadDropzoneProps) {
     </div>
   );
 }
+
+
 

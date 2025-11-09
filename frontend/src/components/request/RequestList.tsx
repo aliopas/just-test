@@ -1,4 +1,4 @@
-import type { InvestorRequest } from '../../types/request';
+﻿import type { InvestorRequest } from '../../types/request';
 import { RequestListItem } from './RequestListItem';
 import { RequestListEmpty } from './RequestListEmpty';
 
@@ -39,9 +39,9 @@ export function RequestList({
               key={`skeleton-${index}`}
               style={{
                 borderRadius: '1.25rem',
-                border: '1px solid #E2E8F0',
+                border: '1px solid var(--color-border)',
                 background:
-                  'linear-gradient(90deg, #F8FAFC 0%, #F1F5F9 50%, #F8FAFC 100%)',
+                  'linear-gradient(90deg, var(--color-background-surface) 0%, var(--color-background-base) 50%, var(--color-background-surface) 100%)',
                 height: '140px',
               }}
             />
@@ -58,14 +58,15 @@ export function RequestList({
         <div
           style={{
             textAlign: 'center',
-            color: '#64748B',
+            color: 'var(--color-text-secondary)',
             fontSize: '0.85rem',
           }}
         >
-          Loading…
+          Loadingâ€¦
         </div>
       )}
     </div>
   );
 }
+
 

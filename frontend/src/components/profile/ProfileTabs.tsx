@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { getMessage } from '../../locales/investorProfile';
 import type { ReactNode } from 'react';
@@ -25,7 +25,7 @@ export function ProfileTabs({ tabs }: ProfileTabsProps) {
           display: 'flex',
           gap: '0.5rem',
           flexWrap: 'wrap',
-          borderBottom: '1px solid #E5E7EB',
+          borderBottom: '1px solid var(--color-border-soft)',
           marginBottom: '1.5rem',
         }}
         role="tablist"
@@ -45,9 +45,9 @@ export function ProfileTabs({ tabs }: ProfileTabsProps) {
               borderRadius: '0.75rem 0.75rem 0 0',
               border: 'none',
               borderBottom:
-                activeTab === tab.id ? '3px solid #2D6FA3' : '3px solid transparent',
-              background: activeTab === tab.id ? '#FFFFFF' : '#F3F4F6',
-              color: activeTab === tab.id ? '#111418' : '#6B7280',
+                activeTab === tab.id ? '3px solid var(--color-brand-primary)' : '3px solid transparent',
+              background: activeTab === tab.id ? '#FFFFFF' : 'var(--color-background-base)',
+              color: activeTab === tab.id ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
               fontWeight: activeTab === tab.id ? 600 : 500,
               cursor: 'pointer',
               boxShadow:
@@ -57,7 +57,7 @@ export function ProfileTabs({ tabs }: ProfileTabsProps) {
               transition: 'all 0.2s ease',
             }}
           >
-            {tab.icon ?? '•'}{' '}
+            {tab.icon ?? 'â€¢'}{' '}
             {getMessage(
               `tabs.${tab.label}` as
                 | 'tabs.basic'
@@ -81,4 +81,5 @@ export function ProfileTabs({ tabs }: ProfileTabsProps) {
     </div>
   );
 }
+
 

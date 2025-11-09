@@ -1,4 +1,4 @@
-import { createRoot } from 'react-dom/client';
+﻿import { createRoot } from 'react-dom/client';
 import { StrictMode } from 'react';
 import { NewRequestPage } from '../../pages/NewRequestPage';
 
@@ -21,4 +21,5 @@ if (document.readyState === 'loading') {
 } else {
   bootstrap();
 }
+
 

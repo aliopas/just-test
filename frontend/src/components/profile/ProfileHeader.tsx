@@ -1,4 +1,4 @@
-import { getMessage } from '../../locales/investorProfile';
+﻿import { getMessage } from '../../locales/investorProfile';
 import type { InvestorProfile } from '../../types/investor';
 import { useLanguage } from '../../context/LanguageContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
@@ -52,7 +52,7 @@ export function ProfileHeader({
               fontSize: '2.5rem',
               fontWeight: 700,
               margin: 0,
-              color: '#111418',
+              color: 'var(--color-text-primary)',
             }}
           >
             {getMessage('pageTitle', language)}
@@ -61,7 +61,7 @@ export function ProfileHeader({
             <p
               style={{
                 margin: '0.35rem 0 0',
-                color: '#6B7280',
+                color: 'var(--color-text-muted)',
                 fontSize: '0.95rem',
               }}
             >
@@ -90,14 +90,14 @@ export function ProfileHeader({
             padding: '0.65rem 1.1rem',
             borderRadius: '0.75rem',
             border: '1px solid transparent',
-            background: isEditing ? '#1E3A5F' : '#2D6FA3',
-            color: '#FFFFFF',
+            background: isEditing ? 'var(--color-brand-accent-deep)' : 'var(--color-brand-primary)',
+            color: 'var(--color-text-on-brand)',
             cursor: 'pointer',
             fontWeight: 600,
             minWidth: '8rem',
           }}
         >
-          ✎ {getMessage('actions.edit', language)}
+          âœŽ {getMessage('actions.edit', language)}
         </button>
         <button
           type="button"
@@ -110,16 +110,16 @@ export function ProfileHeader({
             gap: '0.45rem',
             padding: '0.65rem 1.1rem',
             borderRadius: '0.75rem',
-            border: '1px solid #CBD5F5',
-            background: '#FFFFFF',
-            color: '#1E3A5F',
+            border: '1px solid var(--color-brand-secondary-soft)',
+            background: 'var(--color-background-surface)',
+            color: 'var(--color-brand-accent-deep)',
             cursor: isRefreshing ? 'progress' : 'pointer',
             fontWeight: 600,
             opacity: isRefreshing ? 0.7 : 1,
             minWidth: '8rem',
           }}
         >
-          ⟳ {isRefreshing
+          âŸ³ {isRefreshing
             ? `${getMessage('status.loading', language)}`
             : getMessage('actions.refresh', language)}
         </button>
@@ -127,4 +127,6 @@ export function ProfileHeader({
     </header>
   );
 }
+
+
 

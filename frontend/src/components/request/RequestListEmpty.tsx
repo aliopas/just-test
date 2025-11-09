@@ -1,4 +1,4 @@
-import { useLanguage } from '../../context/LanguageContext';
+﻿import { useLanguage } from '../../context/LanguageContext';
 import { tRequestList } from '../../locales/requestList';
 
 interface RequestListEmptyProps {
@@ -11,12 +11,12 @@ export function RequestListEmpty({ onCreateNew }: RequestListEmptyProps) {
   return (
     <div
       style={{
-        border: '1px dashed #CBD5F5',
+        border: '1px dashed var(--color-brand-secondary-soft)',
         borderRadius: '1.5rem',
         padding: '2rem',
-        background: '#F8FBFF',
+        background: 'var(--color-background-highlight)',
         textAlign: 'center',
-        color: '#1E3A5F',
+        color: 'var(--color-brand-accent-deep)',
         display: 'flex',
         flexDirection: 'column',
         gap: '1rem',
@@ -24,7 +24,7 @@ export function RequestListEmpty({ onCreateNew }: RequestListEmptyProps) {
         direction,
       }}
     >
-      <div style={{ fontSize: '2rem' }}>📄</div>
+      <div style={{ fontSize: '2rem' }}>ðŸ“„</div>
       <h3
         style={{
           margin: 0,
@@ -38,7 +38,7 @@ export function RequestListEmpty({ onCreateNew }: RequestListEmptyProps) {
         style={{
           margin: 0,
           maxWidth: '22rem',
-          color: '#475569',
+          color: 'var(--color-text-secondary)',
         }}
       >
         {tRequestList('emptyState.subtitle', language)}
@@ -50,8 +50,8 @@ export function RequestListEmpty({ onCreateNew }: RequestListEmptyProps) {
           style={{
             padding: '0.75rem 1.75rem',
             borderRadius: '999px',
-            background: '#2563EB',
-            color: '#FFFFFF',
+            background: 'var(--color-brand-primary-strong)',
+            color: 'var(--color-text-on-brand)',
             border: 'none',
             fontWeight: 700,
             cursor: 'pointer',
@@ -63,4 +63,6 @@ export function RequestListEmpty({ onCreateNew }: RequestListEmptyProps) {
     </div>
   );
 }
+
+
 

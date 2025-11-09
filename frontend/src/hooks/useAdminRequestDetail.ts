@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+﻿import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../utils/api-client';
 import type { AdminRequestDetail } from '../types/admin';
 
@@ -19,4 +19,5 @@ export function useAdminRequestDetail(requestId?: string | null) {
     staleTime: 60_000,
   });
 }
+
 

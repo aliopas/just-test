@@ -1,4 +1,4 @@
-import { StrictMode } from 'react';
+﻿import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { AdminRequestsInboxPage } from '../../pages/AdminRequestsInboxPage';
 
@@ -21,4 +21,5 @@ if (document.readyState === 'loading') {
 } else {
   bootstrap();
 }
+
 

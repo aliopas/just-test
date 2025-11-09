@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+﻿import { useMemo } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import type { InvestorRequest } from '../../types/request';
 import { RequestStatusBadge } from './RequestStatusBadge';
@@ -8,11 +8,11 @@ import { tRequestList } from '../../locales/requestList';
 const typeLabels = {
   buy: {
     en: 'Buy',
-    ar: 'شراء',
+    ar: 'Ø´Ø±Ø§Ø¡',
   },
   sell: {
     en: 'Sell',
-    ar: 'بيع',
+    ar: 'Ø¨ÙŠØ¹',
   },
 };
 
@@ -57,10 +57,10 @@ export function RequestListItem({
       style={{
         width: '100%',
         textAlign: 'start',
-        border: isSelected ? '2px solid #2563EB' : '1px solid #E2E8F0',
+        border: isSelected ? '2px solid var(--color-brand-primary-strong)' : '1px solid var(--color-border)',
         borderRadius: '1.25rem',
         padding: '1.5rem',
-        background: isSelected ? '#F8FAFF' : '#FFFFFF',
+        background: isSelected ? 'var(--color-background-highlight)' : '#FFFFFF',
         boxShadow: isSelected
           ? '0 16px 32px rgba(37, 99, 235, 0.15)'
           : '0 12px 30px rgba(15, 23, 42, 0.08)',
@@ -85,19 +85,19 @@ export function RequestListItem({
           <div
             style={{
               fontSize: '0.85rem',
-              color: '#64748B',
+              color: 'var(--color-text-secondary)',
               fontWeight: 600,
             }}
           >
             {tRequestList('table.requestNumber', language)}{' '}
-            <span style={{ color: '#1E293B' }}>{request.requestNumber}</span>
+            <span style={{ color: 'var(--color-brand-accent-deep)' }}>{request.requestNumber}</span>
           </div>
           <div
             style={{
               marginTop: '0.3rem',
               fontSize: '1.4rem',
               fontWeight: 700,
-              color: '#0F172A',
+              color: 'var(--color-text-primary)',
             }}
           >
             {formattedAmount}
@@ -116,7 +116,7 @@ export function RequestListItem({
           <span
             style={{
               fontSize: '0.85rem',
-              color: '#475569',
+              color: 'var(--color-text-secondary)',
             }}
           >
             {tRequestList('table.type', language)}: {typeLabel}
@@ -124,7 +124,7 @@ export function RequestListItem({
           <span
             style={{
               fontSize: '0.8rem',
-              color: '#94A3B8',
+              color: 'var(--color-brand-secondary-muted)',
             }}
           >
             {tRequestList('table.updatedAt', language)}: {updatedAt}
@@ -136,4 +136,5 @@ export function RequestListItem({
     </button>
   );
 }
+
 

@@ -1,4 +1,4 @@
-export type InvestorLanguage = 'ar' | 'en';
+﻿export type InvestorLanguage = 'ar' | 'en';
 export type InvestorIdType = 'national_id' | 'iqama' | 'passport' | 'other';
 export type InvestorKycStatus =
   | 'pending'
@@ -59,5 +59,6 @@ export interface InvestorProfileUpdateRequest {
   riskProfile?: InvestorRiskProfile;
   kycDocuments?: string[] | null;
 }
+
 
 

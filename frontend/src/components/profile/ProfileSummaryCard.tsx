@@ -1,4 +1,4 @@
-import type { InvestorProfile } from '../../types/investor';
+﻿import type { InvestorProfile } from '../../types/investor';
 import { useLanguage } from '../../context/LanguageContext';
 import { getMessage } from '../../locales/investorProfile';
 
@@ -11,19 +11,19 @@ const statusColor: Record<
   { label: { ar: string; en: string }; color: string }
 > = {
   pending: {
-    label: { ar: 'قيد المعالجة', en: 'Pending' },
+    label: { ar: 'Ù‚ÙŠØ¯ Ø§Ù„Ù…Ø¹Ø§Ù„Ø¬Ø©', en: 'Pending' },
     color: '#F59E0B',
   },
   in_review: {
-    label: { ar: 'قيد المراجعة', en: 'In review' },
-    color: '#3B82F6',
+    label: { ar: 'Ù‚ÙŠØ¯ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©', en: 'In review' },
+    color: 'var(--color-brand-primary)',
   },
   approved: {
-    label: { ar: 'معتمد', en: 'Approved' },
+    label: { ar: 'Ù…Ø¹ØªÙ…Ø¯', en: 'Approved' },
     color: '#10B981',
   },
   rejected: {
-    label: { ar: 'مرفوض', en: 'Rejected' },
+    label: { ar: 'Ù…Ø±ÙÙˆØ¶', en: 'Rejected' },
     color: '#EF4444',
   },
 };
@@ -40,8 +40,8 @@ export function ProfileSummaryCard({ profile }: ProfileSummaryCardProps) {
   return (
     <aside
       style={{
-        background: '#FFFFFF',
-        border: '1px solid #E5E7EB',
+        background: 'var(--color-background-surface)',
+        border: '1px solid var(--color-border-soft)',
         borderRadius: '1rem',
         padding: '1.5rem',
         boxShadow: '0 12px 32px rgba(17, 24, 39, 0.06)',
@@ -58,7 +58,7 @@ export function ProfileSummaryCard({ profile }: ProfileSummaryCardProps) {
             fontSize: '1.15rem',
             margin: 0,
             fontWeight: 600,
-            color: '#111418',
+            color: 'var(--color-text-primary)',
           }}
         >
           {profile.fullName || profile.email || getMessage('pageTitle', language)}
@@ -67,7 +67,7 @@ export function ProfileSummaryCard({ profile }: ProfileSummaryCardProps) {
           <p
             style={{
               margin: '0.25rem 0 0',
-              color: '#6B7280',
+              color: 'var(--color-text-muted)',
             }}
           >
             {profile.email}
@@ -77,7 +77,7 @@ export function ProfileSummaryCard({ profile }: ProfileSummaryCardProps) {
           <p
             style={{
               margin: '0.15rem 0 0',
-              color: '#6B7280',
+              color: 'var(--color-text-muted)',
               fontSize: '0.95rem',
             }}
           >
@@ -99,25 +99,25 @@ export function ProfileSummaryCard({ profile }: ProfileSummaryCardProps) {
             alignItems: 'center',
             gap: '0.45rem',
             fontSize: '0.95rem',
-            color: '#1F2937',
+            color: 'var(--color-text-primary)',
             fontWeight: 500,
           }}
         >
-          ⚖️{' '}
+          âš–ï¸{' '}
           {profile.riskProfile
             ? profile.riskProfile === 'conservative'
               ? language === 'ar'
-                ? 'حذر'
+                ? 'Ø­Ø°Ø±'
                 : 'Conservative'
               : profile.riskProfile === 'balanced'
               ? language === 'ar'
-                ? 'متوازن'
+                ? 'Ù…ØªÙˆØ§Ø²Ù†'
                 : 'Balanced'
               : language === 'ar'
-              ? 'مغامر'
+              ? 'Ù…ØºØ§Ù…Ø±'
               : 'Aggressive'
             : language === 'ar'
-            ? 'لم يتم تحديد مستوى المخاطر'
+            ? 'Ù„Ù… ÙŠØªÙ… ØªØ­Ø¯ÙŠØ¯ Ù…Ø³ØªÙˆÙ‰ Ø§Ù„Ù…Ø®Ø§Ø·Ø±'
             : 'Risk profile not set'}
         </span>
         <span
@@ -126,11 +126,11 @@ export function ProfileSummaryCard({ profile }: ProfileSummaryCardProps) {
             alignItems: 'center',
             gap: '0.45rem',
             fontSize: '0.95rem',
-            color: '#1F2937',
+            color: 'var(--color-text-primary)',
             fontWeight: 500,
           }}
         >
-          🌍 {profile.nationality || (language === 'ar' ? 'غير محدد' : 'Not set')}
+          ðŸŒ {profile.nationality || (language === 'ar' ? 'ØºÙŠØ± Ù…Ø­Ø¯Ø¯' : 'Not set')}
         </span>
       </div>
 
@@ -145,11 +145,11 @@ export function ProfileSummaryCard({ profile }: ProfileSummaryCardProps) {
             alignItems: 'center',
             gap: '0.4rem',
             fontWeight: 600,
-            color: '#111418',
+            color: 'var(--color-text-primary)',
             fontSize: '0.95rem',
           }}
         >
-          🛡️ {getMessage('fields.kycStatus', language)}
+          ðŸ›¡ï¸ {getMessage('fields.kycStatus', language)}
         </span>
         <div
           style={{
@@ -185,12 +185,12 @@ export function ProfileSummaryCard({ profile }: ProfileSummaryCardProps) {
           flexDirection: 'column',
           gap: '0.5rem',
           fontSize: '0.9rem',
-          color: '#6B7280',
+          color: 'var(--color-text-muted)',
         }}
       >
         <span>
           {language === 'ar'
-            ? 'عضو منذ'
+            ? 'Ø¹Ø¶Ùˆ Ù…Ù†Ø°'
             : 'Member since'}{' '}
           {profile.userCreatedAt
             ? new Date(profile.userCreatedAt).toLocaleDateString(
@@ -200,16 +200,18 @@ export function ProfileSummaryCard({ profile }: ProfileSummaryCardProps) {
                   year: 'numeric',
                 }
               )
-            : '—'}
+            : 'â€”'}
         </span>
         <span>
           {language === 'ar'
-            ? 'الحالة الحالية'
+            ? 'Ø§Ù„Ø­Ø§Ù„Ø© Ø§Ù„Ø­Ø§Ù„ÙŠØ©'
             : 'Account status'}{' '}
-          <strong>{profile.userStatus ?? (language === 'ar' ? 'غير محدد' : 'Not set')}</strong>
+          <strong>{profile.userStatus ?? (language === 'ar' ? 'ØºÙŠØ± Ù…Ø­Ø¯Ø¯' : 'Not set')}</strong>
         </span>
       </div>
     </aside>
   );
 }
+
+
 

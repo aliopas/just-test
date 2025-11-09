@@ -1,4 +1,4 @@
-import { useLanguage } from '../../context/LanguageContext';
+﻿import { useLanguage } from '../../context/LanguageContext';
 import { getMessage } from '../../locales/investorProfile';
 
 export function ProfileSkeleton() {
@@ -19,7 +19,7 @@ export function ProfileSkeleton() {
           height: '2.5rem',
           borderRadius: '1.25rem',
           background:
-            'linear-gradient(90deg, #F3F4F6 0%, #E5E7EB 50%, #F3F4F6 100%)',
+            'linear-gradient(90deg, var(--color-background-base) 0%, var(--color-border-soft) 50%, var(--color-background-base) 100%)',
           animation: 'pulse 1.6s ease-in-out infinite',
         }}
       />
@@ -36,7 +36,7 @@ export function ProfileSkeleton() {
             style={{
               borderRadius: '1rem',
               background:
-                'linear-gradient(90deg, #F9FAFB 0%, #ECEFF3 50%, #F9FAFB 100%)',
+                'linear-gradient(90deg, var(--color-background-surface) 0%, var(--color-background-base) 50%, var(--color-background-surface) 100%)',
               height: '5.5rem',
               animation: 'pulse 1.6s ease-in-out infinite',
             }}
@@ -46,7 +46,7 @@ export function ProfileSkeleton() {
       <span
         style={{
           fontSize: '0.95rem',
-          color: '#6B7280',
+          color: 'var(--color-text-muted)',
         }}
       >
         {getMessage('status.loading', language)}
@@ -54,4 +54,5 @@ export function ProfileSkeleton() {
     </div>
   );
 }
+
 

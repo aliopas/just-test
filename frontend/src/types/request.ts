@@ -1,4 +1,4 @@
-export type RequestType = 'buy' | 'sell';
+﻿export type RequestType = 'buy' | 'sell';
 export type RequestCurrency = 'SAR' | 'USD' | 'EUR';
 export type RequestStatus =
   | 'draft'
@@ -100,4 +100,5 @@ export interface InvestorRequestDetail {
   events: RequestEvent[];
   comments: RequestComment[];
 }
+
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import {
   QueryClient,
   QueryClientProvider,
@@ -95,7 +95,7 @@ function MyRequestsPageInner() {
         margin: '0 auto',
         padding: '2rem 1.5rem 4rem',
         minHeight: '100vh',
-        background: '#F1F5F9',
+        background: 'var(--color-background-base)',
         direction,
         display: 'flex',
         flexDirection: 'column',
@@ -108,7 +108,7 @@ function MyRequestsPageInner() {
           style={{
             fontSize: '2.25rem',
             fontWeight: 700,
-            color: '#111418',
+            color: 'var(--color-text-primary)',
             margin: 0,
           }}
         >
@@ -117,7 +117,7 @@ function MyRequestsPageInner() {
         <p
           style={{
             marginTop: '0.5rem',
-            color: '#475569',
+            color: 'var(--color-text-secondary)',
             fontSize: '1rem',
             maxWidth: '40rem',
           }}
@@ -128,9 +128,9 @@ function MyRequestsPageInner() {
 
       <section
         style={{
-          background: '#FFFFFF',
+          background: 'var(--color-background-surface)',
           borderRadius: '1.5rem',
-          border: '1px solid #E2E8F0',
+          border: '1px solid var(--color-border)',
           padding: '1.5rem',
           display: 'flex',
           flexDirection: 'column',
@@ -155,11 +155,11 @@ function MyRequestsPageInner() {
                 borderRadius: '999px',
                 border:
                   filters.status === option.key
-                    ? '1px solid #2563EB'
-                    : '1px solid #CBD5F5',
+                    ? '1px solid var(--color-brand-primary-strong)'
+                    : '1px solid var(--color-brand-secondary-soft)',
                 background:
-                  filters.status === option.key ? '#2563EB' : '#FFFFFF',
-                color: filters.status === option.key ? '#FFFFFF' : '#1E3A5F',
+                  filters.status === option.key ? 'var(--color-brand-primary-strong)' : '#FFFFFF',
+                color: filters.status === option.key ? '#FFFFFF' : 'var(--color-brand-accent-deep)',
                 fontWeight: 600,
                 cursor: 'pointer',
               }}
@@ -189,7 +189,7 @@ function MyRequestsPageInner() {
             alignItems: 'center',
             flexWrap: 'wrap',
             gap: '1rem',
-            color: '#475569',
+            color: 'var(--color-text-secondary)',
             fontSize: '0.9rem',
           }}
         >
@@ -211,9 +211,9 @@ function MyRequestsPageInner() {
               style={{
                 padding: '0.6rem 1.5rem',
                 borderRadius: '0.85rem',
-                border: '1px solid #CBD5F5',
-                background: pagination.canGoBack ? '#FFFFFF' : '#F8FAFC',
-                color: '#1E3A5F',
+                border: '1px solid var(--color-brand-secondary-soft)',
+                background: pagination.canGoBack ? '#FFFFFF' : 'var(--color-background-surface)',
+                color: 'var(--color-brand-accent-deep)',
                 cursor: pagination.canGoBack ? 'pointer' : 'not-allowed',
                 fontWeight: 600,
               }}
@@ -228,9 +228,9 @@ function MyRequestsPageInner() {
               style={{
                 padding: '0.6rem 1.5rem',
                 borderRadius: '0.85rem',
-                border: '1px solid #CBD5F5',
-                background: pagination.canGoForward ? '#FFFFFF' : '#F8FAFC',
-                color: '#1E3A5F',
+                border: '1px solid var(--color-brand-secondary-soft)',
+                background: pagination.canGoForward ? '#FFFFFF' : 'var(--color-background-surface)',
+                color: 'var(--color-brand-accent-deep)',
                 cursor: pagination.canGoForward ? 'pointer' : 'not-allowed',
                 fontWeight: 600,
               }}
@@ -248,14 +248,14 @@ function MyRequestsPageInner() {
           alignSelf: direction === 'rtl' ? 'flex-start' : 'flex-end',
           padding: '0.6rem 1.3rem',
           borderRadius: '999px',
-          border: '1px solid #CBD5F5',
-          background: '#FFFFFF',
-          color: '#1E3A5F',
+          border: '1px solid var(--color-brand-secondary-soft)',
+          background: 'var(--color-background-surface)',
+          color: 'var(--color-brand-accent-deep)',
           cursor: 'pointer',
           fontWeight: 600,
         }}
       >
-        ⟳
+        âŸ³
       </button>
 
       {selectedRequest && (
@@ -280,4 +280,6 @@ export function MyRequestsPage() {
     </QueryClientProvider>
   );
 }
+
+
 

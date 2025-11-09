@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+﻿import { useMemo, useState } from 'react';
 import type {
   InvestorProfile,
   InvestorProfileUpdateRequest,
@@ -54,19 +54,19 @@ function ProfilePageInner() {
       {
         id: 'basic',
         label: 'basic',
-        icon: '🧾',
+        icon: 'ðŸ§¾',
         content: <ProfileDetails profile={profile} />,
       },
       {
         id: 'identity',
         label: 'identity',
-        icon: '🪪',
+        icon: 'ðŸªª',
         content: <IdentityDetails profile={profile} />,
       },
       {
         id: 'preferences',
         label: 'preferences',
-        icon: '⚙️',
+        icon: 'âš™ï¸',
         content: <PreferencesDetails profile={profile} />,
       },
     ];
@@ -161,7 +161,7 @@ function ProfilePageInner() {
                 color: '#B91C1C',
               }}
             >
-              {getMessage('toast.error', language)} – {updateError.message}
+              {getMessage('toast.error', language)} â€“ {updateError.message}
             </div>
           )}
         </div>
@@ -176,11 +176,11 @@ function IdentityDetails({ profile }: { profile: InvestorProfile }) {
   const pairs = [
     {
       label: getMessage('fields.idType', language),
-      value: profile.idType ?? '—',
+      value: profile.idType ?? 'â€”',
     },
     {
       label: getMessage('fields.idNumber', language),
-      value: profile.idNumber ?? '—',
+      value: profile.idNumber ?? 'â€”',
     },
     {
       label: getMessage('fields.idExpiry', language),
@@ -188,7 +188,7 @@ function IdentityDetails({ profile }: { profile: InvestorProfile }) {
         ? new Date(profile.idExpiry).toLocaleDateString(
             language === 'ar' ? 'ar-SA' : 'en-US'
           )
-        : '—',
+        : 'â€”',
     },
     {
       label: getMessage('fields.kycStatus', language),
@@ -209,16 +209,16 @@ function IdentityDetails({ profile }: { profile: InvestorProfile }) {
         <div
           key={pair.label}
           style={{
-            border: '1px solid #E5E7EB',
+            border: '1px solid var(--color-border-soft)',
             borderRadius: '0.85rem',
             padding: '0.85rem 1rem',
-            background: '#FFFFFF',
+            background: 'var(--color-background-surface)',
           }}
         >
           <dt
             style={{
               fontSize: '0.85rem',
-              color: '#6B7280',
+              color: 'var(--color-text-muted)',
               marginBottom: '0.35rem',
             }}
           >
@@ -228,10 +228,10 @@ function IdentityDetails({ profile }: { profile: InvestorProfile }) {
             style={{
               margin: 0,
               fontWeight: 600,
-              color: '#111418',
+              color: 'var(--color-text-primary)',
             }}
           >
-            {pair.value ?? '—'}
+            {pair.value ?? 'â€”'}
           </dd>
         </div>
       ))}
@@ -258,7 +258,7 @@ function PreferencesDetails({ profile }: { profile: InvestorProfile }) {
           style={{
             margin: '0 0 0.75rem',
             fontSize: '1.1rem',
-            color: '#111418',
+            color: 'var(--color-text-primary)',
           }}
         >
           {getMessage('fields.communication.title', language)}
@@ -279,10 +279,10 @@ function PreferencesDetails({ profile }: { profile: InvestorProfile }) {
               style={{
                 padding: '0.75rem 1rem',
                 borderRadius: '0.85rem',
-                background: preferences[channel] ? '#ECFDF5' : '#F9FAFB',
+                background: preferences[channel] ? '#ECFDF5' : 'var(--color-background-surface)',
                 border: preferences[channel]
                   ? '1px solid #34D399'
-                  : '1px solid #E5E7EB',
+                  : '1px solid var(--color-border-soft)',
               }}
             >
               {getMessage(
@@ -302,7 +302,7 @@ function PreferencesDetails({ profile }: { profile: InvestorProfile }) {
           style={{
             margin: '0 0 0.75rem',
             fontSize: '1.1rem',
-            color: '#111418',
+            color: 'var(--color-text-primary)',
           }}
         >
           {getMessage('fields.documents.title', language)}
@@ -311,11 +311,11 @@ function PreferencesDetails({ profile }: { profile: InvestorProfile }) {
           <p
             style={{
               margin: 0,
-              color: '#6B7280',
+              color: 'var(--color-text-muted)',
             }}
           >
             {language === 'ar'
-              ? 'لم يتم رفع أي مستندات حتى الآن.'
+              ? 'Ù„Ù… ÙŠØªÙ… Ø±ÙØ¹ Ø£ÙŠ Ù…Ø³ØªÙ†Ø¯Ø§Øª Ø­ØªÙ‰ Ø§Ù„Ø¢Ù†.'
               : 'No documents uploaded yet.'}
           </p>
         ) : (
@@ -335,11 +335,11 @@ function PreferencesDetails({ profile }: { profile: InvestorProfile }) {
                 style={{
                   padding: '0.75rem 1rem',
                   borderRadius: '0.85rem',
-                  border: '1px solid #E5E7EB',
-                  background: '#FFFFFF',
+                  border: '1px solid var(--color-border-soft)',
+                  background: 'var(--color-background-surface)',
                 }}
               >
-                📎 {document}
+                ðŸ“Ž {document}
               </li>
             ))}
           </ul>
@@ -356,7 +356,7 @@ export function ProfilePage() {
         maxWidth: '1100px',
         margin: '0 auto',
         padding: '2rem 1.5rem 4rem',
-        background: '#F1F5F9',
+        background: 'var(--color-background-base)',
         minHeight: '100vh',
       }}
     >
@@ -364,5 +364,7 @@ export function ProfilePage() {
     </div>
   );
 }
+
+
 
 

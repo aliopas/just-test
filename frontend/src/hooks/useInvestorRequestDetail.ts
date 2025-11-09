@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+﻿import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../utils/api-client';
 import type { InvestorRequestDetail } from '../types/request';
 
@@ -19,4 +19,5 @@ export function useInvestorRequestDetail(requestId?: string | null) {
     staleTime: 60_000,
   });
 }
+
 

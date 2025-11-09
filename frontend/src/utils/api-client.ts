@@ -1,4 +1,4 @@
-export interface ApiClientOptions extends RequestInit {
+﻿export interface ApiClientOptions extends RequestInit {
   auth?: boolean;
 }
 
@@ -90,4 +90,5 @@ export async function apiClient<TResponse>(
 
   return payload as TResponse;
 }
+
 

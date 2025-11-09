@@ -112,6 +112,20 @@ adminRouter.post(
   newsController.publishScheduled
 );
 
+adminRouter.post(
+  '/news/:id/approve',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  newsController.approve
+);
+
+adminRouter.post(
+  '/news/:id/reject',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  newsController.reject
+);
+
 adminRouter.get(
   '/users',
   authenticate,

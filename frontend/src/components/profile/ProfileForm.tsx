@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+﻿import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type {
@@ -16,9 +16,9 @@ import { analytics } from '../../utils/analytics';
 import { useToast } from '../../context/ToastContext';
 
 const channelIcons: Record<CommunicationChannels, string> = {
-  email: '✉️',
-  sms: '📱',
-  push: '🔔',
+  email: 'âœ‰ï¸',
+  sms: 'ðŸ“±',
+  push: 'ðŸ””',
 };
 
 interface ProfileFormProps {
@@ -165,7 +165,7 @@ export function ProfileForm({
           <input
             type="text"
             {...register('fullName')}
-            placeholder={language === 'ar' ? 'أدخل الاسم الكامل' : 'Enter full name'}
+            placeholder={language === 'ar' ? 'Ø£Ø¯Ø®Ù„ Ø§Ù„Ø§Ø³Ù… Ø§Ù„ÙƒØ§Ù…Ù„' : 'Enter full name'}
           />
         </Field>
         <Field
@@ -176,7 +176,7 @@ export function ProfileForm({
             type="text"
             {...register('preferredName')}
             placeholder={
-              language === 'ar' ? 'الاسم المختصر (اختياري)' : 'Preferred name (optional)'
+              language === 'ar' ? 'Ø§Ù„Ø§Ø³Ù… Ø§Ù„Ù…Ø®ØªØµØ± (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)' : 'Preferred name (optional)'
             }
           />
         </Field>
@@ -195,16 +195,16 @@ export function ProfileForm({
         >
           <select {...register('riskProfile')}>
             <option value="">
-              {language === 'ar' ? 'غير محدد' : 'Not set'}
+              {language === 'ar' ? 'ØºÙŠØ± Ù…Ø­Ø¯Ø¯' : 'Not set'}
             </option>
             <option value="conservative">
-              {language === 'ar' ? 'حذر' : 'Conservative'}
+              {language === 'ar' ? 'Ø­Ø°Ø±' : 'Conservative'}
             </option>
             <option value="balanced">
-              {language === 'ar' ? 'متوازن' : 'Balanced'}
+              {language === 'ar' ? 'Ù…ØªÙˆØ§Ø²Ù†' : 'Balanced'}
             </option>
             <option value="aggressive">
-              {language === 'ar' ? 'مغامر' : 'Aggressive'}
+              {language === 'ar' ? 'Ù…ØºØ§Ù…Ø±' : 'Aggressive'}
             </option>
           </select>
         </Field>
@@ -222,18 +222,18 @@ export function ProfileForm({
           error={errors.idType?.message}
         >
           <select {...register('idType')}>
-            <option value="">{language === 'ar' ? 'غير محدد' : 'Select'}</option>
+            <option value="">{language === 'ar' ? 'ØºÙŠØ± Ù…Ø­Ø¯Ø¯' : 'Select'}</option>
             <option value="national_id">
-              {language === 'ar' ? 'هوية وطنية' : 'National ID'}
+              {language === 'ar' ? 'Ù‡ÙˆÙŠØ© ÙˆØ·Ù†ÙŠØ©' : 'National ID'}
             </option>
             <option value="iqama">
-              {language === 'ar' ? 'إقامة' : 'Iqama'}
+              {language === 'ar' ? 'Ø¥Ù‚Ø§Ù…Ø©' : 'Iqama'}
             </option>
             <option value="passport">
-              {language === 'ar' ? 'جواز سفر' : 'Passport'}
+              {language === 'ar' ? 'Ø¬ÙˆØ§Ø² Ø³ÙØ±' : 'Passport'}
             </option>
             <option value="other">
-              {language === 'ar' ? 'أخرى' : 'Other'}
+              {language === 'ar' ? 'Ø£Ø®Ø±Ù‰' : 'Other'}
             </option>
           </select>
         </Field>
@@ -255,16 +255,16 @@ export function ProfileForm({
         >
           <select {...register('kycStatus')}>
             <option value="pending">
-              {language === 'ar' ? 'قيد المعالجة' : 'Pending'}
+              {language === 'ar' ? 'Ù‚ÙŠØ¯ Ø§Ù„Ù…Ø¹Ø§Ù„Ø¬Ø©' : 'Pending'}
             </option>
             <option value="in_review">
-              {language === 'ar' ? 'قيد المراجعة' : 'In review'}
+              {language === 'ar' ? 'Ù‚ÙŠØ¯ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©' : 'In review'}
             </option>
             <option value="approved">
-              {language === 'ar' ? 'معتمد' : 'Approved'}
+              {language === 'ar' ? 'Ù…Ø¹ØªÙ…Ø¯' : 'Approved'}
             </option>
             <option value="rejected">
-              {language === 'ar' ? 'مرفوض' : 'Rejected'}
+              {language === 'ar' ? 'Ù…Ø±ÙÙˆØ¶' : 'Rejected'}
             </option>
           </select>
         </Field>
@@ -299,16 +299,16 @@ export function ProfileForm({
 
       <section
         style={{
-          border: '1px solid #E5E7EB',
+          border: '1px solid var(--color-border-soft)',
           borderRadius: '1rem',
           padding: '1.25rem',
           display: 'flex',
           flexDirection: 'column',
           gap: '1rem',
-          background: '#F9FAFB',
+          background: 'var(--color-background-surface)',
         }}
       >
-        <strong style={{ color: '#111418' }}>
+        <strong style={{ color: 'var(--color-text-primary)' }}>
           {getMessage('fields.communication.title', language)}
         </strong>
         <div
@@ -329,10 +329,10 @@ export function ProfileForm({
                   padding: '0.75rem 1rem',
                   borderRadius: '0.85rem',
                   border: communicationPreferences[channel]
-                    ? '1px solid #2D6FA3'
-                    : '1px solid #E5E7EB',
+                    ? '1px solid var(--color-brand-primary)'
+                    : '1px solid var(--color-border-soft)',
                   background: communicationPreferences[channel]
-                    ? '#EFF6FF'
+                    ? 'var(--color-background-alt)'
                     : '#FFFFFF',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
@@ -368,7 +368,7 @@ export function ProfileForm({
 
       <section
         style={{
-          border: '1px dashed #CBD5F5',
+          border: '1px dashed var(--color-brand-secondary-soft)',
           borderRadius: '1rem',
           padding: '1.25rem',
           display: 'flex',
@@ -376,13 +376,13 @@ export function ProfileForm({
           gap: '1rem',
         }}
       >
-        <strong style={{ color: '#111418' }}>
+        <strong style={{ color: 'var(--color-text-primary)' }}>
           {getMessage('fields.documents.title', language)}
         </strong>
         <p
           style={{
             margin: 0,
-            color: '#6B7280',
+            color: 'var(--color-text-muted)',
             fontSize: '0.95rem',
           }}
         >
@@ -401,7 +401,7 @@ export function ProfileForm({
               style={{
                 padding: '0.65rem 0.85rem',
                 borderRadius: '0.75rem',
-                background: '#F3F4F6',
+                background: 'var(--color-background-base)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -409,7 +409,7 @@ export function ProfileForm({
                 fontSize: '0.9rem',
               }}
             >
-              📎 {document}
+              ðŸ“Ž {document}
               <button
                 type="button"
                 style={{
@@ -423,7 +423,7 @@ export function ProfileForm({
                   setValue('kycDocuments', next, { shouldDirty: true });
                 }}
               >
-                ×
+                Ã—
               </button>
             </span>
           ))}
@@ -435,14 +435,14 @@ export function ProfileForm({
             gap: '0.6rem',
             padding: '0.75rem 1rem',
             borderRadius: '0.85rem',
-            border: '1px solid #2D6FA3',
-            background: '#EFF6FF',
-            color: '#1E3A5F',
+            border: '1px solid var(--color-brand-primary)',
+            background: 'var(--color-background-alt)',
+            color: 'var(--color-brand-accent-deep)',
             cursor: 'pointer',
             width: 'fit-content',
           }}
         >
-          ⬆️ {language === 'ar' ? 'رفع المستندات' : 'Upload documents'}
+          â¬†ï¸ {language === 'ar' ? 'Ø±ÙØ¹ Ø§Ù„Ù…Ø³ØªÙ†Ø¯Ø§Øª' : 'Upload documents'}
           <input
             type="file"
             accept=".pdf,.jpeg,.jpg,.png"
@@ -483,9 +483,9 @@ export function ProfileForm({
           style={{
             padding: '0.65rem 1.2rem',
             borderRadius: '0.85rem',
-            border: '1px solid #CBD5F5',
-            background: '#FFFFFF',
-            color: '#1F2937',
+            border: '1px solid var(--color-brand-secondary-soft)',
+            background: 'var(--color-background-surface)',
+            color: 'var(--color-text-primary)',
             cursor: 'pointer',
             fontWeight: 600,
           }}
@@ -499,8 +499,8 @@ export function ProfileForm({
             padding: '0.65rem 1.2rem',
             borderRadius: '0.85rem',
             border: 'none',
-            background: '#2D6FA3',
-            color: '#FFFFFF',
+            background: 'var(--color-brand-primary)',
+            color: 'var(--color-text-on-brand)',
             cursor: isSubmitting || !isDirty ? 'not-allowed' : 'pointer',
             opacity: isSubmitting || !isDirty ? 0.6 : 1,
             fontWeight: 600,
@@ -534,7 +534,7 @@ function Field({ label, error, children }: FieldProps) {
       <span
         style={{
           fontWeight: 600,
-          color: '#111418',
+          color: 'var(--color-text-primary)',
           fontSize: '0.95rem',
         }}
       >
@@ -559,4 +559,6 @@ function ErrorText({ message }: { message?: string }) {
     </span>
   );
 }
+
+
 
