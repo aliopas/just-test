@@ -504,6 +504,7 @@ export async function approveAdminRequest(params: DecisionParams) {
     requestNumber: transition.request.request_number,
     decision: 'approved',
     note: params.note ?? null,
+    actorId: params.actorId,
   });
 
   return transition;
@@ -537,6 +538,7 @@ export async function rejectAdminRequest(params: DecisionParams) {
     requestNumber: transition.request.request_number,
     decision: 'rejected',
     note: params.note ?? null,
+    actorId: params.actorId,
   });
 
   return transition;
@@ -583,6 +585,8 @@ export async function requestInfoFromInvestor(params: InfoRequestParams) {
     requestId: params.requestId,
     requestNumber: transition.request.request_number,
     message: trimmedMessage,
+    previousStatus: transition.event.from_status,
+    actorId: params.actorId,
   });
 
   return transition;
@@ -831,6 +835,7 @@ export async function startRequestSettlement(params: SettlementBaseParams) {
     requestNumber: transition.request.request_number,
     stage: 'started',
     reference: trimmedReference,
+    actorId: params.actorId,
   });
 
   return transition;
@@ -918,6 +923,7 @@ export async function completeRequestSettlement(params: SettlementBaseParams) {
     requestNumber: transition.request.request_number,
     stage: 'completed',
     reference: trimmedReference,
+    actorId: params.actorId,
   });
 
   return transition;

@@ -1,0 +1,114 @@
+import type { InvestorLanguage } from '../types/investor';
+
+type MessageKey =
+  | 'pageTitle'
+  | 'pageSubtitle'
+  | 'filters.all'
+  | 'filters.unread'
+  | 'filters.read'
+  | 'actions.markAll'
+  | 'badge.label'
+  | 'list.loadMore'
+  | 'list.loading'
+  | 'empty.title'
+  | 'empty.subtitle'
+  | 'toast.loadError'
+  | 'toast.markReadError'
+  | 'toast.markAllSuccess'
+  | 'toast.markAllError'
+  | 'type.request_submitted.title'
+  | 'type.request_submitted.body'
+  | 'type.request_pending_info.title'
+  | 'type.request_pending_info.body'
+  | 'type.request_approved.title'
+  | 'type.request_approved.body'
+  | 'type.request_rejected.title'
+  | 'type.request_rejected.body'
+  | 'type.request_settling.title'
+  | 'type.request_settling.body'
+  | 'type.request_completed.title'
+  | 'type.request_completed.body';
+
+type MessageDictionary = Record<MessageKey, string>;
+
+const messages: Record<InvestorLanguage, MessageDictionary> = {
+  en: {
+    pageTitle: 'Notifications',
+    pageSubtitle:
+      'Stay informed about your requests and account activity with real-time updates.',
+    'filters.all': 'All',
+    'filters.unread': 'Unread',
+    'filters.read': 'Read',
+    'actions.markAll': 'Mark all as read',
+    'badge.label': 'Notifications',
+    'list.loadMore': 'Load more',
+    'list.loading': 'Loading notifications…',
+    'empty.title': 'You are all caught up!',
+    'empty.subtitle':
+      'You will see new notifications here whenever your requests change status or require action.',
+    'toast.loadError': 'Unable to load notifications. Please try again.',
+    'toast.markReadError': 'Unable to update this notification right now.',
+    'toast.markAllSuccess': 'All notifications marked as read.',
+    'toast.markAllError': 'Unable to mark notifications as read. Please retry.',
+    'type.request_submitted.title': 'Request submitted',
+    'type.request_submitted.body':
+      'Your investment request {requestNumber} was received successfully.',
+    'type.request_pending_info.title': 'Action required',
+    'type.request_pending_info.body':
+      'We need more information for request {requestNumber}.',
+    'type.request_approved.title': 'Request approved',
+    'type.request_approved.body':
+      'Great news! Request {requestNumber} has been approved.',
+    'type.request_rejected.title': 'Request rejected',
+    'type.request_rejected.body':
+      'Request {requestNumber} was not approved. Please review the details.',
+    'type.request_settling.title': 'Settlement in progress',
+    'type.request_settling.body':
+      'Settlement has started for request {requestNumber}.',
+    'type.request_completed.title': 'Settlement completed',
+    'type.request_completed.body':
+      'Settlement is complete for request {requestNumber}.',
+  },
+  ar: {
+    pageTitle: 'الإشعارات',
+    pageSubtitle:
+      'اطّلع على تحديثات طلباتك ونشاط حسابك فور حدوثها مع التنبيهات المباشرة.',
+    'filters.all': 'الكل',
+    'filters.unread': 'غير مقروءة',
+    'filters.read': 'مقروءة',
+    'actions.markAll': 'تحديد الكل كمقروء',
+    'badge.label': 'الإشعارات',
+    'list.loadMore': 'تحميل المزيد',
+    'list.loading': 'جارٍ تحميل الإشعارات…',
+    'empty.title': 'لا إشعارات جديدة',
+    'empty.subtitle':
+      'ستظهر الإشعارات هنا عندما يحدث تغيير على طلباتك أو يلزمك إجراء محدد.',
+    'toast.loadError': 'تعذّر تحميل الإشعارات. يرجى المحاولة مرة أخرى.',
+    'toast.markReadError': 'تعذّر تحديث حالة الإشعار الآن.',
+    'toast.markAllSuccess': 'تم تحديد جميع الإشعارات كمقروءة.',
+    'toast.markAllError': 'تعذّر تحديث الإشعارات. حاول مرة أخرى لاحقًا.',
+    'type.request_submitted.title': 'تم إرسال الطلب',
+    'type.request_submitted.body':
+      'تم استلام طلبك رقم {requestNumber} بنجاح.',
+    'type.request_pending_info.title': 'مطلوب إجراء',
+    'type.request_pending_info.body':
+      'نحتاج معلومات إضافية لطلبك رقم {requestNumber}.',
+    'type.request_approved.title': 'تمت الموافقة على الطلب',
+    'type.request_approved.body':
+      'أخبار سارة! تمت الموافقة على طلبك رقم {requestNumber}.',
+    'type.request_rejected.title': 'تم رفض الطلب',
+    'type.request_rejected.body':
+      'لم يتم اعتماد طلبك رقم {requestNumber}. يرجى مراجعة التفاصيل.',
+    'type.request_settling.title': 'التسوية قيد التنفيذ',
+    'type.request_settling.body':
+      'بدأت عملية التسوية للطلب رقم {requestNumber}.',
+    'type.request_completed.title': 'اكتملت عملية التسوية',
+    'type.request_completed.body':
+      'اكتملت التسوية للطلب رقم {requestNumber}.',
+  },
+};
+
+export function tNotifications(key: MessageKey, language: InvestorLanguage) {
+  return messages[language][key];
+}
+

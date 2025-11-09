@@ -3,6 +3,7 @@ import {
   notifyInvestorOfDecision,
   notifyInvestorOfInfoRequest,
   notifyInvestorOfSettlement,
+  notifyAdminsOfSubmission,
 } from '../src/services/notification.service';
 import { requireSupabaseAdmin } from '../src/lib/supabase';
 import { enqueueEmailNotification } from '../src/services/email-dispatch.service';
@@ -22,7 +23,7 @@ describe('notification.service investor emails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    const maybeSingleMock = jest.fn().mockResolvedValue({
+    const investorProfileMaybeSingleMock = jest.fn().mockResolvedValue({
       data: {
         full_name: 'Sara Nasser',
         preferred_name: 'Sara',
@@ -31,23 +32,44 @@ describe('notification.service investor emails', () => {
       error: null,
     });
 
-    const eqMock = jest.fn().mockReturnValue({
-      maybeSingle: maybeSingleMock,
+    const investorProfileEqMock = jest.fn().mockReturnValue({
+      maybeSingle: investorProfileMaybeSingleMock,
     });
 
-    const selectMock = jest.fn().mockReturnValue({
-      eq: eqMock,
+    const investorProfileSelectMock = jest.fn().mockReturnValue({
+      eq: investorProfileEqMock,
     });
 
-    const singleMock = jest.fn().mockResolvedValue({
+    const notificationsSingleMock = jest.fn().mockResolvedValue({
       data: { id: 'notif-1' },
       error: null,
     });
 
     const notificationsInsertMock = jest.fn().mockReturnValue({
       select: jest.fn().mockReturnValue({
-        single: singleMock,
+        single: notificationsSingleMock,
       }),
+    });
+
+    const requestsMaybeSingleFactory = (requestId: string) =>
+      jest.fn().mockResolvedValue({
+        data: {
+          id: requestId,
+          request_number: `INV-${requestId.toUpperCase()}`,
+          type: 'buy',
+          amount: 50000,
+          currency: 'SAR',
+          status: 'submitted',
+          created_at: '2025-11-08T12:00:00Z',
+          user_id: 'user-1',
+        },
+        error: null,
+      });
+
+    const requestsSelectMock = jest.fn().mockReturnValue({
+      eq: jest.fn((_column: string, value: string) => ({
+        maybeSingle: requestsMaybeSingleFactory(value),
+      })),
     });
 
     mockRequireSupabaseAdmin.mockReturnValue({
@@ -66,12 +88,25 @@ describe('notification.service investor emails', () => {
             },
             error: null,
           }),
+          getUserByEmail: jest.fn().mockResolvedValue({
+            data: {
+              user: {
+                id: 'admin-1',
+                email: 'ops@example.com',
+                user_metadata: {
+                  full_name: 'Ops Team',
+                  language: 'en',
+                },
+              },
+            },
+            error: null,
+          }),
         },
       },
       from: jest.fn((table: string) => {
         if (table === 'investor_profiles') {
           return {
-            select: selectMock,
+            select: investorProfileSelectMock,
           };
         }
         if (table === 'notifications') {
@@ -79,9 +114,18 @@ describe('notification.service investor emails', () => {
             insert: notificationsInsertMock,
           };
         }
+        if (table === 'requests') {
+          return {
+            select: requestsSelectMock,
+          };
+        }
         throw new Error(`Unexpected table: ${table}`);
       }),
     });
+  });
+
+  afterEach(() => {
+    delete process.env.ADMIN_NOTIFICATION_EMAILS;
   });
 
   it('queues submission email with localized context', async () => {
@@ -129,6 +173,7 @@ describe('notification.service investor emails', () => {
       requestId: 'req-3',
       requestNumber: 'INV-2025-000012',
       message: 'Please upload updated bank statements.',
+      previousStatus: 'screening',
     });
 
     expect(mockEnqueue).toHaveBeenCalledWith(
@@ -158,6 +203,153 @@ describe('notification.service investor emails', () => {
         }),
       })
     );
+  });
+});
+
+describe('notification.service admin escalation emails', () => {
+  const mockRequireSupabaseAdmin = requireSupabaseAdmin as jest.Mock;
+  const mockEnqueue = enqueueEmailNotification as jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env.ADMIN_NOTIFICATION_EMAILS = 'ops@example.com';
+
+    const requestsSelectMock = jest.fn().mockReturnValue({
+      eq: jest.fn((_column: string, value: string) => ({
+        maybeSingle: jest.fn().mockResolvedValue({
+          data: {
+            id: value,
+            request_number: 'INV-ADMIN-001',
+            type: 'buy',
+            amount: 75000,
+            currency: 'SAR',
+            status: 'submitted',
+            created_at: '2025-11-08T12:00:00Z',
+            user_id: 'user-1',
+          },
+          error: null,
+        }),
+      })),
+    });
+
+    const investorProfileSelectMock = jest.fn().mockReturnValue({
+      eq: jest.fn().mockReturnValue({
+        maybeSingle: jest.fn().mockResolvedValue({
+          data: {
+            full_name: 'Sara Nasser',
+            preferred_name: 'Sara',
+          },
+          error: null,
+        }),
+      }),
+    });
+
+    const notificationsInsertMock = jest.fn().mockReturnValue({
+      select: jest.fn().mockReturnValue({
+        single: jest.fn().mockResolvedValue({
+          data: { id: 'notif-admin-1' },
+          error: null,
+        }),
+      }),
+    });
+
+    const authUsersSelectMock = jest.fn().mockReturnValue({
+      ilike: jest.fn().mockReturnValue({
+        maybeSingle: jest.fn().mockResolvedValue({
+          data: {
+            id: 'admin-1',
+            email: 'ops@example.com',
+            raw_user_meta_data: {
+              full_name: 'Ops Team',
+              language: 'en',
+            },
+          },
+          error: null,
+        }),
+      }),
+    });
+
+    mockRequireSupabaseAdmin.mockReturnValue({
+      auth: {
+        admin: {
+          getUserById: jest
+            .fn()
+            .mockResolvedValue({
+              data: {
+                user: {
+                  id: 'user-1',
+                  email: 'sara@example.com',
+                  user_metadata: {
+                    full_name: 'Sara',
+                    language: 'ar',
+                  },
+                },
+              },
+              error: null,
+            }),
+          getUserByEmail: jest.fn().mockResolvedValue({
+            data: null,
+            error: new Error('deprecated'),
+          }),
+        },
+      },
+      from: jest.fn((table: string) => {
+        if (table === 'requests') {
+          return { select: requestsSelectMock };
+        }
+        if (table === 'investor_profiles') {
+          return { select: investorProfileSelectMock };
+        }
+        if (table === 'notifications') {
+          return { insert: notificationsInsertMock };
+        }
+        if (table === 'auth.users') {
+          return { select: authUsersSelectMock };
+        }
+        throw new Error(`Unexpected table: ${table}`);
+      }),
+    });
+  });
+
+  afterEach(() => {
+    delete process.env.ADMIN_NOTIFICATION_EMAILS;
+  });
+
+  it('queues admin alert when request is submitted', async () => {
+    await notifyAdminsOfSubmission({
+      requestId: 'req-admin-1',
+      requestNumber: 'INV-ADMIN-001',
+    });
+
+    expect(mockEnqueue).toHaveBeenCalledWith(
+      expect.objectContaining({
+        templateId: 'admin_request_submitted',
+        userId: 'admin-1',
+        context: expect.objectContaining({
+          requestNumber: 'INV-ADMIN-001',
+          investorName: 'Sara',
+        }),
+      })
+    );
+  });
+
+  it('queues admin decision alert', async () => {
+    await notifyInvestorOfDecision({
+      userId: 'user-1',
+      requestId: 'req-admin-2',
+      requestNumber: 'INV-ADMIN-002',
+      decision: 'approved',
+      actorId: 'user-99',
+    });
+
+    const adminCall = mockEnqueue.mock.calls.find(
+      ([args]) => args.templateId === 'admin_request_decision'
+    );
+
+    expect(adminCall).toBeTruthy();
+    expect(adminCall?.[0].context).toMatchObject({
+      decision: 'approved',
+    });
   });
 });
 

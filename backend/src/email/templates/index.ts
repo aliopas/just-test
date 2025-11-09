@@ -38,6 +38,63 @@ function formatCurrency(
   }
 }
 
+const REQUEST_TYPE_LABELS: Record<string, { en: string; ar: string }> = {
+  buy: { en: 'Buy Order', ar: 'طلب شراء' },
+  sell: { en: 'Sell Order', ar: 'طلب بيع' },
+  subscription: { en: 'Subscription', ar: 'اكتتاب' },
+};
+
+const STATUS_LABELS: Record<string, { en: string; ar: string }> = {
+  draft: { en: 'Draft', ar: 'مسودة' },
+  submitted: { en: 'Submitted', ar: 'تم الإرسال' },
+  screening: { en: 'Screening', ar: 'مراجعة أولية' },
+  pending_info: { en: 'Pending Info', ar: 'بانتظار معلومات' },
+  compliance_review: { en: 'Compliance Review', ar: 'مراجعة امتثال' },
+  approved: { en: 'Approved', ar: 'مقبول' },
+  rejected: { en: 'Rejected', ar: 'مرفوض' },
+  settling: { en: 'Settling', ar: 'قيد التسوية' },
+  completed: { en: 'Completed', ar: 'مكتمل' },
+};
+
+function formatRequestTypeLabel(type: string, language: EmailLanguage) {
+  const normalized = (type ?? '').toLowerCase();
+  const mapping = REQUEST_TYPE_LABELS[normalized];
+  if (mapping) {
+    return mapping[language];
+  }
+  const fallback = normalized.replace(/[_-]+/g, ' ');
+  if (!fallback) {
+    return language === 'ar' ? 'غير متوفر' : 'Not available';
+  }
+  if (language === 'ar') {
+    return fallback;
+  }
+  return fallback.replace(/\b\w/g, char => char.toUpperCase());
+}
+
+function formatStatusLabel(status: string, language: EmailLanguage) {
+  const normalized = (status ?? '').toLowerCase();
+  const mapping = STATUS_LABELS[normalized];
+  if (mapping) {
+    return mapping[language];
+  }
+  if (!normalized) {
+    return language === 'ar' ? 'غير معروف' : 'Unknown';
+  }
+  return normalized;
+}
+
+function formatAmountLabel(
+  amount: number | undefined,
+  currency: string | undefined,
+  language: EmailLanguage
+) {
+  if (typeof amount === 'number' && currency) {
+    return formatCurrency(amount, currency, language);
+  }
+  return language === 'ar' ? 'غير متوفر' : 'Not available';
+}
+
 type TemplateRenderer<TTemplate extends NotificationEmailTemplateId> = (
   language: EmailLanguage,
   context: TemplateContext<TTemplate>
@@ -344,6 +401,316 @@ const templateRenderers: {
         language === 'ar'
           ? `لأي استفسارات مستقبلية، تواصل معنا عبر ${supportEmail}`
           : `Need anything else? We are here at ${supportEmail}`,
+      ],
+    };
+  },
+  admin_request_submitted(language, context) {
+    const supportEmail = context.supportEmail ?? DEFAULT_SUPPORT_EMAIL;
+    const submittedDate = formatDate(context.submittedAt, language);
+    const requestType = formatRequestTypeLabel(context.requestType, language);
+    const amountLabel = formatAmountLabel(
+      context.amount,
+      context.currency,
+      language
+    );
+
+    return {
+      subject:
+        language === 'ar'
+          ? `طلب جديد ${context.requestNumber}`
+          : `New request ${context.requestNumber} submitted`,
+      heading:
+        language === 'ar'
+          ? 'تنبيه: وصول طلب استثماري جديد'
+          : 'New investment request received',
+      intro:
+        language === 'ar'
+          ? `مرحبًا ${context.recipientName}،`
+          : `Hello ${context.recipientName},`,
+      highlightItems: [
+        {
+          label: language === 'ar' ? 'رقم الطلب' : 'Request number',
+          value: context.requestNumber,
+        },
+        {
+          label: language === 'ar' ? 'المستثمر' : 'Investor',
+          value: context.investorName,
+        },
+        {
+          label: language === 'ar' ? 'نوع الطلب' : 'Request type',
+          value: requestType,
+        },
+        {
+          label: language === 'ar' ? 'القيمة' : 'Amount',
+          value: amountLabel,
+        },
+      ],
+      paragraphs: [
+        language === 'ar'
+          ? `تم تقديم الطلب في ${submittedDate}. يرجى مراجعة التفاصيل واتخاذ الإجراءات اللازمة.`
+          : `The request was submitted on ${submittedDate}. Please review the details and take the next steps.`,
+      ],
+      cta: {
+        label: language === 'ar' ? 'فتح لوحة التحكم' : 'Open dashboard',
+        url: context.requestLink,
+      },
+      footerLines: [
+        language === 'ar'
+          ? `لأي استفسار، يمكنك التواصل مع فريق الدعم: ${supportEmail}`
+          : `Questions? Reach the operations team at ${supportEmail}`,
+      ],
+    };
+  },
+  admin_request_pending_info(language, context) {
+    const supportEmail = context.supportEmail ?? DEFAULT_SUPPORT_EMAIL;
+    const requestType = formatRequestTypeLabel(context.requestType, language);
+    const statusLabel = formatStatusLabel(context.previousStatus, language);
+
+    return {
+      subject:
+        language === 'ar'
+          ? `تم تعليق الطلب ${context.requestNumber} لمعلومات إضافية`
+          : `Request ${context.requestNumber} requires additional info`,
+      heading:
+        language === 'ar'
+          ? 'تنبيه: الطلب بانتظار معلومات'
+          : 'Action required: request on hold',
+      intro:
+        language === 'ar'
+          ? `مرحبًا ${context.recipientName}،`
+          : `Hello ${context.recipientName},`,
+      highlightItems: [
+        {
+          label: language === 'ar' ? 'رقم الطلب' : 'Request number',
+          value: context.requestNumber,
+        },
+        {
+          label: language === 'ar' ? 'المستثمر' : 'Investor',
+          value: context.investorName,
+        },
+        {
+          label: language === 'ar' ? 'نوع الطلب' : 'Request type',
+          value: requestType,
+        },
+        {
+          label: language === 'ar' ? 'الحالة السابقة' : 'Previous status',
+          value: statusLabel,
+        },
+      ],
+      paragraphs: [
+        language === 'ar'
+          ? 'تم إرسال طلب للمستثمر لتوفير معلومات إضافية. نص الرسالة المرسلة:'
+          : 'An additional information request has been sent to the investor. Message sent:',
+        context.infoMessage,
+      ],
+      cta: {
+        label: language === 'ar' ? 'متابعة الطلب' : 'Review request',
+        url: context.requestLink,
+      },
+      footerLines: [
+        language === 'ar'
+          ? `في حال عدم استلام رد، يرجى المتابعة مع المستثمر أو التواصل عبر ${supportEmail}`
+          : `If no response is received, follow up with the investor or contact ${supportEmail}`,
+      ],
+    };
+  },
+  admin_request_decision(language, context) {
+    const supportEmail = context.supportEmail ?? DEFAULT_SUPPORT_EMAIL;
+    const requestType = formatRequestTypeLabel(context.requestType, language);
+    const amountLabel = formatAmountLabel(
+      context.amount,
+      context.currency,
+      language
+    );
+    const decisionLabel =
+      context.decision === 'approved'
+        ? language === 'ar'
+          ? 'تمت الموافقة'
+          : 'Approved'
+        : language === 'ar'
+          ? 'تم الرفض'
+          : 'Rejected';
+
+    return {
+      subject:
+        language === 'ar'
+          ? `${decisionLabel} على الطلب ${context.requestNumber}`
+          : `Request ${context.requestNumber} ${context.decision}`,
+      heading:
+        language === 'ar'
+          ? `تنبيه قرار: ${decisionLabel}`
+          : `Decision update: ${decisionLabel}`,
+      intro:
+        language === 'ar'
+          ? `مرحبًا ${context.recipientName}،`
+          : `Hello ${context.recipientName},`,
+      highlightItems: [
+        {
+          label: language === 'ar' ? 'رقم الطلب' : 'Request number',
+          value: context.requestNumber,
+        },
+        {
+          label: language === 'ar' ? 'المستثمر' : 'Investor',
+          value: context.investorName,
+        },
+        {
+          label: language === 'ar' ? 'نوع الطلب' : 'Request type',
+          value: requestType,
+        },
+        {
+          label: language === 'ar' ? 'القيمة' : 'Amount',
+          value: amountLabel,
+        },
+      ],
+      paragraphs: [
+        context.actorName
+          ? language === 'ar'
+            ? `اتخذ ${context.actorName} قرار "${decisionLabel}".`
+            : `${context.actorName} marked the request as "${decisionLabel}".`
+          : language === 'ar'
+            ? `تم تعيين حالة الطلب إلى "${decisionLabel}".`
+            : `The request status is now "${decisionLabel}".`,
+        context.note
+          ? language === 'ar'
+            ? `ملاحظة القرار: ${context.note}`
+            : `Decision note: ${context.note}`
+          : '',
+      ].filter(Boolean) as string[],
+      cta: {
+        label:
+          language === 'ar' ? 'عرض تفاصيل القرار' : 'View decision details',
+        url: context.requestLink,
+      },
+      footerLines: [
+        language === 'ar'
+          ? `للتنسيق أو الاستفسار، راسل فريق العمليات على ${supportEmail}`
+          : `For coordination, contact the operations team at ${supportEmail}`,
+      ],
+    };
+  },
+  admin_request_settling(language, context) {
+    const supportEmail = context.supportEmail ?? DEFAULT_SUPPORT_EMAIL;
+    const requestType = formatRequestTypeLabel(context.requestType, language);
+    const amountLabel = formatAmountLabel(
+      context.amount,
+      context.currency,
+      language
+    );
+    const startedDate = formatDate(context.startedAt, language);
+
+    return {
+      subject:
+        language === 'ar'
+          ? `بدأت تسوية الطلب ${context.requestNumber}`
+          : `Settlement started for request ${context.requestNumber}`,
+      heading:
+        language === 'ar'
+          ? 'تنبيه: بدء إجراءات التسوية'
+          : 'Settlement process has begun',
+      intro:
+        language === 'ar'
+          ? `مرحبًا ${context.recipientName}،`
+          : `Hello ${context.recipientName},`,
+      highlightItems: [
+        {
+          label: language === 'ar' ? 'رقم الطلب' : 'Request number',
+          value: context.requestNumber,
+        },
+        {
+          label: language === 'ar' ? 'المستثمر' : 'Investor',
+          value: context.investorName,
+        },
+        {
+          label: language === 'ar' ? 'نوع الطلب' : 'Request type',
+          value: requestType,
+        },
+        {
+          label: language === 'ar' ? 'القيمة' : 'Amount',
+          value: amountLabel,
+        },
+        context.settlementReference
+          ? {
+              label:
+                language === 'ar' ? 'مرجع التسوية' : 'Settlement reference',
+              value: context.settlementReference,
+            }
+          : null,
+      ].filter(Boolean) as Array<{ label: string; value: string }>,
+      paragraphs: [
+        language === 'ar'
+          ? `تم بدء عملية التسوية في ${startedDate}. راجع لوحة التحكم للملفات والملاحظات المرتبطة.`
+          : `Settlement procedures began on ${startedDate}. Review the dashboard for supporting files and notes.`,
+      ],
+      cta: {
+        label: language === 'ar' ? 'متابعة التسوية' : 'Track settlement',
+        url: context.requestLink,
+      },
+      footerLines: [
+        language === 'ar'
+          ? `تواصل مع فريق الخزانة عند الحاجة: ${supportEmail}`
+          : `Reach out to the treasury team if needed: ${supportEmail}`,
+      ],
+    };
+  },
+  admin_request_completed(language, context) {
+    const supportEmail = context.supportEmail ?? DEFAULT_SUPPORT_EMAIL;
+    const requestType = formatRequestTypeLabel(context.requestType, language);
+    const amountLabel = formatAmountLabel(
+      context.amount,
+      context.currency,
+      language
+    );
+    const completedDate = formatDate(context.completedAt, language);
+
+    return {
+      subject:
+        language === 'ar'
+          ? `اكتملت تسوية الطلب ${context.requestNumber}`
+          : `Settlement completed for request ${context.requestNumber}`,
+      heading:
+        language === 'ar' ? 'تنبيه: إتمام التسوية' : 'Settlement complete',
+      intro:
+        language === 'ar'
+          ? `مرحبًا ${context.recipientName}،`
+          : `Hello ${context.recipientName},`,
+      highlightItems: [
+        {
+          label: language === 'ar' ? 'رقم الطلب' : 'Request number',
+          value: context.requestNumber,
+        },
+        {
+          label: language === 'ar' ? 'المستثمر' : 'Investor',
+          value: context.investorName,
+        },
+        {
+          label: language === 'ar' ? 'نوع الطلب' : 'Request type',
+          value: requestType,
+        },
+        {
+          label: language === 'ar' ? 'القيمة' : 'Amount',
+          value: amountLabel,
+        },
+        context.settlementReference
+          ? {
+              label:
+                language === 'ar' ? 'مرجع التسوية' : 'Settlement reference',
+              value: context.settlementReference,
+            }
+          : null,
+      ].filter(Boolean) as Array<{ label: string; value: string }>,
+      paragraphs: [
+        language === 'ar'
+          ? `تم إتمام التسوية في ${completedDate}. يرجى تحديث التحصيلات وإغلاق الطلب إن لزم.`
+          : `Settlement finished on ${completedDate}. Please reconcile the disbursements and close the request if appropriate.`,
+      ],
+      cta: {
+        label: language === 'ar' ? 'عرض الطلب' : 'View request',
+        url: context.requestLink,
+      },
+      footerLines: [
+        language === 'ar'
+          ? `لأي تبعات مالية أو محاسبية، راسل ${supportEmail}`
+          : `For follow-up or accounting actions, contact ${supportEmail}`,
       ],
     };
   },

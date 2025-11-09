@@ -10,6 +10,17 @@ const baseContext = {
   supportEmail: 'care@bakurah.com',
 };
 
+const adminBaseContext = {
+  recipientName: 'Ops Team',
+  requestNumber: 'REQ-2024-001',
+  investorName: 'Sarah Nasser',
+  requestType: 'buy',
+  amount: 50000,
+  currency: 'SAR',
+  requestLink: 'https://admin.bakurah.com/requests/REQ-2024-001',
+  supportEmail: 'ops@bakurah.com',
+};
+
 const templateContexts: Record<NotificationEmailTemplateId, any> = {
   request_submitted: {
     ...baseContext,
@@ -39,6 +50,31 @@ const templateContexts: Record<NotificationEmailTemplateId, any> = {
     settlementReference: 'STL-778899',
     completedAt: '2025-11-21T12:00:00Z',
   },
+  admin_request_submitted: {
+    ...adminBaseContext,
+    submittedAt: '2025-11-08T12:00:00Z',
+  },
+  admin_request_pending_info: {
+    ...adminBaseContext,
+    infoMessage: 'Investor was asked to upload updated KYC documents.',
+    previousStatus: 'screening',
+  },
+  admin_request_decision: {
+    ...adminBaseContext,
+    decision: 'approved',
+    note: 'All compliance checks passed.',
+    actorName: 'Amal Alharbi',
+  },
+  admin_request_settling: {
+    ...adminBaseContext,
+    settlementReference: 'STL-889900',
+    startedAt: '2025-11-22T09:30:00Z',
+  },
+  admin_request_completed: {
+    ...adminBaseContext,
+    settlementReference: 'STL-889900',
+    completedAt: '2025-11-24T15:10:00Z',
+  },
 };
 
 describe('notification email templates', () => {
@@ -58,8 +94,9 @@ describe('notification email templates', () => {
     expect(english.text).toContain(baseContext.requestNumber);
     expect(arabic.text).toContain(baseContext.requestNumber);
 
-    expect(english.html).toContain(baseContext.supportEmail);
-    expect(arabic.html).toContain(baseContext.supportEmail ?? '');
+    const expectedSupport = context.supportEmail ?? 'support@bakurah.com';
+    expect(english.html).toContain(expectedSupport);
+    expect(arabic.html).toContain(expectedSupport ?? '');
   });
 
   it('falls back to default support email', () => {

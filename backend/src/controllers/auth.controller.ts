@@ -379,6 +379,13 @@ export const authController = {
           id: data.user.id,
           email: data.user.email,
         },
+        session: {
+          accessToken: data.session.access_token,
+          refreshToken: data.session.refresh_token ?? undefined,
+          expiresIn: data.session.expires_in ?? 3600,
+          expiresAt: data.session.expires_at ?? null,
+          tokenType: data.session.token_type ?? 'bearer',
+        },
         expiresIn: data.session.expires_in ?? 3600,
         tokenType: 'Bearer',
       });
@@ -434,6 +441,13 @@ export const authController = {
         user: {
           id: data.user.id,
           email: data.user.email,
+        },
+        session: {
+          accessToken: data.session.access_token,
+          refreshToken: data.session.refresh_token ?? undefined,
+          expiresIn: data.session.expires_in ?? 3600,
+          expiresAt: data.session.expires_at ?? null,
+          tokenType: data.session.token_type ?? 'bearer',
         },
         expiresIn: data.session.expires_in ?? 3600,
       });

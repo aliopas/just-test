@@ -882,7 +882,8 @@ graph TD
 
 - **Backend foundation:** Notifications and preferences tables created in Supabase with realtime publication (Story 6.1).
 - **Email pipeline:** Queue-backed email dispatch via Supabase Edge Function and Resend (Story 6.3).
-- **Frontend impact:** Upcoming stories will add notification center UI, unread badges, and preference management that consume these endpoints.
+- **Operations alerts:** Configurable admin email notifications for critical request events (Story 6.4).
+- **Investor notifications center:** In-app feed with unread badges, pagination, and Supabase Realtime updates (Story 6.5).
 - **Channels:** Email, SMS, and in-app notifications share the same payload contract to ensure consistent rendering across delivery mechanisms.
 
 ---

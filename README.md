@@ -67,6 +67,15 @@ npm run format
 npm run typecheck
 ```
 
+### 🔑 حسابات تجريبية
+
+تم تهيئة حسابين تجريبيين على Supabase لتسهيل الاختبار:
+
+- **Admin**: `admin.demo@invastors.dev` — كلمة المرور: `AdminDemo123!`
+- **Investor**: `investor.demo@invastors.dev` — كلمة المرور: `InvestorDemo123!`
+
+> يوصى بتحديث كلمات المرور عبر Supabase قبل استخدام هذه الحسابات في بيئات غير محلية.
+
 ---
 
 ## 📁 هيكل المشروع
@@ -111,6 +120,11 @@ invastors-bacura/
 - `API_BASE_URL` - رابط API الأساسي
 - `INVESTOR_PORTAL_URL` - رابط واجهة المستثمر المستخدم في روابط الـ CTA (افتراضي: `https://app.bakurah.com`)
 - `SUPPORT_EMAIL` - بريد الدعم الافتراضي المستخدم في الرسائل
+- `ADMIN_PORTAL_URL` - رابط لوحة التحكم الإدارية/التشغيلية (افتراضي: `${INVESTOR_PORTAL_URL}/admin`)
+- `ADMIN_NOTIFICATION_EMAILS` - قائمة بريدية (مفصولة بفاصلة) لفريق العمليات لتلقي التنبيهات
+- `ADMIN_NOTIFICATION_DEFAULT_LANGUAGE` - اللغة الافتراضية لتنبيهات العمليات (`en` أو `ar`)
+- `VITE_SUPABASE_URL` - رابط Supabase المستخدم في واجهة المستخدم للتحديثات الفورية (Realtime)
+- `VITE_SUPABASE_ANON_KEY` - المفتاح العام Supabase المستخدم في واجهة المستخدم
 
 ### متغيرات الأمان
 
@@ -164,6 +178,8 @@ npm test -- health.test.ts
 - **Story 6.1 (Notifications Data Layer):** `docs/stories/STORY_6.1_COMPLETION.md`
 - **Story 6.2 (Email Templates):** `docs/stories/STORY_6.2_COMPLETION.md`
 - **Story 6.3 (Email Dispatch Pipeline):** `docs/stories/STORY_6.3_COMPLETION.md`
+- **Story 6.4 (Operations Email Alerts):** `docs/stories/STORY_6.4_COMPLETION.md`
+- **Story 6.5 (In-App Notifications Center):** `docs/stories/STORY_6.5_COMPLETION.md`
 - **Design System:** `docs/design-system.md` (مع ملفات `frontend/src/styles/theme.ts` و`frontend/src/components/Logo.tsx`)
 - **Supabase Integration:** `docs/SUPABASE_INTEGRATION.md`
 - **RBAC Matrix:** `docs/prd/rbac-matrix.md`
@@ -186,6 +202,16 @@ GET /api/v1/health
   "timestamp": "2024-11-06T10:00:00.000Z"
 }
 ```
+
+### Notifications
+
+```
+GET /api/v1/notifications
+PATCH /api/v1/notifications/:id/read
+POST /api/v1/notifications/mark-all-read
+```
+
+> Requires `investor.notifications.read` permission and authentication.
 
 ### Authentication
 

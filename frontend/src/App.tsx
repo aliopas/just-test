@@ -8,6 +8,8 @@ import { useLogout } from './hooks/useLogout';
 import { Logo } from './components/Logo';
 import './styles/global.css';
 import { palette } from './styles/theme';
+import { LoginPage } from './pages/LoginPage';
+import { useAuth } from './context/AuthContext';
 
 const navLinkStyle: React.CSSProperties = {
   borderRadius: '0.75rem',
@@ -172,7 +174,7 @@ function AppFooter() {
   );
 }
 
-export function App() {
+function AuthenticatedApp() {
   return (
     <Fragment>
       <HeaderNav />
@@ -185,4 +187,14 @@ export function App() {
       <AppFooter />
     </Fragment>
   );
+}
+
+export function App() {
+  const { isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return <LoginPage />;
+  }
+
+  return <AuthenticatedApp />;
 }

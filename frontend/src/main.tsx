@@ -6,6 +6,7 @@ import { App } from './App';
 import { LanguageProvider } from './context/LanguageContext';
 import { ToastProvider } from './context/ToastContext';
 import { ToastStack } from './components/ToastStack';
+import { AuthProvider } from './context/AuthContext';
 import { applyTheme, theme } from './styles/theme';
 
 const container = document.getElementById('root');
@@ -32,12 +33,14 @@ ReactDOM.createRoot(container).render(
   <React.StrictMode>
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
-        <LanguageProvider>
-          <ToastProvider>
-            <App />
-            <ToastStack />
-          </ToastProvider>
-        </LanguageProvider>
+        <AuthProvider>
+          <LanguageProvider>
+            <ToastProvider>
+              <App />
+              <ToastStack />
+            </ToastProvider>
+          </LanguageProvider>
+        </AuthProvider>
       </QueryClientProvider>
     </BrowserRouter>
   </React.StrictMode>

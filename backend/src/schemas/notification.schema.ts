@@ -28,6 +28,27 @@ export const notificationPreferenceUpdateSchema =
     enabled: true,
   });
 
+export const notificationStatusFilterEnum = z.enum(['all', 'unread', 'read']);
+
+export const notificationListQuerySchema = z.object({
+  page: z.coerce
+    .number({
+      invalid_type_error: 'Page must be a number',
+    })
+    .int('Page must be an integer')
+    .min(1, 'Page must be at least 1')
+    .default(1),
+  limit: z.coerce
+    .number({
+      invalid_type_error: 'Limit must be a number',
+    })
+    .int('Limit must be an integer')
+    .min(1, 'Limit must be at least 1')
+    .max(50, 'Limit cannot exceed 50')
+    .default(20),
+  status: notificationStatusFilterEnum.default('all'),
+});
+
 export type NotificationChannel = z.infer<typeof notificationChannelEnum>;
 export type NotificationType = z.infer<typeof notificationTypeEnum>;
 export type NotificationPreferenceInput = z.infer<
@@ -35,4 +56,10 @@ export type NotificationPreferenceInput = z.infer<
 >;
 export type NotificationPreferenceUpdateInput = z.infer<
   typeof notificationPreferenceUpdateSchema
+>;
+export type NotificationListQueryInput = z.infer<
+  typeof notificationListQuerySchema
+>;
+export type NotificationStatusFilter = z.infer<
+  typeof notificationStatusFilterEnum
 >;

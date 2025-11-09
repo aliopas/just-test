@@ -1,15 +1,26 @@
+const ADMIN_DEFAULT_LANGUAGE =
+  process.env.ADMIN_NOTIFICATION_DEFAULT_LANGUAGE === 'ar' ||
+  process.env.ADMIN_NOTIFICATION_DEFAULT_LANGUAGE === 'en'
+    ? (process.env.ADMIN_NOTIFICATION_DEFAULT_LANGUAGE as EmailLanguage)
+    : undefined;
 import type { User } from '@supabase/supabase-js';
-import type { EmailLanguage } from '../email/templates/types';
+import type { EmailLanguage, TemplateContext } from '../email/templates/types';
 import { enqueueEmailNotification } from './email-dispatch.service';
 import { requireSupabaseAdmin } from '../lib/supabase';
-import type { NotificationType } from '../schemas/notification.schema';
+import type {
+  NotificationType,
+  NotificationStatusFilter,
+  NotificationChannel,
+} from '../schemas/notification.schema';
 import type { NewsStatus } from '../schemas/news.schema';
 
 const INVESTOR_PORTAL_URL = (
   process.env.INVESTOR_PORTAL_URL ?? 'https://app.bakurah.com'
 ).replace(/\/$/, '');
+const ADMIN_PORTAL_URL = (
+  process.env.ADMIN_PORTAL_URL ?? `${INVESTOR_PORTAL_URL}/admin`
+).replace(/\/$/, '');
 const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL ?? 'support@bakurah.com';
-
 type InvestorSubmissionNotification = {
   userId: string;
   requestId: string;
@@ -27,15 +38,19 @@ type InvestorDecisionNotification = InvestorSubmissionNotification & {
   approvedAmount?: number | null;
   currency?: string | null;
   settlementEta?: string | null;
+  actorId?: string;
 };
 
 type InvestorInfoRequestNotification = InvestorSubmissionNotification & {
   message: string;
+  previousStatus: string;
+  actorId?: string;
 };
 
 type InvestorSettlementNotification = InvestorSubmissionNotification & {
   stage: 'started' | 'completed';
   reference?: string | null;
+  actorId?: string;
 };
 
 type NewsPublishNotification = {
@@ -67,6 +82,54 @@ interface NotificationRecipient {
   name: string;
   language: EmailLanguage;
 }
+
+interface AdminRecipient extends NotificationRecipient {
+  userId: string;
+}
+
+interface RequestSummary {
+  id: string;
+  number: string;
+  type: string;
+  amount: number | null;
+  currency: string | null;
+  status: string;
+  createdAt: string;
+  investorName: string;
+}
+
+type NotificationRow = {
+  id: string;
+  user_id: string;
+  type: NotificationType;
+  channel: NotificationChannel;
+  payload: Record<string, unknown> | null;
+  read_at: string | null;
+  created_at: string;
+};
+
+export type NotificationListItem = {
+  id: string;
+  type: NotificationType;
+  channel: NotificationChannel;
+  payload: Record<string, unknown>;
+  readAt: string | null;
+  createdAt: string;
+};
+
+export type NotificationListMeta = {
+  page: number;
+  limit: number;
+  total: number;
+  pageCount: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+};
+
+export type NotificationListResult = {
+  notifications: NotificationListItem[];
+  meta: NotificationListMeta;
+};
 
 function coerceLanguage(value: unknown): EmailLanguage {
   return value === 'ar' ? 'ar' : 'en';
@@ -164,6 +227,315 @@ function buildRequestLink(requestNumber: string) {
   return `${INVESTOR_PORTAL_URL}/requests/${encodeURIComponent(requestNumber)}`;
 }
 
+function buildAdminRequestLink(requestId: string) {
+  return `${ADMIN_PORTAL_URL}/requests/${encodeURIComponent(requestId)}`;
+}
+
+function parseAdminNotificationEmails(): string[] {
+  const raw = process.env.ADMIN_NOTIFICATION_EMAILS;
+  if (!raw) {
+    return [];
+  }
+  return raw
+    .split(',')
+    .map(email => email.trim().toLowerCase())
+    .filter(email => email.length > 0);
+}
+
+const adminRecipientCache = new Map<string, AdminRecipient>();
+
+async function resolveAdminRecipientByEmail(email: string) {
+  if (adminRecipientCache.has(email)) {
+    return adminRecipientCache.get(email)!;
+  }
+
+  const adminClient = requireSupabaseAdmin();
+  try {
+    const { data: userRow, error } = await adminClient
+      .from('users')
+      .select('id, email')
+      .ilike('email', email)
+      .maybeSingle();
+    if (error || !userRow) {
+      console.warn(
+        `Admin notification email ${email} is not linked to a Supabase user`
+      );
+      return null;
+    }
+
+    const baseRecipient = await resolveNotificationRecipient(userRow.id);
+    const recipient: AdminRecipient = {
+      userId: userRow.id,
+      email: baseRecipient.email,
+      name: baseRecipient.name,
+      language: ADMIN_DEFAULT_LANGUAGE ?? baseRecipient.language,
+    };
+    adminRecipientCache.set(email, recipient);
+    return recipient;
+  } catch (err) {
+    console.error(`Failed to resolve admin recipient ${email}`, err);
+    return null;
+  }
+}
+
+async function resolveAdminRecipients(): Promise<AdminRecipient[]> {
+  const emails = parseAdminNotificationEmails();
+  if (emails.length === 0) {
+    return [];
+  }
+
+  const recipients: AdminRecipient[] = [];
+  for (const email of emails) {
+    const recipient = await resolveAdminRecipientByEmail(email);
+    if (recipient) {
+      recipients.push(recipient);
+    }
+  }
+  return recipients;
+}
+
+async function loadRequestSummary(
+  requestId: string
+): Promise<RequestSummary | null> {
+  const adminClient = requireSupabaseAdmin();
+  const { data: requestRow, error: requestError } = await adminClient
+    .from('requests')
+    .select(
+      'id, request_number, type, amount, currency, status, created_at, user_id'
+    )
+    .eq('id', requestId)
+    .maybeSingle();
+
+  if (requestError || !requestRow) {
+    console.error('Failed to load request summary', requestError);
+    return null;
+  }
+
+  const { data: profile } = await adminClient
+    .from('investor_profiles')
+    .select('preferred_name, full_name')
+    .eq('user_id', requestRow.user_id)
+    .maybeSingle();
+
+  const rawAmount =
+    typeof requestRow.amount === 'number'
+      ? requestRow.amount
+      : requestRow.amount != null
+        ? Number(requestRow.amount)
+        : null;
+
+  const amountValue =
+    rawAmount !== null && Number.isFinite(rawAmount)
+      ? (rawAmount as number)
+      : null;
+
+  return {
+    id: requestRow.id,
+    number: requestRow.request_number,
+    type: requestRow.type ?? 'unknown',
+    amount: amountValue,
+    currency: requestRow.currency ?? null,
+    status: requestRow.status ?? 'unknown',
+    createdAt: requestRow.created_at ?? new Date().toISOString(),
+    investorName: profile?.preferred_name ?? profile?.full_name ?? 'Investor',
+  };
+}
+
+async function resolveUserDisplayName(userId: string | undefined) {
+  if (!userId) {
+    return undefined;
+  }
+
+  try {
+    const recipient = await resolveNotificationRecipient(userId);
+    return recipient.name;
+  } catch {
+    return undefined;
+  }
+}
+
+function mapNotificationRow(row: NotificationRow): NotificationListItem {
+  return {
+    id: row.id,
+    type: row.type,
+    channel: row.channel,
+    payload: row.payload ?? {},
+    readAt: row.read_at,
+    createdAt: row.created_at,
+  };
+}
+
+export async function listUserNotifications(params: {
+  userId: string;
+  page: number;
+  limit: number;
+  status: NotificationStatusFilter;
+}): Promise<NotificationListResult> {
+  const adminClient = requireSupabaseAdmin();
+  const offset = (params.page - 1) * params.limit;
+  const end = offset + params.limit - 1;
+
+  let query = adminClient
+    .from('notifications')
+    .select('*', { count: 'exact' })
+    .eq('user_id', params.userId);
+
+  if (params.status === 'unread') {
+    query = query.is('read_at', null);
+  } else if (params.status === 'read') {
+    query = query.not('read_at', 'is', null);
+  }
+
+  query = query.order('created_at', { ascending: false }).range(offset, end);
+
+  const { data, error, count } = await query;
+
+  if (error) {
+    throw new Error(`Failed to fetch notifications: ${error.message}`);
+  }
+
+  const total = count ?? 0;
+  const pageCount = params.limit > 0 ? Math.ceil(total / params.limit) : 0;
+  const notifications = (data ?? []).map(row =>
+    mapNotificationRow(row as NotificationRow)
+  );
+
+  return {
+    notifications,
+    meta: {
+      page: params.page,
+      limit: params.limit,
+      total,
+      pageCount,
+      hasNext: offset + params.limit < total,
+      hasPrevious: params.page > 1,
+    },
+  };
+}
+
+export async function getUnreadNotificationCount(userId: string) {
+  const adminClient = requireSupabaseAdmin();
+  const { count, error } = await adminClient
+    .from('notifications')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .is('read_at', null);
+
+  if (error) {
+    throw new Error(`Failed to count unread notifications: ${error.message}`);
+  }
+
+  return count ?? 0;
+}
+
+export async function markNotificationRead(params: {
+  userId: string;
+  notificationId: string;
+}) {
+  const adminClient = requireSupabaseAdmin();
+  const { data, error } = await adminClient
+    .from('notifications')
+    .update({
+      read_at: new Date().toISOString(),
+    })
+    .eq('id', params.notificationId)
+    .eq('user_id', params.userId)
+    .select('id, read_at')
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to mark notification as read: ${error.message}`);
+  }
+
+  return data
+    ? {
+        updated: true,
+        readAt: data.read_at as string,
+      }
+    : {
+        updated: false,
+      };
+}
+
+export async function markAllNotificationsRead(userId: string) {
+  const adminClient = requireSupabaseAdmin();
+  const { data, error } = await adminClient
+    .from('notifications')
+    .update({
+      read_at: new Date().toISOString(),
+    })
+    .eq('user_id', userId)
+    .is('read_at', null)
+    .select('id');
+
+  if (error) {
+    throw new Error(`Failed to mark notifications as read: ${error.message}`);
+  }
+
+  return {
+    updated: data?.length ?? 0,
+  };
+}
+
+async function notifyAdminRequestEvent<
+  TTemplate extends
+    | 'admin_request_submitted'
+    | 'admin_request_pending_info'
+    | 'admin_request_decision'
+    | 'admin_request_settling'
+    | 'admin_request_completed',
+>(
+  templateId: TTemplate,
+  notificationType: NotificationType,
+  requestId: string,
+  buildContext: (
+    recipient: AdminRecipient,
+    summary: RequestSummary
+  ) => TemplateContext<TTemplate>,
+  metadata?: Record<string, unknown>
+) {
+  const recipients = await resolveAdminRecipients();
+  if (recipients.length === 0) {
+    return;
+  }
+
+  const summary = await loadRequestSummary(requestId);
+  if (!summary) {
+    return;
+  }
+
+  for (const recipient of recipients) {
+    try {
+      const context = buildContext(recipient, summary);
+      const notificationId = await createNotificationRecord({
+        userId: recipient.userId,
+        type: notificationType,
+        payload: {
+          requestId: summary.id,
+          requestNumber: summary.number,
+          channel: 'admin_email',
+        },
+      });
+
+      await enqueueEmailNotification({
+        userId: recipient.userId,
+        templateId,
+        language: recipient.language,
+        recipientEmail: recipient.email,
+        context,
+        metadata: {
+          requestId: summary.id,
+          requestNumber: summary.number,
+          notificationId,
+          ...metadata,
+        },
+      });
+    } catch (err) {
+      console.error(`Failed to queue admin notification (${templateId})`, err);
+    }
+  }
+}
+
 export async function notifyInvestorOfSubmission(
   payload: InvestorSubmissionNotification
 ) {
@@ -204,8 +576,26 @@ export async function notifyInvestorOfSubmission(
 export async function notifyAdminsOfSubmission(
   payload: AdminSubmissionNotification
 ) {
-  void payload;
-  return Promise.resolve();
+  try {
+    await notifyAdminRequestEvent(
+      'admin_request_submitted',
+      'request_submitted',
+      payload.requestId,
+      (recipient, summary) => ({
+        recipientName: recipient.name,
+        requestNumber: summary.number,
+        investorName: summary.investorName,
+        requestType: summary.type,
+        amount: summary.amount ?? undefined,
+        currency: summary.currency ?? undefined,
+        requestLink: buildAdminRequestLink(summary.id),
+        supportEmail: SUPPORT_EMAIL,
+        submittedAt: summary.createdAt,
+      })
+    );
+  } catch (error) {
+    console.error('Failed to queue admin submission notification', error);
+  }
 }
 
 export async function notifyInvestorOfDecision(
@@ -223,6 +613,7 @@ export async function notifyInvestorOfDecision(
         requestId: payload.requestId,
         requestNumber: payload.requestNumber,
         decision: payload.decision,
+        note: payload.note ?? null,
       },
     });
 
@@ -272,6 +663,33 @@ export async function notifyInvestorOfDecision(
   } catch (error) {
     console.error('Failed to queue decision notification email', error);
   }
+
+  try {
+    const actorName = payload.actorId
+      ? await resolveUserDisplayName(payload.actorId)
+      : undefined;
+
+    await notifyAdminRequestEvent(
+      'admin_request_decision',
+      payload.decision === 'approved' ? 'request_approved' : 'request_rejected',
+      payload.requestId,
+      (recipient, summary) => ({
+        recipientName: recipient.name,
+        requestNumber: summary.number,
+        investorName: summary.investorName,
+        requestType: summary.type,
+        amount: summary.amount ?? undefined,
+        currency: summary.currency ?? undefined,
+        requestLink: buildAdminRequestLink(summary.id),
+        supportEmail: SUPPORT_EMAIL,
+        decision: payload.decision,
+        note: payload.note ?? null,
+        actorName,
+      })
+    );
+  } catch (error) {
+    console.error('Failed to queue admin decision notification', error);
+  }
 }
 
 export async function notifyInvestorOfInfoRequest(
@@ -285,6 +703,7 @@ export async function notifyInvestorOfInfoRequest(
       payload: {
         requestId: payload.requestId,
         requestNumber: payload.requestNumber,
+        message: payload.message,
       },
     });
 
@@ -307,6 +726,35 @@ export async function notifyInvestorOfInfoRequest(
     });
   } catch (error) {
     console.error('Failed to queue info request email', error);
+  }
+
+  try {
+    const actorName = payload.actorId
+      ? await resolveUserDisplayName(payload.actorId)
+      : undefined;
+
+    await notifyAdminRequestEvent(
+      'admin_request_pending_info',
+      'request_pending_info',
+      payload.requestId,
+      (recipient, summary) => ({
+        recipientName: recipient.name,
+        requestNumber: summary.number,
+        investorName: summary.investorName,
+        requestType: summary.type,
+        amount: summary.amount ?? undefined,
+        currency: summary.currency ?? undefined,
+        requestLink: buildAdminRequestLink(summary.id),
+        supportEmail: SUPPORT_EMAIL,
+        infoMessage: payload.message,
+        previousStatus: payload.previousStatus,
+      }),
+      {
+        actorName,
+      }
+    );
+  } catch (error) {
+    console.error('Failed to queue admin pending info notification', error);
   }
 }
 
@@ -369,6 +817,54 @@ export async function notifyInvestorOfSettlement(
     }
   } catch (error) {
     console.error('Failed to queue settlement notification email', error);
+  }
+
+  try {
+    const actorName = payload.actorId
+      ? await resolveUserDisplayName(payload.actorId)
+      : undefined;
+
+    if (payload.stage === 'started') {
+      await notifyAdminRequestEvent(
+        'admin_request_settling',
+        'request_settling',
+        payload.requestId,
+        (recipient, summary) => ({
+          recipientName: recipient.name,
+          requestNumber: summary.number,
+          investorName: summary.investorName,
+          requestType: summary.type,
+          amount: summary.amount ?? undefined,
+          currency: summary.currency ?? undefined,
+          requestLink: buildAdminRequestLink(summary.id),
+          supportEmail: SUPPORT_EMAIL,
+          settlementReference: payload.reference ?? null,
+          startedAt: new Date().toISOString(),
+        }),
+        { actorName }
+      );
+    } else {
+      await notifyAdminRequestEvent(
+        'admin_request_completed',
+        'request_completed',
+        payload.requestId,
+        (recipient, summary) => ({
+          recipientName: recipient.name,
+          requestNumber: summary.number,
+          investorName: summary.investorName,
+          requestType: summary.type,
+          amount: summary.amount ?? undefined,
+          currency: summary.currency ?? undefined,
+          requestLink: buildAdminRequestLink(summary.id),
+          supportEmail: SUPPORT_EMAIL,
+          settlementReference: payload.reference ?? null,
+          completedAt: new Date().toISOString(),
+        }),
+        { actorName }
+      );
+    }
+  } catch (error) {
+    console.error('Failed to queue admin settlement notification', error);
   }
 }
 
