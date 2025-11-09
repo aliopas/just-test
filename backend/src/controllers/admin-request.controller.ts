@@ -170,7 +170,7 @@ export const adminRequestController = {
         requestId,
         note,
         ipAddress: req.ip,
-        userAgent: req.headers['user-agent'] ?? null,
+        userAgent: req.headers?.['user-agent'] ?? null,
       });
 
       return res.status(200).json({
@@ -243,7 +243,7 @@ export const adminRequestController = {
         requestId,
         note,
         ipAddress: req.ip,
-        userAgent: req.headers['user-agent'] ?? null,
+        userAgent: req.headers?.['user-agent'] ?? null,
       });
 
       return res.status(200).json({
@@ -323,7 +323,7 @@ export const adminRequestController = {
         requestId,
         message,
         ipAddress: req.ip,
-        userAgent: req.headers['user-agent'] ?? null,
+        userAgent: req.headers?.['user-agent'] ?? null,
       });
 
       return res.status(200).json({
@@ -452,7 +452,7 @@ export const adminRequestController = {
         requestId,
         comment,
         ipAddress: req.ip,
-        userAgent: req.headers['user-agent'] ?? null,
+        userAgent: req.headers?.['user-agent'] ?? null,
       });
 
       return res.status(201).json(result);
@@ -539,7 +539,7 @@ export const adminRequestController = {
         note,
         attachmentIds,
         ipAddress: req.ip,
-        userAgent: req.headers['user-agent'] ?? null,
+        userAgent: req.headers?.['user-agent'] ?? null,
       });
 
       return res.status(200).json({

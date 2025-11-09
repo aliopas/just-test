@@ -287,6 +287,10 @@ describe('getAdminRequestDetail', () => {
       notes: 'Urgent request',
       created_at: '2025-01-01T00:00:00Z',
       updated_at: '2025-01-02T00:00:00Z',
+      settlement_started_at: null,
+      settlement_completed_at: null,
+      settlement_reference: null,
+      settlement_notes: null,
       users: [
         {
           id: 'user-1',

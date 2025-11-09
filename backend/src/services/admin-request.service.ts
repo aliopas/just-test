@@ -700,9 +700,7 @@ export async function addAdminRequestComment(params: {
   });
 
   const actorRow = firstOrNull(data.actor ?? null);
-  const actorProfile = actorRow
-    ? firstOrNull(actorRow.profile ?? null)
-    : null;
+  const actorProfile = actorRow ? firstOrNull(actorRow.profile ?? null) : null;
 
   return {
     id: data.id,
@@ -751,9 +749,7 @@ async function updateSettlementAttachments(params: {
     .in('id', params.attachmentIds);
 }
 
-export async function startRequestSettlement(
-  params: SettlementBaseParams
-) {
+export async function startRequestSettlement(params: SettlementBaseParams) {
   const trimmedReference = params.reference?.trim() || null;
   const trimmedNote = params.note?.trim() || null;
 
@@ -838,9 +834,7 @@ export async function startRequestSettlement(
   return transition;
 }
 
-export async function completeRequestSettlement(
-  params: SettlementBaseParams
-) {
+export async function completeRequestSettlement(params: SettlementBaseParams) {
   const trimmedReference = params.reference?.trim() || null;
   const trimmedNote = params.note?.trim() || null;
 
@@ -871,7 +865,9 @@ export async function completeRequestSettlement(
     .eq('id', params.requestId);
 
   if (updateError) {
-    throw new Error(`Failed to update settlement completion: ${updateError.message}`);
+    throw new Error(
+      `Failed to update settlement completion: ${updateError.message}`
+    );
   }
 
   await updateSettlementAttachments({
