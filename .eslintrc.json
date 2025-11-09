@@ -32,7 +32,8 @@
     "*.config.js",
     "backend/tests/**",
     "netlify/functions/**",
-    "frontend/**"
+    "frontend/**",
+    "supabase/functions/**"
   ]
 }
 
