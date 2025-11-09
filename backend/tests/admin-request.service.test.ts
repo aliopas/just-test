@@ -7,6 +7,8 @@ import {
   requestInfoFromInvestor,
   listAdminRequestComments,
   addAdminRequestComment,
+  startRequestSettlement,
+  completeRequestSettlement,
 } from '../src/services/admin-request.service';
 import { requireSupabaseAdmin } from '../src/lib/supabase';
 import type { AdminRequestListQuery } from '../src/schemas/admin-requests.schema';
@@ -15,6 +17,7 @@ import { transitionRequestStatus } from '../src/services/request-state.service';
 import {
   notifyInvestorOfDecision,
   notifyInvestorOfInfoRequest,
+  notifyInvestorOfSettlement,
 } from '../src/services/notification.service';
 
 jest.mock('../src/services/request-state.service', () => ({
@@ -36,6 +39,7 @@ jest.mock('../src/services/notification.service', () => ({
   notifyInvestorOfSubmission: jest.fn(),
   notifyInvestorOfDecision: jest.fn(),
   notifyInvestorOfInfoRequest: jest.fn(),
+  notifyInvestorOfSettlement: jest.fn(),
 }));
 
 jest.mock('../src/lib/supabase', () => ({
@@ -46,12 +50,14 @@ const mockRequireSupabaseAdmin = requireSupabaseAdmin as jest.Mock;
 const mockTransition = transitionRequestStatus as jest.Mock;
 const mockNotifyDecision = notifyInvestorOfDecision as jest.Mock;
 const mockNotifyInfoRequest = notifyInvestorOfInfoRequest as jest.Mock;
+const mockNotifySettlement = notifyInvestorOfSettlement as jest.Mock;
 
 beforeEach(() => {
   mockRequireSupabaseAdmin.mockReset();
   mockTransition.mockReset();
   mockNotifyDecision.mockReset();
   mockNotifyInfoRequest.mockReset();
+  mockNotifySettlement.mockReset();
 });
 
 describe('escapeLikePattern', () => {
@@ -314,6 +320,8 @@ describe('getAdminRequestDetail', () => {
           size: '2048',
           storage_key: 'bucket/doc.pdf',
           created_at: '2025-01-01T01:00:00Z',
+          category: 'general',
+          metadata: {},
         },
       ],
       error: null,
@@ -411,6 +419,12 @@ describe('getAdminRequestDetail', () => {
           email: 'user@example.com',
           fullName: 'Investor One',
         }),
+        settlement: {
+          startedAt: null,
+          completedAt: null,
+          reference: null,
+          notes: null,
+        },
       })
     );
     expect(result.attachments).toHaveLength(1);
@@ -735,6 +749,158 @@ describe('addAdminRequestComment', () => {
       expect.objectContaining({
         note: 'Reviewed documents',
         actor: expect.objectContaining({ email: 'admin@example.com' }),
+      })
+    );
+  });
+});
+
+describe('startRequestSettlement', () => {
+  it('transitions request to settling and updates settlement info', async () => {
+    const transitionResult = {
+      request: {
+        id: 'req-10',
+        user_id: 'user-99',
+        request_number: 'INV-2025-000010',
+        status: 'settling',
+      },
+      event: {
+        from_status: 'approved',
+        to_status: 'settling',
+      },
+    };
+    mockTransition.mockResolvedValueOnce(transitionResult);
+
+    const requestsEqMock = jest.fn().mockResolvedValue({ error: null });
+    const attachmentsInMock = jest.fn().mockResolvedValue({ error: null });
+    const auditInsertMock = jest.fn().mockResolvedValue({ error: null });
+
+    const adminClient = {
+      from: jest.fn((table: string) => {
+        if (table === 'requests') {
+          return {
+            update: jest.fn().mockReturnValue({
+              eq: requestsEqMock,
+            }),
+          };
+        }
+        if (table === 'attachments') {
+          return {
+            update: jest.fn().mockReturnValue({
+              eq: jest.fn().mockReturnValue({
+                in: attachmentsInMock,
+              }),
+            }),
+          };
+        }
+        if (table === 'audit_logs') {
+          return {
+            insert: auditInsertMock,
+          };
+        }
+        throw new Error(`Unhandled table: ${table}`);
+      }),
+    };
+
+    mockRequireSupabaseAdmin.mockReturnValue(adminClient);
+
+    await startRequestSettlement({
+      actorId: 'admin-10',
+      requestId: 'req-10',
+      reference: 'SETT-REF-001',
+      note: 'Initiating settlement',
+      attachmentIds: ['att-1', 'att-2'],
+      ipAddress: '::1',
+      userAgent: 'jest',
+    });
+
+    expect(mockTransition).toHaveBeenCalledWith(
+      expect.objectContaining({
+        toStatus: 'settling',
+      })
+    );
+    expect(requestsEqMock).toHaveBeenCalledWith('id', 'req-10');
+    expect(attachmentsInMock).toHaveBeenCalledWith('id', ['att-1', 'att-2']);
+    expect(auditInsertMock).toHaveBeenCalled();
+    expect(mockNotifySettlement).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'user-99',
+        stage: 'started',
+        reference: 'SETT-REF-001',
+      })
+    );
+  });
+});
+
+describe('completeRequestSettlement', () => {
+  it('transitions request to completed and records settlement completion', async () => {
+    const transitionResult = {
+      request: {
+        id: 'req-11',
+        user_id: 'user-100',
+        request_number: 'INV-2025-000011',
+        status: 'completed',
+      },
+      event: {
+        from_status: 'settling',
+        to_status: 'completed',
+      },
+    };
+    mockTransition.mockResolvedValueOnce(transitionResult);
+
+    const requestsEqMock = jest.fn().mockResolvedValue({ error: null });
+    const attachmentsInMock = jest.fn().mockResolvedValue({ error: null });
+    const auditInsertMock = jest.fn().mockResolvedValue({ error: null });
+
+    const adminClient = {
+      from: jest.fn((table: string) => {
+        if (table === 'requests') {
+          return {
+            update: jest.fn().mockReturnValue({
+              eq: requestsEqMock,
+            }),
+          };
+        }
+        if (table === 'attachments') {
+          return {
+            update: jest.fn().mockReturnValue({
+              eq: jest.fn().mockReturnValue({
+                in: attachmentsInMock,
+              }),
+            }),
+          };
+        }
+        if (table === 'audit_logs') {
+          return {
+            insert: auditInsertMock,
+          };
+        }
+        throw new Error(`Unhandled table: ${table}`);
+      }),
+    };
+
+    mockRequireSupabaseAdmin.mockReturnValue(adminClient);
+
+    await completeRequestSettlement({
+      actorId: 'admin-11',
+      requestId: 'req-11',
+      reference: 'SETT-REF-002',
+      note: 'Funds received',
+      attachmentIds: ['att-3'],
+    });
+
+    expect(mockTransition).toHaveBeenCalledWith(
+      expect.objectContaining({
+        toStatus: 'completed',
+      })
+    );
+    expect(requestsEqMock).toHaveBeenCalledWith('id', 'req-11');
+    expect(attachmentsInMock).toHaveBeenCalledWith('id', ['att-3']);
+    expect(auditInsertMock).toHaveBeenCalled();
+    expect(mockNotifySettlement).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'user-100',
+        stage: 'completed',
+        reference: 'SETT-REF-002',
       })
     );
   });

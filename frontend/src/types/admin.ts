@@ -42,6 +42,8 @@ export interface AdminAttachment {
   size: number | null;
   storageKey: string;
   createdAt: string;
+  category: string;
+  metadata: Record<string, unknown>;
 }
 
 export interface AdminRequestEvent {
@@ -68,10 +70,18 @@ export interface AdminRequestComment {
   actor: AdminRequestCommentActor | null;
 }
 
+export interface AdminRequestSettlement {
+  startedAt: string | null;
+  completedAt: string | null;
+  reference: string | null;
+  notes: string | null;
+}
+
 export interface AdminRequestDetail {
   request: AdminRequest & {
     userId: string;
     notes: string | null;
+    settlement?: AdminRequestSettlement;
   };
   attachments: AdminAttachment[];
   events: AdminRequestEvent[];

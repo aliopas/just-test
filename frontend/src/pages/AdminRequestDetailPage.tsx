@@ -29,6 +29,7 @@ function AdminRequestDetailPageInner() {
   const { data, isLoading, isError, error, refetch, isFetching } =
     useAdminRequestDetail(requestId);
   const [decisionNote, setDecisionNote] = useState('');
+  const [settlementReference, setSettlementReference] = useState('');
   const [newComment, setNewComment] = useState('');
 
   const approveMutation = useMutation({
@@ -121,6 +122,74 @@ function AdminRequestDetailPageInner() {
     },
   });
 
+  const startSettlementMutation = useMutation({
+    mutationFn: async (payload: { reference: string; note?: string }) => {
+      if (!requestId) {
+        throw new Error('Request id is missing');
+      }
+      return apiClient(`/admin/requests/${requestId}/settle`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          stage: 'start',
+          reference: payload.reference,
+          note: payload.note,
+        }),
+      });
+    },
+    onSuccess: () => {
+      pushToast({
+        message: tAdminRequests('decision.settlementStartedSuccess', language),
+        variant: 'success',
+      });
+      setDecisionNote('');
+      refetch();
+    },
+    onError: (mutationError: unknown) => {
+      const message =
+        mutationError instanceof Error
+          ? mutationError.message
+          : tAdminRequests('table.error', language);
+      pushToast({
+        message,
+        variant: 'error',
+      });
+    },
+  });
+
+  const completeSettlementMutation = useMutation({
+    mutationFn: async (payload: { reference: string; note?: string }) => {
+      if (!requestId) {
+        throw new Error('Request id is missing');
+      }
+      return apiClient(`/admin/requests/${requestId}/settle`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          stage: 'complete',
+          reference: payload.reference,
+          note: payload.note,
+        }),
+      });
+    },
+    onSuccess: () => {
+      pushToast({
+        message: tAdminRequests('decision.settlementCompletedSuccess', language),
+        variant: 'success',
+      });
+      setDecisionNote('');
+      refetch();
+    },
+    onError: (mutationError: unknown) => {
+      const message =
+        mutationError instanceof Error
+          ? mutationError.message
+          : tAdminRequests('table.error', language);
+      pushToast({
+        message,
+        variant: 'error',
+      });
+    },
+  });
+
   const addCommentMutation = useMutation({
     mutationFn: async (payload: { comment: string }) => {
       if (!requestId) {
@@ -163,22 +232,53 @@ function AdminRequestDetailPageInner() {
     });
   }, [isError, error, pushToast, language]);
 
+  useEffect(() => {
+    if (!data?.request?.settlement) {
+      setSettlementReference('');
+      return;
+    }
+
+    setSettlementReference(data.request.settlement.reference ?? '');
+  }, [data?.request?.settlement?.reference]);
+
   const request = data?.request;
+  const settlement = request?.settlement;
   const isDecisionFinal = request
     ? request.status === 'approved' || request.status === 'rejected'
     : false;
   const isActionBusy =
     approveMutation.isPending ||
     rejectMutation.isPending ||
-    requestInfoMutation.isPending;
+    requestInfoMutation.isPending ||
+    startSettlementMutation.isPending ||
+    completeSettlementMutation.isPending;
   const isCommentBusy = addCommentMutation.isPending;
 
   const amountFormatted = request
     ? new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
         style: 'currency',
-        currency: request.currency,
+        currency: request.currency ?? 'SAR',
       }).format(request.amount)
     : '—';
+
+  const formatDateTime = (value?: string | null) => {
+    if (!value) return '—';
+    try {
+      return new Date(value).toLocaleString(
+        language === 'ar' ? 'ar-SA' : 'en-US',
+        { dateStyle: 'medium', timeStyle: 'short' }
+      );
+    } catch {
+      return value;
+    }
+  };
+
+  const attachmentCategoryLabel = (category?: string) => {
+    if (category === 'settlement') {
+      return tAdminRequests('detail.attachmentCategory.settlement', language);
+    }
+    return tAdminRequests('detail.attachmentCategory.general', language);
+  };
 
   return (
     <div
@@ -390,6 +490,53 @@ function AdminRequestDetailPageInner() {
           </Card>
 
           <Card>
+            <CardTitle>{tAdminRequests('detail.settlement', language)}</CardTitle>
+            {isLoading || !request ? (
+              <Skeleton />
+            ) : (
+              <>
+                <InfoGrid
+                  items={[
+                    {
+                      label: tAdminRequests(
+                        'detail.settlementReference',
+                        language
+                      ),
+                      value: settlement?.reference?.trim() || '—',
+                    },
+                    {
+                      label: tAdminRequests(
+                        'detail.settlementStartedAt',
+                        language
+                      ),
+                      value: formatDateTime(settlement?.startedAt),
+                    },
+                    {
+                      label: tAdminRequests(
+                        'detail.settlementCompletedAt',
+                        language
+                      ),
+                      value: formatDateTime(settlement?.completedAt),
+                    },
+                  ]}
+                />
+                {settlement?.notes ? (
+                  <p
+                    style={{
+                      marginTop: '0.75rem',
+                      color: '#475569',
+                      lineHeight: 1.6,
+                      whiteSpace: 'pre-wrap',
+                    }}
+                  >
+                    {settlement.notes}
+                  </p>
+                ) : null}
+              </>
+            )}
+          </Card>
+
+          <Card>
             <CardTitle>{tAdminRequests('detail.comments', language)}</CardTitle>
             {isLoading || !data ? (
               <Skeleton />
@@ -530,6 +677,17 @@ function AdminRequestDetailPageInner() {
                     }}
                   >
                     <strong style={{ color: '#0F172A' }}>{attachment.filename}</strong>
+                    <span
+                      style={{
+                        color: '#2563EB',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                      }}
+                    >
+                      {attachmentCategoryLabel(attachment.category)}
+                    </span>
                     <span style={{ color: '#64748B', fontSize: '0.85rem' }}>
                       {attachment.mimeType ?? '—'} ·{' '}
                       {attachment.size != null
@@ -557,6 +715,27 @@ function AdminRequestDetailPageInner() {
                 maxLength={500}
                 placeholder={tAdminRequests('decision.notePlaceholder', language)}
                 style={{ ...textAreaStyle, direction }}
+              />
+              <label
+                style={{
+                  display: 'flex',
+                  flexDirection: direction === 'rtl' ? 'row-reverse' : 'row',
+                  justifyContent: direction === 'rtl' ? 'flex-end' : 'flex-start',
+                  alignItems: 'center',
+                  fontSize: '0.85rem',
+                  color: '#475569',
+                  fontWeight: 600,
+                }}
+              >
+                {tAdminRequests('decision.referenceLabel', language)}
+              </label>
+              <input
+                type="text"
+                value={settlementReference}
+                onChange={event => setSettlementReference(event.target.value)}
+                maxLength={120}
+                placeholder={tAdminRequests('decision.referencePlaceholder', language)}
+                style={{ ...inputStyle, direction }}
               />
               <ActionButton
                 label={tAdminRequests('detail.approve', language)}
@@ -596,6 +775,50 @@ function AdminRequestDetailPageInner() {
                 disabled={isActionBusy || !request}
                 loading={requestInfoMutation.isPending}
               />
+              {request?.status === 'approved' && (
+                <ActionButton
+                  label={tAdminRequests('detail.startSettlement', language)}
+                  variant="secondary"
+                  onClick={() => {
+                    const reference = settlementReference.trim();
+                    if (!reference) {
+                      pushToast({
+                        message: tAdminRequests('decision.referenceRequired', language),
+                        variant: 'error',
+                      });
+                      return;
+                    }
+                    startSettlementMutation.mutate({
+                      reference,
+                      note: decisionNote.trim() ? decisionNote.trim() : undefined,
+                    });
+                  }}
+                  disabled={isActionBusy || !request}
+                  loading={startSettlementMutation.isPending}
+                />
+              )}
+              {request?.status === 'settling' && (
+                <ActionButton
+                  label={tAdminRequests('detail.completeSettlement', language)}
+                  variant="secondary"
+                  onClick={() => {
+                    const reference = settlementReference.trim();
+                    if (!reference) {
+                      pushToast({
+                        message: tAdminRequests('decision.referenceRequired', language),
+                        variant: 'error',
+                      });
+                      return;
+                    }
+                    completeSettlementMutation.mutate({
+                      reference,
+                      note: decisionNote.trim() ? decisionNote.trim() : undefined,
+                    });
+                  }}
+                  disabled={isActionBusy || !request}
+                  loading={completeSettlementMutation.isPending}
+                />
+              )}
             </div>
             <p
               style={{
@@ -770,6 +993,16 @@ const textAreaStyle: React.CSSProperties = {
   fontSize: '0.95rem',
   padding: '0.75rem 1rem',
   resize: 'vertical',
+};
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  borderRadius: '0.85rem',
+  border: '1px solid #CBD5F5',
+  background: '#FFFFFF',
+  color: '#0F172A',
+  fontSize: '0.95rem',
+  padding: '0.65rem 1rem',
 };
 
 function ActionButton({

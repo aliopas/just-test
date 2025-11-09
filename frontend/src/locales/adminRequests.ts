@@ -51,6 +51,14 @@ type MessageKey =
   | 'detail.commentPlaceholder'
   | 'detail.commentSubmit'
   | 'detail.commentUnknownActor'
+  | 'detail.settlement'
+  | 'detail.settlementReference'
+  | 'detail.settlementStartedAt'
+  | 'detail.settlementCompletedAt'
+  | 'detail.attachmentCategory.general'
+  | 'detail.attachmentCategory.settlement'
+  | 'detail.startSettlement'
+  | 'detail.completeSettlement'
   | 'detail.noteHelper'
   | 'detail.noAttachments'
   | 'detail.noEvents'
@@ -65,6 +73,11 @@ type MessageKey =
   | 'decision.infoRequestedSuccess'
   | 'decision.notePlaceholder'
   | 'decision.noteRequired'
+  | 'decision.referenceLabel'
+  | 'decision.referencePlaceholder'
+  | 'decision.referenceRequired'
+  | 'decision.settlementStartedSuccess'
+  | 'decision.settlementCompletedSuccess'
   | 'comment.addSuccess'
   | 'comment.addError'
   | 'comment.required';
@@ -124,6 +137,14 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'detail.commentPlaceholder': 'Share an internal update or note for the review team…',
     'detail.commentSubmit': 'Add Comment',
     'detail.commentUnknownActor': 'Unknown user',
+    'detail.settlement': 'Settlement tracking',
+    'detail.settlementReference': 'Settlement reference',
+    'detail.settlementStartedAt': 'Settlement started',
+    'detail.settlementCompletedAt': 'Settlement completed',
+    'detail.attachmentCategory.general': 'General attachment',
+    'detail.attachmentCategory.settlement': 'Settlement document',
+    'detail.startSettlement': 'Start settlement',
+    'detail.completeSettlement': 'Mark as settled',
     'detail.noteHelper': 'Use the note field to add context. Notes are required when requesting info.',
     'detail.noAttachments': 'No attachments uploaded.',
     'detail.noEvents': 'No workflow events yet.',
@@ -138,6 +159,11 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'decision.infoRequestedSuccess': 'Information request sent successfully',
     'decision.notePlaceholder': 'Add an internal note (optional, max 500 characters)…',
     'decision.noteRequired': 'Please enter a message before requesting additional information.',
+    'decision.referenceLabel': 'Settlement reference',
+    'decision.referencePlaceholder': 'Enter settlement reference…',
+    'decision.referenceRequired': 'Settlement reference is required.',
+    'decision.settlementStartedSuccess': 'Settlement initiated successfully.',
+    'decision.settlementCompletedSuccess': 'Settlement marked as completed.',
     'comment.addSuccess': 'Comment added successfully.',
     'comment.addError': 'Failed to add comment. Please try again.',
     'comment.required': 'Please enter a comment before submitting.',
@@ -194,6 +220,14 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'detail.commentPlaceholder': 'شارك تحديثاً داخلياً أو ملاحظة لفريق المراجعة…',
     'detail.commentSubmit': 'إضافة تعليق',
     'detail.commentUnknownActor': 'مستخدم غير معروف',
+    'detail.settlement': 'تتبع التسوية',
+    'detail.settlementReference': 'مرجع التسوية',
+    'detail.settlementStartedAt': 'تاريخ بدء التسوية',
+    'detail.settlementCompletedAt': 'تاريخ إكمال التسوية',
+    'detail.attachmentCategory.general': 'مرفق عام',
+    'detail.attachmentCategory.settlement': 'مستند تسوية',
+    'detail.startSettlement': 'بدء التسوية',
+    'detail.completeSettlement': 'تأكيد إتمام التسوية',
     'detail.noteHelper': 'استخدم حقل الملاحظات لإضافة سياق، وهو مطلوب عند طلب معلومات إضافية.',
     'detail.noAttachments': 'لم يتم رفع أي مرفقات.',
     'detail.noEvents': 'لا يوجد سجل أحداث بعد.',
@@ -208,6 +242,11 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'decision.infoRequestedSuccess': 'تم إرسال طلب المعلومات الإضافية بنجاح',
     'decision.notePlaceholder': 'أضف ملاحظة داخلية (اختياري، بحد أقصى 500 حرف)…',
     'decision.noteRequired': 'يرجى إدخال رسالة قبل طلب معلومات إضافية.',
+    'decision.referenceLabel': 'مرجع التسوية',
+    'decision.referencePlaceholder': 'أدخل مرجع التسوية…',
+    'decision.referenceRequired': 'مرجع التسوية مطلوب.',
+    'decision.settlementStartedSuccess': 'تم بدء التسوية بنجاح.',
+    'decision.settlementCompletedSuccess': 'تم تأكيد إتمام التسوية بنجاح.',
     'comment.addSuccess': 'تمت إضافة التعليق بنجاح.',
     'comment.addError': 'فشل في إضافة التعليق، حاول مرة أخرى.',
     'comment.required': 'يرجى كتابة التعليق قبل الإرسال.',

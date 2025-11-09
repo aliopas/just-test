@@ -11,6 +11,8 @@ import {
   requestInfoFromInvestor,
   listAdminRequestComments,
   addAdminRequestComment,
+  startRequestSettlement,
+  completeRequestSettlement,
 } from '../src/services/admin-request.service';
 import type { AuthenticatedRequest } from '../src/middleware/auth.middleware';
 import type { Response } from 'express';
@@ -23,6 +25,8 @@ jest.mock('../src/services/admin-request.service', () => ({
   requestInfoFromInvestor: jest.fn(),
   listAdminRequestComments: jest.fn(),
   addAdminRequestComment: jest.fn(),
+  startRequestSettlement: jest.fn(),
+  completeRequestSettlement: jest.fn(),
 }));
 
 const mockedListAdminRequests = listAdminRequests as jest.Mock;
@@ -32,6 +36,8 @@ const mockedRejectAdminRequest = rejectAdminRequest as jest.Mock;
 const mockedRequestInfo = requestInfoFromInvestor as jest.Mock;
 const mockedListComments = listAdminRequestComments as jest.Mock;
 const mockedAddComment = addAdminRequestComment as jest.Mock;
+const mockedStartSettlement = startRequestSettlement as jest.Mock;
+const mockedCompleteSettlement = completeRequestSettlement as jest.Mock;
 
 const createMockResponse = () => {
   const res: Partial<Response> = {};
@@ -535,6 +541,127 @@ describe('adminRequestController.addComment', () => {
     );
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith(commentResponse);
+  });
+});
+
+describe('adminRequestController.settleRequest', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns 401 when user not authenticated', async () => {
+    const req = {
+      params: { id: 'req-20' },
+      body: { stage: 'start' },
+      user: undefined,
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.settleRequest(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+  });
+
+  it('returns 400 when stage missing', async () => {
+    const req = {
+      params: { id: 'req-20' },
+      body: {},
+      user: { id: 'admin-20', email: 'admin@example.com' },
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.settleRequest(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(mockedStartSettlement).not.toHaveBeenCalled();
+    expect(mockedCompleteSettlement).not.toHaveBeenCalled();
+  });
+
+  it('calls start settlement handler for stage start', async () => {
+    mockedStartSettlement.mockResolvedValueOnce({
+      request: { status: 'settling' },
+    });
+
+    const req = {
+      params: { id: 'req-21' },
+      body: {
+        stage: 'start',
+        reference: 'SETT-100',
+        note: 'Starting settlement',
+        attachmentIds: ['att-1'],
+      },
+      user: { id: 'admin-21', email: 'admin@example.com' },
+      ip: '::1',
+      headers: { 'user-agent': 'jest' },
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.settleRequest(req, res);
+
+    expect(mockedStartSettlement).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actorId: 'admin-21',
+        requestId: 'req-21',
+        reference: 'SETT-100',
+      })
+    );
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        requestId: 'req-21',
+        status: 'settling',
+        stage: 'start',
+      })
+    );
+  });
+
+  it('calls complete settlement handler for stage complete', async () => {
+    mockedCompleteSettlement.mockResolvedValueOnce({
+      request: { status: 'completed' },
+    });
+
+    const req = {
+      params: { id: 'req-22' },
+      body: {
+        stage: 'complete',
+        reference: 'SETT-200',
+      },
+      user: { id: 'admin-22', email: 'admin@example.com' },
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.settleRequest(req, res);
+
+    expect(mockedCompleteSettlement).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actorId: 'admin-22',
+        requestId: 'req-22',
+        reference: 'SETT-200',
+      })
+    );
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        requestId: 'req-22',
+        status: 'completed',
+        stage: 'complete',
+      })
+    );
+  });
+
+  it('returns 404 when request not found', async () => {
+    mockedStartSettlement.mockRejectedValueOnce(new Error('Request req-23 not found'));
+
+    const req = {
+      params: { id: 'req-23' },
+      body: { stage: 'start' },
+      user: { id: 'admin-23', email: 'admin@example.com' },
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.settleRequest(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
   });
 });
 

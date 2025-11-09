@@ -5,6 +5,7 @@ import { transitionRequestStatus } from './request-state.service';
 import {
   notifyInvestorOfDecision,
   notifyInvestorOfInfoRequest,
+  notifyInvestorOfSettlement,
 } from './notification.service';
 
 type MaybeArray<T> = T | T[] | null | undefined;
@@ -184,6 +185,10 @@ type AdminRequestDetailRow = {
   target_price: number | string | null;
   expiry_at: string | null;
   notes: string | null;
+  settlement_started_at: string | null;
+  settlement_completed_at: string | null;
+  settlement_reference: string | null;
+  settlement_notes: string | null;
   created_at: string;
   updated_at: string;
   users?: MaybeArray<{
@@ -204,6 +209,8 @@ type AdminAttachmentRow = {
   size: number | string | null;
   storage_key: string;
   created_at: string;
+  category: string | null;
+  metadata: Record<string, unknown> | null;
 };
 
 type AdminEventRow = {
@@ -262,6 +269,10 @@ export async function getAdminRequestDetail(params: {
         target_price,
         expiry_at,
         notes,
+        settlement_started_at,
+        settlement_completed_at,
+        settlement_reference,
+        settlement_notes,
         created_at,
         updated_at,
         users:users!requests_user_id_fkey (
@@ -292,7 +303,9 @@ export async function getAdminRequestDetail(params: {
           mime_type,
           size,
           storage_key,
-          created_at
+          created_at,
+          category,
+          metadata
         `
       )
       .eq('request_id', params.requestId)
@@ -362,6 +375,8 @@ export async function getAdminRequestDetail(params: {
         size: normalizeNumber(attachment.size),
         storageKey: attachment.storage_key,
         createdAt: attachment.created_at,
+        category: attachment.category ?? 'general',
+        metadata: attachment.metadata ?? {},
       })
     ) ?? [];
 
@@ -407,6 +422,12 @@ export async function getAdminRequestDetail(params: {
       targetPrice: normalizeNumber(requestRow.target_price),
       expiryAt: requestRow.expiry_at,
       notes: requestRow.notes,
+      settlement: {
+        startedAt: requestRow.settlement_started_at,
+        completedAt: requestRow.settlement_completed_at,
+        reference: requestRow.settlement_reference,
+        notes: requestRow.settlement_notes,
+      },
       createdAt: requestRow.created_at,
       updatedAt: requestRow.updated_at,
       investor: {
@@ -695,4 +716,211 @@ export async function addAdminRequestComment(params: {
     },
     createdAt: data.created_at,
   };
+}
+
+type SettlementBaseParams = {
+  actorId: string;
+  requestId: string;
+  reference?: string | null;
+  note?: string | null;
+  attachmentIds?: string[];
+  ipAddress?: string | null;
+  userAgent?: string | null;
+};
+
+async function updateSettlementAttachments(params: {
+  requestId: string;
+  attachmentIds?: string[];
+  stage: 'started' | 'completed';
+}) {
+  if (!params.attachmentIds || params.attachmentIds.length === 0) {
+    return;
+  }
+
+  const adminClient = requireSupabaseAdmin();
+  await adminClient
+    .from('attachments')
+    .update({
+      category: 'settlement',
+      metadata: {
+        stage: params.stage,
+        updated_at: new Date().toISOString(),
+      },
+    })
+    .eq('request_id', params.requestId)
+    .in('id', params.attachmentIds);
+}
+
+export async function startRequestSettlement(
+  params: SettlementBaseParams
+) {
+  const trimmedReference = params.reference?.trim() || null;
+  const trimmedNote = params.note?.trim() || null;
+
+  const transition = await transitionRequestStatus({
+    requestId: params.requestId,
+    actorId: params.actorId,
+    toStatus: 'settling',
+    note: trimmedNote,
+  });
+
+  const adminClient = requireSupabaseAdmin();
+  const updatePayload: Record<string, unknown> = {
+    settlement_started_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+
+  if (trimmedReference) {
+    updatePayload.settlement_reference = trimmedReference;
+  }
+
+  if (trimmedNote) {
+    updatePayload.settlement_notes = trimmedNote;
+  }
+
+  const { error: updateError } = await adminClient
+    .from('requests')
+    .update(updatePayload)
+    .eq('id', params.requestId);
+
+  if (updateError) {
+    throw new Error(`Failed to update settlement info: ${updateError.message}`);
+  }
+
+  await updateSettlementAttachments({
+    requestId: params.requestId,
+    attachmentIds: params.attachmentIds,
+    stage: 'started',
+  });
+
+  const diff: Record<string, { before: unknown; after: unknown }> = {
+    status: {
+      before: transition.event.from_status,
+      after: transition.event.to_status,
+    },
+    settlement_started_at: {
+      before: null,
+      after: updatePayload.settlement_started_at,
+    },
+  };
+
+  if (trimmedReference) {
+    diff.settlement_reference = {
+      before: null,
+      after: trimmedReference,
+    };
+  }
+
+  if (trimmedNote) {
+    diff.settlement_notes = {
+      before: null,
+      after: trimmedNote,
+    };
+  }
+
+  await logRequestAudit({
+    actorId: params.actorId,
+    action: 'request.settlement_started',
+    requestId: params.requestId,
+    diff,
+    ipAddress: params.ipAddress,
+    userAgent: params.userAgent,
+  });
+
+  await notifyInvestorOfSettlement({
+    userId: transition.request.user_id,
+    requestId: params.requestId,
+    requestNumber: transition.request.request_number,
+    stage: 'started',
+    reference: trimmedReference,
+  });
+
+  return transition;
+}
+
+export async function completeRequestSettlement(
+  params: SettlementBaseParams
+) {
+  const trimmedReference = params.reference?.trim() || null;
+  const trimmedNote = params.note?.trim() || null;
+
+  const transition = await transitionRequestStatus({
+    requestId: params.requestId,
+    actorId: params.actorId,
+    toStatus: 'completed',
+    note: trimmedNote,
+  });
+
+  const adminClient = requireSupabaseAdmin();
+  const updatePayload: Record<string, unknown> = {
+    settlement_completed_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+
+  if (trimmedReference) {
+    updatePayload.settlement_reference = trimmedReference;
+  }
+
+  if (trimmedNote) {
+    updatePayload.settlement_notes = trimmedNote;
+  }
+
+  const { error: updateError } = await adminClient
+    .from('requests')
+    .update(updatePayload)
+    .eq('id', params.requestId);
+
+  if (updateError) {
+    throw new Error(`Failed to update settlement completion: ${updateError.message}`);
+  }
+
+  await updateSettlementAttachments({
+    requestId: params.requestId,
+    attachmentIds: params.attachmentIds,
+    stage: 'completed',
+  });
+
+  const diff: Record<string, { before: unknown; after: unknown }> = {
+    status: {
+      before: transition.event.from_status,
+      after: transition.event.to_status,
+    },
+    settlement_completed_at: {
+      before: null,
+      after: updatePayload.settlement_completed_at,
+    },
+  };
+
+  if (trimmedReference) {
+    diff.settlement_reference = {
+      before: null,
+      after: trimmedReference,
+    };
+  }
+
+  if (trimmedNote) {
+    diff.settlement_notes = {
+      before: null,
+      after: trimmedNote,
+    };
+  }
+
+  await logRequestAudit({
+    actorId: params.actorId,
+    action: 'request.settlement_completed',
+    requestId: params.requestId,
+    diff,
+    ipAddress: params.ipAddress,
+    userAgent: params.userAgent,
+  });
+
+  await notifyInvestorOfSettlement({
+    userId: transition.request.user_id,
+    requestId: params.requestId,
+    requestNumber: transition.request.request_number,
+    stage: 'completed',
+    reference: trimmedReference,
+  });
+
+  return transition;
 }

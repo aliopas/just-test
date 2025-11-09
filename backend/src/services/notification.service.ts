@@ -44,3 +44,15 @@ export async function notifyInvestorOfInfoRequest(
   void payload;
   return Promise.resolve();
 }
+
+type InvestorSettlementNotification = InvestorSubmissionNotification & {
+  stage: 'started' | 'completed';
+  reference?: string | null;
+};
+
+export async function notifyInvestorOfSettlement(
+  payload: InvestorSettlementNotification
+) {
+  void payload;
+  return Promise.resolve();
+}

@@ -41,6 +41,13 @@ adminRouter.post(
   adminRequestController.requestInfo
 );
 
+adminRouter.patch(
+  '/requests/:id/settle',
+  authenticate,
+  requirePermission('admin.requests.review'),
+  adminRequestController.settleRequest
+);
+
 adminRouter.get(
   '/requests/:id/comments',
   authenticate,

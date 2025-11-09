@@ -9,6 +9,8 @@ import {
   requestInfoFromInvestor,
   listAdminRequestComments,
   addAdminRequestComment,
+  startRequestSettlement,
+  completeRequestSettlement,
 } from '../services/admin-request.service';
 
 export const adminRequestController = {
@@ -474,4 +476,123 @@ export const adminRequestController = {
     }
   },
 
+  async settleRequest(req: AuthenticatedRequest, res: Response) {
+    try {
+      const actorId = req.user?.id;
+      if (!actorId) {
+        return res.status(401).json({
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'User not authenticated',
+          },
+        });
+      }
+
+      const requestId = req.params.id;
+      if (!requestId) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Request id is required',
+          },
+        });
+      }
+
+      const stageValue =
+        typeof req.body?.stage === 'string'
+          ? req.body.stage.toLowerCase()
+          : null;
+
+      if (stageValue !== 'start' && stageValue !== 'complete') {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Stage must be either "start" or "complete"',
+          },
+        });
+      }
+
+      const reference =
+        typeof req.body?.reference === 'string'
+          ? req.body.reference.slice(0, 120)
+          : undefined;
+      const note =
+        typeof req.body?.note === 'string'
+          ? req.body.note.slice(0, 500)
+          : undefined;
+
+      const attachmentIds = Array.isArray(req.body?.attachmentIds)
+        ? req.body.attachmentIds.filter(
+            (value: unknown): value is string => typeof value === 'string'
+          )
+        : undefined;
+
+      const handler =
+        stageValue === 'start'
+          ? startRequestSettlement
+          : completeRequestSettlement;
+
+      const result = await handler({
+        actorId,
+        requestId,
+        reference,
+        note,
+        attachmentIds,
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'] ?? null,
+      });
+
+      return res.status(200).json({
+        requestId,
+        status: result.request.status,
+        stage: stageValue,
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message.includes('not found')) {
+          return res.status(404).json({
+            error: {
+              code: 'NOT_FOUND',
+              message: 'Request not found',
+            },
+          });
+        }
+
+        if (error.message.includes('already in the target status')) {
+          return res.status(409).json({
+            error: {
+              code: 'INVALID_STATE',
+              message: 'Request is already in the desired status',
+            },
+          });
+        }
+
+        if (error.message.includes('Transition')) {
+          return res.status(409).json({
+            error: {
+              code: 'INVALID_STATE',
+              message: 'Request cannot transition to the desired status',
+            },
+          });
+        }
+
+        if (error.message.includes('Failed to update settlement')) {
+          return res.status(500).json({
+            error: {
+              code: 'SETTLEMENT_UPDATE_FAILED',
+              message: 'Failed to update settlement details',
+            },
+          });
+        }
+      }
+
+      console.error('Failed to settle request:', error);
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to settle request',
+        },
+      });
+    }
+  },
 };
