@@ -1,9 +1,13 @@
+import { randomUUID } from 'crypto';
+import path from 'path';
 import { requireSupabaseAdmin } from '../lib/supabase';
+import { notifyInvestorsOfPublishedNews } from './notification.service';
 import type {
   NewsCreateInput,
   NewsListQuery,
   NewsStatus,
   NewsUpdateInput,
+  NewsImagePresignInput,
 } from '../schemas/news.schema';
 
 type MaybeArray<T> = T | T[] | null | undefined;
@@ -125,6 +129,30 @@ function buildNewsSelect() {
     )
   `;
 }
+
+const NEWS_IMAGES_BUCKET =
+  process.env.NEWS_IMAGES_BUCKET?.trim() || 'news-images';
+
+function resolveNewsImagePath(
+  input: NewsImagePresignInput,
+  now: Date = new Date()
+): string {
+  const extension = path.extname(input.fileName).toLowerCase();
+  const safeVariant = input.variant ?? 'cover';
+  const year = now.getUTCFullYear();
+  const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+  const uuid = randomUUID();
+  return `${safeVariant}/${year}/${month}/${uuid}${extension}`;
+}
+
+export type NewsImagePresignResult = {
+  bucket: string;
+  storageKey: string;
+  uploadUrl: string;
+  token: string | null;
+  headers: Record<string, string>;
+  path: string;
+};
 
 export async function createNews(params: {
   authorId: string | null;
@@ -319,4 +347,89 @@ export async function deleteNews(id: string): Promise<void> {
   if (!data) {
     throw new Error('NEWS_NOT_FOUND');
   }
+}
+
+export async function createNewsImageUploadUrl(
+  input: NewsImagePresignInput
+): Promise<NewsImagePresignResult> {
+  const adminClient = requireSupabaseAdmin();
+
+  const objectPath = resolveNewsImagePath(input);
+
+  const { data, error } = await adminClient.storage
+    .from(NEWS_IMAGES_BUCKET)
+    .createSignedUploadUrl(objectPath);
+
+  if (error || !data) {
+    throw new Error(
+      `Failed to create signed upload url: ${error?.message ?? 'unknown error'}`
+    );
+  }
+
+  return {
+    bucket: NEWS_IMAGES_BUCKET,
+    storageKey: objectPath,
+    uploadUrl: data.signedUrl,
+    token: data.token ?? null,
+    path: data.path ?? objectPath,
+    headers: {
+      'Content-Type': input.fileType,
+      'x-upsert': 'false',
+    },
+  };
+}
+
+export async function publishScheduledNews(
+  now: Date = new Date()
+): Promise<NewsItem[]> {
+  const adminClient = requireSupabaseAdmin();
+  const nowIso = now.toISOString();
+
+  const { data: dueNews, error: dueError } = await adminClient
+    .from('news')
+    .select(buildNewsSelect())
+    .eq('status', 'scheduled')
+    .lte('scheduled_at', nowIso);
+
+  if (dueError) {
+    throw new Error(`Failed to load scheduled news: ${dueError.message}`);
+  }
+
+  const dueRows = (dueNews ?? []) as unknown as NewsRow[];
+
+  if (dueRows.length === 0) {
+    return [];
+  }
+
+  const ids = dueRows.map(row => row.id);
+
+  const { data: updatedRows, error: updateError } = await adminClient
+    .from('news')
+    .update({
+      status: 'published',
+      published_at: nowIso,
+      updated_at: nowIso,
+    })
+    .in('id', ids)
+    .select(buildNewsSelect());
+
+  if (updateError) {
+    throw new Error(`Failed to publish scheduled news: ${updateError.message}`);
+  }
+
+  const rows = (updatedRows ?? []) as unknown as NewsRow[];
+  const publishedItems = rows.map(row => mapNewsRow(row));
+
+  await Promise.all(
+    publishedItems.map(item =>
+      notifyInvestorsOfPublishedNews({
+        newsId: item.id,
+        title: item.title,
+        slug: item.slug,
+        publishedAt: item.publishedAt ?? nowIso,
+      })
+    )
+  );
+
+  return publishedItems;
 }

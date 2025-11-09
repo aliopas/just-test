@@ -56,3 +56,17 @@ export async function notifyInvestorOfSettlement(
   void payload;
   return Promise.resolve();
 }
+
+type NewsPublishNotification = {
+  newsId: string;
+  title: string;
+  slug: string;
+  publishedAt: string;
+};
+
+export async function notifyInvestorsOfPublishedNews(
+  payload: NewsPublishNotification
+) {
+  void payload;
+  return Promise.resolve();
+}

@@ -77,6 +77,13 @@ adminRouter.post(
   newsController.create
 );
 
+adminRouter.post(
+  '/news/images/presign',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  newsController.presignImage
+);
+
 adminRouter.get(
   '/news/:id',
   authenticate,
@@ -96,6 +103,13 @@ adminRouter.delete(
   authenticate,
   requirePermission('admin.content.manage'),
   newsController.remove
+);
+
+adminRouter.post(
+  '/news/publish-scheduled',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  newsController.publishScheduled
 );
 
 adminRouter.get(

@@ -2,14 +2,17 @@ import type { Response } from 'express';
 import type { AuthenticatedRequest } from '../middleware/auth.middleware';
 import {
   newsCreateSchema,
+  newsImagePresignSchema,
   newsListQuerySchema,
   newsUpdateSchema,
 } from '../schemas/news.schema';
 import {
   createNews,
+  createNewsImageUploadUrl,
   deleteNews,
   getNewsById,
   listNews,
+  publishScheduledNews,
   updateNews,
 } from '../services/news.service';
 
@@ -214,6 +217,53 @@ export const newsController = {
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to delete news',
+        },
+      });
+    }
+  },
+
+  async presignImage(req: AuthenticatedRequest, res: Response) {
+    try {
+      const validation = newsImagePresignSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid request payload',
+            details: validation.error.issues.map(issue => ({
+              field: issue.path.join('.'),
+              message: issue.message,
+            })),
+          },
+        });
+      }
+
+      const result = await createNewsImageUploadUrl(validation.data);
+      return res.status(201).json(result);
+    } catch (error) {
+      console.error('Failed to create image upload url:', error);
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to create image upload url',
+        },
+      });
+    }
+  },
+
+  async publishScheduled(_req: AuthenticatedRequest, res: Response) {
+    try {
+      const published = await publishScheduledNews();
+      return res.status(200).json({
+        count: published.length,
+        items: published,
+      });
+    } catch (error) {
+      console.error('Failed to publish scheduled news:', error);
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to publish scheduled news',
         },
       });
     }

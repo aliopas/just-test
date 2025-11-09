@@ -2,23 +2,248 @@ jest.mock('../src/lib/supabase', () => ({
   requireSupabaseAdmin: jest.fn(),
 }));
 
+jest.mock('../src/services/notification.service', () => ({
+  notifyInvestorsOfPublishedNews: jest.fn(),
+}));
+
+jest.mock('crypto', () => ({
+  randomUUID: jest.fn(
+    () => 'abc12345-6789-4abc-8def-1234567890ab'
+  ),
+}));
+
 import {
   createNews,
   deleteNews,
   getNewsById,
+  createNewsImageUploadUrl,
   listNews,
+  publishScheduledNews,
   updateNews,
 } from '../src/services/news.service';
 import type { NewsCreateInput, NewsUpdateInput } from '../src/schemas/news.schema';
 import { requireSupabaseAdmin } from '../src/lib/supabase';
+import * as crypto from 'crypto';
+import { notifyInvestorsOfPublishedNews } from '../src/services/notification.service';
 
 const mockRequireSupabaseAdmin = requireSupabaseAdmin as jest.Mock;
+const mockNotifyPublished = notifyInvestorsOfPublishedNews as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockNotifyPublished.mockReset();
 });
 
 describe('news.service', () => {
+  describe('createNewsImageUploadUrl', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2025-01-15T10:00:00Z'));
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('creates signed upload url for news images', async () => {
+      const createSignedUploadUrlMock = jest.fn().mockResolvedValue({
+        data: {
+          signedUrl: 'https://supabase.storage/upload',
+          token: 'token-123',
+          path: 'cover/2025/01/abc123.png',
+        },
+        error: null,
+      });
+
+      mockRequireSupabaseAdmin.mockReturnValue({
+        storage: {
+          from: jest.fn().mockReturnValue({
+            createSignedUploadUrl: createSignedUploadUrlMock,
+          }),
+        },
+      });
+
+      const result = await createNewsImageUploadUrl({
+        fileName: 'Cover.PNG',
+        fileType: 'image/png',
+        fileSize: 512_000,
+        variant: 'cover',
+      });
+
+      expect((crypto.randomUUID as jest.Mock)).toHaveBeenCalled();
+      expect(createSignedUploadUrlMock).toHaveBeenCalledWith(
+        'cover/2025/01/abc12345-6789-4abc-8def-1234567890ab.png'
+      );
+      expect(result).toEqual(
+        expect.objectContaining({
+          bucket: 'news-images',
+          storageKey:
+            'cover/2025/01/abc12345-6789-4abc-8def-1234567890ab.png',
+          uploadUrl: 'https://supabase.storage/upload',
+          headers: expect.objectContaining({ 'Content-Type': 'image/png' }),
+        })
+      );
+
+    });
+
+    it('throws when storage operation fails', async () => {
+      mockRequireSupabaseAdmin.mockReturnValue({
+        storage: {
+          from: jest.fn().mockReturnValue({
+            createSignedUploadUrl: jest.fn().mockResolvedValue({
+              data: null,
+              error: { message: 'failed' },
+            }),
+          }),
+        },
+      });
+
+      await expect(
+        createNewsImageUploadUrl({
+          fileName: 'cover.png',
+          fileType: 'image/png',
+          fileSize: 1024,
+          variant: 'cover',
+        })
+      ).rejects.toThrow('Failed to create signed upload url: failed');
+    });
+  });
+
+  describe('publishScheduledNews', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2025-02-01T08:00:00Z'));
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('returns empty array when no scheduled news', async () => {
+      const fromMock = jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            lte: jest.fn().mockReturnValue({
+              data: [],
+              error: null,
+            }),
+          }),
+        }),
+      });
+
+      mockRequireSupabaseAdmin.mockReturnValue({
+        from: fromMock,
+      });
+
+      const result = await publishScheduledNews();
+
+      expect(result).toEqual([]);
+      expect(mockNotifyPublished).not.toHaveBeenCalled();
+    });
+
+    it('publishes due news and notifies investors', async () => {
+      const selectBuilder = {
+        eq: jest.fn().mockReturnThis(),
+        lte: jest.fn().mockReturnValue({
+          data: [
+            {
+              id: 'news-1',
+              title: 'Scheduled article',
+              slug: 'scheduled-article',
+              body_md: '# content',
+              cover_key: null,
+              status: 'scheduled',
+              scheduled_at: '2025-02-01T07:00:00Z',
+              published_at: null,
+              author_id: 'admin-1',
+              category_id: null,
+              created_at: '2025-01-30T00:00:00Z',
+              updated_at: '2025-01-30T00:00:00Z',
+              category: null,
+              author: [{ id: 'admin-1', email: 'admin@example.com' }],
+            },
+          ],
+          error: null,
+        }),
+      };
+
+      const updateBuilder = {
+        select: jest.fn().mockReturnValue({
+          data: [
+            {
+              id: 'news-1',
+              title: 'Scheduled article',
+              slug: 'scheduled-article',
+              body_md: '# content',
+              cover_key: null,
+              status: 'published',
+              scheduled_at: '2025-02-01T07:00:00Z',
+              published_at: '2025-02-01T08:00:00Z',
+              author_id: 'admin-1',
+              category_id: null,
+              created_at: '2025-01-30T00:00:00Z',
+              updated_at: '2025-02-01T08:00:00Z',
+              category: null,
+              author: [{ id: 'admin-1', email: 'admin@example.com' }],
+            },
+          ],
+          error: null,
+        }),
+      };
+
+      const fromMock = jest.fn().mockImplementation((table: string) => {
+        if (table === 'news') {
+          return {
+            select: () => selectBuilder,
+            update: () => ({
+              in: () => updateBuilder,
+            }),
+          };
+        }
+        throw new Error(`Unexpected table ${table}`);
+      });
+
+      mockRequireSupabaseAdmin.mockReturnValue({
+        from: fromMock,
+      });
+
+      const result = await publishScheduledNews(new Date('2025-02-01T08:00:00Z'));
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual(
+        expect.objectContaining({
+          id: 'news-1',
+          status: 'published',
+          publishedAt: '2025-02-01T08:00:00Z',
+        })
+      );
+      expect(mockNotifyPublished).toHaveBeenCalledWith(
+        expect.objectContaining({
+          newsId: 'news-1',
+          slug: 'scheduled-article',
+        })
+      );
+    });
+
+    it('throws when select fails', async () => {
+      mockRequireSupabaseAdmin.mockReturnValue({
+        from: jest.fn().mockReturnValue({
+          select: () => ({
+            eq: () => ({
+              lte: () => ({
+                data: null,
+                error: { message: 'boom' },
+              }),
+            }),
+          }),
+        }),
+      });
+
+      await expect(publishScheduledNews()).rejects.toThrow(
+        'Failed to load scheduled news: boom'
+      );
+    });
+  });
   describe('createNews', () => {
     it('creates a news item successfully', async () => {
       const singleMock = jest.fn().mockResolvedValue({

@@ -88,7 +88,38 @@ export const newsListQuerySchema = z.object({
   order: z.enum(['asc', 'desc']).optional(),
 });
 
+export const newsImagePresignSchema = z
+  .object({
+    fileName: z
+      .string()
+      .trim()
+      .min(3)
+      .max(255)
+      .regex(/\.[a-zA-Z0-9]+$/, 'fileName must include an extension'),
+    fileType: z
+      .string()
+      .trim()
+      .regex(/^image\/[a-z0-9.+-]+$/i, 'Only image MIME types are allowed'),
+    fileSize: z.coerce
+      .number()
+      .int()
+      .positive()
+      .max(10 * 1024 * 1024, 'File size exceeds 10MB limit'),
+    variant: z.enum(['cover', 'inline']).optional().default('cover'),
+  })
+  .refine(
+    value => {
+      const extension = value.fileName.split('.').pop()?.toLowerCase() ?? '';
+      return ['jpg', 'jpeg', 'png', 'webp', 'avif', 'gif'].includes(extension);
+    },
+    {
+      message: 'Unsupported image extension',
+      path: ['fileName'],
+    }
+  );
+
 export type NewsCreateInput = z.infer<typeof newsCreateSchema>;
 export type NewsUpdateInput = z.infer<typeof newsUpdateSchema>;
 export type NewsListQuery = z.infer<typeof newsListQuerySchema>;
 export type NewsStatus = z.infer<typeof newsStatusEnum>;
+export type NewsImagePresignInput = z.infer<typeof newsImagePresignSchema>;

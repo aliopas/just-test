@@ -2,19 +2,23 @@ import type { Response } from 'express';
 import { newsController } from '../src/controllers/news.controller';
 import {
   createNews,
+  createNewsImageUploadUrl,
   deleteNews,
   getNewsById,
   listNews,
+  publishScheduledNews,
   updateNews,
 } from '../src/services/news.service';
 import type { AuthenticatedRequest } from '../src/middleware/auth.middleware';
 
 jest.mock('../src/services/news.service', () => ({
   createNews: jest.fn(),
+  createNewsImageUploadUrl: jest.fn(),
   listNews: jest.fn(),
   getNewsById: jest.fn(),
   updateNews: jest.fn(),
   deleteNews: jest.fn(),
+  publishScheduledNews: jest.fn(),
 }));
 
 type MockResponse = {
@@ -43,10 +47,12 @@ const createMockResponse = (): MockResponse => {
 };
 
 const mockedCreateNews = createNews as jest.Mock;
+const mockedCreateNewsImageUploadUrl = createNewsImageUploadUrl as jest.Mock;
 const mockedListNews = listNews as jest.Mock;
 const mockedGetNewsById = getNewsById as jest.Mock;
 const mockedUpdateNews = updateNews as jest.Mock;
 const mockedDeleteNews = deleteNews as jest.Mock;
+const mockedPublishScheduled = publishScheduledNews as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -281,6 +287,108 @@ describe('newsController.remove', () => {
     await newsController.remove(req, res as unknown as Response);
 
     expect(res.status).toHaveBeenCalledWith(404);
+  });
+});
+
+describe('newsController.presignImage', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns 400 for invalid payload', async () => {
+    const req = {
+      body: { fileName: 'invalid' },
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await newsController.presignImage(req, res as unknown as Response);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(mockedCreateNewsImageUploadUrl).not.toHaveBeenCalled();
+  });
+
+  it('returns presigned url on success', async () => {
+    mockedCreateNewsImageUploadUrl.mockResolvedValueOnce({
+      bucket: 'news-images',
+      storageKey: 'cover/2025/01/abc.png',
+      uploadUrl: 'https://signed',
+      token: 'token',
+      headers: { 'Content-Type': 'image/png' },
+      path: 'cover/2025/01/abc.png',
+    });
+
+    const req = {
+      body: {
+        fileName: 'cover.png',
+        fileType: 'image/png',
+        fileSize: 1000,
+        variant: 'cover',
+      },
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await newsController.presignImage(req, res as unknown as Response);
+
+    expect(mockedCreateNewsImageUploadUrl).toHaveBeenCalledWith(
+      expect.objectContaining({ fileName: 'cover.png' })
+    );
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bucket: 'news-images',
+        uploadUrl: 'https://signed',
+      })
+    );
+  });
+
+  it('handles internal error', async () => {
+    mockedCreateNewsImageUploadUrl.mockRejectedValueOnce(new Error('failed'));
+
+    const req = {
+      body: {
+        fileName: 'cover.png',
+        fileType: 'image/png',
+        fileSize: 1000,
+      },
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await newsController.presignImage(req, res as unknown as Response);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+});
+
+describe('newsController.publishScheduled', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns list of published news', async () => {
+    mockedPublishScheduled.mockResolvedValueOnce([{ id: 'news-1' }]);
+    const req = {} as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await newsController.publishScheduled(req, res as unknown as Response);
+
+    expect(mockedPublishScheduled).toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        count: 1,
+        items: [{ id: 'news-1' }],
+      })
+    );
+  });
+
+  it('handles internal error', async () => {
+    mockedPublishScheduled.mockRejectedValueOnce(new Error('boom'));
+    const req = {} as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await newsController.publishScheduled(req, res as unknown as Response);
+
+    expect(res.status).toHaveBeenCalledWith(500);
   });
 });
 
