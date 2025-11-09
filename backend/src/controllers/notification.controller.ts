@@ -1,4 +1,5 @@
 import type { Response } from 'express';
+import type { ZodIssue } from 'zod';
 import type { AuthenticatedRequest } from '../middleware/auth.middleware';
 import {
   notificationListQuerySchema,
@@ -11,16 +12,7 @@ import {
   markNotificationRead,
 } from '../services/notification.service';
 
-function handleValidationError(
-  res: Response,
-  issues: ReturnType<typeof notificationListQuerySchema.safeParse> extends {
-    success: false;
-  }
-    ? ReturnType<
-        typeof notificationListQuerySchema.safeParse
-      >['error']['issues']
-    : never
-) {
+function handleValidationError(res: Response, issues: ZodIssue[]) {
   return res.status(400).json({
     error: {
       code: 'VALIDATION_ERROR',
