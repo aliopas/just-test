@@ -1,15 +1,10 @@
 import { useMemo, useState } from 'react';
-import {
-  QueryClient,
-  QueryClientProvider,
-} from '@tanstack/react-query';
 import type {
   InvestorProfile,
   InvestorProfileUpdateRequest,
 } from '../types/investor';
-import { LanguageProvider, useLanguage } from '../context/LanguageContext';
-import { ToastProvider, useToast } from '../context/ToastContext';
-import { ToastStack } from '../components/ToastStack';
+import { useLanguage } from '../context/LanguageContext';
+import { useToast } from '../context/ToastContext';
 import { useInvestorProfile } from '../hooks/useInvestorProfile';
 import { ProfileHeader } from '../components/profile/ProfileHeader';
 import { ProfileSummaryCard } from '../components/profile/ProfileSummaryCard';
@@ -20,8 +15,6 @@ import { ProfileTabs } from '../components/profile/ProfileTabs';
 import { ProfileDetails } from '../components/profile/ProfileDetails';
 import { getMessage } from '../locales/investorProfile';
 import { analytics } from '../utils/analytics';
-
-const queryClient = new QueryClient();
 
 function ProfilePageInner() {
   const {
@@ -358,24 +351,17 @@ function PreferencesDetails({ profile }: { profile: InvestorProfile }) {
 
 export function ProfilePage() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <ToastProvider>
-          <div
-            style={{
-              maxWidth: '1100px',
-              margin: '0 auto',
-              padding: '2rem 1.5rem 4rem',
-              background: '#F1F5F9',
-              minHeight: '100vh',
-            }}
-          >
-            <ProfilePageInner />
-          </div>
-          <ToastStack />
-        </ToastProvider>
-      </LanguageProvider>
-    </QueryClientProvider>
+    <div
+      style={{
+        maxWidth: '1100px',
+        margin: '0 auto',
+        padding: '2rem 1.5rem 4rem',
+        background: '#F1F5F9',
+        minHeight: '100vh',
+      }}
+    >
+      <ProfilePageInner />
+    </div>
   );
 }
 

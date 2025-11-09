@@ -1,11 +1,6 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { LanguageProvider, useLanguage } from '../context/LanguageContext';
-import { ToastProvider } from '../context/ToastContext';
-import { ToastStack } from '../components/ToastStack';
+import { useLanguage } from '../context/LanguageContext';
 import { NewRequestForm } from '../components/request/NewRequestForm';
 import { tRequest } from '../locales/newRequest';
-
-const queryClient = new QueryClient();
 
 function NewRequestPageInner() {
   const { language, direction } = useLanguage();
@@ -82,15 +77,6 @@ function NewRequestPageInner() {
 }
 
 export function NewRequestPage() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <ToastProvider>
-          <NewRequestPageInner />
-          <ToastStack />
-        </ToastProvider>
-      </LanguageProvider>
-    </QueryClientProvider>
-  );
+  return <NewRequestPageInner />;
 }
 
