@@ -1,4 +1,5 @@
 ﻿import React from 'react';
+import { palette } from '../styles/theme';
 
 const primaryLogoSrc = new URL('../assets/logo.png', import.meta.url).href;
 const legacyLogoSrc = new URL('../assets/logo.jpg', import.meta.url).href;
@@ -55,8 +56,7 @@ export const Logo: React.FC<LogoProps> = ({
     minHeight: size,
     borderRadius: '24px',
     overflow: 'hidden',
-    boxShadow: '0 6px 18px rgba(17, 20, 24, 0.08)',
-    backgroundColor: variant === 'inverse' ? '#0f2952' : '#FFFFFF',
+    boxShadow: '0 6px 18px rgba(4, 44, 84, 0.12)',
     ...background,
   };
 
@@ -92,7 +92,7 @@ export const Logo: React.FC<LogoProps> = ({
             fontWeight: 700,
             fontSize: stacked ? '1.5rem' : '1.7rem',
             lineHeight: stacked ? 1.15 : 1.2,
-            color: variant === 'inverse' ? '#FFFFFF' : '#1E3A5F',
+            color: variant === 'inverse' ? palette.textOnInverse : palette.brandAccentDeep,
             textAlign: stacked ? 'center' : 'start',
           }}
         >
@@ -112,7 +112,10 @@ export const Logo: React.FC<LogoProps> = ({
               display: 'block',
               fontSize: stacked ? '0.85rem' : '0.9rem',
               fontWeight: 500,
-              color: variant === 'inverse' ? 'rgba(255,255,255,0.75)' : '#447ab7',
+              color:
+                variant === 'inverse'
+                  ? 'rgba(255, 255, 255, 0.75)'
+                  : palette.brandAccent,
               marginTop: '0.25rem',
             }}
           >

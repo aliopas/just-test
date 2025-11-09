@@ -24,6 +24,12 @@ const navLinkStyle: React.CSSProperties = {
 function HeaderNav() {
   const { language } = useLanguage();
   const logout = useLogout();
+  const portalName =
+    language === 'ar' ? 'بوابة باكورة للمستثمرين' : 'Bakurah Investors Portal';
+  const portalSubtitle =
+    language === 'ar'
+      ? 'تجربة موحدة لاستقبال المستثمرين، بناء الملفات، وتقديم الطلبات بسهولة.'
+      : 'Investor onboarding, profiling, and request submission experiences.';
 
   return (
     <header
@@ -44,31 +50,41 @@ function HeaderNav() {
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '1.25rem',
+          justifyContent: 'flex-start',
+          gap: '0.85rem',
           flexWrap: 'wrap',
+          maxWidth: '100%',
         }}
       >
-        <Logo size={72} stacked tagline={language === 'ar' ? 'منصة المستثمرين' : 'Investors Platform'} />
-        <div>
-          <h1
+        <Logo size={56} showWordmark={false} aria-hidden />
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: language === 'ar' ? 'row-reverse' : 'row',
+            alignItems: 'center',
+            gap: '0.85rem',
+            flexWrap: 'wrap',
+          }}
+        >
+          <span
             style={{
-              margin: 0,
-              fontSize: '1.5rem',
+              fontSize: '1.25rem',
               fontWeight: 700,
-              letterSpacing: '0.03em',
+              letterSpacing: '0.02em',
+              color: palette.textPrimary,
+              whiteSpace: 'nowrap',
             }}
           >
-            Bakurah Investors Portal
-          </h1>
-          <p
+            {portalName}
+          </span>
+          <span
             style={{
-              margin: '0.35rem 0 0',
-              color: `${palette.textSecondary}`,
               fontSize: '0.95rem',
+              color: palette.textSecondary,
             }}
           >
-            Investor onboarding, profiling, and request submission experiences.
-          </p>
+            {portalSubtitle}
+          </span>
         </div>
       </div>
       <nav
