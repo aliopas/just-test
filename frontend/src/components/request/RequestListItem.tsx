@@ -8,11 +8,11 @@ import { tRequestList } from '../../locales/requestList';
 const typeLabels = {
   buy: {
     en: 'Buy',
-    ar: 'Ø´Ø±Ø§Ø¡',
+    ar: 'شراء',
   },
   sell: {
     en: 'Sell',
-    ar: 'Ø¨ÙŠØ¹',
+    ar: 'بيع',
   },
 };
 

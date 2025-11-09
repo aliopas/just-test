@@ -2,20 +2,20 @@
 
 export const isoCountrySchema = z
   .string()
-  .length(2, 'ÙŠØ¬Ø¨ Ø¥Ø¯Ø®Ø§Ù„ Ø±Ù…Ø² Ø¯ÙˆÙ„Ø© Ù…ÙƒÙˆÙ‘Ù† Ù…Ù† Ø­Ø±ÙÙŠÙ†')
+  .length(2, 'يجب إدخال رمز دولة مكوّن من حرفين')
   .transform(value => value.toUpperCase());
 
 export const investorProfileFormSchema = z.object({
   fullName: z
     .string()
-    .min(3, 'ÙŠØ¬Ø¨ Ø£Ù† ÙŠÙƒÙˆÙ† Ø§Ù„Ø§Ø³Ù… 3 Ø£Ø­Ø±Ù Ø¹Ù„Ù‰ Ø§Ù„Ø£Ù‚Ù„')
-    .max(150, 'ÙŠØ¬Ø¨ Ø£Ù„Ø§ ÙŠØªØ¬Ø§ÙˆØ² Ø§Ù„Ø§Ø³Ù… 150 Ø­Ø±ÙØ§Ù‹')
+    .min(3, 'يجب أن يكون الاسم 3 أحرف على الأقل')
+    .max(150, 'يجب ألا يتجاوز الاسم 150 حرفاً')
     .optional()
     .nullable(),
   preferredName: z
     .string()
-    .min(2, 'ÙŠØ¬Ø¨ Ø£Ù† ÙŠÙƒÙˆÙ† Ø§Ù„Ø§Ø³Ù… Ø§Ù„Ù…ÙØ¶Ù„ Ø­Ø±ÙÙŠÙ† Ø¹Ù„Ù‰ Ø§Ù„Ø£Ù‚Ù„')
-    .max(100, 'ÙŠØ¬Ø¨ Ø£Ù„Ø§ ÙŠØªØ¬Ø§ÙˆØ² Ø§Ù„Ø§Ø³Ù… Ø§Ù„Ù…ÙØ¶Ù„ 100 Ø­Ø±Ù')
+    .min(2, 'يجب أن يكون الاسم المفضل حرفين على الأقل')
+    .max(100, 'يجب ألا يتجاوز الاسم المفضل 100 حرف')
     .optional()
     .nullable(),
   language: z.enum(['ar', 'en']),
@@ -25,8 +25,8 @@ export const investorProfileFormSchema = z.object({
     .nullable(),
   idNumber: z
     .string()
-    .min(4, 'Ø±Ù‚Ù… Ø§Ù„Ù‡ÙˆÙŠØ© ÙŠØ¬Ø¨ Ø£Ù† ÙŠÙƒÙˆÙ† 4 Ø£Ø­Ø±Ù Ø¹Ù„Ù‰ Ø§Ù„Ø£Ù‚Ù„')
-    .max(50, 'Ø±Ù‚Ù… Ø§Ù„Ù‡ÙˆÙŠØ© ÙŠØ¬Ø¨ Ø£Ù„Ø§ ÙŠØªØ¬Ø§ÙˆØ² 50 Ø­Ø±ÙØ§Ù‹')
+    .min(4, 'رقم الهوية يجب أن يكون 4 أحرف على الأقل')
+    .max(50, 'رقم الهوية يجب ألا يتجاوز 50 حرفاً')
     .optional()
     .nullable(),
   idExpiry: z
@@ -35,14 +35,14 @@ export const investorProfileFormSchema = z.object({
     .nullable()
     .refine(
       value => !value || !Number.isNaN(Date.parse(value)),
-      'ØµÙŠØºØ© Ø§Ù„ØªØ§Ø±ÙŠØ® ØºÙŠØ± ØµØ­ÙŠØ­Ø©'
+      'صيغة التاريخ غير صحيحة'
     ),
   nationality: isoCountrySchema.optional().nullable(),
   residencyCountry: isoCountrySchema.optional().nullable(),
   city: z
     .string()
-    .min(2, 'Ø§Ù„Ù…Ø¯ÙŠÙ†Ø© ÙŠØ¬Ø¨ Ø£Ù† ØªÙƒÙˆÙ† Ø­Ø±ÙÙŠÙ† Ø¹Ù„Ù‰ Ø§Ù„Ø£Ù‚Ù„')
-    .max(120, 'Ø§Ù„Ù…Ø¯ÙŠÙ†Ø© ÙŠØ¬Ø¨ Ø£Ù„Ø§ ØªØªØ¬Ø§ÙˆØ² 120 Ø­Ø±ÙØ§Ù‹')
+    .min(2, 'المدينة يجب أن تكون حرفين على الأقل')
+    .max(120, 'المدينة يجب ألا تتجاوز 120 حرفاً')
     .optional()
     .nullable(),
   kycStatus: z
@@ -60,7 +60,7 @@ export const investorProfileFormSchema = z.object({
     })
     .refine(
       value => Object.values(value).some(Boolean),
-      'Ø­Ø¯Ø¯ Ù‚Ù†Ø§Ø© ØªÙˆØ§ØµÙ„ ÙˆØ§Ø­Ø¯Ø© Ø¹Ù„Ù‰ Ø§Ù„Ø£Ù‚Ù„'
+      'حدد قناة تواصل واحدة على الأقل'
     ),
   kycDocuments: z.array(z.string()).optional().nullable(),
 });

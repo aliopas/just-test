@@ -11,19 +11,19 @@ const statusColor: Record<
   { label: { ar: string; en: string }; color: string }
 > = {
   pending: {
-    label: { ar: 'Ù‚ÙŠØ¯ Ø§Ù„Ù…Ø¹Ø§Ù„Ø¬Ø©', en: 'Pending' },
+    label: { ar: 'قيد المعالجة', en: 'Pending' },
     color: '#F59E0B',
   },
   in_review: {
-    label: { ar: 'Ù‚ÙŠØ¯ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©', en: 'In review' },
+    label: { ar: 'قيد المراجعة', en: 'In review' },
     color: 'var(--color-brand-primary)',
   },
   approved: {
-    label: { ar: 'Ù…Ø¹ØªÙ…Ø¯', en: 'Approved' },
+    label: { ar: 'معتمد', en: 'Approved' },
     color: '#10B981',
   },
   rejected: {
-    label: { ar: 'Ù…Ø±ÙÙˆØ¶', en: 'Rejected' },
+    label: { ar: 'مرفوض', en: 'Rejected' },
     color: '#EF4444',
   },
 };
@@ -103,21 +103,21 @@ export function ProfileSummaryCard({ profile }: ProfileSummaryCardProps) {
             fontWeight: 500,
           }}
         >
-          âš–ï¸{' '}
+          ⚖️{' '}
           {profile.riskProfile
             ? profile.riskProfile === 'conservative'
               ? language === 'ar'
-                ? 'Ø­Ø°Ø±'
+                ? 'حذر'
                 : 'Conservative'
               : profile.riskProfile === 'balanced'
               ? language === 'ar'
-                ? 'Ù…ØªÙˆØ§Ø²Ù†'
+                ? 'متوازن'
                 : 'Balanced'
               : language === 'ar'
-              ? 'Ù…ØºØ§Ù…Ø±'
+              ? 'مغامر'
               : 'Aggressive'
             : language === 'ar'
-            ? 'Ù„Ù… ÙŠØªÙ… ØªØ­Ø¯ÙŠØ¯ Ù…Ø³ØªÙˆÙ‰ Ø§Ù„Ù…Ø®Ø§Ø·Ø±'
+            ? 'لم يتم تحديد مستوى المخاطر'
             : 'Risk profile not set'}
         </span>
         <span
@@ -130,7 +130,7 @@ export function ProfileSummaryCard({ profile }: ProfileSummaryCardProps) {
             fontWeight: 500,
           }}
         >
-          ðŸŒ {profile.nationality || (language === 'ar' ? 'ØºÙŠØ± Ù…Ø­Ø¯Ø¯' : 'Not set')}
+          🌍 {profile.nationality || (language === 'ar' ? 'غير محدد' : 'Not set')}
         </span>
       </div>
 
@@ -149,7 +149,7 @@ export function ProfileSummaryCard({ profile }: ProfileSummaryCardProps) {
             fontSize: '0.95rem',
           }}
         >
-          ðŸ›¡ï¸ {getMessage('fields.kycStatus', language)}
+          🛡️ {getMessage('fields.kycStatus', language)}
         </span>
         <div
           style={{
@@ -190,7 +190,7 @@ export function ProfileSummaryCard({ profile }: ProfileSummaryCardProps) {
       >
         <span>
           {language === 'ar'
-            ? 'Ø¹Ø¶Ùˆ Ù…Ù†Ø°'
+            ? 'عضو منذ'
             : 'Member since'}{' '}
           {profile.userCreatedAt
             ? new Date(profile.userCreatedAt).toLocaleDateString(
@@ -200,13 +200,13 @@ export function ProfileSummaryCard({ profile }: ProfileSummaryCardProps) {
                   year: 'numeric',
                 }
               )
-            : 'â€”'}
+            : '—'}
         </span>
         <span>
           {language === 'ar'
-            ? 'Ø§Ù„Ø­Ø§Ù„Ø© Ø§Ù„Ø­Ø§Ù„ÙŠØ©'
+            ? 'الحالة الحالية'
             : 'Account status'}{' '}
-          <strong>{profile.userStatus ?? (language === 'ar' ? 'ØºÙŠØ± Ù…Ø­Ø¯Ø¯' : 'Not set')}</strong>
+          <strong>{profile.userStatus ?? (language === 'ar' ? 'غير محدد' : 'Not set')}</strong>
         </span>
       </div>
     </aside>

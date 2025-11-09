@@ -503,6 +503,7 @@ export async function approveAdminRequest(params: DecisionParams) {
     requestId: params.requestId,
     requestNumber: transition.request.request_number,
     decision: 'approved',
+    note: params.note ?? null,
   });
 
   return transition;
@@ -535,6 +536,7 @@ export async function rejectAdminRequest(params: DecisionParams) {
     requestId: params.requestId,
     requestNumber: transition.request.request_number,
     decision: 'rejected',
+    note: params.note ?? null,
   });
 
   return transition;

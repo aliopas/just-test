@@ -155,12 +155,12 @@ export function AdminNewsFormDrawer({
 
     if (!values.title.trim()) {
       nextErrors.title =
-        language === 'ar' ? 'Ø§Ù„Ø¹Ù†ÙˆØ§Ù† Ù…Ø·Ù„ÙˆØ¨' : 'Title is required';
+        language === 'ar' ? 'العنوان مطلوب' : 'Title is required';
     }
 
     if (!values.slug.trim()) {
       nextErrors.slug =
-        language === 'ar' ? 'Ø§Ù„Ù…Ø¹Ø±Ù‘Ù Ù…Ø·Ù„ÙˆØ¨' : 'Slug is required';
+        language === 'ar' ? 'المعرّف مطلوب' : 'Slug is required';
     }
 
     if (values.status === 'scheduled' && !values.scheduledAt) {
@@ -211,12 +211,12 @@ export function AdminNewsFormDrawer({
             <h2 style={{ margin: 0, fontSize: '1.3rem', color: 'var(--color-text-primary)' }}>{drawerTitle}</h2>
             <p style={{ margin: '0.4rem 0 0', color: 'var(--color-text-secondary)', fontSize: '0.95rem' }}>
               {language === 'ar'
-                ? 'Ù‚Ù… Ø¨ØªØ¹Ø¨Ø¦Ø© Ø§Ù„ØªÙØ§ØµÙŠÙ„ Ø«Ù… Ø§Ø­ÙØ¸ Ø§Ù„Ù…Ø³ÙˆØ¯Ø© Ø£Ùˆ Ø¬Ø¯ÙˆÙ„ Ø§Ù„Ù†Ø´Ø±.'
+                ? 'قم بتعبئة التفاصيل ثم احفظ المسودة أو جدول النشر.'
                 : 'Fill in the details, then save the draft or schedule publication.'}
             </p>
           </div>
           <button type="button" onClick={onClose} style={closeButtonStyle}>
-            âœ•
+            ✕
           </button>
         </header>
 
@@ -251,7 +251,7 @@ export function AdminNewsFormDrawer({
                   onClick={handleAutoSlug}
                   style={{ ...secondaryButtonStyle, padding: '0 1rem' }}
                 >
-                  {language === 'ar' ? 'ØªÙˆÙ„ÙŠØ¯' : 'Generate'}
+                  {language === 'ar' ? 'توليد' : 'Generate'}
                 </button>
               </div>
               {errors.slug && <span style={errorStyle}>{errors.slug}</span>}
@@ -466,7 +466,7 @@ export function AdminNewsFormDrawer({
                   if (
                     window.confirm(
                       language === 'ar'
-                        ? 'Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ Ù…Ù† Ø­Ø°Ù Ù‡Ø°Ø§ Ø§Ù„Ø®Ø¨Ø±ØŸ'
+                        ? 'هل أنت متأكد من حذف هذا الخبر؟'
                         : 'Delete this news item permanently?'
                     )
                   ) {

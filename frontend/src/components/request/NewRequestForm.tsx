@@ -108,8 +108,8 @@ export function NewRequestForm() {
           style={selectStyle}
           aria-label={tRequest('form.type', language)}
         >
-          <option value="buy">{language === 'ar' ? 'Ø´Ø±Ø§Ø¡' : 'Buy'}</option>
-          <option value="sell">{language === 'ar' ? 'Ø¨ÙŠØ¹' : 'Sell'}</option>
+          <option value="buy">{language === 'ar' ? 'شراء' : 'Buy'}</option>
+          <option value="sell">{language === 'ar' ? 'بيع' : 'Sell'}</option>
         </select>
       </Field>
 
@@ -123,7 +123,7 @@ export function NewRequestForm() {
             step="0.01"
             {...register('amount')}
             style={inputStyle}
-            placeholder={language === 'ar' ? 'Ø§Ù„Ù…Ø¨Ù„Øº Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ' : 'Total amount'}
+            placeholder={language === 'ar' ? 'المبلغ الإجمالي' : 'Total amount'}
           />
         </Field>
 
@@ -152,7 +152,7 @@ export function NewRequestForm() {
             {...register('targetPrice')}
             style={inputStyle}
             placeholder={
-              language === 'ar' ? 'Ø³Ø¹Ø± Ù…Ø³ØªÙ‡Ø¯Ù (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)' : 'Optional target price'
+              language === 'ar' ? 'سعر مستهدف (اختياري)' : 'Optional target price'
             }
           />
         </Field>
@@ -178,7 +178,7 @@ export function NewRequestForm() {
           style={{ ...inputStyle, minHeight: '6rem', resize: 'vertical' }}
           placeholder={
             language === 'ar'
-              ? 'Ø£Ø¯Ø®Ù„ Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ø¥Ø¶Ø§ÙÙŠØ© (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)'
+              ? 'أدخل ملاحظات إضافية (اختياري)'
               : 'Additional notes (optional)'
           }
         />

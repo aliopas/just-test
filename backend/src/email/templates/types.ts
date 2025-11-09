@@ -24,8 +24,8 @@ export interface RequestPendingInfoContext extends TemplateBaseContext {
 }
 
 export interface RequestApprovedContext extends TemplateBaseContext {
-  approvedAmount: number;
-  currency: string;
+  approvedAmount?: number;
+  currency?: string;
   settlementEta?: string;
 }
 
@@ -60,4 +60,3 @@ export interface RenderedEmail {
   html: string;
   text: string;
 }
-

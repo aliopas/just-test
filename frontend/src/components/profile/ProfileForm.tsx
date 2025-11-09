@@ -165,7 +165,7 @@ export function ProfileForm({
           <input
             type="text"
             {...register('fullName')}
-            placeholder={language === 'ar' ? 'Ø£Ø¯Ø®Ù„ Ø§Ù„Ø§Ø³Ù… Ø§Ù„ÙƒØ§Ù…Ù„' : 'Enter full name'}
+            placeholder={language === 'ar' ? 'أدخل الاسم الكامل' : 'Enter full name'}
           />
         </Field>
         <Field
@@ -176,7 +176,7 @@ export function ProfileForm({
             type="text"
             {...register('preferredName')}
             placeholder={
-              language === 'ar' ? 'Ø§Ù„Ø§Ø³Ù… Ø§Ù„Ù…Ø®ØªØµØ± (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)' : 'Preferred name (optional)'
+              language === 'ar' ? 'الاسم المختصر (اختياري)' : 'Preferred name (optional)'
             }
           />
         </Field>
@@ -195,16 +195,16 @@ export function ProfileForm({
         >
           <select {...register('riskProfile')}>
             <option value="">
-              {language === 'ar' ? 'ØºÙŠØ± Ù…Ø­Ø¯Ø¯' : 'Not set'}
+              {language === 'ar' ? 'غير محدد' : 'Not set'}
             </option>
             <option value="conservative">
-              {language === 'ar' ? 'Ø­Ø°Ø±' : 'Conservative'}
+              {language === 'ar' ? 'حذر' : 'Conservative'}
             </option>
             <option value="balanced">
-              {language === 'ar' ? 'Ù…ØªÙˆØ§Ø²Ù†' : 'Balanced'}
+              {language === 'ar' ? 'متوازن' : 'Balanced'}
             </option>
             <option value="aggressive">
-              {language === 'ar' ? 'Ù…ØºØ§Ù…Ø±' : 'Aggressive'}
+              {language === 'ar' ? 'مغامر' : 'Aggressive'}
             </option>
           </select>
         </Field>
@@ -222,18 +222,18 @@ export function ProfileForm({
           error={errors.idType?.message}
         >
           <select {...register('idType')}>
-            <option value="">{language === 'ar' ? 'ØºÙŠØ± Ù…Ø­Ø¯Ø¯' : 'Select'}</option>
+            <option value="">{language === 'ar' ? 'اختر' : 'Select'}</option>
             <option value="national_id">
-              {language === 'ar' ? 'Ù‡ÙˆÙŠØ© ÙˆØ·Ù†ÙŠØ©' : 'National ID'}
+              {language === 'ar' ? 'هوية وطنية' : 'National ID'}
             </option>
             <option value="iqama">
-              {language === 'ar' ? 'Ø¥Ù‚Ø§Ù…Ø©' : 'Iqama'}
+              {language === 'ar' ? 'إقامة' : 'Iqama'}
             </option>
             <option value="passport">
-              {language === 'ar' ? 'Ø¬ÙˆØ§Ø² Ø³ÙØ±' : 'Passport'}
+              {language === 'ar' ? 'جواز سفر' : 'Passport'}
             </option>
             <option value="other">
-              {language === 'ar' ? 'Ø£Ø®Ø±Ù‰' : 'Other'}
+              {language === 'ar' ? 'أخرى' : 'Other'}
             </option>
           </select>
         </Field>
@@ -255,16 +255,16 @@ export function ProfileForm({
         >
           <select {...register('kycStatus')}>
             <option value="pending">
-              {language === 'ar' ? 'Ù‚ÙŠØ¯ Ø§Ù„Ù…Ø¹Ø§Ù„Ø¬Ø©' : 'Pending'}
+              {language === 'ar' ? 'قيد المعالجة' : 'Pending'}
             </option>
             <option value="in_review">
-              {language === 'ar' ? 'Ù‚ÙŠØ¯ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©' : 'In review'}
+              {language === 'ar' ? 'قيد المراجعة' : 'In review'}
             </option>
             <option value="approved">
-              {language === 'ar' ? 'Ù…Ø¹ØªÙ…Ø¯' : 'Approved'}
+              {language === 'ar' ? 'معتمد' : 'Approved'}
             </option>
             <option value="rejected">
-              {language === 'ar' ? 'Ù…Ø±ÙÙˆØ¶' : 'Rejected'}
+              {language === 'ar' ? 'مرفوض' : 'Rejected'}
             </option>
           </select>
         </Field>
@@ -442,7 +442,7 @@ export function ProfileForm({
             width: 'fit-content',
           }}
         >
-          â¬†ï¸ {language === 'ar' ? 'Ø±ÙØ¹ Ø§Ù„Ù…Ø³ØªÙ†Ø¯Ø§Øª' : 'Upload documents'}
+          📎 {language === 'ar' ? 'رفع المستندات' : 'Upload documents'}
           <input
             type="file"
             accept=".pdf,.jpeg,.jpg,.png"

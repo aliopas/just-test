@@ -109,6 +109,8 @@ invastors-bacura/
 - `NODE_ENV` - بيئة التطبيق (development/production)
 - `PORT` - منفذ الخادم (افتراضي: 3001)
 - `API_BASE_URL` - رابط API الأساسي
+- `INVESTOR_PORTAL_URL` - رابط واجهة المستثمر المستخدم في روابط الـ CTA (افتراضي: `https://app.bakurah.com`)
+- `SUPPORT_EMAIL` - بريد الدعم الافتراضي المستخدم في الرسائل
 
 ### متغيرات الأمان
 
@@ -116,6 +118,8 @@ invastors-bacura/
 - `SESSION_SECRET` - سر الجلسة
 - `CORS_ORIGINS` - قائمة أصول موثوقة مفصولة بفواصل (افتراضي: `http://localhost:3000`)
 - `ENABLE_CSRF` - تفعيل حماية CSRF عبر cookies (ضع `true` لتمكينها في بيئات تستخدم cookies)
+- `RESEND_API_KEY` - مفتاح Resend المستخدم في Edge Function للإرسال البريدي
+- `NOTIFICATIONS_FROM_EMAIL` - البريد المرسل للإشعارات (يجب أن يكون موثقًا لدى مزود البريد)
 
 ---
 
@@ -159,6 +163,7 @@ npm test -- health.test.ts
 - **Story 5.7 (Investor News Feed):** `docs/stories/STORY_5.7_COMPLETION.md`
 - **Story 6.1 (Notifications Data Layer):** `docs/stories/STORY_6.1_COMPLETION.md`
 - **Story 6.2 (Email Templates):** `docs/stories/STORY_6.2_COMPLETION.md`
+- **Story 6.3 (Email Dispatch Pipeline):** `docs/stories/STORY_6.3_COMPLETION.md`
 - **Design System:** `docs/design-system.md` (مع ملفات `frontend/src/styles/theme.ts` و`frontend/src/components/Logo.tsx`)
 - **Supabase Integration:** `docs/SUPABASE_INTEGRATION.md`
 - **RBAC Matrix:** `docs/prd/rbac-matrix.md`

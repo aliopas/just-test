@@ -47,15 +47,15 @@ export function ProfileDetails({ profile }: ProfileDetailsProps) {
   const riskLabel =
     profile.riskProfile === 'conservative'
       ? language === 'ar'
-        ? 'Ø­Ø°Ø±'
+        ? 'حذر'
         : 'Conservative'
       : profile.riskProfile === 'balanced'
       ? language === 'ar'
-        ? 'Ù…ØªÙˆØ§Ø²Ù†'
+        ? 'متوازن'
         : 'Balanced'
       : profile.riskProfile === 'aggressive'
       ? language === 'ar'
-        ? 'Ù…ØºØ§Ù…Ø±'
+        ? 'مغامر'
         : 'Aggressive'
       : null;
 
@@ -89,10 +89,10 @@ export function ProfileDetails({ profile }: ProfileDetailsProps) {
         value={
           profile.idType
             ? {
-                national_id: language === 'ar' ? 'Ù‡ÙˆÙŠØ© ÙˆØ·Ù†ÙŠØ©' : 'National ID',
-                iqama: language === 'ar' ? 'Ø¥Ù‚Ø§Ù…Ø©' : 'Iqama',
-                passport: language === 'ar' ? 'Ø¬ÙˆØ§Ø² Ø³ÙØ±' : 'Passport',
-                other: language === 'ar' ? 'Ø£Ø®Ø±Ù‰' : 'Other',
+                national_id: language === 'ar' ? 'هوية وطنية' : 'National ID',
+                iqama: language === 'ar' ? 'إقامة' : 'Iqama',
+                passport: language === 'ar' ? 'جواز سفر' : 'Passport',
+                other: language === 'ar' ? 'أخرى' : 'Other',
               }[profile.idType]
             : null
         }
@@ -142,23 +142,23 @@ function formatPreferences(
   const pairs: string[] = [];
   if (profile.communicationPreferences.email) {
     pairs.push(
-      getMessage('fields.communication.email', language).replace('Ø¥Ø´Ø¹Ø§Ø±Ø§Øª ', '').replace('notifications', '').trim()
+      getMessage('fields.communication.email', language).replace('إشعارات ', '').replace('notifications', '').trim()
     );
   }
   if (profile.communicationPreferences.sms) {
     pairs.push(
-      getMessage('fields.communication.sms', language).replace('Ø¥Ø´Ø¹Ø§Ø±Ø§Øª ', '').replace('notifications', '').trim()
+      getMessage('fields.communication.sms', language).replace('إشعارات ', '').replace('notifications', '').trim()
     );
   }
   if (profile.communicationPreferences.push) {
     pairs.push(
-      getMessage('fields.communication.push', language).replace('Ø¥Ø´Ø¹Ø§Ø±Ø§Øª ', '').replace('notifications', '').trim()
+      getMessage('fields.communication.push', language).replace('إشعارات ', '').replace('notifications', '').trim()
     );
   }
   if (pairs.length === 0) {
-    return language === 'ar' ? 'Ù„Ø§ ØªÙˆØ¬Ø¯ ØªÙØ¶ÙŠÙ„Ø§Øª Ù…Ø­Ø¯Ø¯Ø©' : 'No channels enabled';
+    return language === 'ar' ? 'لا توجد تفضيلات محددة' : 'No channels enabled';
   }
-  return pairs.join(language === 'ar' ? 'ØŒ ' : ', ');
+  return pairs.join(language === 'ar' ? '، ' : ', ');
 }
 
 

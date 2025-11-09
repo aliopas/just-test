@@ -315,7 +315,7 @@ function PreferencesDetails({ profile }: { profile: InvestorProfile }) {
             }}
           >
             {language === 'ar'
-              ? 'Ù„Ù… ÙŠØªÙ… Ø±ÙØ¹ Ø£ÙŠ Ù…Ø³ØªÙ†Ø¯Ø§Øª Ø­ØªÙ‰ Ø§Ù„Ø¢Ù†.'
+              ? 'لم يتم رفع أي مستندات حتى الآن.'
               : 'No documents uploaded yet.'}
           </p>
         ) : (

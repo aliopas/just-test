@@ -39,7 +39,7 @@ export function RequestDetailsDrawer({
   }, [language, detailRequest.amount, detailRequest.currency]);
 
   const targetPriceDisplay = useMemo(() => {
-    if (detailRequest.targetPrice == null) return 'â€”';
+    if (detailRequest.targetPrice == null) return '—';
     try {
       return new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
         style: 'currency',
@@ -55,7 +55,7 @@ export function RequestDetailsDrawer({
         language === 'ar' ? 'ar-SA' : 'en-US',
         { dateStyle: 'medium' }
       )
-    : 'â€”';
+    : '—';
 
   const updatedAtDisplay = new Date(detailRequest.updatedAt).toLocaleString(
     language === 'ar' ? 'ar-SA' : 'en-US',
@@ -63,8 +63,8 @@ export function RequestDetailsDrawer({
   );
 
   const typeLabels = {
-    buy: { en: 'Buy request', ar: 'Ø·Ù„Ø¨ Ø´Ø±Ø§Ø¡' },
-    sell: { en: 'Sell request', ar: 'Ø·Ù„Ø¨ Ø¨ÙŠØ¹' },
+    buy: { en: 'Buy request', ar: 'طلب شراء' },
+    sell: { en: 'Sell request', ar: 'طلب بيع' },
   };
 
   return createPortal(
@@ -143,7 +143,7 @@ export function RequestDetailsDrawer({
             }}
             aria-label="Close"
           >
-            Ã—
+            ×
           </button>
         </header>
 

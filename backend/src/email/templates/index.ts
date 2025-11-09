@@ -138,11 +138,10 @@ const templateRenderers: {
   },
   request_approved(language, context) {
     const supportEmail = context.supportEmail ?? DEFAULT_SUPPORT_EMAIL;
-    const amount = formatCurrency(
-      context.approvedAmount,
-      context.currency,
-      language
-    );
+    const amount =
+      typeof context.approvedAmount === 'number' && context.currency
+        ? formatCurrency(context.approvedAmount, context.currency, language)
+        : null;
 
     return {
       subject:
@@ -162,11 +161,16 @@ const templateRenderers: {
           label: language === 'ar' ? 'رقم الطلب' : 'Request number',
           value: context.requestNumber,
         },
-        {
-          label: language === 'ar' ? 'المبلغ الموافق عليه' : 'Approved amount',
-          value: amount,
-        },
-      ],
+        amount
+          ? {
+              label:
+                language === 'ar' ? 'المبلغ الموافق عليه' : 'Approved amount',
+              value: amount,
+            }
+          : null,
+      ].filter(
+        (item): item is { label: string; value: string } => item !== null
+      ),
       paragraphs: [
         language === 'ar'
           ? 'تمت الموافقة على طلب الاستثمار الخاص بك بناءً على المعايير المحددة.'

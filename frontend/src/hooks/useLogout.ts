@@ -38,7 +38,7 @@ export function useLogout() {
       pushToast({
         message:
           language === 'ar'
-            ? 'ØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø®Ø±ÙˆØ¬ Ø¨Ù†Ø¬Ø§Ø­.'
+            ? 'تم تسجيل الخروج بنجاح.'
             : 'You have been signed out successfully.',
         variant: 'success',
       });
@@ -49,7 +49,7 @@ export function useLogout() {
       pushToast({
         message:
           language === 'ar'
-            ? 'ØªØ¹Ø°Ø± ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø®Ø±ÙˆØ¬ØŒ ØªÙ… Ù…Ø³Ø­ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¬Ù„Ø³Ø© Ù…Ø­Ù„ÙŠØ§Ù‹.'
+            ? 'تعذّر تسجيل الخروج، تم مسح بيانات الجلسة محلياً.'
             : 'Unable to reach the server. Your local session was cleared.',
         variant: 'error',
       });

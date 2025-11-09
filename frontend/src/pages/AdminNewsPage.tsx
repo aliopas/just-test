@@ -136,7 +136,7 @@ function AdminNewsPageInner() {
   const handleDelete = async (item: AdminNewsItem) => {
     const confirmDelete =
       language === 'ar'
-        ? 'Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ Ù…Ù† Ø­Ø°Ù Ù‡Ø°Ø§ Ø§Ù„Ø®Ø¨Ø±ØŸ'
+        ? 'هل أنت متأكد من حذف هذا الخبر؟'
         : 'Are you sure you want to delete this news item?';
     if (!window.confirm(confirmDelete)) {
       return;
