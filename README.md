@@ -158,6 +158,7 @@ npm test -- health.test.ts
 - **Story 5.6 (News Approval Workflow):** `docs/stories/STORY_5.6_COMPLETION.md`
 - **Story 5.7 (Investor News Feed):** `docs/stories/STORY_5.7_COMPLETION.md`
 - **Story 6.1 (Notifications Data Layer):** `docs/stories/STORY_6.1_COMPLETION.md`
+- **Story 6.2 (Email Templates):** `docs/stories/STORY_6.2_COMPLETION.md`
 - **Design System:** `docs/design-system.md` (مع ملفات `frontend/src/styles/theme.ts` و`frontend/src/components/Logo.tsx`)
 - **Supabase Integration:** `docs/SUPABASE_INTEGRATION.md`
 - **RBAC Matrix:** `docs/prd/rbac-matrix.md`

@@ -13,7 +13,9 @@ export const NOTIFICATION_TYPES = [
 export const notificationChannelEnum = z.enum(NOTIFICATION_CHANNELS);
 export const notificationTypeEnum = z.enum(NOTIFICATION_TYPES);
 
-export const notificationPayloadSchema = z.record(z.unknown()).default({});
+export const notificationPayloadSchema = z
+  .record(z.string(), z.unknown())
+  .default(() => ({} as Record<string, unknown>));
 
 export const notificationPreferenceSchema = z.object({
   channel: notificationChannelEnum,
