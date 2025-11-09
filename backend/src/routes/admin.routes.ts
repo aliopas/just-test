@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import { adminUserController } from '../controllers/admin-user.controller';
 import { adminRequestController } from '../controllers/admin-request.controller';
+import { adminUserController } from '../controllers/admin-user.controller';
+import { newsController } from '../controllers/news.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { requirePermission } from '../middleware/rbac.middleware';
 
@@ -60,6 +61,41 @@ adminRouter.post(
   authenticate,
   requirePermission('admin.requests.review'),
   adminRequestController.addComment
+);
+
+adminRouter.get(
+  '/news',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  newsController.list
+);
+
+adminRouter.post(
+  '/news',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  newsController.create
+);
+
+adminRouter.get(
+  '/news/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  newsController.detail
+);
+
+adminRouter.patch(
+  '/news/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  newsController.update
+);
+
+adminRouter.delete(
+  '/news/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  newsController.remove
 );
 
 adminRouter.get(

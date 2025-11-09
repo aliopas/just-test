@@ -148,8 +148,10 @@ npm test -- health.test.ts
 - **Story 4.3 (Admin Request Detail View):** `docs/stories/STORY_4.3_COMPLETION.md`
 - **Story 4.4 (Admin Request Decision APIs & UI):** `docs/stories/STORY_4.4_COMPLETION.md`
 - **Story 4.5 (Admin Request Info Workflow):** `docs/stories/STORY_4.5_COMPLETION.md`
-- **Story 4.7 (Settlement Workflow):** `docs/stories/STORY_4.7_COMPLETION.md`
 - **Story 4.6 (Admin Internal Comments):** `docs/stories/STORY_4.6_COMPLETION.md`
+- **Story 4.7 (Settlement Workflow):** `docs/stories/STORY_4.7_COMPLETION.md`
+- **Story 5.1 (News Schema):** `docs/stories/STORY_5.1_COMPLETION.md`
+- **Story 5.2 (News CRUD API):** `docs/stories/STORY_5.2_COMPLETION.md`
 - **Design System:** `docs/design-system.md` (مع ملفات `frontend/src/styles/theme.ts` و`frontend/src/components/Logo.tsx`)
 - **Supabase Integration:** `docs/SUPABASE_INTEGRATION.md`
 - **RBAC Matrix:** `docs/prd/rbac-matrix.md`
