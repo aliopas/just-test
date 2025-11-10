@@ -14,6 +14,7 @@ import { RegisterPage } from './pages/RegisterPage';
 import { VerifyOtpPage } from './pages/VerifyOtpPage';
 import { AdminRequestsInboxPage } from './pages/AdminRequestsInboxPage';
 import { AdminNewsPage } from './pages/AdminNewsPage';
+import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { InvestorDashboardPage } from './pages/InvestorDashboardPage';
 import { MyRequestsPage } from './pages/MyRequestsPage';
 
@@ -252,13 +253,23 @@ function AdminHeaderNav() {
         }}
       >
         <NavLink
-          to="/admin"
+          to="/admin/dashboard"
           style={({ isActive }) => ({
             ...navLinkStyle,
             background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
             color: isActive ? palette.textPrimary : palette.textSecondary,
           })}
           end
+        >
+          {language === 'ar' ? 'لوحة المتابعة' : 'Dashboard'}
+        </NavLink>
+        <NavLink
+          to="/admin/requests"
+          style={({ isActive }) => ({
+            ...navLinkStyle,
+            background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
+            color: isActive ? palette.textPrimary : palette.textSecondary,
+          })}
         >
           {language === 'ar' ? 'طلبات الاستثمار' : 'Requests inbox'}
         </NavLink>
@@ -323,7 +334,7 @@ function InvestorApp() {
     <Fragment>
       <HeaderNav />
       <Routes>
-        <Route path="/" element={<Navigate to="/home" replace />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<InvestorDashboardPage />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/requests" element={<MyRequestsPage />} />
@@ -341,10 +352,11 @@ function AdminApp() {
     <Fragment>
       <AdminHeaderNav />
       <Routes>
-        <Route path="/admin" element={<AdminRequestsInboxPage />} />
+        <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
         <Route path="/admin/requests" element={<AdminRequestsInboxPage />} />
         <Route path="/admin/news" element={<AdminNewsPage />} />
-        <Route path="*" element={<Navigate to="/admin" replace />} />
+        <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
       </Routes>
     </Fragment>
   );

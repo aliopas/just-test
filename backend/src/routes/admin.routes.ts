@@ -2,10 +2,18 @@ import { Router } from 'express';
 import { adminRequestController } from '../controllers/admin-request.controller';
 import { adminUserController } from '../controllers/admin-user.controller';
 import { newsController } from '../controllers/news.controller';
+import { adminDashboardController } from '../controllers/admin-dashboard.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { requirePermission } from '../middleware/rbac.middleware';
 
 const adminRouter = Router();
+
+adminRouter.get(
+  '/dashboard/stats',
+  authenticate,
+  requirePermission('admin.requests.review'),
+  adminDashboardController.stats
+);
 
 adminRouter.get(
   '/requests',

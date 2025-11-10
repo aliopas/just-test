@@ -183,6 +183,7 @@ npm test -- health.test.ts
 - **Story 6.6 (Notification Preferences):** `docs/stories/STORY_6.6_COMPLETION.md`
 - **Story 6.7 (Request Communication Timeline):** `docs/stories/STORY_6.7_COMPLETION.md`
 - **Story 7.1 (Investor Dashboard Overview):** `docs/stories/STORY_7.1_COMPLETION.md`
+- **Story 7.2 (Admin Dashboard Stats):** `docs/stories/STORY_7.2_COMPLETION.md`
 - **Design System:** `docs/design-system.md` (مع ملفات `frontend/src/styles/theme.ts` و`frontend/src/components/Logo.tsx`)
 - **Supabase Integration:** `docs/SUPABASE_INTEGRATION.md`
 - **RBAC Matrix:** `docs/prd/rbac-matrix.md`
@@ -249,6 +250,14 @@ PATCH /api/v1/admin/requests/:id/settle
 ```
 
 > Requires `admin.requests.review`.
+
+### Admin Dashboard
+
+```
+GET /api/v1/admin/dashboard/stats
+```
+
+> Requires `admin.requests.review`. Returns aggregated metrics (status counts, processing averages, stuck requests, trend data).
 
 ### Authentication
 
