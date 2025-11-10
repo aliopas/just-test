@@ -45,7 +45,8 @@ export const authController = {
     res: Response
   ) => {
     try {
-      const { email, password, phone } = req.body;
+      const { email, password, phone, role: requestedRole } = req.body;
+      const role = requestedRole === 'admin' ? 'admin' : 'investor';
 
       // Sign up user with Supabase Auth
       const { data, error } = await supabase.auth.signUp({
@@ -54,6 +55,9 @@ export const authController = {
         phone: phone || undefined,
         options: {
           emailRedirectTo: process.env.EMAIL_REDIRECT_TO || undefined,
+          data: {
+            role,
+          },
         },
       });
 
@@ -96,7 +100,7 @@ export const authController = {
         id: data.user.id,
         email: data.user.email,
         phone: phone || null,
-        role: 'investor',
+        role,
         status: 'pending',
       });
 
@@ -112,7 +116,7 @@ export const authController = {
 
       // Assign investor role to user
       try {
-        await rbacService.assignRole(data.user.id, 'investor');
+        await rbacService.assignRole(data.user.id, role);
       } catch (roleError) {
         console.error('Failed to assign role:', roleError);
         return res.status(500).json({

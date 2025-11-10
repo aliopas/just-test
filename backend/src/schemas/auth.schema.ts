@@ -19,6 +19,7 @@ export const registerSchema = z.object({
     .string()
     .regex(phoneRegex, 'Phone must be in E.164 format (e.g., +9665xxxxxxx)')
     .optional(),
+  role: z.enum(['investor', 'admin']).optional(),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;

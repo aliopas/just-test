@@ -38,6 +38,31 @@ describe('POST /api/v1/auth/register', () => {
       expect(response.body.user).toHaveProperty('id');
       expect(response.body.user).toHaveProperty('email');
     });
+
+    it('should register a new admin user when role is provided', async () => {
+      const email = `newadmin-${Date.now()}@example.com`;
+
+      const response = await request(app)
+        .post('/api/v1/auth/register')
+        .send({
+          email,
+          password: validPassword,
+          role: 'admin',
+        })
+        .expect(201);
+
+      expect(response.body).toHaveProperty('user');
+      expect(response.body.user).toHaveProperty('id');
+
+      const adminClient = requireSupabaseAdmin();
+      const { data: userRecord } = await adminClient
+        .from('users')
+        .select('role')
+        .eq('id', response.body.user.id)
+        .single();
+
+      expect(userRecord?.role).toBe('admin');
+    });
   });
 
   describe('Validation errors (400)', () => {
