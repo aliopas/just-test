@@ -14,6 +14,8 @@ import { RegisterPage } from './pages/RegisterPage';
 import { VerifyOtpPage } from './pages/VerifyOtpPage';
 import { AdminRequestsInboxPage } from './pages/AdminRequestsInboxPage';
 import { AdminNewsPage } from './pages/AdminNewsPage';
+import { InvestorDashboardPage } from './pages/InvestorDashboardPage';
+import { MyRequestsPage } from './pages/MyRequestsPage';
 
 const navLinkStyle: React.CSSProperties = {
   borderRadius: '0.75rem',
@@ -102,7 +104,7 @@ function HeaderNav() {
         }}
       >
         <NavLink
-          to="/"
+          to="/dashboard"
           style={({ isActive }) => ({
             ...navLinkStyle,
             background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
@@ -110,7 +112,17 @@ function HeaderNav() {
           })}
           end
         >
-        {language === 'ar' ? 'الصفحة الرئيسية' : 'Home'}
+          {language === 'ar' ? 'لوحة المتابعة' : 'Dashboard'}
+        </NavLink>
+        <NavLink
+          to="/requests"
+          style={({ isActive }) => ({
+            ...navLinkStyle,
+            background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
+            color: isActive ? palette.textPrimary : palette.textSecondary,
+          })}
+        >
+          {language === 'ar' ? 'طلباتي' : 'My Requests'}
         </NavLink>
         <NavLink
           to="/requests/new"
@@ -300,10 +312,13 @@ function InvestorApp() {
     <Fragment>
       <HeaderNav />
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/dashboard" element={<InvestorDashboardPage />} />
+        <Route path="/home" element={<HomePage />} />
+        <Route path="/requests" element={<MyRequestsPage />} />
         <Route path="/requests/new" element={<NewRequestPage />} />
         <Route path="/profile" element={<ProfilePage />} />
-        <Route path="*" element={<HomePage />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
       <AppFooter />
     </Fragment>

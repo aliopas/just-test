@@ -5,6 +5,7 @@ import { requirePermission } from '../middleware/rbac.middleware';
 import { validate } from '../middleware/validation.middleware';
 import { investorProfileUpdateSchema } from '../schemas/investor-profile.schema';
 import { requestController } from '../controllers/request.controller';
+import { investorDashboardController } from '../controllers/investor-dashboard.controller';
 
 const investorRouter = Router();
 
@@ -13,6 +14,13 @@ investorRouter.get(
   authenticate,
   requirePermission(['investor.requests.read', 'admin.requests.review']),
   requestController.list
+);
+
+investorRouter.get(
+  '/dashboard',
+  authenticate,
+  requirePermission(['investor.requests.read', 'admin.requests.review']),
+  investorDashboardController.getDashboard
 );
 
 investorRouter.get(

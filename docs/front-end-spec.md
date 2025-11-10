@@ -61,6 +61,20 @@
 - **التحليلات:** Placeholder عبر `analytics.track('request_created')` عند النجاح.
 - **ملاحظات:** تتطلب نفس التبعيات المذكورة أعلاه (React Query, Hook Form, Zod). عند إضافة اختبارات واجهة، استخدم `@testing-library/react`.
 
+### Investor Dashboard (v1.0)
+
+- **Entry Route:** `/dashboard` عبر `InvestorDashboardPage` (ضمن shell الرئيسي في `App.tsx`). إعادة التوجيه من `/` إلى `/dashboard`.
+- **Providers:** يستخدم `LanguageProvider`, `ToastProvider`, و`QueryClientProvider` (React Query) مع cache زمنية قصيرة (30 ثانية) و`refetchOnWindowFocus`.
+- **Data Layer:** `useInvestorDashboard` يستدعي `GET /investor/dashboard` لإرجاع ملخص الطلبات (`requestSummary`)، الأنشطة الأخيرة (`recentRequests`)، العناصر التي تحتاج معلومات إضافية، وعدد الإشعارات غير المقروءة.
+- **UI Sections:**
+  - **Summary Grid:** بطاقات تعرض إجمالي الطلبات، موزعة حسب الحالة (Submitted, Screening, Pending Info, Compliance Review, Approved, Settling, Completed, Rejected, Draft). كل بطاقة تستخدم `SummaryCard` مع ظلال خفيفة ودعم RTL.
+  - **Pending Actions:** قائمة تعرض طلبات `pending_info` مع زر قصير `View request` يؤدي إلى `/requests`. حالة فارغة، Skeleton أثناء التحميل، وزر إعادة المحاولة عند الخطأ.
+  - **Recent Activity:** قائمة طلبات حديثة (آخر 5) تعرض رقم الطلب، الحالة باستخدام `getStatusLabel`, المبلغ مع `Intl.NumberFormat`, وختم زمني.
+  - **Header Metrics:** عداد الإشعارات غير المقروءة، وطابع محدث (`generatedAt`) بصيغة محلية.
+- **Error Handling:** Toasts عند فشل التحميل، شريط تحذير مع زر `Try again` لإعادة الاستعلام (`refetch`).
+- **Styling:** يعتمد `palette` (خلفيات surface/alt، حدود soft، ألوان brand)، ويستخدم `animation: pulse` للـ skeleton placeholders.
+- **Extensibility:** دعم لاحق لRealtime (Supabase) عبر الاشتراك في `notifications`/`requests` channels (TODO مستقبلي).
+
 ### My Requests Experience (v1.3)
 
 - **Entry Route:** `/app/requests` (`frontend/src/app/requests/main.tsx`) مع دعم منفذ `drawer-root` لعرض التفاصيل.

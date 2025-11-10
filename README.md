@@ -182,6 +182,7 @@ npm test -- health.test.ts
 - **Story 6.5 (In-App Notifications Center):** `docs/stories/STORY_6.5_COMPLETION.md`
 - **Story 6.6 (Notification Preferences):** `docs/stories/STORY_6.6_COMPLETION.md`
 - **Story 6.7 (Request Communication Timeline):** `docs/stories/STORY_6.7_COMPLETION.md`
+- **Story 7.1 (Investor Dashboard Overview):** `docs/stories/STORY_7.1_COMPLETION.md`
 - **Design System:** `docs/design-system.md` (مع ملفات `frontend/src/styles/theme.ts` و`frontend/src/components/Logo.tsx`)
 - **Supabase Integration:** `docs/SUPABASE_INTEGRATION.md`
 - **RBAC Matrix:** `docs/prd/rbac-matrix.md`
@@ -214,6 +215,14 @@ POST /api/v1/notifications/mark-all-read
 ```
 
 > Requires `investor.notifications.read` permission and authentication.
+
+### Investor Dashboard
+
+```
+GET /api/v1/investor/dashboard
+```
+
+> Requires `investor.requests.read`. Returns aggregated counts, pending actions, and recent request activity for the signed-in investor.
 
 ### Investor Requests
 
