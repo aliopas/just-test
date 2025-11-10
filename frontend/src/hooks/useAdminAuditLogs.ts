@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { apiClient } from '../utils/api-client';
 import type {
   AdminAuditLogFilters,
@@ -18,7 +18,7 @@ function buildQuery(filters: AdminAuditLogFilters) {
 }
 
 export function useAdminAuditLogs(filters: AdminAuditLogFilters) {
-  return useQuery({
+  return useQuery<AdminAuditLogResponse>({
     queryKey: ['adminAuditLogs', filters],
     queryFn: async () => {
       const query = buildQuery(filters);
@@ -27,7 +27,7 @@ export function useAdminAuditLogs(filters: AdminAuditLogFilters) {
         : '/admin/audit-logs';
       return apiClient<AdminAuditLogResponse>(url);
     },
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
     staleTime: 60_000,
   });
 }

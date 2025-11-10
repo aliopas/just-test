@@ -7,7 +7,11 @@ import { LanguageProvider, useLanguage } from '../context/LanguageContext';
 import { ToastProvider, useToast } from '../context/ToastContext';
 import { ToastStack } from '../components/ToastStack';
 import { useAdminAuditLogs } from '../hooks/useAdminAuditLogs';
-import type { AdminAuditLogFilters } from '../types/admin-audit';
+import type {
+  AdminAuditLogEntry,
+  AdminAuditLogFilters,
+  AdminAuditLogMeta,
+} from '../types/admin-audit';
 import { tAdminAudit } from '../locales/adminAudit';
 import { palette } from '../styles/theme';
 
@@ -85,8 +89,8 @@ function AdminAuditLogPageInner() {
     pushToast({ message, variant: 'error' });
   }, [isError, error, language, pushToast]);
 
-  const logs = data?.logs ?? [];
-  const meta = data?.meta ?? {
+  const logs: AdminAuditLogEntry[] = data?.logs ?? [];
+  const meta: AdminAuditLogMeta = data?.meta ?? {
     page: appliedFilters.page,
     limit: 25,
     total: logs.length,

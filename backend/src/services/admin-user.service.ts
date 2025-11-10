@@ -1,4 +1,5 @@
 import { randomBytes } from 'crypto';
+import type { User } from '@supabase/supabase-js';
 import { requireSupabaseAdmin } from '../lib/supabase';
 import { diffObjects } from '../utils/diff.util';
 import { DEFAULT_COMMUNICATION_PREFERENCES } from './investor-profile.service';
@@ -319,33 +320,77 @@ export const adminUserService = {
     userAgent?: string | null;
   }) {
     const adminClient = requireSupabaseAdmin();
+    const shouldSendInvite = params.sendInvite ?? false;
 
-    const password =
-      params.sendInvite && !params.temporaryPassword
-        ? generateSecurePassword()
-        : (params.temporaryPassword ?? generateSecurePassword());
-
-    const { data: created, error: createError } =
-      await adminClient.auth.admin.createUser({
-        email: params.email,
-        phone: params.phone ?? undefined,
-        password,
-        email_confirm: !params.sendInvite,
-        user_metadata: {
-          locale: params.locale,
-          full_name: params.fullName,
-        },
-      });
-
-    if (createError || !created?.user) {
-      throw new Error(`Failed to create auth user: ${createError?.message}`);
-    }
+    let createdUser: User | null = null;
 
     try {
+      if (shouldSendInvite) {
+        const { data: inviteData, error: inviteError } =
+          await adminClient.auth.admin.inviteUserByEmail(params.email, {
+            data: {
+              locale: params.locale,
+              full_name: params.fullName ?? undefined,
+            },
+          });
+
+        if (inviteError || !inviteData?.user) {
+          throw new Error(
+            `Failed to invite user: ${inviteError?.message ?? 'Unknown error'}`
+          );
+        }
+
+        createdUser = inviteData.user;
+
+        const { error: updateError } = await adminClient.auth.admin.updateUserById(
+          createdUser.id,
+          {
+            phone: params.phone ?? undefined,
+            user_metadata: {
+              locale: params.locale,
+              full_name: params.fullName ?? null,
+            },
+          }
+        );
+
+        if (updateError) {
+          throw new Error(
+            `Failed to update invited user: ${updateError.message}`
+          );
+        }
+      } else {
+        const password =
+          params.temporaryPassword ?? generateSecurePassword();
+
+        const { data: created, error: createError } =
+          await adminClient.auth.admin.createUser({
+            email: params.email,
+            phone: params.phone ?? undefined,
+            password,
+            email_confirm: true,
+            user_metadata: {
+              locale: params.locale,
+              full_name: params.fullName,
+            },
+          });
+
+        if (createError || !created?.user) {
+          throw new Error(
+            `Failed to create auth user: ${createError?.message ?? 'Unknown error'}`
+          );
+        }
+
+        createdUser = created.user;
+      }
+
+      if (!createdUser) {
+        throw new Error('Failed to create auth user');
+      }
+
       const { error: insertError } = await adminClient
         .from('users')
         .insert({
-          id: created.user.id,
+          id: createdUser.id,
           email: params.email,
           phone: params.phone ?? null,
           role: params.role,
@@ -360,7 +405,7 @@ export const adminUserService = {
 
       if (params.role) {
         await rbacService.assignRole(
-          created.user.id,
+          createdUser.id,
           params.role.toLowerCase(),
           params.actorId
         );
@@ -370,7 +415,7 @@ export const adminUserService = {
         await adminClient
           .from('investor_profiles')
           .upsert({
-            user_id: created.user.id,
+            user_id: createdUser.id,
             full_name: params.fullName ?? null,
             language: params.investorProfile?.language ?? params.locale ?? 'ar',
             communication_preferences: {
@@ -388,14 +433,10 @@ export const adminUserService = {
           .maybeSingle();
       }
 
-      if (params.sendInvite) {
-        await adminClient.auth.admin.inviteUserByEmail(params.email);
-      }
-
       await logAudit({
         actorId: params.actorId,
         action: 'admin.users.create',
-        targetId: created.user.id,
+        targetId: createdUser.id,
         diff: diffObjects(null, {
           email: params.email,
           phone: params.phone ?? null,
@@ -406,10 +447,20 @@ export const adminUserService = {
         userAgent: params.userAgent,
       });
 
-      const current = await fetchUserFromView(created.user.id);
+      const current = await fetchUserFromView(createdUser.id);
       return mapAdminUser(current);
     } catch (error) {
-      await adminClient.auth.admin.deleteUser(created.user.id);
+      if (createdUser) {
+        try {
+          await adminClient.auth.admin.deleteUser(createdUser.id);
+        } catch (cleanupError) {
+          console.error(
+            'Failed to clean up auth user after create failure:',
+            cleanupError
+          );
+        }
+      }
+
       throw error;
     }
   },
