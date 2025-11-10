@@ -75,6 +75,18 @@
 - **Styling:** يعتمد `palette` (خلفيات surface/alt، حدود soft، ألوان brand)، ويستخدم `animation: pulse` للـ skeleton placeholders.
 - **Extensibility:** دعم لاحق لRealtime (Supabase) عبر الاشتراك في `notifications`/`requests` channels (TODO مستقبلي).
 
+### Admin Dashboard – Content Analytics (Story 7.5)
+
+- **Entry Route:** `/admin/dashboard` عبر `AdminDashboardPage` (داخل shell الأدمن في `App.tsx`).
+- **Data Layer:** `useAdminContentAnalytics` (TanStack Query) يستدعي `GET /admin/analytics/content` مع caching لمدة 60 ثانية وإعادة التحميل عند تركيز النافذة. يدعم مستقبلًا معلمات `days`, `limitTop`.
+- **Sections Added:**
+  - **Metrics Row:** ثلاث بطاقات صغيرة (انطباعات، قراءات تفصيلية، CTR) تعتمد على `palette` وتدعم RTL.
+  - **Top News List:** تعرض العنوان، تاريخ النشر، الانطباعات، القراءات، ونسبة CTR لأفضل النتائج. حالات تحميل (skeleton)، فارغة، وخطأ.
+  - **Trend Sparkline:** استخدام `TrendSparkline` الحالي مع بيانات `views` لرسم اتجاه يومي خلال 30 يومًا، مع ملخص رقمي أسفل الرسم.
+- **Instrumentation:** `public-news.controller` يسجل eventos الانطباعات عند استدعاء القائمة، وdetail views عند فتح المقال، ما يغذي التحليلات تلقائيًا دون أي تغييرات في واجهة المستثمر.
+- **Error UX:** في حال فشل التحميل يتم عرض Toast + شريط تنبيه داخل البطاقة يحتوي على زر Retry. أثناء إعادة المحاولة يتغير مؤشر الزر إلى `progress`.
+- **Accessibility:** النصوص الجديدة مغطاة في `frontend/src/locales/adminContentAnalytics.ts` مع دعم العربية والإنجليزية.
+
 ### My Requests Experience (v1.3)
 
 - **Entry Route:** `/app/requests` (`frontend/src/app/requests/main.tsx`) مع دعم منفذ `drawer-root` لعرض التفاصيل.

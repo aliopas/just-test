@@ -4,6 +4,10 @@ import {
   getPublishedNewsById,
   listPublishedNews,
 } from '../services/news.service';
+import {
+  recordNewsImpressions,
+  recordNewsView,
+} from '../services/content-analytics.service';
 
 export const publicNewsController = {
   async list(req: Request, res: Response) {
@@ -23,6 +27,15 @@ export const publicNewsController = {
       }
 
       const result = await listPublishedNews(validation.data);
+
+      if (result.news.length > 0) {
+        void recordNewsImpressions(
+          result.news.map(item => item.id),
+          { context: 'public_feed' }
+        ).catch(error =>
+          console.error('Failed to record news impressions:', error)
+        );
+      }
       return res.status(200).json(result);
     } catch (error) {
       console.error('Failed to list published news:', error);
@@ -48,6 +61,10 @@ export const publicNewsController = {
       }
 
       const result = await getPublishedNewsById(newsId);
+
+      void recordNewsView(result.id, { context: 'public_detail' }).catch(
+        error => console.error('Failed to record news view:', error)
+      );
       return res.status(200).json(result);
     } catch (error) {
       if (error instanceof Error && error.message === 'NEWS_NOT_FOUND') {

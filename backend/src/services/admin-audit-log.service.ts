@@ -119,8 +119,30 @@ export async function listAdminAuditLogs(
   const limit = Math.min(query.limit ?? 25, 100);
   const offset = (page - 1) * limit;
 
-  const baseQuery = adminClient.from('audit_logs');
-  let builder: any = baseQuery;
+  const selectQuery = adminClient.from('audit_logs').select(
+    `
+        id,
+        actor_id,
+        action,
+        target_type,
+        target_id,
+        diff,
+        ip_address,
+        user_agent,
+        created_at,
+        actor:users!audit_logs_actor_id_fkey (
+          id,
+          email,
+          profile:investor_profiles (
+            full_name,
+            preferred_name
+          )
+        )
+      `,
+    { count: 'exact' }
+  );
+
+  let builder = selectQuery;
 
   if (query.from) {
     builder = builder.gte('created_at', query.from);
@@ -147,28 +169,6 @@ export async function listAdminAuditLogs(
   }
 
   const { data, error, count } = await builder
-    .select(
-      `
-        id,
-        actor_id,
-        action,
-        target_type,
-        target_id,
-        diff,
-        ip_address,
-        user_agent,
-        created_at,
-        actor:users!audit_logs_actor_id_fkey (
-          id,
-          email,
-          profile:investor_profiles (
-            full_name,
-            preferred_name
-          )
-        )
-      `,
-      { count: 'exact' }
-    )
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
 

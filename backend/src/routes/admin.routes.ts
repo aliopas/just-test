@@ -5,6 +5,7 @@ import { newsController } from '../controllers/news.controller';
 import { adminDashboardController } from '../controllers/admin-dashboard.controller';
 import { adminAuditLogController } from '../controllers/admin-audit-log.controller';
 import { adminReportsController } from '../controllers/admin-reports.controller';
+import { adminContentAnalyticsController } from '../controllers/admin-content-analytics.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { requirePermission } from '../middleware/rbac.middleware';
 
@@ -113,6 +114,13 @@ adminRouter.get(
   authenticate,
   requirePermission('admin.requests.review'),
   adminReportsController.requests
+);
+
+adminRouter.get(
+  '/analytics/content',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  adminContentAnalyticsController.summary
 );
 
 adminRouter.get(

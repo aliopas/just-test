@@ -342,16 +342,14 @@ export const adminUserService = {
 
         createdUser = inviteData.user;
 
-        const { error: updateError } = await adminClient.auth.admin.updateUserById(
-          createdUser.id,
-          {
+        const { error: updateError } =
+          await adminClient.auth.admin.updateUserById(createdUser.id, {
             phone: params.phone ?? undefined,
             user_metadata: {
               locale: params.locale,
               full_name: params.fullName ?? null,
             },
-          }
-        );
+          });
 
         if (updateError) {
           throw new Error(
@@ -359,8 +357,7 @@ export const adminUserService = {
           );
         }
       } else {
-        const password =
-          params.temporaryPassword ?? generateSecurePassword();
+        const password = params.temporaryPassword ?? generateSecurePassword();
 
         const { data: created, error: createError } =
           await adminClient.auth.admin.createUser({

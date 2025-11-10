@@ -277,6 +277,14 @@ GET /api/v1/admin/audit-logs
 
 > Requires `admin.audit.read`. Filters: `page`, `limit`, `from`, `to`, `actorId`, `action`, `resourceType`, `resourceId`.
 
+### Admin Content Analytics
+
+```
+GET /api/v1/admin/analytics/content
+```
+
+> Requires `admin.content.manage`. Optional query parameters: `days` (default 30, max 180) and `limitTop` (default 5, max 20). Returns content engagement totals, top-performing news, and daily trend data for the selected range.
+
 ### Authentication
 
 #### Register

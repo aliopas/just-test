@@ -22,13 +22,22 @@ export function useAdminAuditLogs(filters: AdminAuditLogFilters) {
     queryKey: ['adminAuditLogs', filters],
     queryFn: async () => {
       const query = buildQuery(filters);
-      const url = query
-        ? `/admin/audit-logs?${query}`
-        : '/admin/audit-logs';
-      return apiClient<AdminAuditLogResponse>(url);
+      const url = query ? `/admin/audit-logs?${query}` : '/admin/audit-logs';
+      const response = await apiClient<AdminAuditLogResponse>(url);
+
+      return {
+        logs: response.logs ?? [],
+        meta: response.meta ?? {
+          page: filters.page ?? 1,
+          limit: 25,
+          total: 0,
+          pageCount: 1,
+        },
+      };
     },
     placeholderData: keepPreviousData,
     staleTime: 60_000,
+    retry: 1,
   });
 }
 
