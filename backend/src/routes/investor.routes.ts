@@ -15,7 +15,7 @@ investorRouter.get(
   requestController.list
 );
 
-investorRouter.post(
+investorRouter.get(
   '/profile',
   authenticate,
   requirePermission(['investor.profile.read', 'admin.users.manage']),
