@@ -42,13 +42,19 @@ export type ResendOTPInput = z.infer<typeof resendOTPSchema>;
 
 export const confirmEmailSchema = z
   .object({
-    email: z.string().email('Invalid email format').min(1, 'Email is required').optional(),
+    email: z
+      .string()
+      .email('Invalid email format')
+      .min(1, 'Email is required')
+      .optional(),
     token: z.string().min(1, 'token is required').optional(),
     token_hash: z.string().min(1, 'token_hash is required').optional(),
     access_token: z.string().min(1, 'access_token is required').optional(),
   })
   .superRefine((payload, ctx) => {
-    const hasToken = typeof payload.token === 'string' || typeof payload.token_hash === 'string';
+    const hasToken =
+      typeof payload.token === 'string' ||
+      typeof payload.token_hash === 'string';
     const hasAccessToken = typeof payload.access_token === 'string';
 
     if (!hasToken && !hasAccessToken) {

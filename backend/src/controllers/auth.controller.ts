@@ -315,8 +315,8 @@ export const authController = {
           });
         }
 
-        const { data: userData, error: userError } = await adminClient
-          .auth.admin.getUserById(userId);
+        const { data: userData, error: userError } =
+          await adminClient.auth.admin.getUserById(userId);
 
         if (userError || !userData?.user) {
           return res.status(404).json({
@@ -333,7 +333,10 @@ export const authController = {
           .eq('id', userId);
 
         if (updateError) {
-          console.error('Failed to update user status during email confirmation:', updateError);
+          console.error(
+            'Failed to update user status during email confirmation:',
+            updateError
+          );
         }
 
         return res.status(200).json({
@@ -345,17 +348,18 @@ export const authController = {
         });
       }
 
-      const verifyParams: Parameters<typeof supabase.auth.verifyOtp>[0] = token_hash
-        ? {
-            email: email as string,
-            type: 'signup',
-            token_hash,
-          }
-        : {
-            email: email as string,
-            type: 'signup',
-            token: token as string,
-          };
+      const verifyParams: Parameters<typeof supabase.auth.verifyOtp>[0] =
+        token_hash
+          ? {
+              email: email as string,
+              type: 'signup',
+              token_hash,
+            }
+          : {
+              email: email as string,
+              type: 'signup',
+              token: token as string,
+            };
 
       const { data, error } = await supabase.auth.verifyOtp(verifyParams);
 
@@ -374,7 +378,10 @@ export const authController = {
         .eq('email', email);
 
       if (updateError) {
-        console.error('Failed to update user status during email confirmation:', updateError);
+        console.error(
+          'Failed to update user status during email confirmation:',
+          updateError
+        );
       }
 
       return res.status(200).json({
