@@ -311,11 +311,20 @@ export const authController = {
     try {
       const { email, token, token_hash } = req.body;
 
-      const { data, error } = await supabase.auth.verifyOtp({
-        email,
-        type: 'signup',
-        ...(token_hash ? { token_hash } : { token }),
-      });
+      const verifyParams: Parameters<typeof supabase.auth.verifyOtp>[0] =
+        token_hash
+          ? {
+              email,
+              type: 'signup',
+              token_hash,
+            }
+          : {
+              email,
+              type: 'signup',
+              token: token as string,
+            };
+
+      const { data, error } = await supabase.auth.verifyOtp(verifyParams);
 
       if (error) {
         return res.status(400).json({
