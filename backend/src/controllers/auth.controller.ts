@@ -6,6 +6,7 @@ import {
   VerifyOTPInput,
   ResendOTPInput,
   LoginInput,
+  ConfirmEmailInput,
 } from '../schemas/auth.schema';
 import { otpService } from '../services/otp.service';
 import { totpService } from '../services/totp.service';
@@ -292,6 +293,57 @@ export const authController = {
       return res.status(200).json({
         message: 'OTP resent successfully',
         expiresAt: expiresAt.toISOString(),
+      });
+    } catch (error) {
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'An unexpected error occurred',
+        },
+      });
+    }
+  },
+
+  confirmEmail: async (
+    req: Request<EmptyParams, unknown, ConfirmEmailInput>,
+    res: Response
+  ) => {
+    try {
+      const { email, token, token_hash } = req.body;
+
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        type: 'signup',
+        ...(token_hash ? { token_hash } : { token }),
+      });
+
+      if (error) {
+        return res.status(400).json({
+          error: {
+            code: 'VERIFY_EMAIL_FAILED',
+            message: error.message,
+          },
+        });
+      }
+
+      const adminClient = requireSupabaseAdmin();
+      const { error: updateError } = await adminClient
+        .from('users')
+        .update({ status: 'active' })
+        .eq('email', email);
+
+      if (updateError) {
+        console.error('Failed to update user status during email confirmation:', updateError);
+      }
+
+      return res.status(200).json({
+        verified: true,
+        user: data.user
+          ? {
+              id: data.user.id,
+              email: data.user.email,
+            }
+          : undefined,
       });
     } catch (error) {
       return res.status(500).json({

@@ -40,6 +40,22 @@ export const resendOTPSchema = z.object({
 
 export type ResendOTPInput = z.infer<typeof resendOTPSchema>;
 
+export const confirmEmailSchema = z
+  .object({
+    email: z.string().email('Invalid email format').min(1, 'Email is required'),
+    token: z.string().min(1, 'token is required').optional(),
+    token_hash: z.string().min(1, 'token_hash is required').optional(),
+  })
+  .refine(
+    payload => typeof payload.token === 'string' || typeof payload.token_hash === 'string',
+    {
+      message: 'Either token or token_hash must be provided',
+      path: ['token'],
+    }
+  );
+
+export type ConfirmEmailInput = z.infer<typeof confirmEmailSchema>;
+
 export const loginSchema = z.object({
   email: z.string().email('Invalid email format').min(1, 'Email is required'),
   password: z.string().min(6, 'Password must be at least 6 characters'),

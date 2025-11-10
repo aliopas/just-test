@@ -9,6 +9,7 @@ import {
   loginSchema,
   refreshSchema,
   totpVerifySchema,
+  confirmEmailSchema,
 } from '../schemas/auth.schema';
 
 const authRouter = Router();
@@ -23,6 +24,11 @@ authRouter.post(
   '/resend-otp',
   validate(resendOTPSchema),
   authController.resendOTP
+);
+authRouter.post(
+  '/confirm-email',
+  validate(confirmEmailSchema),
+  authController.confirmEmail
 );
 
 authRouter.post('/login', validate(loginSchema), authController.login);

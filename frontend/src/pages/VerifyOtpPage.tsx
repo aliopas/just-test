@@ -1,6 +1,7 @@
-import { ChangeEvent, FormEvent, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useVerifyOtp } from '../hooks/useVerifyOtp';
+import { useConfirmEmail } from '../hooks/useConfirmEmail';
 import { useToast } from '../context/ToastContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Logo } from '../components/Logo';
@@ -15,14 +16,40 @@ type VerifyFormState = {
 export function VerifyOtpPage() {
   const { language } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
   const { pushToast } = useToast();
   const verifyMutation = useVerifyOtp();
+  const confirmEmailMutation = useConfirmEmail();
   const [form, setForm] = useState<VerifyFormState>({
     email: '',
     otp: '',
   });
+  const [autoStatus, setAutoStatus] = useState<'idle' | 'running' | 'done' | 'error'>('idle');
 
   const direction = language === 'ar' ? 'rtl' : 'ltr';
+
+  const searchParams = useMemo(
+    () => new URLSearchParams(location.search),
+    [location.search]
+  );
+  const hashParams = useMemo(
+    () =>
+      new URLSearchParams(
+        location.hash.startsWith('#') ? location.hash.slice(1) : location.hash
+      ),
+    [location.hash]
+  );
+
+  const autoEmail =
+    searchParams.get('email') ?? hashParams.get('email') ?? undefined;
+  const autoTokenHash =
+    hashParams.get('token_hash') ?? searchParams.get('token_hash') ?? undefined;
+  const autoToken =
+    hashParams.get('token') ?? searchParams.get('token') ?? undefined;
+  const supabaseError = hashParams.get('error') ?? undefined;
+  const supabaseErrorDescription =
+    hashParams.get('error_description') ?? undefined;
+  const supabaseErrorCode = hashParams.get('error_code') ?? undefined;
 
   const handleChange =
     (field: keyof VerifyFormState) =>
@@ -33,6 +60,103 @@ export function VerifyOtpPage() {
         [field]: field === 'otp' ? value.replace(/\D/g, '').slice(0, 6) : value,
       }));
     };
+
+  useEffect(() => {
+    if (!autoEmail) {
+      return;
+    }
+    setForm(current =>
+      current.email
+        ? current
+        : {
+            ...current,
+            email: autoEmail,
+          }
+    );
+  }, [autoEmail]);
+
+  useEffect(() => {
+    if (!supabaseError) {
+      return;
+    }
+
+    const message =
+      supabaseErrorCode === 'otp_expired'
+        ? language === 'ar'
+          ? 'رابط التفعيل غير صالح أو منتهي الصلاحية. اطلب رابطًا جديدًا ثم جرّب مرة أخرى.'
+          : 'The confirmation link is invalid or has expired. Request a new link and try again.'
+        : supabaseErrorDescription ??
+          (language === 'ar'
+            ? 'تعذّر إكمال التفعيل عبر الرابط المرسل.'
+            : 'Unable to complete activation using the emailed link.');
+
+    pushToast({
+      variant: 'error',
+      message,
+    });
+    setAutoStatus('error');
+  }, [supabaseError, supabaseErrorCode, supabaseErrorDescription, pushToast, language]);
+
+  useEffect(() => {
+    if (autoStatus !== 'idle') {
+      return;
+    }
+
+    if (!autoEmail) {
+      return;
+    }
+
+    if (!autoTokenHash && !autoToken) {
+      return;
+    }
+
+    setAutoStatus('running');
+    confirmEmailMutation.mutate(
+      {
+        email: autoEmail,
+        token_hash: autoTokenHash ?? undefined,
+        token: autoTokenHash ? undefined : autoToken ?? undefined,
+      },
+      {
+        onSuccess: () => {
+          setAutoStatus('done');
+          pushToast({
+            variant: 'success',
+            message:
+              language === 'ar'
+                ? 'تم تفعيل بريدك الإلكتروني بنجاح. يمكنك تسجيل الدخول الآن.'
+                : 'Your email has been verified successfully. You can now sign in.',
+          });
+          navigate('/');
+        },
+        onError: error => {
+          setAutoStatus('error');
+          const message =
+            error instanceof ApiError
+              ? error.message ||
+                (language === 'ar'
+                  ? 'تعذّر تفعيل البريد الإلكتروني عبر الرابط. يرجى المحاولة مجددًا أو إدخال رمز OTP يدويًا.'
+                  : 'Unable to verify the email link. Please retry or enter the OTP manually.')
+              : language === 'ar'
+              ? 'تعذّر تفعيل البريد الإلكتروني عبر الرابط. يرجى المحاولة مجددًا أو إدخال رمز OTP يدويًا.'
+              : 'Unable to verify the email link. Please retry or enter the OTP manually.';
+          pushToast({
+            variant: 'error',
+            message,
+          });
+        },
+      }
+    );
+  }, [
+    autoEmail,
+    autoTokenHash,
+    autoToken,
+    autoStatus,
+    confirmEmailMutation,
+    pushToast,
+    language,
+    navigate,
+  ]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
