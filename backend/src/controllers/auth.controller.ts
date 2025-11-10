@@ -309,20 +309,62 @@ export const authController = {
     res: Response
   ) => {
     try {
-      const { email, token, token_hash } = req.body;
+      const { email, token, token_hash, access_token } = req.body;
+      const adminClient = requireSupabaseAdmin();
 
-      const verifyParams: Parameters<typeof supabase.auth.verifyOtp>[0] =
-        token_hash
-          ? {
-              email,
-              type: 'signup',
-              token_hash,
-            }
-          : {
-              email,
-              type: 'signup',
-              token: token as string,
-            };
+      if (access_token) {
+        const userId = decodeJwtSub(access_token);
+
+        if (!userId) {
+          return res.status(400).json({
+            error: {
+              code: 'INVALID_TOKEN',
+              message: 'Unable to extract user from access token',
+            },
+          });
+        }
+
+        const { data: userData, error: userError } = await adminClient
+          .auth.admin.getUserById(userId);
+
+        if (userError || !userData?.user) {
+          return res.status(404).json({
+            error: {
+              code: 'USER_NOT_FOUND',
+              message: 'User not found',
+            },
+          });
+        }
+
+        const { error: updateError } = await adminClient
+          .from('users')
+          .update({ status: 'active' })
+          .eq('id', userId);
+
+        if (updateError) {
+          console.error('Failed to update user status during email confirmation:', updateError);
+        }
+
+        return res.status(200).json({
+          verified: true,
+          user: {
+            id: userId,
+            email: userData.user.email,
+          },
+        });
+      }
+
+      const verifyParams: Parameters<typeof supabase.auth.verifyOtp>[0] = token_hash
+        ? {
+            email: email as string,
+            type: 'signup',
+            token_hash,
+          }
+        : {
+            email: email as string,
+            type: 'signup',
+            token: token as string,
+          };
 
       const { data, error } = await supabase.auth.verifyOtp(verifyParams);
 
@@ -335,7 +377,6 @@ export const authController = {
         });
       }
 
-      const adminClient = requireSupabaseAdmin();
       const { error: updateError } = await adminClient
         .from('users')
         .update({ status: 'active' })

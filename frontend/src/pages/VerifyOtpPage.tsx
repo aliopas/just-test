@@ -46,6 +46,7 @@ export function VerifyOtpPage() {
     hashParams.get('token_hash') ?? searchParams.get('token_hash') ?? undefined;
   const autoToken =
     hashParams.get('token') ?? searchParams.get('token') ?? undefined;
+  const accessToken = hashParams.get('access_token') ?? undefined;
   const supabaseError = hashParams.get('error') ?? undefined;
   const supabaseErrorDescription =
     hashParams.get('error_description') ?? undefined;
@@ -102,11 +103,7 @@ export function VerifyOtpPage() {
       return;
     }
 
-    if (!autoEmail) {
-      return;
-    }
-
-    if (!autoTokenHash && !autoToken) {
+    if (!accessToken && (!autoEmail || (!autoTokenHash && !autoToken))) {
       return;
     }
 
@@ -116,6 +113,7 @@ export function VerifyOtpPage() {
         email: autoEmail,
         token_hash: autoTokenHash ?? undefined,
         token: autoTokenHash ? undefined : autoToken ?? undefined,
+        access_token: accessToken ?? undefined,
       },
       {
         onSuccess: () => {
@@ -151,6 +149,7 @@ export function VerifyOtpPage() {
     autoEmail,
     autoTokenHash,
     autoToken,
+    accessToken,
     autoStatus,
     confirmEmailMutation,
     pushToast,
@@ -160,6 +159,17 @@ export function VerifyOtpPage() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (!form.email.trim()) {
+      pushToast({
+        variant: 'error',
+        message:
+          language === 'ar'
+            ? 'الرجاء إدخال البريد الإلكتروني المرتبط بالحساب.'
+            : 'Please enter the email address associated with the account.',
+      });
+      return;
+    }
 
     if (form.otp.length !== 6) {
       pushToast({

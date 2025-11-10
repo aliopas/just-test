@@ -28,10 +28,10 @@ const DEFAULT_NOTIFICATION_CHANNELS = NOTIFICATION_CHANNELS.filter(
 
 const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferenceInput[] =
   NOTIFICATION_TYPES.flatMap(notificationType =>
-  DEFAULT_NOTIFICATION_CHANNELS.map(channel => ({
-    channel,
-    type: notificationType,
-    enabled: true,
+    DEFAULT_NOTIFICATION_CHANNELS.map(channel => ({
+      channel,
+      type: notificationType,
+      enabled: true,
     }))
   );
 

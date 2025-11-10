@@ -84,7 +84,7 @@ export function RegisterPage() {
             ? 'تم إنشاء الحساب بنجاح. يرجى التحقق من بريدك وOTP للتفعيل.'
             : 'Account created successfully. Please check your email and OTP to activate.',
       });
-      navigate('/');
+      navigate(`/verify?email=${encodeURIComponent(form.email.trim())}`);
     } catch (error) {
       let message: string;
       if (error instanceof ApiError) {

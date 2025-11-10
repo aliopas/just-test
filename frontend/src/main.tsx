@@ -34,12 +34,12 @@ ReactDOM.createRoot(container).render(
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <LanguageProvider>
-            <ToastProvider>
-              <App />
-              <ToastStack />
-            </ToastProvider>
-          </LanguageProvider>
+        <LanguageProvider>
+          <ToastProvider>
+            <App />
+            <ToastStack />
+          </ToastProvider>
+        </LanguageProvider>
         </AuthProvider>
       </QueryClientProvider>
     </BrowserRouter>

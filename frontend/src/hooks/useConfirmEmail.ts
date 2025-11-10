@@ -2,9 +2,10 @@ import { useMutation } from '@tanstack/react-query';
 import { apiClient, type ApiClientOptions } from '../utils/api-client';
 
 type ConfirmEmailPayload = {
-  email: string;
+  email?: string;
   token?: string;
   token_hash?: string;
+  access_token?: string;
 };
 
 type ConfirmEmailResponse = {
