@@ -3,6 +3,7 @@ import { adminRequestController } from '../controllers/admin-request.controller'
 import { adminUserController } from '../controllers/admin-user.controller';
 import { newsController } from '../controllers/news.controller';
 import { adminDashboardController } from '../controllers/admin-dashboard.controller';
+import { adminReportsController } from '../controllers/admin-reports.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { requirePermission } from '../middleware/rbac.middleware';
 
@@ -97,6 +98,13 @@ adminRouter.post(
   authenticate,
   requirePermission('admin.content.manage'),
   newsController.presignImage
+);
+
+adminRouter.get(
+  '/reports/requests',
+  authenticate,
+  requirePermission('admin.requests.review'),
+  adminReportsController.requests
 );
 
 adminRouter.get(
