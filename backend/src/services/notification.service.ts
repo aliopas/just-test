@@ -1,8 +1,3 @@
-const ADMIN_DEFAULT_LANGUAGE =
-  process.env.ADMIN_NOTIFICATION_DEFAULT_LANGUAGE === 'ar' ||
-  process.env.ADMIN_NOTIFICATION_DEFAULT_LANGUAGE === 'en'
-    ? (process.env.ADMIN_NOTIFICATION_DEFAULT_LANGUAGE as EmailLanguage)
-    : undefined;
 import type { User } from '@supabase/supabase-js';
 import type { EmailLanguage, TemplateContext } from '../email/templates/types';
 import { enqueueEmailNotification } from './email-dispatch.service';
@@ -11,8 +6,33 @@ import type {
   NotificationType,
   NotificationStatusFilter,
   NotificationChannel,
+  NotificationPreferenceInput,
+  NotificationPreferenceListInput,
+} from '../schemas/notification.schema';
+import {
+  NOTIFICATION_CHANNELS,
+  NOTIFICATION_TYPES,
 } from '../schemas/notification.schema';
 import type { NewsStatus } from '../schemas/news.schema';
+
+const ADMIN_DEFAULT_LANGUAGE =
+  process.env.ADMIN_NOTIFICATION_DEFAULT_LANGUAGE === 'ar' ||
+  process.env.ADMIN_NOTIFICATION_DEFAULT_LANGUAGE === 'en'
+    ? (process.env.ADMIN_NOTIFICATION_DEFAULT_LANGUAGE as EmailLanguage)
+    : undefined;
+
+const DEFAULT_NOTIFICATION_CHANNELS = (NOTIFICATION_CHANNELS as NotificationChannel[]).filter(
+  channel => channel === 'email' || channel === 'in_app'
+);
+
+const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferenceInput[] =
+  (NOTIFICATION_TYPES as NotificationType[]).flatMap(notificationType =>
+    DEFAULT_NOTIFICATION_CHANNELS.map(channel => ({
+      channel,
+      type: notificationType,
+      enabled: true,
+    }))
+  );
 
 const INVESTOR_PORTAL_URL = (
   process.env.INVESTOR_PORTAL_URL ?? 'https://app.bakurah.com'
@@ -130,6 +150,33 @@ export type NotificationListResult = {
   notifications: NotificationListItem[];
   meta: NotificationListMeta;
 };
+
+function sanitizePreferenceList(
+  preferences: NotificationPreferenceListInput
+): NotificationPreferenceInput[] {
+  const allowedChannels = new Set<NotificationChannel>(
+    NOTIFICATION_CHANNELS as NotificationChannel[]
+  );
+  const allowedTypes = new Set<NotificationType>(
+    NOTIFICATION_TYPES as NotificationType[]
+  );
+
+  const preferenceMap = new Map<string, NotificationPreferenceInput>();
+
+  preferences.forEach(pref => {
+    if (!allowedChannels.has(pref.channel) || !allowedTypes.has(pref.type)) {
+      return;
+    }
+    const key = `${pref.channel}:${pref.type}`;
+    preferenceMap.set(key, {
+      channel: pref.channel,
+      type: pref.type,
+      enabled: Boolean(pref.enabled),
+    });
+  });
+
+  return Array.from(preferenceMap.values());
+}
 
 function coerceLanguage(value: unknown): EmailLanguage {
   return value === 'ar' ? 'ar' : 'en';
@@ -475,6 +522,88 @@ export async function markAllNotificationsRead(userId: string) {
   return {
     updated: data?.length ?? 0,
   };
+}
+
+export async function getNotificationPreferences(
+  userId: string
+): Promise<NotificationPreferenceInput[]> {
+  const adminClient = requireSupabaseAdmin();
+  const { data, error } = await adminClient
+    .from('notification_preferences')
+    .select('type, channel, enabled')
+    .eq('user_id', userId);
+
+  if (error) {
+    throw new Error(`Failed to load notification preferences: ${error.message}`);
+  }
+
+  const existing = new Map<string, NotificationPreferenceInput>();
+  for (const pref of data ?? []) {
+    if (
+      typeof pref.type === 'string' &&
+      typeof pref.channel === 'string' &&
+      typeof pref.enabled === 'boolean'
+    ) {
+      existing.set(`${pref.channel}:${pref.type}`, {
+        type: pref.type as NotificationType,
+        channel: pref.channel as NotificationChannel,
+        enabled: pref.enabled,
+      });
+    }
+  }
+
+  const merged: NotificationPreferenceInput[] = [];
+  for (const defaultPref of DEFAULT_NOTIFICATION_PREFERENCES) {
+    const key = `${defaultPref.channel}:${defaultPref.type}`;
+    merged.push(existing.get(key) ?? defaultPref);
+    existing.delete(key);
+  }
+
+  if (existing.size > 0) {
+    merged.push(...existing.values());
+  }
+
+  return merged;
+}
+
+export async function updateNotificationPreferences(params: {
+  userId: string;
+  preferences: NotificationPreferenceListInput;
+}): Promise<NotificationPreferenceInput[]> {
+  const sanitized = sanitizePreferenceList(params.preferences);
+  const adminClient = requireSupabaseAdmin();
+
+  const { error: deleteError } = await adminClient
+    .from('notification_preferences')
+    .delete()
+    .eq('user_id', params.userId);
+
+  if (deleteError) {
+    throw new Error(
+      `Failed to reset notification preferences: ${deleteError.message}`
+    );
+  }
+
+  if (sanitized.length > 0) {
+    const insertPayload = sanitized.map(pref => ({
+      user_id: params.userId,
+      type: pref.type,
+      channel: pref.channel,
+      enabled: pref.enabled,
+    }));
+
+    const { error: insertError } = await adminClient
+      .from('notification_preferences')
+      .insert(insertPayload);
+
+    if (insertError) {
+      throw new Error(
+        `Failed to update notification preferences: ${insertError.message}`
+      );
+    }
+  }
+
+  return getNotificationPreferences(params.userId);
 }
 
 async function notifyAdminRequestEvent<
