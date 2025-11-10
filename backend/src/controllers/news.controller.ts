@@ -7,6 +7,7 @@ import {
   newsUpdateSchema,
   newsApproveSchema,
   newsRejectSchema,
+  newsPublishSchema,
 } from '../schemas/news.schema';
 import {
   createNews,
@@ -18,6 +19,7 @@ import {
   updateNews,
   approveNews,
   rejectNews,
+  publishNews,
 } from '../services/news.service';
 
 export const newsController = {
@@ -424,6 +426,86 @@ export const newsController = {
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to reject news item',
+        },
+      });
+    }
+  },
+
+  async publish(req: AuthenticatedRequest, res: Response) {
+    try {
+      const newsId = req.params.id;
+      if (!newsId) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'News id is required',
+          },
+        });
+      }
+
+      if (!req.user?.id) {
+        return res.status(401).json({
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'User is not authenticated',
+          },
+        });
+      }
+
+      const validation = newsPublishSchema.safeParse(req.body ?? {});
+      if (!validation.success) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid request payload',
+            details: validation.error.issues.map(issue => ({
+              field: issue.path.join('.'),
+              message: issue.message,
+            })),
+          },
+        });
+      }
+
+      const result = await publishNews({
+        newsId,
+        actorId: req.user.id,
+        input: validation.data,
+        ipAddress: req.ip,
+        userAgent: req.headers?.['user-agent'] ?? null,
+      });
+
+      return res.status(200).json(result);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === 'NEWS_NOT_FOUND') {
+          return res.status(404).json({
+            error: {
+              code: 'NOT_FOUND',
+              message: 'News item not found',
+            },
+          });
+        }
+        if (
+          error.message === 'NEWS_INVALID_STATE' ||
+          error.message === 'NEWS_ALREADY_PUBLISHED'
+        ) {
+          return res.status(409).json({
+            error: {
+              code: 'INVALID_STATE',
+              message:
+                error.message === 'NEWS_ALREADY_PUBLISHED'
+                  ? 'News item is already published'
+                  : 'News item cannot be published from its current status',
+            },
+          });
+        }
+      }
+
+      console.error('Failed to publish news item:', error);
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to publish news item',
         },
       });
     }

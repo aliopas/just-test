@@ -16,6 +16,7 @@ import { AdminRequestsInboxPage } from './pages/AdminRequestsInboxPage';
 import { AdminNewsPage } from './pages/AdminNewsPage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { AdminReportsPage } from './pages/AdminReportsPage';
+import { AdminAuditLogPage } from './pages/AdminAuditLogPage';
 import { InvestorDashboardPage } from './pages/InvestorDashboardPage';
 import { MyRequestsPage } from './pages/MyRequestsPage';
 
@@ -294,6 +295,16 @@ function AdminHeaderNav() {
         >
           {language === 'ar' ? 'التقارير' : 'Reports'}
         </NavLink>
+        <NavLink
+          to="/admin/audit"
+          style={({ isActive }) => ({
+            ...navLinkStyle,
+            background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
+            color: isActive ? palette.textPrimary : palette.textSecondary,
+          })}
+        >
+          {language === 'ar' ? 'سجل التدقيق' : 'Audit log'}
+        </NavLink>
         <button
           type="button"
           onClick={() => logout.mutate()}
@@ -368,6 +379,7 @@ function AdminApp() {
         <Route path="/admin/requests" element={<AdminRequestsInboxPage />} />
         <Route path="/admin/news" element={<AdminNewsPage />} />
         <Route path="/admin/reports" element={<AdminReportsPage />} />
+        <Route path="/admin/audit" element={<AdminAuditLogPage />} />
         <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
       </Routes>
     </Fragment>

@@ -83,8 +83,8 @@ function mapInvestor(
   }
 
   const profile = Array.isArray(investor.profile)
-    ? investor.profile[0] ?? null
-    : investor.profile ?? null;
+    ? (investor.profile[0] ?? null)
+    : (investor.profile ?? null);
 
   return {
     email: investor.email ?? null,
@@ -177,8 +177,8 @@ export async function getAdminRequestReport(
   const rawRows = (data ?? []) as RawRequestWithInvestorRow[];
   const rows: RequestWithInvestorRow[] = rawRows.map(row => {
     const investor = Array.isArray(row.investor)
-      ? row.investor[0] ?? null
-      : row.investor ?? null;
+      ? (row.investor[0] ?? null)
+      : (row.investor ?? null);
 
     return {
       ...row,

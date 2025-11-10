@@ -152,3 +152,28 @@ export const newsRejectSchema = z.object({
 });
 
 export type NewsRejectInput = z.infer<typeof newsRejectSchema>;
+
+export const newsPublishSchema = z
+  .object({
+    publishedAt: timestampSchema.optional(),
+  })
+  .superRefine((val, ctx) => {
+    if (val.publishedAt) {
+      const parsed = Date.parse(val.publishedAt);
+      if (Number.isNaN(parsed)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'publishedAt must be a valid ISO timestamp',
+          path: ['publishedAt'],
+        });
+      } else if (parsed > Date.now()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'publishedAt cannot be in the future',
+          path: ['publishedAt'],
+        });
+      }
+    }
+  });
+
+export type NewsPublishInput = z.infer<typeof newsPublishSchema>;

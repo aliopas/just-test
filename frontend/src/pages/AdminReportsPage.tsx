@@ -72,7 +72,7 @@ function AdminReportsPageInner() {
         : 'all';
 
     const fromIso = appliedFilters.from
-      ? new Date(uiFilters.from).toISOString()
+      ? new Date(appliedFilters.from).toISOString()
       : undefined;
     const toIso = appliedFilters.to
       ? new Date(appliedFilters.to).toISOString()

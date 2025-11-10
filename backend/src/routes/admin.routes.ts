@@ -3,6 +3,7 @@ import { adminRequestController } from '../controllers/admin-request.controller'
 import { adminUserController } from '../controllers/admin-user.controller';
 import { newsController } from '../controllers/news.controller';
 import { adminDashboardController } from '../controllers/admin-dashboard.controller';
+import { adminAuditLogController } from '../controllers/admin-audit-log.controller';
 import { adminReportsController } from '../controllers/admin-reports.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { requirePermission } from '../middleware/rbac.middleware';
@@ -101,6 +102,13 @@ adminRouter.post(
 );
 
 adminRouter.get(
+  '/audit-logs',
+  authenticate,
+  requirePermission('admin.audit.read'),
+  adminAuditLogController.list
+);
+
+adminRouter.get(
   '/reports/requests',
   authenticate,
   requirePermission('admin.requests.review'),
@@ -133,6 +141,13 @@ adminRouter.post(
   authenticate,
   requirePermission('admin.content.manage'),
   newsController.publishScheduled
+);
+
+adminRouter.post(
+  '/news/:id/publish',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  newsController.publish
 );
 
 adminRouter.post(

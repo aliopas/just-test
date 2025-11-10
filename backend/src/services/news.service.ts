@@ -14,6 +14,7 @@ import type {
   NewsImagePresignInput,
   NewsApproveInput,
   NewsRejectInput,
+  NewsPublishInput,
 } from '../schemas/news.schema';
 import type { PublicNewsListQuery } from '../schemas/public-news.schema';
 
@@ -773,6 +774,85 @@ export async function rejectNews(params: {
   }
 
   return { news: updated, review };
+}
+
+export async function publishNews(params: {
+  newsId: string;
+  actorId: string;
+  input: NewsPublishInput;
+  ipAddress?: string | null;
+  userAgent?: string | null;
+  now?: Date;
+}): Promise<NewsItem> {
+  const now = params.now ?? new Date();
+  const nowIso = now.toISOString();
+  const publishAtIso = params.input.publishedAt ?? nowIso;
+
+  const existing = await getNewsById(params.newsId);
+
+  if (existing.status === 'published') {
+    throw new Error('NEWS_ALREADY_PUBLISHED');
+  }
+
+  const allowedStatuses: NewsStatus[] = [
+    'draft',
+    'pending_review',
+    'scheduled',
+  ];
+  if (!allowedStatuses.includes(existing.status)) {
+    throw new Error('NEWS_INVALID_STATE');
+  }
+
+  const adminClient = requireSupabaseAdmin();
+
+  const { error: updateError } = await adminClient
+    .from('news')
+    .update({
+      status: 'published',
+      published_at: publishAtIso,
+      scheduled_at: null,
+      updated_at: nowIso,
+    })
+    .eq('id', params.newsId);
+
+  if (updateError) {
+    throw new Error(`Failed to publish news: ${updateError.message}`);
+  }
+
+  await logNewsAudit({
+    actorId: params.actorId,
+    action: 'news.published',
+    newsId: params.newsId,
+    diff: {
+      status: { before: existing.status, after: 'published' },
+      publishedAt: { before: existing.publishedAt, after: publishAtIso },
+      scheduledAt: { before: existing.scheduledAt, after: null },
+    },
+    ipAddress: params.ipAddress,
+    userAgent: params.userAgent,
+  });
+
+  const updated = await getNewsById(params.newsId);
+
+  if (updated.author?.id) {
+    await notifyAuthorOfNewsApproval({
+      newsId: updated.id,
+      authorId: updated.author.id,
+      reviewerId: params.actorId,
+      title: updated.title,
+      status: updated.status,
+      comment: null,
+    });
+  }
+
+  await notifyInvestorsOfPublishedNews({
+    newsId: updated.id,
+    title: updated.title,
+    slug: updated.slug,
+    publishedAt: updated.publishedAt ?? publishAtIso,
+  });
+
+  return updated;
 }
 
 export async function listPublishedNews(

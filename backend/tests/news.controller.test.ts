@@ -8,6 +8,7 @@ import {
   getNewsById,
   listNews,
   publishScheduledNews,
+  publishNews,
   rejectNews,
   updateNews,
 } from '../src/services/news.service';
@@ -22,6 +23,7 @@ jest.mock('../src/services/news.service', () => ({
   updateNews: jest.fn(),
   deleteNews: jest.fn(),
   publishScheduledNews: jest.fn(),
+  publishNews: jest.fn(),
   rejectNews: jest.fn(),
 }));
 
@@ -59,6 +61,7 @@ const mockedDeleteNews = deleteNews as jest.Mock;
 const mockedPublishScheduled = publishScheduledNews as jest.Mock;
 const mockedApproveNews = approveNews as jest.Mock;
 const mockedRejectNews = rejectNews as jest.Mock;
+const mockedPublishNews = publishNews as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -512,6 +515,140 @@ describe('newsController.approve', () => {
     const res = createMockResponse();
 
     await newsController.approve(req, res as unknown as Response);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+});
+
+describe('newsController.publish', () => {
+  it('requires news id', async () => {
+    const req = {
+      user: { id: 'admin-1' },
+      params: {},
+      body: {},
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await newsController.publish(req, res as unknown as Response);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(mockedPublishNews).not.toHaveBeenCalled();
+  });
+
+  it('requires authentication', async () => {
+    const req = {
+      params: { id: 'news-1' },
+      body: {},
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await newsController.publish(req, res as unknown as Response);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+  });
+
+  it('validates payload', async () => {
+    const req = {
+      user: { id: 'admin-1' },
+      params: { id: 'news-1' },
+      body: { publishedAt: 'not-a-date' },
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await newsController.publish(req, res as unknown as Response);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(mockedPublishNews).not.toHaveBeenCalled();
+  });
+
+  it('publishes news successfully', async () => {
+    mockedPublishNews.mockResolvedValueOnce({
+      id: 'news-1',
+      status: 'published',
+    });
+
+    const req = {
+      user: { id: 'admin-1' },
+      params: { id: 'news-1' },
+      body: { publishedAt: '2025-03-01T12:00:00Z' },
+      ip: '127.0.0.1',
+      headers: { 'user-agent': 'jest' },
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await newsController.publish(req, res as unknown as Response);
+
+    expect(mockedPublishNews).toHaveBeenCalledWith(
+      expect.objectContaining({
+        newsId: 'news-1',
+        actorId: 'admin-1',
+        input: { publishedAt: '2025-03-01T12:00:00Z' },
+      })
+    );
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'news-1', status: 'published' })
+    );
+  });
+
+  it('maps not found error', async () => {
+    mockedPublishNews.mockRejectedValueOnce(new Error('NEWS_NOT_FOUND'));
+
+    const req = {
+      user: { id: 'admin-1' },
+      params: { id: 'missing' },
+      body: {},
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await newsController.publish(req, res as unknown as Response);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+  });
+
+  it('maps invalid state error', async () => {
+    mockedPublishNews.mockRejectedValueOnce(new Error('NEWS_INVALID_STATE'));
+
+    const req = {
+      user: { id: 'admin-1' },
+      params: { id: 'news-1' },
+      body: {},
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await newsController.publish(req, res as unknown as Response);
+
+    expect(res.status).toHaveBeenCalledWith(409);
+  });
+
+  it('maps already published error', async () => {
+    mockedPublishNews.mockRejectedValueOnce(
+      new Error('NEWS_ALREADY_PUBLISHED')
+    );
+
+    const req = {
+      user: { id: 'admin-1' },
+      params: { id: 'news-1' },
+      body: {},
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await newsController.publish(req, res as unknown as Response);
+
+    expect(res.status).toHaveBeenCalledWith(409);
+  });
+
+  it('handles unexpected errors', async () => {
+    mockedPublishNews.mockRejectedValueOnce(new Error('boom'));
+
+    const req = {
+      user: { id: 'admin-1' },
+      params: { id: 'news-1' },
+      body: {},
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await newsController.publish(req, res as unknown as Response);
 
     expect(res.status).toHaveBeenCalledWith(500);
   });

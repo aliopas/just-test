@@ -22,6 +22,7 @@ import {
   createNewsImageUploadUrl,
   listNews,
   publishScheduledNews,
+  publishNews,
   listPublishedNews,
   getPublishedNewsById,
   rejectNews,
@@ -827,6 +828,106 @@ describe('news.service', () => {
       ).rejects.toThrow('NEWS_INVALID_STATE');
 
       expect(mockNotifyPublished).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('publishNews', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2025-03-01T12:00:00Z'));
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('publishes news immediately and notifies interested parties', async () => {
+      const { newsBuilder, auditLogsBuilder } = setupAdminClient({
+        status: 'draft',
+      });
+
+      const result = await publishNews({
+        newsId: 'news-1',
+        actorId: 'admin-1',
+        input: {},
+        ipAddress: '127.0.0.1',
+        userAgent: 'jest',
+      });
+
+      expect(newsBuilder.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'published',
+          published_at: '2025-03-01T12:00:00.000Z',
+          scheduled_at: null,
+        })
+      );
+      expect(auditLogsBuilder.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          actor_id: 'admin-1',
+          action: 'news.published',
+        })
+      );
+      expect(result.status).toBe('published');
+      expect(mockNotifyPublished).toHaveBeenCalledWith(
+        expect.objectContaining({
+          newsId: 'news-1',
+          slug: 'breaking-update',
+        })
+      );
+      expect(mockNotifyAuthorApproval).toHaveBeenCalledWith(
+        expect.objectContaining({
+          newsId: 'news-1',
+          authorId: 'author-1',
+          status: 'published',
+          comment: null,
+        })
+      );
+    });
+
+    it('uses provided publishedAt timestamp', async () => {
+      const { newsBuilder } = setupAdminClient({ status: 'pending_review' });
+
+      const result = await publishNews({
+        newsId: 'news-1',
+        actorId: 'admin-1',
+        input: { publishedAt: '2025-02-15T09:30:00Z' },
+      });
+
+      expect(newsBuilder.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          published_at: '2025-02-15T09:30:00Z',
+        })
+      );
+      expect(result.publishedAt).toBe('2025-02-15T09:30:00Z');
+    });
+
+    it('throws when already published', async () => {
+      setupAdminClient({
+        status: 'published',
+        published_at: '2025-02-15T09:30:00Z',
+      });
+
+      await expect(
+        publishNews({
+          newsId: 'news-1',
+          actorId: 'admin-1',
+          input: {},
+        })
+      ).rejects.toThrow('NEWS_ALREADY_PUBLISHED');
+    });
+
+    it('throws when status is not publishable', async () => {
+      setupAdminClient({
+        status: 'archived',
+      });
+
+      await expect(
+        publishNews({
+          newsId: 'news-1',
+          actorId: 'admin-1',
+          input: {},
+        })
+      ).rejects.toThrow('NEWS_INVALID_STATE');
     });
   });
 

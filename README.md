@@ -185,6 +185,7 @@ npm test -- health.test.ts
 - **Story 7.1 (Investor Dashboard Overview):** `docs/stories/STORY_7.1_COMPLETION.md`
 - **Story 7.2 (Admin Dashboard Stats):** `docs/stories/STORY_7.2_COMPLETION.md`
 - **Story 7.3 (Admin Request Reports):** `docs/stories/STORY_7.3_COMPLETION.md`
+- **Story 7.4 (Admin Audit Log):** `docs/stories/STORY_7.4_COMPLETION.md`
 - **Design System:** `docs/design-system.md` (مع ملفات `frontend/src/styles/theme.ts` و`frontend/src/components/Logo.tsx`)
 - **Supabase Integration:** `docs/SUPABASE_INTEGRATION.md`
 - **RBAC Matrix:** `docs/prd/rbac-matrix.md`
@@ -267,6 +268,14 @@ GET /api/v1/admin/reports/requests
 ```
 
 > Requires `admin.requests.review`. Supports optional filters (`from`, `to`, `status`, `type`, `minAmount`, `maxAmount`) and `format=csv` for downloadable exports.
+
+### Admin Audit Log
+
+```
+GET /api/v1/admin/audit-logs
+```
+
+> Requires `admin.audit.read`. Filters: `page`, `limit`, `from`, `to`, `actorId`, `action`, `resourceType`, `resourceId`.
 
 ### Authentication
 
