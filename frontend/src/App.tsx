@@ -11,6 +11,7 @@ import { palette } from './styles/theme';
 import { LoginPage } from './pages/LoginPage';
 import { useAuth } from './context/AuthContext';
 import { RegisterPage } from './pages/RegisterPage';
+import { VerifyOtpPage } from './pages/VerifyOtpPage';
 
 const navLinkStyle: React.CSSProperties = {
   borderRadius: '0.75rem',
@@ -196,6 +197,7 @@ export function App() {
   if (!isAuthenticated) {
     return (
       <Routes>
+        <Route path="/verify" element={<VerifyOtpPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="*" element={<LoginPage />} />
       </Routes>

@@ -309,6 +309,25 @@ export function LoginPage() {
               {language === 'ar' ? 'أنشئ حساباً جديداً' : 'Create one'}
             </Link>
           </p>
+          <p
+            style={{
+              margin: 0,
+              fontSize: '0.95rem',
+              color: palette.textSecondary,
+            }}
+          >
+            {language === 'ar' ? 'بحاجة لتفعيل حسابك؟ ' : 'Need to activate your account? '}
+            <Link
+              to="/verify"
+              style={{
+                color: palette.brandPrimaryStrong,
+                fontWeight: 600,
+                textDecoration: 'none',
+              }}
+            >
+              {language === 'ar' ? 'ادخل رمز OTP هنا' : 'Enter your OTP here'}
+            </Link>
+          </p>
         </div>
       </div>
     </div>

@@ -381,6 +381,26 @@ export function RegisterPage() {
             {language === 'ar' ? 'سجّل الدخول' : 'Sign in'}
           </Link>
         </p>
+        <p
+          style={{
+            margin: 0,
+            fontSize: '0.95rem',
+            color: palette.textSecondary,
+            textAlign: 'center',
+          }}
+        >
+          {language === 'ar' ? 'وصلتك رسالة OTP وتريد التفعيل؟ ' : 'Received your OTP already? '}
+          <Link
+            to="/verify"
+            style={{
+              color: palette.brandPrimaryStrong,
+              fontWeight: 600,
+              textDecoration: 'none',
+            }}
+          >
+            {language === 'ar' ? 'اذهب لصفحة التفعيل' : 'Go to the activation page'}
+          </Link>
+        </p>
       </div>
     </div>
   );
