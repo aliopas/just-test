@@ -7,9 +7,12 @@ import {
   type ReactNode,
 } from 'react';
 
+type UserRole = 'investor' | 'admin';
+
 type AuthUser = {
   id: string;
   email: string;
+  role: UserRole;
 };
 
 type AuthContextValue = {
@@ -29,15 +32,32 @@ function readStoredUser(): AuthUser | null {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as AuthUser;
-    if (parsed && typeof parsed.id === 'string' && typeof parsed.email === 'string') {
-      return parsed;
+    const parsed = JSON.parse(raw) as Partial<AuthUser>;
+    if (
+      parsed &&
+      typeof parsed.id === 'string' &&
+      typeof parsed.email === 'string' &&
+      (parsed.role === 'investor' || parsed.role === 'admin')
+    ) {
+      return {
+        id: parsed.id,
+        email: parsed.email,
+        role: parsed.role,
+      };
     }
   } catch (error) {
     console.warn('Failed to parse stored auth user', error);
   }
 
   return null;
+}
+
+function serializeUser(user: AuthUser): string {
+  return JSON.stringify({
+    id: user.id,
+    email: user.email,
+    role: user.role,
+  } satisfies AuthUser);
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -48,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const setUser = useCallback((next: AuthUser | null) => {
     if (typeof window !== 'undefined') {
       if (next) {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        window.localStorage.setItem(STORAGE_KEY, serializeUser(next));
       } else {
         window.localStorage.removeItem(STORAGE_KEY);
       }

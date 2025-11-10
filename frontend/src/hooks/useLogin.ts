@@ -9,10 +9,13 @@ type LoginPayload = {
   totpToken?: string;
 };
 
+type UserRole = 'investor' | 'admin';
+
 type LoginSuccessResponse = {
   user: {
     id: string;
     email: string | null;
+    role?: UserRole | null;
   };
   session?: {
     accessToken?: string;
@@ -76,9 +79,12 @@ export function useLogin() {
         throw new Error('لم يتم العثور على بيانات المستخدم في الاستجابة.');
       }
 
+      const role: UserRole = response.user.role === 'admin' ? 'admin' : 'investor';
+
       const normalizedUser = {
         id: response.user.id,
         email: response.user.email ?? '',
+        role,
       };
 
       setUser(normalizedUser);

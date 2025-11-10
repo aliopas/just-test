@@ -1,5 +1,5 @@
 ﻿import { Fragment } from 'react';
-import { NavLink, Route, Routes } from 'react-router-dom';
+import { NavLink, Navigate, Route, Routes } from 'react-router-dom';
 import { HomePage } from './pages/HomePage';
 import { NewRequestPage } from './pages/NewRequestPage';
 import { ProfilePage } from './pages/ProfilePage';
@@ -12,6 +12,8 @@ import { LoginPage } from './pages/LoginPage';
 import { useAuth } from './context/AuthContext';
 import { RegisterPage } from './pages/RegisterPage';
 import { VerifyOtpPage } from './pages/VerifyOtpPage';
+import { AdminRequestsInboxPage } from './pages/AdminRequestsInboxPage';
+import { AdminNewsPage } from './pages/AdminNewsPage';
 
 const navLinkStyle: React.CSSProperties = {
   borderRadius: '0.75rem',
@@ -154,6 +156,123 @@ function HeaderNav() {
   );
 }
 
+function AdminHeaderNav() {
+  const { language } = useLanguage();
+  const logout = useLogout();
+  const portalName =
+    language === 'ar' ? 'لوحة تحكم إدارة باكورة' : 'Bakurah Admin Console';
+  const portalSubtitle =
+    language === 'ar'
+      ? 'إدارة الطلبات والأخبار والمحتوى التشغيلي لمنصة باكورة.'
+      : 'Manage investor requests, news, and operational content for Bakurah.';
+
+  return (
+    <header
+      style={{
+        background: palette.backgroundSurface,
+        color: palette.textPrimary,
+        padding: '1rem 2rem',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: '0.75rem',
+        flexWrap: 'wrap',
+        rowGap: '0.5rem',
+        borderBottom: `1px solid ${palette.neutralBorderSoft}`,
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'flex-start',
+          gap: '0.85rem',
+          flexWrap: 'wrap',
+          maxWidth: '100%',
+        }}
+      >
+        <Logo size={56} showWordmark={false} aria-hidden />
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.35rem',
+          }}
+        >
+          <span
+            style={{
+              fontSize: '1.25rem',
+              fontWeight: 700,
+              letterSpacing: '0.02em',
+              color: palette.textPrimary,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {portalName}
+          </span>
+          <span
+            style={{
+              fontSize: '0.95rem',
+              color: palette.textSecondary,
+            }}
+          >
+            {portalSubtitle}
+          </span>
+        </div>
+      </div>
+      <nav
+        style={{
+          display: 'flex',
+          gap: '0.75rem',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+        }}
+      >
+        <NavLink
+          to="/admin"
+          style={({ isActive }) => ({
+            ...navLinkStyle,
+            background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
+            color: isActive ? palette.textPrimary : palette.textSecondary,
+          })}
+          end
+        >
+          {language === 'ar' ? 'طلبات الاستثمار' : 'Requests inbox'}
+        </NavLink>
+        <NavLink
+          to="/admin/news"
+          style={({ isActive }) => ({
+            ...navLinkStyle,
+            background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
+            color: isActive ? palette.textPrimary : palette.textSecondary,
+          })}
+        >
+          {language === 'ar' ? 'الأخبار والمحتوى' : 'News & content'}
+        </NavLink>
+        <button
+          type="button"
+          onClick={() => logout.mutate()}
+          style={{
+            ...navLinkStyle,
+            borderColor: palette.brandPrimaryStrong,
+            background: palette.brandPrimaryStrong,
+            color: palette.textOnBrand,
+          }}
+          disabled={logout.isPending}
+        >
+          {logout.isPending
+            ? language === 'ar'
+              ? 'جارٍ تسجيل الخروج…'
+              : 'Signing out…'
+            : language === 'ar'
+              ? 'تسجيل الخروج'
+              : 'Sign out'}
+        </button>
+      </nav>
+    </header>
+  );
+}
+
 function AppFooter() {
   return (
     <footer
@@ -176,7 +295,7 @@ function AppFooter() {
   );
 }
 
-function AuthenticatedApp() {
+function InvestorApp() {
   return (
     <Fragment>
       <HeaderNav />
@@ -191,8 +310,22 @@ function AuthenticatedApp() {
   );
 }
 
+function AdminApp() {
+  return (
+    <Fragment>
+      <AdminHeaderNav />
+      <Routes>
+        <Route path="/admin" element={<AdminRequestsInboxPage />} />
+        <Route path="/admin/requests" element={<AdminRequestsInboxPage />} />
+        <Route path="/admin/news" element={<AdminNewsPage />} />
+        <Route path="*" element={<Navigate to="/admin" replace />} />
+      </Routes>
+    </Fragment>
+  );
+}
+
 export function App() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   if (!isAuthenticated) {
     return (
@@ -204,5 +337,9 @@ export function App() {
     );
   }
 
-  return <AuthenticatedApp />;
+  if (user?.role === 'admin') {
+    return <AdminApp />;
+  }
+
+  return <InvestorApp />;
 }

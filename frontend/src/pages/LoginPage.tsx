@@ -1,5 +1,5 @@
 import { ChangeEvent, FormEvent, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useLogin } from '../hooks/useLogin';
 import { useToast } from '../context/ToastContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -17,6 +17,7 @@ export function LoginPage() {
   const { language } = useLanguage();
   const { pushToast } = useToast();
   const loginMutation = useLogin();
+  const navigate = useNavigate();
   const [requires2FA, setRequires2FA] = useState(false);
   const [form, setForm] = useState<LoginFormState>({
     email: '',
@@ -58,6 +59,14 @@ export function LoginPage() {
         return;
       }
 
+      if (!('user' in response) || !response.user) {
+        throw new Error(
+          language === 'ar'
+            ? 'استجابة تسجيل الدخول غير صالحة.'
+            : 'Invalid login response received.'
+        );
+      }
+
       pushToast({
         variant: 'success',
         message:
@@ -65,6 +74,9 @@ export function LoginPage() {
             ? 'تم تسجيل الدخول بنجاح، مرحباً بك من جديد!'
             : 'Signed in successfully. Welcome back!',
       });
+
+      const isAdmin = response.user.role === 'admin';
+      navigate(isAdmin ? '/admin' : '/', { replace: true });
     } catch (error) {
       if (error instanceof ApiError) {
         pushToast({

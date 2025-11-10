@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../utils/api-client';
 import { useToast } from '../context/ToastContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 
 async function logoutRequest() {
   await apiClient('/auth/logout', {
@@ -30,11 +31,13 @@ export function useLogout() {
   const navigate = useNavigate();
   const { pushToast } = useToast();
   const { language } = useLanguage();
+  const { setUser } = useAuth();
 
   return useMutation({
     mutationFn: logoutRequest,
     onSuccess: () => {
       clearAuthArtifacts();
+      setUser(null);
       pushToast({
         message:
           language === 'ar'
@@ -46,6 +49,7 @@ export function useLogout() {
     },
     onError: () => {
       clearAuthArtifacts();
+      setUser(null);
       pushToast({
         message:
           language === 'ar'

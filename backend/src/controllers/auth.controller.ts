@@ -439,7 +439,7 @@ export const authController = {
       const adminClient = requireSupabaseAdmin();
       const { data: userData } = await adminClient
         .from('users')
-        .select('mfa_enabled, mfa_secret, status')
+        .select('mfa_enabled, mfa_secret, status, role')
         .eq('id', data.user.id)
         .single();
 
@@ -468,12 +468,18 @@ export const authController = {
         }
       }
 
+      const metadataRole =
+        (data.user.user_metadata as { role?: string } | null | undefined)?.role;
+      const role =
+        (userData?.role as string | null | undefined) ?? metadataRole ?? 'investor';
+
       setAuthCookies(res, data.session);
 
       return res.status(200).json({
         user: {
           id: data.user.id,
           email: data.user.email,
+          role,
         },
         session: {
           accessToken: data.session.access_token,
