@@ -81,10 +81,10 @@ export function RegisterPage() {
         variant: 'success',
         message:
           language === 'ar'
-            ? 'تم إنشاء الحساب بنجاح. يرجى التحقق من بريدك وOTP للتفعيل.'
-            : 'Account created successfully. Please check your email and OTP to activate.',
+            ? 'تم إنشاء الحساب بنجاح. يمكنك تسجيل الدخول الآن.'
+            : 'Account created successfully. You can sign in now.',
       });
-      navigate(`/verify?email=${encodeURIComponent(form.email.trim())}`);
+      navigate('/');
     } catch (error) {
       let message: string;
       if (error instanceof ApiError) {
@@ -175,8 +175,8 @@ export function RegisterPage() {
               }}
             >
               {language === 'ar'
-                ? 'اختر نوع الحساب، أدخل بياناتك، وسنرسل إليك رمز التحقق للتفعيل.'
-                : 'Choose your role, provide your details, and we will send you an OTP to activate the account.'}
+                ? 'اختر نوع الحساب وأدخل بياناتك، ثم سجّل الدخول مباشرةً بعد الإنشاء.'
+                : 'Choose your role, provide your details, then sign in right away after you finish.'}
             </p>
           </div>
         </div>
@@ -379,26 +379,6 @@ export function RegisterPage() {
             }}
           >
             {language === 'ar' ? 'سجّل الدخول' : 'Sign in'}
-          </Link>
-        </p>
-        <p
-          style={{
-            margin: 0,
-            fontSize: '0.95rem',
-            color: palette.textSecondary,
-            textAlign: 'center',
-          }}
-        >
-          {language === 'ar' ? 'وصلتك رسالة OTP وتريد التفعيل؟ ' : 'Received your OTP already? '}
-          <Link
-            to="/verify"
-            style={{
-              color: palette.brandPrimaryStrong,
-              fontWeight: 600,
-              textDecoration: 'none',
-            }}
-          >
-            {language === 'ar' ? 'اذهب لصفحة التفعيل' : 'Go to the activation page'}
           </Link>
         </p>
       </div>

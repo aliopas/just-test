@@ -102,7 +102,7 @@ export const authController = {
         email: data.user.email,
         phone: phone || null,
         role,
-        status: 'pending',
+        status: 'active',
       });
 
       if (userError) {
@@ -128,23 +128,14 @@ export const authController = {
         });
       }
 
-      // Create OTP for email verification
-      try {
-        await otpService.createOTP(data.user.id);
-        // TODO: Send OTP via email (Supabase Edge Function or email service)
-      } catch (otpError) {
-        // Log error but don't fail registration
-        console.error('Failed to create OTP:', otpError);
-      }
-
       // Success response
       return res.status(201).json({
         user: {
           id: data.user.id,
           email: data.user.email,
         },
-        emailConfirmationSent: !data.session, // If no session, email confirmation was sent
-        otpSent: true, // OTP was created and should be sent via email
+        emailConfirmationSent: false,
+        otpSent: false,
       });
     } catch (error) {
       // Unexpected error
@@ -445,15 +436,7 @@ export const authController = {
         .eq('id', data.user.id)
         .single();
 
-      if (userData?.status && userData.status !== 'active') {
-        await supabase.auth.signOut();
-        return res.status(403).json({
-          error: {
-            code: 'ACCOUNT_INACTIVE',
-            message: 'Account is not activated. Please verify your email/OTP.',
-          },
-        });
-      }
+      // Accounts are considered active immediately after signup.
 
       if (userData?.mfa_enabled && userData?.mfa_secret) {
         // 2FA is enabled - require TOTP token
