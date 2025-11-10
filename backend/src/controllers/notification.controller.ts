@@ -3,13 +3,17 @@ import type { ZodIssue } from 'zod';
 import type { AuthenticatedRequest } from '../middleware/auth.middleware';
 import {
   notificationListQuerySchema,
+  notificationPreferenceListSchema,
   type NotificationListQueryInput,
+  type NotificationPreferenceListInput,
 } from '../schemas/notification.schema';
 import {
   getUnreadNotificationCount,
   listUserNotifications,
+  getNotificationPreferences,
   markAllNotificationsRead,
   markNotificationRead,
+  updateNotificationPreferences,
 } from '../services/notification.service';
 
 function handleValidationError(res: Response, issues: ZodIssue[]) {
