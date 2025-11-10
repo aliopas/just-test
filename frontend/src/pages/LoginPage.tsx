@@ -1,4 +1,5 @@
 import { ChangeEvent, FormEvent, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useLogin } from '../hooks/useLogin';
 import { useToast } from '../context/ToastContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -269,19 +270,46 @@ export function LoginPage() {
           </button>
         </form>
 
-        <p
+        <div
           style={{
-            margin: 0,
-            fontSize: '0.85rem',
-            color: palette.textSecondary,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.75rem',
             textAlign: 'center',
-            lineHeight: 1.5,
           }}
         >
-          {language === 'ar'
-            ? 'هذا الوصول مخصص للمستخدمين التجريبيين: admin.demo@invastors.dev أو investor.demo@invastors.dev.'
-            : 'Use the demo accounts admin.demo@invastors.dev or investor.demo@invastors.dev to explore.'}
-        </p>
+          <p
+            style={{
+              margin: 0,
+              fontSize: '0.85rem',
+              color: palette.textSecondary,
+              lineHeight: 1.5,
+            }}
+          >
+            {language === 'ar'
+              ? 'هذا الوصول مخصص للمستخدمين التجريبيين: admin.demo@invastors.dev أو investor.demo@invastors.dev.'
+              : 'Use the demo accounts admin.demo@invastors.dev or investor.demo@invastors.dev to explore.'}
+          </p>
+          <p
+            style={{
+              margin: 0,
+              fontSize: '0.95rem',
+              color: palette.textSecondary,
+            }}
+          >
+            {language === 'ar' ? 'ليس لديك حساب؟ ' : "Don't have an account? "}
+            <Link
+              to="/register"
+              style={{
+                color: palette.brandPrimaryStrong,
+                fontWeight: 600,
+                textDecoration: 'none',
+              }}
+            >
+              {language === 'ar' ? 'أنشئ حساباً جديداً' : 'Create one'}
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
