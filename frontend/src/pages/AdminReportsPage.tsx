@@ -554,9 +554,9 @@ function AdminReportsPageInner() {
             >
               <button
                 type="button"
-                onClick={() => refetch()}
                 onClick={() => {
                   setAppliedFilters(cloneFilters(uiFilters));
+                  refetch();
                 }}
                 disabled={isFetching}
                 style={{

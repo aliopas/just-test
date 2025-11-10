@@ -184,6 +184,7 @@ npm test -- health.test.ts
 - **Story 6.7 (Request Communication Timeline):** `docs/stories/STORY_6.7_COMPLETION.md`
 - **Story 7.1 (Investor Dashboard Overview):** `docs/stories/STORY_7.1_COMPLETION.md`
 - **Story 7.2 (Admin Dashboard Stats):** `docs/stories/STORY_7.2_COMPLETION.md`
+- **Story 7.3 (Admin Request Reports):** `docs/stories/STORY_7.3_COMPLETION.md`
 - **Design System:** `docs/design-system.md` (مع ملفات `frontend/src/styles/theme.ts` و`frontend/src/components/Logo.tsx`)
 - **Supabase Integration:** `docs/SUPABASE_INTEGRATION.md`
 - **RBAC Matrix:** `docs/prd/rbac-matrix.md`
@@ -258,6 +259,14 @@ GET /api/v1/admin/dashboard/stats
 ```
 
 > Requires `admin.requests.review`. Returns aggregated metrics (status counts, processing averages, stuck requests, trend data).
+
+### Admin Reports
+
+```
+GET /api/v1/admin/reports/requests
+```
+
+> Requires `admin.requests.review`. Supports optional filters (`from`, `to`, `status`, `type`, `minAmount`, `maxAmount`) and `format=csv` for downloadable exports.
 
 ### Authentication
 

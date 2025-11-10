@@ -125,6 +125,28 @@
 - **Review Workflow:** أزرار الموافقة/الرفض تظهر لعناصر `pending_review` مع طلب تعليق، توستات للنجاح/الفشل، وسجل مراجعات داخل النموذج يعرض القرارات مع التاريخ والمراجع والتعليق.
 - **Feedback:** Toasts للنجاح والأخطاء، تعطيل للأزرار أثناء العمليات (حفظ، حذف، نشر، رفع)، دعم RTL كامل والنصوص عبر `frontend/src/locales/adminNews.ts`.
 
+### Admin Request Reports (v1.0)
+
+- **Entry Route:** `/admin/reports` عبر `AdminReportsPage` ضمن shell الأدمن (`App.tsx`).
+- **Data Layer:** 
+  - `useAdminRequestReport` يستدعي `GET /admin/reports/requests` مع معاملات اختيارية (`from`, `to`, `status`, `type`, `minAmount`, `maxAmount`).
+  - استدعاء CSV يتم عبر `apiClient` بنفس الفلاتر مع `format=csv`، ثم تنزيل blob محلياً.
+- **Filters UI:** 
+  - حقول تاريخ/وقت (`datetime-local`) لبداية ونهاية الفترة.
+  - أزرار حالة متعددة (pills) مرتبطة بـ `REQUEST_STATUSES`.
+  - قائمة منسدلة لنوع الطلب (Buy/Sell/All) وحقول رقمية لنطاق المبلغ.
+  - أزرار `Apply filters` (تحدّث الاستعلام) و`Reset`.
+- **Results Table:** 
+  - تعرض رقم الطلب، الحالة (مترجمة عبر `getStatusLabel`)، النوع، المبلغ (منسق باستخدام `Intl.NumberFormat`)، بيانات المستثمر، التواريخ (`createdAt`, `updatedAt`).
+  - حالة فارغة بعبارة localized، وسطر skeleton أثناء `isLoading`.
+- **Download CSV:** زر في الـ header يعيد استخدام الفلاتر الحالية، يعرض حالة تحميل، ويطلق Toast للنجاح/الفشل.
+- **Localization & RTL:** النصوص في `frontend/src/locales/adminReports.ts`، مع تنسيق تاريخ/عملة ملائم للغة المختارة.
+- **Error Handling:** 
+  - Toast عند فشل جلب البيانات.
+  - Toast مخصص عند فشل تنزيل CSV.
+  - لا يتم تحديث الجدول إلا بعد الضغط على `Apply` (يتم الاحتفاظ بالفلاتر المؤقتة في حالة محلية).
+- **Extensibility:** يمكن لاحقاً إضافة pagination، حفظ الفلاتر المفضلة، أو جدولة إرسال التقارير بالبريد.
+
 ### Investor News Feed (v1.0)
 
 - **Entry Routes:** `/app/news` (`frontend/src/app/news/main.tsx`) لقائمة الأخبار، و`/app/news/:id` (`frontend/src/app/news-detail/main.tsx`) لعرض التفاصيل.

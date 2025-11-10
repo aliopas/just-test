@@ -137,7 +137,7 @@ describe('admin-reports.service', () => {
       from: jest.fn(() => queryBuilder),
     });
 
-    await expect(getAdminRequestReport({})).rejects.toThrow(
+    await expect(getAdminRequestReport({ format: 'json' })).rejects.toThrow(
       'FAILED_REPORT_QUERY'
     );
   });
