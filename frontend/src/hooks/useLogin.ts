@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { apiClient, type ApiClientOptions } from '../utils/api-client';
 import { getSupabaseBrowserClient } from '../utils/supabase-client';
+import { storeSessionTokens } from '../utils/session-storage';
 import { useAuth } from '../context/AuthContext';
 
 type LoginPayload = {
@@ -51,20 +52,6 @@ async function loginRequest(payload: LoginPayload) {
   return response;
 }
 
-function storeSessionTokens(session?: LoginSuccessResponse['session']) {
-  if (typeof window === 'undefined' || !session) {
-    return;
-  }
-
-  if (session.accessToken) {
-    window.localStorage.setItem('access_token', session.accessToken);
-  }
-
-  if (session.refreshToken) {
-    window.localStorage.setItem('refresh_token', session.refreshToken);
-  }
-}
-
 export function useLogin() {
   const { setUser } = useAuth();
 
@@ -88,7 +75,10 @@ export function useLogin() {
       };
 
       setUser(normalizedUser);
-      storeSessionTokens(response.session);
+      storeSessionTokens({
+        accessToken: response.session?.accessToken,
+        refreshToken: response.session?.refreshToken,
+      });
 
       const supabase = getSupabaseBrowserClient();
       if (supabase && response.session?.accessToken && response.session?.refreshToken) {
