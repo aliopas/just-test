@@ -16,11 +16,15 @@ import {
   updateNotificationPreferences,
 } from '../services/notification.service';
 
-function handleValidationError(res: Response, issues: ZodIssue[]) {
+function handleValidationError(
+  res: Response,
+  issues: ZodIssue[],
+  message = 'Validation failed'
+) {
   return res.status(400).json({
     error: {
       code: 'VALIDATION_ERROR',
-      message: 'Invalid query parameters',
+      message,
       details: issues.map(issue => ({
         field: issue.path.join('.'),
         message: issue.message,
@@ -35,7 +39,27 @@ async function parseListQuery(
 ): Promise<NotificationListQueryInput | null> {
   const validation = notificationListQuerySchema.safeParse(query);
   if (!validation.success) {
-    handleValidationError(res, validation.error.issues);
+    handleValidationError(
+      res,
+      validation.error.issues,
+      'Invalid query parameters'
+    );
+    return null;
+  }
+  return validation.data;
+}
+
+async function parsePreferenceBody(
+  body: unknown,
+  res: Response
+): Promise<NotificationPreferenceListInput | null> {
+  const validation = notificationPreferenceListSchema.safeParse(body);
+  if (!validation.success) {
+    handleValidationError(
+      res,
+      validation.error.issues,
+      'Invalid preferences payload'
+    );
     return null;
   }
   return validation.data;
@@ -82,6 +106,69 @@ export const notificationController = {
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to load notifications',
+        },
+      });
+    }
+  },
+
+  async preferences(req: AuthenticatedRequest, res: Response) {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'User not authenticated',
+          },
+        });
+      }
+
+      const preferences = await getNotificationPreferences(userId);
+      return res.status(200).json({
+        preferences,
+      });
+    } catch (error) {
+      console.error('Failed to load notification preferences:', error);
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to load notification preferences',
+        },
+      });
+    }
+  },
+
+  async updatePreferences(req: AuthenticatedRequest, res: Response) {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'User not authenticated',
+          },
+        });
+      }
+
+      const preferences = await parsePreferenceBody(req.body, res);
+      if (!preferences) {
+        return;
+      }
+
+      const updated = await updateNotificationPreferences({
+        userId,
+        preferences,
+      });
+
+      return res.status(200).json({
+        preferences: updated,
+      });
+    } catch (error) {
+      console.error('Failed to update notification preferences:', error);
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to update notification preferences',
         },
       });
     }

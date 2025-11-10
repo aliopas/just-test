@@ -3,6 +3,8 @@ import {
   markNotificationRead,
   markAllNotificationsRead,
   getUnreadNotificationCount,
+  getNotificationPreferences,
+  updateNotificationPreferences,
 } from '../src/services/notification.service';
 import { requireSupabaseAdmin } from '../src/lib/supabase';
 
@@ -231,6 +233,154 @@ describe('notification.service', () => {
     const unread = await getUnreadNotificationCount('user-1');
     expect(unread).toBe(3);
     expect(isMock).toHaveBeenCalledWith('read_at', null);
+  });
+
+  it('returns default notification preferences when none stored', async () => {
+    const eqMock = jest.fn().mockResolvedValue({
+      data: [],
+      error: null,
+    });
+
+    const selectMock = jest.fn().mockReturnValue({
+      eq: eqMock,
+    });
+
+    mockRequireSupabaseAdmin.mockReturnValue({
+      from: jest.fn().mockImplementation(table => {
+        if (table === 'notification_preferences') {
+          return {
+            select: selectMock,
+          };
+        }
+        throw new Error(`Unexpected table ${table}`);
+      }),
+    });
+
+    const preferences = await getNotificationPreferences('user-1');
+    expect(selectMock).toHaveBeenCalled();
+    expect(preferences.length).toBeGreaterThan(0);
+    expect(preferences.every(pref => pref.enabled === true)).toBe(true);
+  });
+
+  it('merges stored preferences with defaults', async () => {
+    const eqMock = jest.fn().mockResolvedValue({
+      data: [
+        {
+          type: 'request_submitted',
+          channel: 'email',
+          enabled: false,
+        },
+      ],
+      error: null,
+    });
+
+    const selectMock = jest.fn().mockReturnValue({
+      eq: eqMock,
+    });
+
+    mockRequireSupabaseAdmin.mockReturnValue({
+      from: jest.fn().mockImplementation(table => {
+        if (table === 'notification_preferences') {
+          return {
+            select: selectMock,
+          };
+        }
+        throw new Error(`Unexpected table ${table}`);
+      }),
+    });
+
+    const preferences = await getNotificationPreferences('user-1');
+    expect(preferences).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: 'request_submitted',
+          channel: 'email',
+          enabled: false,
+        }),
+        expect.objectContaining({
+          type: 'request_submitted',
+          channel: 'in_app',
+        }),
+      ])
+    );
+  });
+
+  it('updates notification preferences and returns latest state', async () => {
+    const deleteEqMock = jest.fn().mockResolvedValue({ error: null });
+    const deleteMock = jest.fn().mockReturnValue({
+      eq: deleteEqMock,
+    });
+
+    const insertMock = jest.fn().mockResolvedValue({ error: null });
+
+    const selectEqMock = jest.fn().mockResolvedValue({
+      data: [
+        {
+          type: 'request_submitted',
+          channel: 'email',
+          enabled: false,
+        },
+        {
+          type: 'request_submitted',
+          channel: 'in_app',
+          enabled: true,
+        },
+      ],
+      error: null,
+    });
+
+    const selectMock = jest.fn().mockReturnValue({
+      eq: selectEqMock,
+    });
+
+    const fromMock = jest.fn().mockImplementation(table => {
+      if (table === 'notification_preferences') {
+        return {
+          delete: deleteMock,
+          insert: insertMock,
+          select: selectMock,
+        };
+      }
+      throw new Error(`Unexpected table ${table}`);
+    });
+
+    mockRequireSupabaseAdmin.mockReturnValue({
+      from: fromMock,
+    });
+
+    const result = await updateNotificationPreferences({
+      userId: 'user-1',
+      preferences: [
+        { type: 'request_submitted', channel: 'email', enabled: false },
+        { type: 'request_submitted', channel: 'in_app', enabled: true },
+      ],
+    });
+
+    expect(deleteMock).toHaveBeenCalled();
+    expect(insertMock).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          user_id: 'user-1',
+          type: 'request_submitted',
+          channel: 'email',
+          enabled: false,
+        }),
+      ])
+    );
+    expect(result).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: 'request_submitted',
+          channel: 'email',
+          enabled: false,
+        }),
+        expect.objectContaining({
+          type: 'request_submitted',
+          channel: 'in_app',
+          enabled: true,
+        }),
+      ])
+    );
   });
 });
 

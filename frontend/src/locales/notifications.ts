@@ -16,6 +16,17 @@ type MessageKey =
   | 'toast.markReadError'
   | 'toast.markAllSuccess'
   | 'toast.markAllError'
+  | 'toast.preferencesLoadError'
+  | 'toast.preferencesSaveSuccess'
+  | 'toast.preferencesSaveError'
+  | 'preferences.title'
+  | 'preferences.subtitle'
+  | 'preferences.channel.email'
+  | 'preferences.channel.in_app'
+  | 'preferences.channel.sms'
+  | 'preferences.save'
+  | 'preferences.reset'
+  | 'preferences.changedNotice'
   | 'type.request_submitted.title'
   | 'type.request_submitted.body'
   | 'type.request_pending_info.title'
@@ -50,6 +61,20 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'toast.markReadError': 'Unable to update this notification right now.',
     'toast.markAllSuccess': 'All notifications marked as read.',
     'toast.markAllError': 'Unable to mark notifications as read. Please retry.',
+    'toast.preferencesLoadError':
+      'Unable to load notification preferences. Please refresh the page.',
+    'toast.preferencesSaveSuccess': 'Notification preferences saved successfully.',
+    'toast.preferencesSaveError':
+      'Unable to save notification preferences. Please try again.',
+    'preferences.title': 'Notification Preferences',
+    'preferences.subtitle':
+      'Choose how you want to be notified for each request update. Changes apply immediately after saving.',
+    'preferences.channel.email': 'Email',
+    'preferences.channel.in_app': 'In-app',
+    'preferences.channel.sms': 'SMS',
+    'preferences.save': 'Save preferences',
+    'preferences.reset': 'Reset to defaults',
+    'preferences.changedNotice': 'There are unsaved changes.',
     'type.request_submitted.title': 'Request submitted',
     'type.request_submitted.body':
       'Your investment request {requestNumber} was received successfully.',
@@ -87,6 +112,18 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'toast.markReadError': 'تعذّر تحديث حالة الإشعار الآن.',
     'toast.markAllSuccess': 'تم تحديد جميع الإشعارات كمقروءة.',
     'toast.markAllError': 'تعذّر تحديث الإشعارات. حاول مرة أخرى لاحقًا.',
+    'toast.preferencesLoadError': 'تعذّر تحميل تفضيلات الإشعارات. يرجى تحديث الصفحة.',
+    'toast.preferencesSaveSuccess': 'تم حفظ تفضيلات الإشعارات بنجاح.',
+    'toast.preferencesSaveError': 'تعذّر حفظ تفضيلات الإشعارات. حاول مرة أخرى.',
+    'preferences.title': 'تفضيلات الإشعارات',
+    'preferences.subtitle':
+      'اختر كيفية تلقي الإشعارات لكل تحديث على طلبك. يتم تطبيق التغييرات مباشرة بعد الحفظ.',
+    'preferences.channel.email': 'البريد الإلكتروني',
+    'preferences.channel.in_app': 'داخل المنصة',
+    'preferences.channel.sms': 'رسائل SMS',
+    'preferences.save': 'حفظ التفضيلات',
+    'preferences.reset': 'استعادة الإعدادات الافتراضية',
+    'preferences.changedNotice': 'هناك تغييرات غير محفوظة.',
     'type.request_submitted.title': 'تم إرسال الطلب',
     'type.request_submitted.body':
       'تم استلام طلبك رقم {requestNumber} بنجاح.',

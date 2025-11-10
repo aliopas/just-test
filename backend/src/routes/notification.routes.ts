@@ -12,6 +12,23 @@ notificationRouter.get(
   notificationController.list
 );
 
+notificationRouter.get(
+  '/preferences',
+  authenticate,
+  requirePermission('investor.notifications.read'),
+  notificationController.preferences
+);
+
+notificationRouter.patch(
+  '/preferences',
+  authenticate,
+  requirePermission([
+    'investor.notifications.read',
+    'investor.notifications.update',
+  ]),
+  notificationController.updatePreferences
+);
+
 notificationRouter.patch(
   '/:id/read',
   authenticate,

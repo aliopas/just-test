@@ -39,3 +39,13 @@ export interface NotificationListFilters {
   status?: NotificationStatusFilter;
 }
 
+export interface NotificationPreference {
+  type: NotificationType;
+  channel: NotificationChannel;
+  enabled: boolean;
+}
+
+export interface NotificationPreferenceResponse {
+  preferences: NotificationPreference[];
+}
+

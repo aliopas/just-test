@@ -6,6 +6,8 @@ import {
   listUserNotifications,
   markAllNotificationsRead,
   markNotificationRead,
+  getNotificationPreferences,
+  updateNotificationPreferences,
 } from '../src/services/notification.service';
 
 jest.mock('../src/services/notification.service', () => ({
@@ -13,12 +15,16 @@ jest.mock('../src/services/notification.service', () => ({
   getUnreadNotificationCount: jest.fn(),
   markNotificationRead: jest.fn(),
   markAllNotificationsRead: jest.fn(),
+  getNotificationPreferences: jest.fn(),
+  updateNotificationPreferences: jest.fn(),
 }));
 
 const listMock = listUserNotifications as jest.Mock;
 const unreadCountMock = getUnreadNotificationCount as jest.Mock;
 const markReadMock = markNotificationRead as jest.Mock;
 const markAllMock = markAllNotificationsRead as jest.Mock;
+const preferencesMock = getNotificationPreferences as jest.Mock;
+const updatePreferencesMock = updateNotificationPreferences as jest.Mock;
 
 const createMockResponse = () => {
   const res: Partial<Response> = {};
@@ -184,6 +190,87 @@ describe('notificationController.markRead', () => {
         meta: expect.objectContaining({ unreadCount: 1 }),
       })
     );
+  });
+});
+
+describe('notificationController.preferences', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns 401 when user not authenticated', async () => {
+    const req = {
+      user: undefined,
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await notificationController.preferences(req, res);
+    expect(res.status).toHaveBeenCalledWith(401);
+  });
+
+  it('returns preferences list on success', async () => {
+    preferencesMock.mockResolvedValueOnce([
+      { type: 'request_submitted', channel: 'email', enabled: true },
+    ]);
+
+    const req = {
+      user: { id: 'user-1', email: 'user@example.com' },
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await notificationController.preferences(req, res);
+
+    expect(preferencesMock).toHaveBeenCalledWith('user-1');
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      preferences: [{ type: 'request_submitted', channel: 'email', enabled: true }],
+    });
+  });
+
+  it('returns 401 when updating preferences without auth', async () => {
+    const req = {
+      user: undefined,
+      body: [],
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await notificationController.updatePreferences(req, res);
+    expect(res.status).toHaveBeenCalledWith(401);
+  });
+
+  it('returns 400 when preferences payload invalid', async () => {
+    const req = {
+      user: { id: 'user-1', email: 'user@example.com' },
+      body: {},
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await notificationController.updatePreferences(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(updatePreferencesMock).not.toHaveBeenCalled();
+  });
+
+  it('updates preferences and returns latest state', async () => {
+    updatePreferencesMock.mockResolvedValueOnce([
+      { type: 'request_submitted', channel: 'email', enabled: false },
+    ]);
+
+    const req = {
+      user: { id: 'user-1', email: 'user@example.com' },
+      body: [{ type: 'request_submitted', channel: 'email', enabled: false }],
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await notificationController.updatePreferences(req, res);
+
+    expect(updatePreferencesMock).toHaveBeenCalledWith({
+      userId: 'user-1',
+      preferences: [{ type: 'request_submitted', channel: 'email', enabled: false }],
+    });
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      preferences: [{ type: 'request_submitted', channel: 'email', enabled: false }],
+    });
   });
 });
 

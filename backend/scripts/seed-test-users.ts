@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
 
@@ -11,7 +12,9 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !serviceRoleKey) {
-  console.error('Missing Supabase configuration. Check SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.');
+  console.error(
+    'Missing Supabase configuration. Check SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.'
+  );
   process.exit(1);
 }
 
@@ -116,20 +119,20 @@ async function ensureUser(config: SeedUserConfig): Promise<void> {
 
   const roleId = await findRoleId(roleSlug);
 
-  const { error: upsertUserError } = await supabaseAdmin
-    .from('users')
-    .upsert(
-      {
-        id: userId,
-        email,
-        role: roleSlug,
-        status,
-      },
-      { onConflict: 'id' }
-    );
+  const { error: upsertUserError } = await supabaseAdmin.from('users').upsert(
+    {
+      id: userId,
+      email,
+      role: roleSlug,
+      status,
+    },
+    { onConflict: 'id' }
+  );
 
   if (upsertUserError) {
-    throw new Error(`Failed to upsert profile for ${email}: ${upsertUserError.message}`);
+    throw new Error(
+      `Failed to upsert profile for ${email}: ${upsertUserError.message}`
+    );
   }
 
   const { error: upsertRoleError } = await supabaseAdmin
@@ -143,7 +146,9 @@ async function ensureUser(config: SeedUserConfig): Promise<void> {
     );
 
   if (upsertRoleError) {
-    throw new Error(`Failed to map role for ${email}: ${upsertRoleError.message}`);
+    throw new Error(
+      `Failed to map role for ${email}: ${upsertRoleError.message}`
+    );
   }
 
   console.info(`✔ Seeded ${roleSlug} user: ${email}`);
@@ -198,9 +203,12 @@ async function deleteUserByEmail(email: string) {
     );
   }
 
-  const { error: deleteAuthError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+  const { error: deleteAuthError } =
+    await supabaseAdmin.auth.admin.deleteUser(userId);
   if (deleteAuthError) {
-    throw new Error(`Failed to delete auth user for ${email}: ${deleteAuthError.message}`);
+    throw new Error(
+      `Failed to delete auth user for ${email}: ${deleteAuthError.message}`
+    );
   }
 
   console.info(`🗑 Removed user: ${email}`);
@@ -235,4 +243,3 @@ async function main() {
 }
 
 main();
-

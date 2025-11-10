@@ -21,18 +21,19 @@ const ADMIN_DEFAULT_LANGUAGE =
     ? (process.env.ADMIN_NOTIFICATION_DEFAULT_LANGUAGE as EmailLanguage)
     : undefined;
 
-const DEFAULT_NOTIFICATION_CHANNELS = (NOTIFICATION_CHANNELS as NotificationChannel[]).filter(
-  channel => channel === 'email' || channel === 'in_app'
-);
+const DEFAULT_NOTIFICATION_CHANNELS = (
+  NOTIFICATION_CHANNELS as NotificationChannel[]
+).filter(channel => channel === 'email' || channel === 'in_app');
 
-const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferenceInput[] =
-  (NOTIFICATION_TYPES as NotificationType[]).flatMap(notificationType =>
-    DEFAULT_NOTIFICATION_CHANNELS.map(channel => ({
-      channel,
-      type: notificationType,
-      enabled: true,
-    }))
-  );
+const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferenceInput[] = (
+  NOTIFICATION_TYPES as NotificationType[]
+).flatMap(notificationType =>
+  DEFAULT_NOTIFICATION_CHANNELS.map(channel => ({
+    channel,
+    type: notificationType,
+    enabled: true,
+  }))
+);
 
 const INVESTOR_PORTAL_URL = (
   process.env.INVESTOR_PORTAL_URL ?? 'https://app.bakurah.com'
@@ -534,7 +535,9 @@ export async function getNotificationPreferences(
     .eq('user_id', userId);
 
   if (error) {
-    throw new Error(`Failed to load notification preferences: ${error.message}`);
+    throw new Error(
+      `Failed to load notification preferences: ${error.message}`
+    );
   }
 
   const existing = new Map<string, NotificationPreferenceInput>();

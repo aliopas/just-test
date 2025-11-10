@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import 'dotenv/config';
 import { supabaseAdmin } from '../src/lib/supabase';
 
@@ -10,8 +11,9 @@ async function deleteAllUsers() {
 
   const pageSize = 1000;
   let totalDeleted = 0;
+  let hasMore = true;
 
-  while (true) {
+  while (hasMore) {
     const { data, error } = await supabaseAdmin.auth.admin.listUsers({
       page: 1,
       perPage: pageSize,
@@ -22,8 +24,9 @@ async function deleteAllUsers() {
     }
 
     const users = data?.users ?? [];
-    if (users.length === 0) {
-      break;
+    hasMore = users.length > 0;
+    if (!hasMore) {
+      continue;
     }
 
     for (const user of users) {
@@ -41,9 +44,12 @@ async function deleteAllUsers() {
         );
       }
 
-      const { error: deleteAuthError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+      const { error: deleteAuthError } =
+        await supabaseAdmin.auth.admin.deleteUser(userId);
       if (deleteAuthError) {
-        console.warn(`⚠️ Failed to delete auth user for ${email}: ${deleteAuthError.message}`);
+        console.warn(
+          `⚠️ Failed to delete auth user for ${email}: ${deleteAuthError.message}`
+        );
         continue;
       }
 
@@ -63,5 +69,3 @@ deleteAllUsers()
     console.error('❌ Failed to delete all users:', error);
     process.exit(1);
   });
-
-
