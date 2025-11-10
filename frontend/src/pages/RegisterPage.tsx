@@ -1,10 +1,11 @@
-import { ChangeEvent, FormEvent, useState } from 'react';
+import { ChangeEvent, FormEvent, useMemo, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useRegister } from '../hooks/useRegister';
 import { useToast } from '../context/ToastContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Logo } from '../components/Logo';
 import { palette } from '../styles/theme';
+import { ApiError } from '../utils/api-client';
 
 type RegisterFormState = {
   email: string;
@@ -15,6 +16,16 @@ type RegisterFormState = {
 };
 
 export function RegisterPage() {
+  const passwordRequirements = useMemo(
+    () => ({
+      regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/,
+      message: {
+        ar: 'كلمة المرور يجب أن تكون من 8 أحرف على الأقل وتحتوي على حرف كبير، حرف صغير، ورقم.',
+        en: 'Password must be at least 8 characters and include uppercase, lowercase, and a number.',
+      },
+    }),
+    []
+  );
   const { language } = useLanguage();
   const navigate = useNavigate();
   const { pushToast } = useToast();
@@ -40,6 +51,13 @@ export function RegisterPage() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!passwordRequirements.regex.test(form.password)) {
+      pushToast({
+        variant: 'error',
+        message: language === 'ar' ? passwordRequirements.message.ar : passwordRequirements.message.en,
+      });
+      return;
+    }
     if (form.password !== form.confirmPassword) {
       pushToast({
         variant: 'error',
@@ -68,12 +86,39 @@ export function RegisterPage() {
       });
       navigate('/');
     } catch (error) {
-      pushToast({
-        variant: 'error',
-        message:
+      let message: string;
+      if (error instanceof ApiError) {
+        const detailsMessage =
+          typeof error.payload === 'object' &&
+          error.payload !== null &&
+          'error' in error.payload &&
+          typeof (error.payload as { error?: unknown }).error === 'object' &&
+          (error.payload as { error?: { details?: unknown } }).error?.details &&
+          Array.isArray((error.payload as { error?: { details?: unknown } }).error?.details)
+            ? (
+                (error.payload as {
+                  error?: { details?: Array<{ message?: string }> };
+                }).error?.details ?? []
+              )
+                .map(item => item?.message)
+                .find((item): item is string => typeof item === 'string')
+            : undefined;
+
+        message =
+          detailsMessage ||
+          error.message ||
+          (language === 'ar'
+            ? 'تعذّر إنشاء الحساب. يرجى التحقق من البيانات والمحاولة مرة أخرى.'
+            : 'Failed to create account. Please review your details and try again.');
+      } else {
+        message =
           language === 'ar'
             ? 'تعذّر إنشاء الحساب. يرجى التحقق من البيانات والمحاولة مرة أخرى.'
-            : 'Failed to create account. Please review your details and try again.',
+            : 'Failed to create account. Please review your details and try again.';
+      }
+      pushToast({
+        variant: 'error',
+        message,
       });
     }
   };
@@ -226,6 +271,15 @@ export function RegisterPage() {
                 outline: 'none',
               }}
             />
+            <span
+              style={{
+                fontSize: '0.8rem',
+                color: palette.textSecondary,
+                lineHeight: 1.4,
+              }}
+            >
+              {language === 'ar' ? passwordRequirements.message.ar : passwordRequirements.message.en}
+            </span>
           </label>
 
           <label
