@@ -23,7 +23,7 @@ type StuckRow = {
   updated_at: string;
   investor: {
     email: string | null;
-  } | null;
+  } | { email: string | null }[] | null;
 };
 
 export interface AdminDashboardStats {
@@ -136,7 +136,9 @@ function mapStuckRows(rows: StuckRow[]) {
     id: row.id,
     requestNumber: row.request_number,
     status: row.status,
-    investorEmail: row.investor?.email ?? null,
+    investorEmail: Array.isArray(row.investor)
+      ? row.investor[0]?.email ?? null
+      : row.investor?.email ?? null,
     ageHours: hoursBetween(
       row.created_at,
       row.updated_at ?? new Date().toISOString()
