@@ -149,21 +149,84 @@ async function ensureUser(config: SeedUserConfig): Promise<void> {
   console.info(`✔ Seeded ${roleSlug} user: ${email}`);
 }
 
+async function deleteUserByEmail(email: string) {
+  const user = await findUserByEmail(email);
+  if (!user) {
+    console.info(`ℹ No existing user found for ${email}, skipping delete.`);
+    return;
+  }
+
+  const userId = user.id;
+
+  const { error: deleteRolesError } = await supabaseAdmin
+    .from('user_roles')
+    .delete()
+    .eq('user_id', userId);
+  if (deleteRolesError) {
+    throw new Error(
+      `Failed to delete user_roles entry for ${email}: ${deleteRolesError.message}`
+    );
+  }
+
+  const { error: deleteNotificationsError } = await supabaseAdmin
+    .from('notifications')
+    .delete()
+    .eq('user_id', userId);
+  if (deleteNotificationsError) {
+    throw new Error(
+      `Failed to delete notifications for ${email}: ${deleteNotificationsError.message}`
+    );
+  }
+
+  const { error: deletePreferencesError } = await supabaseAdmin
+    .from('notification_preferences')
+    .delete()
+    .eq('user_id', userId);
+  if (deletePreferencesError) {
+    throw new Error(
+      `Failed to delete notification preferences for ${email}: ${deletePreferencesError.message}`
+    );
+  }
+
+  const { error: deleteUserRowError } = await supabaseAdmin
+    .from('users')
+    .delete()
+    .eq('id', userId);
+  if (deleteUserRowError) {
+    throw new Error(
+      `Failed to delete user profile for ${email}: ${deleteUserRowError.message}`
+    );
+  }
+
+  const { error: deleteAuthError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+  if (deleteAuthError) {
+    throw new Error(`Failed to delete auth user for ${email}: ${deleteAuthError.message}`);
+  }
+
+  console.info(`🗑 Removed user: ${email}`);
+}
+
 async function main() {
   try {
+    await deleteUserByEmail('admin.demo@invastors.dev');
+    await deleteUserByEmail('investor.demo@invastors.dev');
+
+    await deleteUserByEmail('oooomar896@gmail.com');
+    await deleteUserByEmail('oooomar124466@gmail.com');
+
     await ensureUser({
-      email: 'admin.demo@invastors.dev',
+      email: 'oooomar896@gmail.com',
       password: '000000',
       roleSlug: 'admin',
     });
 
     await ensureUser({
-      email: 'investor.demo@invastors.dev',
+      email: 'oooomar124466@gmail.com',
       password: '000000',
       roleSlug: 'investor',
     });
 
-    console.info('✅ Demo users are ready.');
+    console.info('✅ Demo users refreshed.');
     process.exit(0);
   } catch (error) {
     console.error(error instanceof Error ? error.message : error);
