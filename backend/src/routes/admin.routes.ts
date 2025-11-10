@@ -21,6 +21,13 @@ adminRouter.get(
   adminRequestController.getRequestDetail
 );
 
+adminRouter.get(
+  '/requests/:id/timeline',
+  authenticate,
+  requirePermission('admin.requests.review'),
+  adminRequestController.getRequestTimeline
+);
+
 adminRouter.patch(
   '/requests/:id/approve',
   authenticate,

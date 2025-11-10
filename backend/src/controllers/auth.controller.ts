@@ -468,10 +468,13 @@ export const authController = {
         }
       }
 
-      const metadataRole =
-        (data.user.user_metadata as { role?: string } | null | undefined)?.role;
+      const metadataRole = (
+        data.user.user_metadata as { role?: string } | null | undefined
+      )?.role;
       const role =
-        (userData?.role as string | null | undefined) ?? metadataRole ?? 'investor';
+        (userData?.role as string | null | undefined) ??
+        metadataRole ??
+        'investor';
 
       setAuthCookies(res, data.session);
 

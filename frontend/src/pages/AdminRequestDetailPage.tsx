@@ -12,6 +12,8 @@ import { tAdminRequests } from '../locales/adminRequests';
 import { RequestStatusBadge } from '../components/request/RequestStatusBadge';
 import { getStatusLabel } from '../utils/requestStatus';
 import { apiClient } from '../utils/api-client';
+import { useRequestTimeline } from '../hooks/useRequestTimeline';
+import { RequestTimeline } from '../components/request/RequestTimeline';
 
 const queryClient = new QueryClient();
 
@@ -31,6 +33,13 @@ function AdminRequestDetailPageInner() {
   const [decisionNote, setDecisionNote] = useState('');
   const [settlementReference, setSettlementReference] = useState('');
   const [newComment, setNewComment] = useState('');
+  const {
+    data: timelineData,
+    isLoading: isTimelineLoading,
+    isError: isTimelineError,
+    error: timelineError,
+    refetch: refetchTimeline,
+  } = useRequestTimeline(requestId ?? undefined, 'admin');
 
   const approveMutation = useMutation({
     mutationFn: async (payload: { note?: string }) => {
@@ -243,6 +252,7 @@ function AdminRequestDetailPageInner() {
 
   const request = data?.request;
   const settlement = request?.settlement;
+  const timelineItems = timelineData?.items ?? [];
   const isDecisionFinal = request
     ? request.status === 'approved' || request.status === 'rejected'
     : false;
@@ -421,72 +431,51 @@ function AdminRequestDetailPageInner() {
           </Card>
 
           <Card>
-            <CardTitle>{tAdminRequests('detail.timeline', language)}</CardTitle>
-            {isLoading || !data ? (
-              <Skeleton />
-            ) : data.events.length === 0 ? (
-              <EmptyState message={tAdminRequests('detail.noEvents', language)} />
-            ) : (
-              <div
+          <CardTitle>{tAdminRequests('detail.timeline', language)}</CardTitle>
+          {isTimelineLoading ? (
+            <Skeleton />
+          ) : isTimelineError ? (
+            <div
+              style={{
+                padding: '0.95rem 1.1rem',
+                borderRadius: '0.85rem',
+                background: '#FEF3C7',
+                color: '#92400E',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: '1rem',
+                fontSize: '0.9rem',
+              }}
+            >
+              <span>
+                {timelineError instanceof Error
+                  ? timelineError.message
+                  : tAdminRequests('table.error', language)}
+              </span>
+              <button
+                type="button"
+                onClick={() => refetchTimeline()}
                 style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '1rem',
-                  borderLeft: direction === 'rtl' ? 'none' : '2px solid var(--color-border)',
-                  borderRight: direction === 'rtl' ? '2px solid var(--color-border)' : 'none',
-                  paddingInlineStart: direction === 'rtl' ? 0 : '1.25rem',
-                  paddingInlineEnd: direction === 'rtl' ? '1.25rem' : 0,
+                  border: 'none',
+                  background: '#92400E',
+                  color: '#FFFFFF',
+                  borderRadius: '0.65rem',
+                  padding: '0.4rem 0.9rem',
+                  cursor: 'pointer',
+                  fontWeight: 600,
                 }}
               >
-                {data.events.map(event => (
-                  <article key={event.id} style={{ position: 'relative' }}>
-                    <span
-                      style={{
-                        position: 'absolute',
-                        top: '0.4rem',
-                        left: direction === 'rtl' ? 'auto' : '-1.25rem',
-                        right: direction === 'rtl' ? '-1.25rem' : 'auto',
-                        width: '0.7rem',
-                        height: '0.7rem',
-                        borderRadius: '999px',
-                        background: 'var(--color-brand-primary-strong)',
-                      }}
-                    />
-                    <div
-                      style={{
-                        fontWeight: 600,
-                        color: 'var(--color-text-primary)',
-                      }}
-                    >
-                      {event.toStatus
-                        ? getStatusLabel(event.toStatus as any, language)
-                        : 'â€”'}
-                    </div>
-                    <div
-                      style={{
-                        color: 'var(--color-text-secondary)',
-                        fontSize: '0.85rem',
-                      }}
-                    >
-                      {new Date(event.createdAt).toLocaleString(
-                        language === 'ar' ? 'ar-SA' : 'en-US',
-                        { dateStyle: 'medium', timeStyle: 'short' }
-                      )}
-                    </div>
-                    {event.note && (
-                      <p
-                        style={{
-                          margin: '0.35rem 0 0',
-                          color: 'var(--color-text-secondary)',
-                        }}
-                      >
-                        {event.note}
-                      </p>
-                    )}
-                  </article>
-                ))}
-              </div>
-            )}
+                ⟳
+              </button>
+            </div>
+          ) : (
+            <RequestTimeline
+              entries={timelineItems}
+              language={language}
+              direction={direction}
+            />
+          )}
           </Card>
 
           <Card>

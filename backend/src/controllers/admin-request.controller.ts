@@ -12,6 +12,7 @@ import {
   startRequestSettlement,
   completeRequestSettlement,
 } from '../services/admin-request.service';
+import { getAdminRequestTimeline } from '../services/request-timeline.service';
 
 export const adminRequestController = {
   async listRequests(req: AuthenticatedRequest, res: Response) {
@@ -133,6 +134,53 @@ export const adminRequestController = {
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to load admin request detail',
+        },
+      });
+    }
+  },
+
+  async getRequestTimeline(req: AuthenticatedRequest, res: Response) {
+    try {
+      const actorId = req.user?.id;
+      if (!actorId) {
+        return res.status(401).json({
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'User not authenticated',
+          },
+        });
+      }
+
+      const requestId = req.params.id;
+      if (!requestId) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Request id is required',
+          },
+        });
+      }
+
+      const timeline = await getAdminRequestTimeline({
+        requestId,
+      });
+
+      return res.status(200).json(timeline);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'REQUEST_NOT_FOUND') {
+        return res.status(404).json({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Request not found',
+          },
+        });
+      }
+
+      console.error('Failed to load admin request timeline:', error);
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to load request timeline',
         },
       });
     }

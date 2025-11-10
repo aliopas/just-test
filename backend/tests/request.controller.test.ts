@@ -5,6 +5,7 @@ import {
   listInvestorRequests,
   getInvestorRequestDetail,
 } from '../src/services/request.service';
+import { getInvestorRequestTimeline } from '../src/services/request-timeline.service';
 import type { AuthenticatedRequest } from '../src/middleware/auth.middleware';
 import type { Response } from 'express';
 
@@ -19,10 +20,15 @@ jest.mock('../src/services/request.service', () => ({
   getInvestorRequestDetail: jest.fn(),
 }));
 
+jest.mock('../src/services/request-timeline.service', () => ({
+  getInvestorRequestTimeline: jest.fn(),
+}));
+
 const mockedCreateRequest = createInvestorRequest as jest.Mock;
 const mockedSubmitRequest = submitInvestorRequest as jest.Mock;
 const mockedListRequests = listInvestorRequests as jest.Mock;
 const mockedGetRequestDetail = getInvestorRequestDetail as jest.Mock;
+const mockedGetTimeline = getInvestorRequestTimeline as jest.Mock;
 
 const createMockResponse = () => {
   const res: Partial<Response> = {};
@@ -299,6 +305,77 @@ describe('requestController.detail', () => {
         events: expect.any(Array),
       })
     );
+  });
+});
+
+describe('requestController.timeline', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns 401 when user not authenticated', async () => {
+    const req = {
+      params: { id: 'req-1' },
+      user: undefined,
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await requestController.timeline(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+  });
+
+  it('returns 400 when request id missing', async () => {
+    const req = {
+      params: {},
+      user: { id: 'user-1' },
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await requestController.timeline(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  it('returns timeline payload on success', async () => {
+    mockedGetTimeline.mockResolvedValueOnce({
+      requestId: 'req-1',
+      requestNumber: 'INV-001',
+      items: [],
+    });
+    const req = {
+      params: { id: 'req-1' },
+      user: { id: 'user-1' },
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await requestController.timeline(req, res);
+
+    expect(mockedGetTimeline).toHaveBeenCalledWith({
+      requestId: 'req-1',
+      userId: 'user-1',
+    });
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ requestId: 'req-1', items: [] })
+    );
+  });
+
+  it('maps domain errors to HTTP responses', async () => {
+    mockedGetTimeline.mockRejectedValueOnce(new Error('REQUEST_NOT_FOUND'));
+    const req = {
+      params: { id: 'req-1' },
+      user: { id: 'user-1' },
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await requestController.timeline(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+
+    mockedGetTimeline.mockRejectedValueOnce(new Error('REQUEST_NOT_OWNED'));
+    await requestController.timeline(req, res);
+    expect(res.status).toHaveBeenCalledWith(403);
   });
 });
 

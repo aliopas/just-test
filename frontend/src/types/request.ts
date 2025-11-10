@@ -1,4 +1,9 @@
-﻿export type RequestType = 'buy' | 'sell';
+﻿import type {
+  NotificationChannel,
+  NotificationType,
+} from './notification';
+
+export type RequestType = 'buy' | 'sell';
 export type RequestCurrency = 'SAR' | 'USD' | 'EUR';
 export type RequestStatus =
   | 'draft'
@@ -99,6 +104,48 @@ export interface InvestorRequestDetail {
   attachments: RequestAttachment[];
   events: RequestEvent[];
   comments: RequestComment[];
+}
+
+export type RequestTimelineEntryType =
+  | 'notification'
+  | 'status_change'
+  | 'comment';
+
+export type TimelineVisibility = 'investor' | 'admin';
+
+export interface RequestTimelineActor {
+  id: string | null;
+  email: string | null;
+  name: string | null;
+}
+
+export interface RequestTimelineEntry {
+  id: string;
+  entryType: RequestTimelineEntryType;
+  createdAt: string;
+  visibility: TimelineVisibility;
+  actor: RequestTimelineActor | null;
+  notification?: {
+    type: NotificationType;
+    channel: NotificationChannel;
+    payload: Record<string, unknown>;
+    readAt: string | null;
+    userId: string;
+  };
+  event?: {
+    fromStatus: string | null;
+    toStatus: string | null;
+    note: string | null;
+  };
+  comment?: {
+    comment: string;
+  };
+}
+
+export interface RequestTimelineResponse {
+  requestId: string;
+  requestNumber: string;
+  items: RequestTimelineEntry[];
 }
 
 

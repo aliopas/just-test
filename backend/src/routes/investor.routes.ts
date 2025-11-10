@@ -51,4 +51,11 @@ investorRouter.get(
   requestController.detail
 );
 
+investorRouter.get(
+  '/requests/:id/timeline',
+  authenticate,
+  requirePermission(['investor.requests.read', 'admin.requests.review']),
+  requestController.timeline
+);
+
 export { investorRouter };

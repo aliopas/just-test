@@ -28,7 +28,7 @@ function applyTemplate(template: string, payload: Record<string, unknown>) {
   });
 }
 
-function resolveCopy(
+export function resolveNotificationCopy(
   notification: NotificationItem,
   language: InvestorLanguage
 ) {
@@ -64,7 +64,7 @@ export function NotificationListItem({
   onMarkRead,
   isMarking,
 }: NotificationListItemProps) {
-  const { title, description } = resolveCopy(notification, language);
+  const { title, description } = resolveNotificationCopy(notification, language);
   const createdAtLabel = formatTimestamp(notification.createdAt, language);
   const isUnread = !notification.readAt;
   const payload = notification.payload ?? {};

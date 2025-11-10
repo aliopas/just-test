@@ -6,6 +6,9 @@ import { RequestStatusBadge } from './RequestStatusBadge';
 import { tRequestList } from '../../locales/requestList';
 import { getStatusLabel } from '../../utils/requestStatus';
 import { useInvestorRequestDetail } from '../../hooks/useInvestorRequestDetail';
+import { useRequestTimeline } from '../../hooks/useRequestTimeline';
+import { RequestTimeline } from './RequestTimeline';
+import { NotificationSkeleton } from '../notifications/NotificationSkeleton';
 
 interface RequestDetailsDrawerProps {
   request: InvestorRequest;
@@ -21,11 +24,18 @@ export function RequestDetailsDrawer({
   const { data, isLoading, isError, error, refetch } = useInvestorRequestDetail(
     request.id
   );
+  const {
+    data: timelineData,
+    isLoading: isTimelineLoading,
+    isError: isTimelineError,
+    error: timelineError,
+    refetch: refetchTimeline,
+  } = useRequestTimeline(request.id, 'investor');
 
   const detailRequest = data?.request ?? request;
   const attachments = data?.attachments ?? [];
-  const events = data?.events ?? [];
   const comments = data?.comments ?? [];
+  const timelineItems = timelineData?.items ?? [];
 
   const formattedAmount = useMemo(() => {
     try {
@@ -358,85 +368,50 @@ export function RequestDetailsDrawer({
           }}
         >
           <strong>{tRequestList('details.timeline', language)}</strong>
-          <div
-            style={{
-              borderLeft:
-                direction === 'rtl' ? 'none' : '2px solid var(--color-border)',
-              borderRight:
-                direction === 'rtl' ? '2px solid var(--color-border)' : 'none',
-              padding: direction === 'rtl' ? '0 1rem 0 0.5rem' : '0 0.5rem 0 1rem',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '1rem',
-            }}
-          >
-            {events.length === 0 ? (
-              <span
+          {isTimelineLoading ? (
+            <NotificationSkeleton count={3} />
+          ) : isTimelineError ? (
+            <div
+              style={{
+                padding: '0.9rem 1rem',
+                borderRadius: '0.85rem',
+                background: '#FEF3C7',
+                color: '#92400E',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: '1rem',
+                fontSize: '0.9rem',
+              }}
+            >
+              <span>
+                {timelineError instanceof Error
+                  ? timelineError.message
+                  : tRequestList('details.error', language)}
+              </span>
+              <button
+                type="button"
+                onClick={() => refetchTimeline()}
                 style={{
-                  color: 'var(--color-brand-secondary-muted)',
-                  fontSize: '0.9rem',
+                  border: 'none',
+                  background: '#92400E',
+                  color: '#FFFFFF',
+                  borderRadius: '0.65rem',
+                  padding: '0.4rem 0.9rem',
+                  cursor: 'pointer',
+                  fontWeight: 600,
                 }}
               >
-                {tRequestList('details.noEvents', language)}
-              </span>
-            ) : (
-              events.map(event => (
-                <article
-                  key={event.id}
-                  style={{
-                    position: 'relative',
-                    paddingLeft: direction === 'rtl' ? '0' : '1rem',
-                    paddingRight: direction === 'rtl' ? '1rem' : '0',
-                  }}
-                >
-                  <span
-                    style={{
-                      position: 'absolute',
-                      top: '0.35rem',
-                      left: direction === 'rtl' ? 'auto' : '-1.25rem',
-                      right: direction === 'rtl' ? '-1.25rem' : 'auto',
-                      width: '0.8rem',
-                      height: '0.8rem',
-                      borderRadius: '999px',
-                      background: 'var(--color-brand-primary-strong)',
-                    }}
-                  />
-                  <div
-                    style={{
-                      fontWeight: 600,
-                      color: 'var(--color-text-primary)',
-                    }}
-                  >
-                    {getStatusLabel(
-                      (event.toStatus as InvestorRequest['status']) ?? 'draft',
-                      language
-                    )}
-                  </div>
-                  <div
-                    style={{
-                      color: 'var(--color-text-secondary)',
-                      fontSize: '0.85rem',
-                    }}
-                  >
-                    {new Date(event.createdAt).toLocaleString(
-                      language === 'ar' ? 'ar-SA' : 'en-US',
-                      { dateStyle: 'medium', timeStyle: 'short' }
-                    )}
-                  </div>
-                  {event.note && (
-                    <p
-                      style={{
-                        margin: '0.35rem 0 0',
-                        color: 'var(--color-text-secondary)',
-                      }}
-                    >
-                      {event.note}
-                    </p>
-                  )}
-                </article>
-              ))
-            )}
-          </div>
+                ⟳
+              </button>
+            </div>
+          ) : (
+            <RequestTimeline
+              entries={timelineItems}
+              language={language}
+              direction={direction}
+            />
+          )}
         </section>
 
         <section

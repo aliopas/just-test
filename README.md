@@ -180,6 +180,8 @@ npm test -- health.test.ts
 - **Story 6.3 (Email Dispatch Pipeline):** `docs/stories/STORY_6.3_COMPLETION.md`
 - **Story 6.4 (Operations Email Alerts):** `docs/stories/STORY_6.4_COMPLETION.md`
 - **Story 6.5 (In-App Notifications Center):** `docs/stories/STORY_6.5_COMPLETION.md`
+- **Story 6.6 (Notification Preferences):** `docs/stories/STORY_6.6_COMPLETION.md`
+- **Story 6.7 (Request Communication Timeline):** `docs/stories/STORY_6.7_COMPLETION.md`
 - **Design System:** `docs/design-system.md` (مع ملفات `frontend/src/styles/theme.ts` و`frontend/src/components/Logo.tsx`)
 - **Supabase Integration:** `docs/SUPABASE_INTEGRATION.md`
 - **RBAC Matrix:** `docs/prd/rbac-matrix.md`
@@ -212,6 +214,32 @@ POST /api/v1/notifications/mark-all-read
 ```
 
 > Requires `investor.notifications.read` permission and authentication.
+
+### Investor Requests
+
+```
+GET /api/v1/investor/requests
+GET /api/v1/investor/requests/:id
+POST /api/v1/investor/requests
+POST /api/v1/investor/requests/:id/submit
+GET /api/v1/investor/requests/:id/timeline
+```
+
+> Requires `investor.requests.read` (and optionally `admin.requests.review`) depending on the action.
+
+### Admin Requests
+
+```
+GET /api/v1/admin/requests
+GET /api/v1/admin/requests/:id
+GET /api/v1/admin/requests/:id/timeline
+PATCH /api/v1/admin/requests/:id/approve
+PATCH /api/v1/admin/requests/:id/reject
+POST /api/v1/admin/requests/:id/request-info
+PATCH /api/v1/admin/requests/:id/settle
+```
+
+> Requires `admin.requests.review`.
 
 ### Authentication
 

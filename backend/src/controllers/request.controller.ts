@@ -8,6 +8,7 @@ import {
   listInvestorRequests,
   getInvestorRequestDetail,
 } from '../services/request.service';
+import { getInvestorRequestTimeline } from '../services/request-timeline.service';
 
 export const requestController = {
   async create(req: AuthenticatedRequest, res: Response) {
@@ -251,6 +252,63 @@ export const requestController = {
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to load request detail',
+        },
+      });
+    }
+  },
+
+  async timeline(req: AuthenticatedRequest, res: Response) {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'User not authenticated',
+          },
+        });
+      }
+
+      const requestId = req.params.id;
+      if (!requestId) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Request id is required',
+          },
+        });
+      }
+
+      const timeline = await getInvestorRequestTimeline({
+        requestId,
+        userId,
+      });
+
+      return res.status(200).json(timeline);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'REQUEST_NOT_FOUND') {
+        return res.status(404).json({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Request not found',
+          },
+        });
+      }
+
+      if (error instanceof Error && error.message === 'REQUEST_NOT_OWNED') {
+        return res.status(403).json({
+          error: {
+            code: 'FORBIDDEN',
+            message: 'You do not have access to this request',
+          },
+        });
+      }
+
+      console.error('Failed to load request timeline:', error);
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to load request timeline',
         },
       });
     }

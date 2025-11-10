@@ -14,6 +14,7 @@ import {
   startRequestSettlement,
   completeRequestSettlement,
 } from '../src/services/admin-request.service';
+import { getAdminRequestTimeline } from '../src/services/request-timeline.service';
 import type { AuthenticatedRequest } from '../src/middleware/auth.middleware';
 import type { Response } from 'express';
 
@@ -29,6 +30,10 @@ jest.mock('../src/services/admin-request.service', () => ({
   completeRequestSettlement: jest.fn(),
 }));
 
+jest.mock('../src/services/request-timeline.service', () => ({
+  getAdminRequestTimeline: jest.fn(),
+}));
+
 const mockedListAdminRequests = listAdminRequests as jest.Mock;
 const mockedGetAdminRequestDetail = getAdminRequestDetail as jest.Mock;
 const mockedApproveAdminRequest = approveAdminRequest as jest.Mock;
@@ -38,6 +43,7 @@ const mockedListComments = listAdminRequestComments as jest.Mock;
 const mockedAddComment = addAdminRequestComment as jest.Mock;
 const mockedStartSettlement = startRequestSettlement as jest.Mock;
 const mockedCompleteSettlement = completeRequestSettlement as jest.Mock;
+const mockedGetTimeline = getAdminRequestTimeline as jest.Mock;
 
 const createMockResponse = () => {
   const res: Partial<Response> = {};
@@ -121,6 +127,83 @@ describe('adminRequestController.listRequests', () => {
     const res = createMockResponse();
 
     await adminRequestController.listRequests(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+});
+
+describe('adminRequestController.getRequestTimeline', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns 401 when user not authenticated', async () => {
+    const req = {
+      params: { id: 'req-1' },
+      user: undefined,
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.getRequestTimeline(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+  });
+
+  it('returns 400 when request id missing', async () => {
+    const req = {
+      params: {},
+      user: { id: 'admin-1' },
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.getRequestTimeline(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  it('returns timeline result on success', async () => {
+    mockedGetTimeline.mockResolvedValueOnce({
+      requestId: 'req-1',
+      requestNumber: 'INV-001',
+      items: [],
+    });
+    const req = {
+      params: { id: 'req-1' },
+      user: { id: 'admin-1' },
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.getRequestTimeline(req, res);
+
+    expect(mockedGetTimeline).toHaveBeenCalledWith({ requestId: 'req-1' });
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ requestId: 'req-1', items: [] })
+    );
+  });
+
+  it('returns 404 when request not found', async () => {
+    mockedGetTimeline.mockRejectedValueOnce(new Error('REQUEST_NOT_FOUND'));
+    const req = {
+      params: { id: 'req-404' },
+      user: { id: 'admin-1' },
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.getRequestTimeline(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+  });
+
+  it('returns 500 on unexpected error', async () => {
+    mockedGetTimeline.mockRejectedValueOnce(new Error('boom'));
+    const req = {
+      params: { id: 'req-1' },
+      user: { id: 'admin-1' },
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.getRequestTimeline(req, res);
 
     expect(res.status).toHaveBeenCalledWith(500);
   });

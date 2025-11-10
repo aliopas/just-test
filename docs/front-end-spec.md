@@ -74,11 +74,13 @@
 ### Request Detail Experience (v1.4)
 
 - **Entry Route:** نفس صفحة `/app/requests` عبر `RequestDetailsDrawer` (Portal إلى `#drawer-root`).
-- **Data Layer:** `useInvestorRequestDetail` (React Query) تستدعي `GET /investor/requests/:id` للحصول على تفاصيل الطلب، المرفقات، سجل الأحداث، والتعليقات.
+- **Data Layer:** 
+  - `useInvestorRequestDetail` تستدعي `GET /investor/requests/:id` لقراءة تفاصيل الطلب، المرفقات، وآخر حالة.
+  - `useRequestTimeline` (Story 6.7) تستدعي `GET /investor/requests/:id/timeline` للحصول على سجل موحّد للأحداث (تنبيهات البريد/التطبيق، انتقالات الحالة).
 - **عرض المرفقات:** تضمين معلومات الملف (الاسم، الحجم، النوع) مع زر تنزيل يستعمل روابط موقّتة (Signed URL) عند توافرها.
-- **سجل الأحداث:** Timeline عمودي مع عرض الحالة، التاريخ، والملاحظات لكل انتقال.
+- **سجل الأحداث:** `RequestTimeline` يعرض العناصر بترتيب زمني تنازلي مع تصنيف نوع الحدث (تنبيه، تغيير حالة)، القناة (Email/In-app)، والجهة (النظام أو الأدمن) مع رسالة ديناميكية بحسب اللغة.
 - **التعليقات:** تُحمَّل من `GET /admin/requests/:id` (قائمة القراءة) ومن `GET /admin/requests/:id/comments`، مع واجهة لإضافة تعليق جديد عبر `POST /admin/requests/:id/comments` (Story 4.6). تُعرض بطاقة مخصصة للتعليقات مع إظهار اسم/بريد الكاتب، الطابع الزمني، والنص (بدعم RTL).
-- **تجربة الاستخدام:** حالات تحميل/خطأ واضحة، زر تحديث، ودعم كامل لـ RTL والنصوص عبر `frontend/src/locales/requestList.ts`.
+- **تجربة الاستخدام:** حالات تحميل/خطأ واضحة، زر تحديث، دعم كامل لـ RTL والنصوص عبر `frontend/src/locales/requestList.ts`، ورسالة خطأ قابلة لإعادة المحاولة عند فشل تحميل الـ Timeline.
 
 ### Admin Requests Inbox (v1.5)
 
@@ -92,11 +94,13 @@
 ### Admin Request Detail (v1.6)
 
 - **Entry Route:** `/app/admin/requests/:id` (`frontend/src/app/admin-request-detail/main.tsx`).
-- **Data Layer:** `useAdminRequestDetail` يستدعي `GET /admin/requests/:id` للحصول على بيانات الطلب، المرفقات، الأحداث، والتعليقات.
+- **Data Layer:** 
+  - `useAdminRequestDetail` يستدعي `GET /admin/requests/:id` للحصول على بيانات الطلب، المرفقات، والتعليقات.
+  - `useRequestTimeline` (Story 6.7) يستدعي `GET /admin/requests/:id/timeline` ويعيد سجل الاتصال الكامل (تنبيهات المستثمر، تنبيهات العمليات، انتقالات الحالة، التعليقات الداخلية).
 - **Layout:** تقسيم من عمودين — العمود الرئيسي يعرض معلومات الطلب، بيانات المستثمر، Timeline، التعليقات؛ العمود الجانبي يعرض المرفقات وإجراءات القرار (كبلايسهولدر) وملاحظات داخلية.
 - **Settlement:** بطاقة خاصة بتفاصيل التسوية (المرجع، تاريخ البدء، تاريخ الإتمام، ملاحظات التسوية) يتم تحديثها بعد الانتقال إلى `settling` أو `completed`.
 - **Decision Actions:** أزرار (قبول، رفض) تستدعي واجهات Story 4.4 مع ملاحظات داخلية اختيارية وتغذية راجعة فورية؛ زر طلب المعلومات يسمح بإرسال رسالة إلزامية للمستثمر (Story 4.5) وينقل الحالة إلى Pending Info؛ نموذج تعليق داخلي (Story 4.6) بسرية داخلية مع Toasts للنجاح/الفشل وإعادة التحديث التلقائية.
-- **التجربة:** حالات تحميل/خطأ واضحة، زر تحديث، دعم للـ RTL والنصوص عبر `frontend/src/locales/adminRequests.ts`.
+- **التجربة:** حالات تحميل/خطأ واضحة، زر تحديث، دعم للـ RTL والنصوص عبر `frontend/src/locales/adminRequests.ts`، وسيناريو خطأ مخصص عند فشل تحميل Timeline مع زر إعادة المحاولة.
 
 ### Admin News Management (v1.0)
 
@@ -883,7 +887,7 @@ graph TD
 - **Backend foundation:** Notifications and preferences tables created in Supabase with realtime publication (Story 6.1).
 - **Email pipeline:** Queue-backed email dispatch via Supabase Edge Function and Resend (Story 6.3).
 - **Operations alerts:** Configurable admin email notifications for critical request events (Story 6.4).
-- **Investor notifications center:** In-app feed with unread badges, pagination, and Supabase Realtime updates (Story 6.5).
+- **Investor notifications center:** In-app feed with unread badges, realtime updates, and per-channel preference management (Stories 6.5–6.6).
 - **Channels:** Email, SMS, and in-app notifications share the same payload contract to ensure consistent rendering across delivery mechanisms.
 
 ---
