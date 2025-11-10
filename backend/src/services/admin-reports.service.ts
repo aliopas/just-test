@@ -2,28 +2,34 @@ import { requireSupabaseAdmin } from '../lib/supabase';
 import { z } from 'zod';
 
 export const adminRequestReportQuerySchema = z.object({
-  from: z
-    .string()
-    .datetime()
-    .optional(),
-  to: z
-    .string()
-    .datetime()
-    .optional(),
-  status: z
-    .string()
-    .optional(),
-  type: z
-    .enum(['buy', 'sell'])
-    .optional(),
-  minAmount: z
-    .preprocess(value => (value === undefined ? undefined : Number(value)), z.number().nonnegative().optional()),
-  maxAmount: z
-    .preprocess(value => (value === undefined ? undefined : Number(value)), z.number().nonnegative().optional()),
+  from: z.string().datetime().optional(),
+  to: z.string().datetime().optional(),
+  status: z.string().optional(),
+  type: z.enum(['buy', 'sell']).optional(),
+  minAmount: z.preprocess(
+    value => (value === undefined ? undefined : Number(value)),
+    z.number().nonnegative().optional()
+  ),
+  maxAmount: z.preprocess(
+    value => (value === undefined ? undefined : Number(value)),
+    z.number().nonnegative().optional()
+  ),
   format: z.enum(['json', 'csv']).optional().default('json'),
 });
 
-export type AdminRequestReportQuery = z.infer<typeof adminRequestReportQuerySchema>;
+export type AdminRequestReportQuery = z.infer<
+  typeof adminRequestReportQuerySchema
+>;
+
+type InvestorProfileRow = {
+  full_name: string | null;
+  preferred_name: string | null;
+};
+
+type RawInvestorRow = {
+  email: string | null;
+  profile: InvestorProfileRow[] | null;
+};
 
 type RequestWithInvestorRow = {
   id: string;
@@ -36,11 +42,12 @@ type RequestWithInvestorRow = {
   updated_at: string;
   investor: {
     email: string | null;
-    profile: {
-      full_name: string | null;
-      preferred_name: string | null;
-    } | null;
+    profile: InvestorProfileRow | null;
   } | null;
+};
+
+type RawRequestWithInvestorRow = Omit<RequestWithInvestorRow, 'investor'> & {
+  investor: RawInvestorRow[] | RawInvestorRow | null;
 };
 
 export interface AdminRequestReportItem {
@@ -68,12 +75,26 @@ export interface AdminRequestReportCsv {
   content: string;
 }
 
+function mapInvestor(
+  investor: RawInvestorRow | null | undefined
+): RequestWithInvestorRow['investor'] {
+  if (!investor) {
+    return null;
+  }
+
+  const profile = Array.isArray(investor.profile)
+    ? investor.profile[0] ?? null
+    : investor.profile ?? null;
+
+  return {
+    email: investor.email ?? null,
+    profile,
+  };
+}
+
 function mapRow(row: RequestWithInvestorRow): AdminRequestReportItem {
   const profile = row.investor?.profile ?? null;
-  const name =
-    profile?.preferred_name ??
-    profile?.full_name ??
-    null;
+  const name = profile?.preferred_name ?? profile?.full_name ?? null;
 
   return {
     id: row.id,
@@ -126,7 +147,10 @@ export async function getAdminRequestReport(
   }
 
   if (query.status) {
-    const statuses = query.status.split(',').map(status => status.trim()).filter(Boolean);
+    const statuses = query.status
+      .split(',')
+      .map(status => status.trim())
+      .filter(Boolean);
     if (statuses.length > 0) {
       requestQuery = requestQuery.in('status', statuses);
     }
@@ -150,7 +174,17 @@ export async function getAdminRequestReport(
     throw new Error(`FAILED_REPORT_QUERY:${error.message ?? 'unknown'}`);
   }
 
-  const rows = (data ?? []) as RequestWithInvestorRow[];
+  const rawRows = (data ?? []) as RawRequestWithInvestorRow[];
+  const rows: RequestWithInvestorRow[] = rawRows.map(row => {
+    const investor = Array.isArray(row.investor)
+      ? row.investor[0] ?? null
+      : row.investor ?? null;
+
+    return {
+      ...row,
+      investor: mapInvestor(investor),
+    };
+  });
   const items = rows.map(mapRow);
 
   if (query.format === 'csv') {
@@ -203,4 +237,3 @@ export async function getAdminRequestReport(
     generatedAt: new Date().toISOString(),
   };
 }
-

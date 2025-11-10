@@ -21,9 +21,12 @@ type StuckRow = {
   status: string;
   created_at: string;
   updated_at: string;
-  investor: {
-    email: string | null;
-  } | { email: string | null }[] | null;
+  investor:
+    | {
+        email: string | null;
+      }
+    | { email: string | null }[]
+    | null;
 };
 
 export interface AdminDashboardStats {
@@ -93,7 +96,10 @@ function hoursBetween(start: string, end: string) {
 function computeProcessingStats(events: EventRow[]) {
   const submittedStatus = 'submitted';
   const finalStatuses = new Set(['approved', 'rejected', 'completed']);
-  const grouped = new Map<string, { submittedAt: string | null; finalAt: string | null }>();
+  const grouped = new Map<
+    string,
+    { submittedAt: string | null; finalAt: string | null }
+  >();
 
   events.forEach(event => {
     if (!grouped.has(event.request_id)) {
@@ -137,8 +143,8 @@ function mapStuckRows(rows: StuckRow[]) {
     requestNumber: row.request_number,
     status: row.status,
     investorEmail: Array.isArray(row.investor)
-      ? row.investor[0]?.email ?? null
-      : row.investor?.email ?? null,
+      ? (row.investor[0]?.email ?? null)
+      : (row.investor?.email ?? null),
     ageHours: hoursBetween(
       row.created_at,
       row.updated_at ?? new Date().toISOString()
@@ -203,10 +209,17 @@ export async function getAdminDashboardStats(params?: {
     .limit(15);
 
   const [statusResult, trendResult, processingResult, stuckResult] =
-    await Promise.all([statusPromise, trendPromise, processingPromise, stuckPromise]);
+    await Promise.all([
+      statusPromise,
+      trendPromise,
+      processingPromise,
+      stuckPromise,
+    ]);
 
   if (statusResult.error) {
-    throw new Error(`FAILED_STATUS_SUMMARY:${statusResult.error.message ?? 'unknown'}`);
+    throw new Error(
+      `FAILED_STATUS_SUMMARY:${statusResult.error.message ?? 'unknown'}`
+    );
   }
 
   if (trendResult.error) {
@@ -214,7 +227,9 @@ export async function getAdminDashboardStats(params?: {
   }
 
   if (processingResult.error) {
-    throw new Error(`FAILED_PROCESSING:${processingResult.error.message ?? 'unknown'}`);
+    throw new Error(
+      `FAILED_PROCESSING:${processingResult.error.message ?? 'unknown'}`
+    );
   }
 
   if (stuckResult.error) {
@@ -249,4 +264,3 @@ export async function getAdminDashboardStats(params?: {
     stuckRequests: mapStuckRows(((stuckResult.data ?? []) as StuckRow[]) ?? []),
   };
 }
-
