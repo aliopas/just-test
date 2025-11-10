@@ -21,19 +21,19 @@ const ADMIN_DEFAULT_LANGUAGE =
     ? (process.env.ADMIN_NOTIFICATION_DEFAULT_LANGUAGE as EmailLanguage)
     : undefined;
 
-const DEFAULT_NOTIFICATION_CHANNELS = (
-  NOTIFICATION_CHANNELS as NotificationChannel[]
-).filter(channel => channel === 'email' || channel === 'in_app');
+const DEFAULT_NOTIFICATION_CHANNELS = NOTIFICATION_CHANNELS.filter(
+  (channel): channel is Extract<NotificationChannel, 'email' | 'in_app'> =>
+    channel === 'email' || channel === 'in_app'
+);
 
-const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferenceInput[] = (
-  NOTIFICATION_TYPES as NotificationType[]
-).flatMap(notificationType =>
+const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferenceInput[] =
+  NOTIFICATION_TYPES.flatMap(notificationType =>
   DEFAULT_NOTIFICATION_CHANNELS.map(channel => ({
     channel,
     type: notificationType,
     enabled: true,
-  }))
-);
+    }))
+  );
 
 const INVESTOR_PORTAL_URL = (
   process.env.INVESTOR_PORTAL_URL ?? 'https://app.bakurah.com'
@@ -155,12 +155,8 @@ export type NotificationListResult = {
 function sanitizePreferenceList(
   preferences: NotificationPreferenceListInput
 ): NotificationPreferenceInput[] {
-  const allowedChannels = new Set<NotificationChannel>(
-    NOTIFICATION_CHANNELS as NotificationChannel[]
-  );
-  const allowedTypes = new Set<NotificationType>(
-    NOTIFICATION_TYPES as NotificationType[]
-  );
+  const allowedChannels = new Set<NotificationChannel>(NOTIFICATION_CHANNELS);
+  const allowedTypes = new Set<NotificationType>(NOTIFICATION_TYPES);
 
   const preferenceMap = new Map<string, NotificationPreferenceInput>();
 
