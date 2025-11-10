@@ -104,6 +104,17 @@ function HeaderNav() {
         }}
       >
         <NavLink
+          to="/home"
+          style={({ isActive }) => ({
+            ...navLinkStyle,
+            background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
+            color: isActive ? palette.textPrimary : palette.textSecondary,
+          })}
+          end
+        >
+          {language === 'ar' ? 'الرئيسية' : 'Home'}
+        </NavLink>
+        <NavLink
           to="/dashboard"
           style={({ isActive }) => ({
             ...navLinkStyle,
@@ -312,7 +323,7 @@ function InvestorApp() {
     <Fragment>
       <HeaderNav />
       <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/dashboard" element={<InvestorDashboardPage />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/requests" element={<MyRequestsPage />} />
