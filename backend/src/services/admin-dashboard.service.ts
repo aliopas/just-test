@@ -29,6 +29,40 @@ type StuckRow = {
     | null;
 };
 
+const PENDING_INFO_THRESHOLD_HOURS = 24;
+const PENDING_INFO_ALERT_RATE = 0.25;
+const ATTACHMENT_SUCCESS_ALERT_RATE = 0.9;
+const NOTIFICATION_FAILURE_WINDOW_DAYS = 30;
+const NOTIFICATION_FAILURE_ALERT_RATE = 0.05;
+
+export interface AdminDashboardKpis {
+  processingHours: {
+    average: number | null;
+    median: number | null;
+    p90: number | null;
+  };
+  pendingInfoAging: {
+    total: number;
+    overdue: number;
+    thresholdHours: number;
+    rate: number;
+    alert: boolean;
+  };
+  attachmentSuccess: {
+    totalRequests: number;
+    withAttachments: number;
+    rate: number | null;
+    alert: boolean;
+  };
+  notificationFailures: {
+    total: number;
+    failed: number;
+    rate: number | null;
+    windowDays: number;
+    alert: boolean;
+  };
+}
+
 export interface AdminDashboardStats {
   summary: {
     totalRequests: number;
@@ -45,6 +79,7 @@ export interface AdminDashboardStats {
     ageHours: number;
     updatedAt: string;
   }>;
+  kpis: AdminDashboardKpis;
 }
 
 function normaliseStatusCounts(rows: StatusRow[]): Record<string, number> {
@@ -122,7 +157,7 @@ function computeProcessingStats(events: EventRow[]) {
   });
 
   if (durations.length === 0) {
-    return { average: null, median: null };
+    return { average: null, median: null, p90: null };
   }
 
   const sum = durations.reduce((acc, value) => acc + value, 0);
@@ -133,8 +168,13 @@ function computeProcessingStats(events: EventRow[]) {
     sorted.length % 2 === 0
       ? (sorted[middle - 1] + sorted[middle]) / 2
       : sorted[middle];
+  const p90Index = Math.min(
+    sorted.length - 1,
+    Math.ceil(sorted.length * 0.9) - 1
+  );
+  const p90 = sorted[p90Index] ?? null;
 
-  return { average, median };
+  return { average, median, p90 };
 }
 
 function mapStuckRows(rows: StuckRow[]) {
@@ -208,13 +248,68 @@ export async function getAdminDashboardStats(params?: {
     .order('updated_at', { ascending: true })
     .limit(15);
 
-  const [statusResult, trendResult, processingResult, stuckResult] =
-    await Promise.all([
-      statusPromise,
-      trendPromise,
-      processingPromise,
-      stuckPromise,
-    ]);
+  const pendingInfoCutoff = new Date(
+    Date.now() - PENDING_INFO_THRESHOLD_HOURS * 60 * 60 * 1000
+  ).toISOString();
+
+  const notificationWindowStart = new Date(
+    Date.now() - NOTIFICATION_FAILURE_WINDOW_DAYS * 24 * 60 * 60 * 1000
+  ).toISOString();
+
+  const pendingInfoPromise = adminClient
+    .from('requests')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'pending_info');
+
+  const pendingInfoOverduePromise = adminClient
+    .from('requests')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'pending_info')
+    .lt('updated_at', pendingInfoCutoff);
+
+  const attachmentBasePromise = adminClient
+    .from('requests')
+    .select('id', { count: 'exact', head: true })
+    .neq('status', 'draft');
+
+  const attachmentWithPromise = adminClient
+    .from('attachments')
+    .select('request_id', { count: 'exact', head: true });
+
+  const notificationTotalPromise = adminClient
+    .from('notification_jobs')
+    .select('id', { count: 'exact', head: true })
+    .gte('scheduled_at', notificationWindowStart);
+
+  const notificationFailedPromise = adminClient
+    .from('notification_jobs')
+    .select('id', { count: 'exact', head: true })
+    .gte('scheduled_at', notificationWindowStart)
+    .eq('status', 'failed');
+
+  const [
+    statusResult,
+    trendResult,
+    processingResult,
+    stuckResult,
+    pendingInfoResult,
+    pendingInfoOverdueResult,
+    attachmentBaseResult,
+    attachmentWithResult,
+    notificationTotalResult,
+    notificationFailedResult,
+  ] = await Promise.all([
+    statusPromise,
+    trendPromise,
+    processingPromise,
+    stuckPromise,
+    pendingInfoPromise,
+    pendingInfoOverduePromise,
+    attachmentBasePromise,
+    attachmentWithPromise,
+    notificationTotalPromise,
+    notificationFailedPromise,
+  ]);
 
   if (statusResult.error) {
     throw new Error(
@@ -236,6 +331,48 @@ export async function getAdminDashboardStats(params?: {
     throw new Error(`FAILED_STUCK:${stuckResult.error.message ?? 'unknown'}`);
   }
 
+  if (pendingInfoResult.error) {
+    throw new Error(
+      `FAILED_PENDING_INFO:${pendingInfoResult.error.message ?? 'unknown'}`
+    );
+  }
+
+  if (pendingInfoOverdueResult.error) {
+    throw new Error(
+      `FAILED_PENDING_INFO_OVERDUE:${
+        pendingInfoOverdueResult.error.message ?? 'unknown'
+      }`
+    );
+  }
+
+  if (attachmentBaseResult.error) {
+    throw new Error(
+      `FAILED_ATTACHMENT_BASE:${attachmentBaseResult.error.message ?? 'unknown'}`
+    );
+  }
+
+  if (attachmentWithResult.error) {
+    throw new Error(
+      `FAILED_ATTACHMENT_COUNT:${attachmentWithResult.error.message ?? 'unknown'}`
+    );
+  }
+
+  if (notificationTotalResult.error) {
+    throw new Error(
+      `FAILED_NOTIFICATION_TOTAL:${
+        notificationTotalResult.error.message ?? 'unknown'
+      }`
+    );
+  }
+
+  if (notificationFailedResult.error) {
+    throw new Error(
+      `FAILED_NOTIFICATION_FAILED:${
+        notificationFailedResult.error.message ?? 'unknown'
+      }`
+    );
+  }
+
   const statusCounts = normaliseStatusCounts(
     (statusResult.data as StatusRow[]) ?? []
   );
@@ -249,9 +386,31 @@ export async function getAdminDashboardStats(params?: {
     trendDays
   );
 
-  const { average, median } = computeProcessingStats(
+  const { average, median, p90 } = computeProcessingStats(
     ((processingResult.data ?? []) as EventRow[]) ?? []
   );
+
+  const pendingInfoTotal = pendingInfoResult.count ?? 0;
+  const pendingInfoOverdue = pendingInfoOverdueResult.count ?? 0;
+  const pendingInfoRate =
+    pendingInfoTotal === 0 ? 0 : pendingInfoOverdue / pendingInfoTotal;
+  const pendingInfoAlert =
+    pendingInfoOverdue > 0 && pendingInfoRate >= PENDING_INFO_ALERT_RATE;
+
+  const attachmentBase = attachmentBaseResult.count ?? 0;
+  const attachmentWith = attachmentWithResult.count ?? 0;
+  const attachmentRate =
+    attachmentBase === 0 ? null : Math.min(attachmentWith / attachmentBase, 1);
+  const attachmentAlert =
+    attachmentRate !== null && attachmentRate < ATTACHMENT_SUCCESS_ALERT_RATE;
+
+  const notificationTotal = notificationTotalResult.count ?? 0;
+  const notificationFailed = notificationFailedResult.count ?? 0;
+  const notificationFailureRate =
+    notificationTotal === 0 ? null : notificationFailed / notificationTotal;
+  const notificationAlert =
+    notificationFailureRate !== null &&
+    notificationFailureRate >= NOTIFICATION_FAILURE_ALERT_RATE;
 
   return {
     summary: {
@@ -262,5 +421,32 @@ export async function getAdminDashboardStats(params?: {
     },
     trend,
     stuckRequests: mapStuckRows(((stuckResult.data ?? []) as StuckRow[]) ?? []),
+    kpis: {
+      processingHours: {
+        average,
+        median,
+        p90,
+      },
+      pendingInfoAging: {
+        total: pendingInfoTotal,
+        overdue: pendingInfoOverdue,
+        thresholdHours: PENDING_INFO_THRESHOLD_HOURS,
+        rate: pendingInfoRate,
+        alert: pendingInfoAlert,
+      },
+      attachmentSuccess: {
+        totalRequests: attachmentBase,
+        withAttachments: attachmentWith,
+        rate: attachmentRate,
+        alert: attachmentAlert,
+      },
+      notificationFailures: {
+        total: notificationTotal,
+        failed: notificationFailed,
+        rate: notificationFailureRate,
+        windowDays: NOTIFICATION_FAILURE_WINDOW_DAYS,
+        alert: notificationAlert,
+      },
+    },
   };
 }

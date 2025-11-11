@@ -41,6 +41,29 @@ describe('adminDashboardController.stats', () => {
       },
       trend: [],
       stuckRequests: [],
+      kpis: {
+        processingHours: { average: 24, median: 18, p90: 30 },
+        pendingInfoAging: {
+          total: 2,
+          overdue: 0,
+          thresholdHours: 24,
+          rate: 0,
+          alert: false,
+        },
+        attachmentSuccess: {
+          totalRequests: 10,
+          withAttachments: 8,
+          rate: 0.8,
+          alert: false,
+        },
+        notificationFailures: {
+          total: 20,
+          failed: 1,
+          rate: 0.05,
+          windowDays: 30,
+          alert: false,
+        },
+      },
     });
 
     const req = { user: { id: 'admin-1' } } as unknown as AuthenticatedRequest;

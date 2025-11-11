@@ -186,6 +186,8 @@ npm test -- health.test.ts
 - **Story 7.2 (Admin Dashboard Stats):** `docs/stories/STORY_7.2_COMPLETION.md`
 - **Story 7.3 (Admin Request Reports):** `docs/stories/STORY_7.3_COMPLETION.md`
 - **Story 7.4 (Admin Audit Log):** `docs/stories/STORY_7.4_COMPLETION.md`
+- **Story 7.5 (Content Analytics):** `docs/stories/STORY_7.5_COMPLETION.md`
+- **Story 7.6 (Operational KPIs):** `docs/stories/STORY_7.6_COMPLETION.md`
 - **Design System:** `docs/design-system.md` (مع ملفات `frontend/src/styles/theme.ts` و`frontend/src/components/Logo.tsx`)
 - **Supabase Integration:** `docs/SUPABASE_INTEGRATION.md`
 - **RBAC Matrix:** `docs/prd/rbac-matrix.md`
@@ -259,7 +261,7 @@ PATCH /api/v1/admin/requests/:id/settle
 GET /api/v1/admin/dashboard/stats
 ```
 
-> Requires `admin.requests.review`. Returns aggregated metrics (status counts, processing averages, stuck requests, trend data).
+> Requires `admin.requests.review`. Returns aggregated metrics (status counts, processing averages, stuck requests, trend data) plus a `kpis` object (processing time P90/median/average, pending-info backlog ageing, attachment success rate, notification failure rate with alert flags).
 
 ### Admin Reports
 

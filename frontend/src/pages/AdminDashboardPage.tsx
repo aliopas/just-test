@@ -48,6 +48,16 @@ function formatPercentage(value: number, language: 'ar' | 'en') {
   }
 }
 
+function formatPercentOrFallback(
+  value: number | null | undefined,
+  language: 'ar' | 'en'
+) {
+  if (value == null || !Number.isFinite(value)) {
+    return language === 'ar' ? '—' : '–';
+  }
+  return formatPercentage(value, language);
+}
+
 function formatDateTime(value: string | null, language: 'ar' | 'en') {
   if (!value) {
     return language === 'ar' ? '—' : '–';
@@ -225,6 +235,59 @@ function AdminDashboardPageInner() {
   const totalImpressions = contentData?.summary.totalImpressions ?? 0;
   const totalViews = contentData?.summary.totalViews ?? 0;
   const overallCtr = contentData?.summary.overallCtr ?? 0;
+
+  const kpis = data?.kpis;
+  const processingKpis = kpis?.processingHours;
+  const pendingInfoKpi = kpis?.pendingInfoAging;
+  const attachmentKpi = kpis?.attachmentSuccess;
+  const notificationKpi = kpis?.notificationFailures;
+
+  const kpiAlerts: string[] = [];
+  if (pendingInfoKpi?.alert) {
+    const message =
+      language === 'ar'
+        ? `نسبة طلبات Pending Info المتجاوزة لـ ${pendingInfoKpi.thresholdHours} ساعة بلغت ${formatPercentage(pendingInfoKpi.rate, language)}`
+        : `Pending info > ${pendingInfoKpi.thresholdHours}h is ${formatPercentage(pendingInfoKpi.rate, language)}`;
+    kpiAlerts.push(message);
+  }
+  if (attachmentKpi?.alert) {
+    const rateLabel =
+      attachmentKpi.rate == null
+        ? language === 'ar'
+          ? 'غير متوفر'
+          : 'N/A'
+        : formatPercentage(attachmentKpi.rate, language);
+    const message =
+      language === 'ar'
+        ? `معدل نجاح رفع المرفقات منخفض (${rateLabel})`
+        : `Attachment success rate is below target (${rateLabel})`;
+    kpiAlerts.push(message);
+  }
+  if (notificationKpi?.alert) {
+    const failureRate =
+      notificationKpi.rate == null
+        ? language === 'ar'
+          ? 'غير متوفر'
+          : 'N/A'
+        : formatPercentage(notificationKpi.rate, language);
+    const message =
+      language === 'ar'
+        ? `معدل فشل الإشعارات خلال آخر ${notificationKpi.windowDays} يوم مرتفع (${failureRate})`
+        : `Notification failure rate over the last ${notificationKpi.windowDays} days is elevated (${failureRate})`;
+    kpiAlerts.push(message);
+  }
+  const pendingInfoRateLabel = formatPercentOrFallback(
+    pendingInfoKpi?.rate,
+    language
+  );
+  const attachmentRateLabel = formatPercentOrFallback(
+    attachmentKpi?.rate,
+    language
+  );
+  const notificationFailureRateLabel = formatPercentOrFallback(
+    notificationKpi?.rate,
+    language
+  );
 
   return (
     <main
@@ -455,6 +518,286 @@ function AdminDashboardPageInner() {
             )}
           </article>
         </section>
+
+        <article
+          style={{
+            background: palette.backgroundSurface,
+            borderRadius: '1.2rem',
+            border: `1px solid ${palette.neutralBorder}`,
+            padding: '1.6rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.2rem',
+          }}
+        >
+          <header
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.35rem',
+            }}
+          >
+            <strong
+              style={{
+                fontSize: '1.35rem',
+                color: palette.textPrimary,
+              }}
+            >
+              {tAdminDashboard('kpis.title', language)}
+            </strong>
+            <span
+              style={{
+                color: palette.textSecondary,
+                fontSize: '0.95rem',
+              }}
+            >
+              {tAdminDashboard('kpis.subtitle', language)}
+            </span>
+          </header>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: '1rem',
+            }}
+          >
+            {isLoading ? (
+              Array.from({ length: 4 }).map((_, index) => (
+                <div
+                  key={`kpi-skeleton-${index}`}
+                  style={{
+                    borderRadius: '1rem',
+                    border: `1px solid ${palette.neutralBorderSoft}`,
+                    background: palette.backgroundAlt,
+                    minHeight: '140px',
+                    animation: 'pulse 1.5s ease-in-out infinite',
+                  }}
+                />
+              ))
+            ) : (
+              <>
+                <div
+                  style={{
+                    borderRadius: '1rem',
+                    border: `1px solid ${palette.neutralBorderSoft}`,
+                    background: palette.backgroundAlt,
+                    padding: '1.1rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.5rem',
+                  }}
+                >
+                  <span
+                    style={{
+                      color: palette.textSecondary,
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {tAdminDashboard('kpis.processing.title', language)}
+                  </span>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.3rem',
+                      color: palette.textPrimary,
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    <span>
+                      {tAdminDashboard('kpis.processing.average', language)}:{' '}
+                      {formatHours(processingKpis?.average ?? null, language)}
+                    </span>
+                    <span>
+                      {tAdminDashboard('kpis.processing.median', language)}:{' '}
+                      {formatHours(processingKpis?.median ?? null, language)}
+                    </span>
+                    <span>
+                      {tAdminDashboard('kpis.processing.p90', language)}:{' '}
+                      {formatHours(processingKpis?.p90 ?? null, language)}
+                    </span>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    borderRadius: '1rem',
+                    border: `1px solid ${palette.neutralBorderSoft}`,
+                    background: palette.backgroundAlt,
+                    padding: '1.1rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.5rem',
+                  }}
+                >
+                  <span
+                    style={{
+                      color: palette.textSecondary,
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {tAdminDashboard('kpis.pendingInfo.title', language)}
+                  </span>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.3rem',
+                      color: palette.textPrimary,
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    <span>
+                      {tAdminDashboard('kpis.pendingInfo.total', language)}:{' '}
+                      {formatNumber(pendingInfoKpi?.total ?? 0, language)}
+                    </span>
+                    <span>
+                      {tAdminDashboard('kpis.pendingInfo.overdue', language)}:{' '}
+                      {formatNumber(pendingInfoKpi?.overdue ?? 0, language)}
+                    </span>
+                    <span>
+                      {tAdminDashboard('kpis.pendingInfo.rate', language)}:{' '}
+                      {pendingInfoRateLabel}
+                    </span>
+                    <span style={{ color: palette.textSecondary }}>
+                      {tAdminDashboard('kpis.pendingInfo.threshold', language)}:{' '}
+                      {pendingInfoKpi?.thresholdHours ?? 24}{' '}
+                      {language === 'ar' ? 'ساعة' : 'hrs'}
+                    </span>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    borderRadius: '1rem',
+                    border: `1px solid ${palette.neutralBorderSoft}`,
+                    background: palette.backgroundAlt,
+                    padding: '1.1rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.5rem',
+                  }}
+                >
+                  <span
+                    style={{
+                      color: palette.textSecondary,
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {tAdminDashboard('kpis.attachments.title', language)}
+                  </span>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.3rem',
+                      color: palette.textPrimary,
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    <span>
+                      {tAdminDashboard('kpis.attachments.completed', language)}:{' '}
+                      {formatNumber(attachmentKpi?.withAttachments ?? 0, language)}
+                    </span>
+                    <span>
+                      {tAdminDashboard('kpis.attachments.total', language)}:{' '}
+                      {formatNumber(attachmentKpi?.totalRequests ?? 0, language)}
+                    </span>
+                    <span>
+                      {tAdminDashboard('kpis.attachments.rate', language)}:{' '}
+                      {attachmentRateLabel}
+                    </span>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    borderRadius: '1rem',
+                    border: `1px solid ${palette.neutralBorderSoft}`,
+                    background: palette.backgroundAlt,
+                    padding: '1.1rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.5rem',
+                  }}
+                >
+                  <span
+                    style={{
+                      color: palette.textSecondary,
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {tAdminDashboard('kpis.notifications.title', language)}
+                  </span>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.3rem',
+                      color: palette.textPrimary,
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    <span>
+                      {tAdminDashboard('kpis.notifications.failed', language)}:{' '}
+                      {formatNumber(notificationKpi?.failed ?? 0, language)}
+                    </span>
+                    <span>
+                      {tAdminDashboard('kpis.notifications.total', language)}:{' '}
+                      {formatNumber(notificationKpi?.total ?? 0, language)}
+                    </span>
+                    <span>
+                      {tAdminDashboard('kpis.notifications.rate', language)}:{' '}
+                      {notificationFailureRateLabel}
+                    </span>
+                    <span style={{ color: palette.textSecondary }}>
+                      {tAdminDashboard('kpis.notifications.window', language)}:{' '}
+                      {notificationKpi?.windowDays ?? 30}{' '}
+                      {language === 'ar' ? 'يوم' : 'days'}
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {kpiAlerts.length > 0 && (
+            <div
+              style={{
+                padding: '0.9rem 1.1rem',
+                borderRadius: '0.9rem',
+                background: '#FEF3C7',
+                border: '1px solid #F59E0B',
+                color: '#92400E',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.6rem',
+              }}
+            >
+              <strong>
+                {tAdminDashboard('kpis.alerts.title', language)}
+              </strong>
+              <ul
+                style={{
+                  margin: 0,
+                  paddingInlineStart: direction === 'rtl' ? '1.2rem' : '1.4rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.4rem',
+                }}
+              >
+                {kpiAlerts.map((alert, index) => (
+                  <li key={`kpi-alert-${index}`}>{alert}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </article>
 
         <article
           style={{

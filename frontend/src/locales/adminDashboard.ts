@@ -17,7 +17,28 @@ type MessageKey =
   | 'stuck.age'
   | 'stuck.view'
   | 'toast.error'
-  | 'lastUpdated';
+  | 'lastUpdated'
+  | 'kpis.title'
+  | 'kpis.subtitle'
+  | 'kpis.processing.title'
+  | 'kpis.processing.average'
+  | 'kpis.processing.median'
+  | 'kpis.processing.p90'
+  | 'kpis.pendingInfo.title'
+  | 'kpis.pendingInfo.total'
+  | 'kpis.pendingInfo.overdue'
+  | 'kpis.pendingInfo.rate'
+  | 'kpis.pendingInfo.threshold'
+  | 'kpis.attachments.title'
+  | 'kpis.attachments.completed'
+  | 'kpis.attachments.total'
+  | 'kpis.attachments.rate'
+  | 'kpis.notifications.title'
+  | 'kpis.notifications.failed'
+  | 'kpis.notifications.total'
+  | 'kpis.notifications.rate'
+  | 'kpis.notifications.window'
+  | 'kpis.alerts.title';
 
 type MessageDictionary = Record<MessageKey, string>;
 
@@ -40,6 +61,27 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'stuck.view': 'Open request',
     'toast.error': 'Failed to load dashboard stats.',
     lastUpdated: 'Last updated',
+    'kpis.title': 'Operational KPIs',
+    'kpis.subtitle': 'Live indicators updated each refresh.',
+    'kpis.processing.title': 'Processing time',
+    'kpis.processing.average': 'Average (hrs)',
+    'kpis.processing.median': 'Median (hrs)',
+    'kpis.processing.p90': '90th percentile (hrs)',
+    'kpis.pendingInfo.title': 'Pending info backlog',
+    'kpis.pendingInfo.total': 'Total pending',
+    'kpis.pendingInfo.overdue': 'Over SLA',
+    'kpis.pendingInfo.rate': 'Overdue rate',
+    'kpis.pendingInfo.threshold': 'Threshold',
+    'kpis.attachments.title': 'Attachment success',
+    'kpis.attachments.completed': 'Requests with uploads',
+    'kpis.attachments.total': 'Requests requiring uploads',
+    'kpis.attachments.rate': 'Success rate',
+    'kpis.notifications.title': 'Notification failures',
+    'kpis.notifications.failed': 'Failed jobs',
+    'kpis.notifications.total': 'Total jobs',
+    'kpis.notifications.rate': 'Failure rate',
+    'kpis.notifications.window': 'Window',
+    'kpis.alerts.title': 'Attention needed',
   },
   ar: {
     pageTitle: 'لوحة عمليات الإدارة',
@@ -59,6 +101,27 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'stuck.view': 'عرض الطلب',
     'toast.error': 'تعذر تحميل إحصائيات اللوحة.',
     lastUpdated: 'آخر تحديث',
+    'kpis.title': 'المؤشرات التشغيلية',
+    'kpis.subtitle': 'مؤشرات محدّثة عند كل تحديث للصفحة.',
+    'kpis.processing.title': 'وقت المعالجة',
+    'kpis.processing.average': 'المتوسط (ساعات)',
+    'kpis.processing.median': 'الوسيط (ساعات)',
+    'kpis.processing.p90': 'النسبة المئوية 90 (ساعات)',
+    'kpis.pendingInfo.title': 'طلبات Pending Info',
+    'kpis.pendingInfo.total': 'إجمالي الطلبات',
+    'kpis.pendingInfo.overdue': 'متجاوز SLA',
+    'kpis.pendingInfo.rate': 'نسبة التأخر',
+    'kpis.pendingInfo.threshold': 'عتبة SLA',
+    'kpis.attachments.title': 'نجاح رفع المرفقات',
+    'kpis.attachments.completed': 'طلبات تم الرفع لها',
+    'kpis.attachments.total': 'طلبات تتطلب رفعاً',
+    'kpis.attachments.rate': 'نسبة النجاح',
+    'kpis.notifications.title': 'فشل الإشعارات',
+    'kpis.notifications.failed': 'عدد الفشل',
+    'kpis.notifications.total': 'إجمالي المهام',
+    'kpis.notifications.rate': 'نسبة الفشل',
+    'kpis.notifications.window': 'الفترة',
+    'kpis.alerts.title': 'مؤشرات تتطلب الانتباه',
   },
 };
 

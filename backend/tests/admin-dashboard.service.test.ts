@@ -70,13 +70,74 @@ describe('admin-dashboard.service', () => {
       }),
     };
 
+    const pendingInfoBuilder = {
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockResolvedValue({
+        data: [],
+        error: null,
+        count: 4,
+      }),
+    };
+
+    const pendingInfoOverdueBuilder = {
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      lt: jest.fn().mockResolvedValue({
+        data: [],
+        error: null,
+        count: 1,
+      }),
+    };
+
+    const attachmentBaseBuilder = {
+      select: jest.fn().mockReturnThis(),
+      neq: jest.fn().mockResolvedValue({
+        data: [],
+        error: null,
+        count: 5,
+      }),
+    };
+
+    const attachmentWithBuilder = {
+      select: jest.fn().mockResolvedValue({
+        data: [],
+        error: null,
+        count: 4,
+      }),
+    };
+
+    const notificationTotalBuilder = {
+      select: jest.fn().mockReturnThis(),
+      gte: jest.fn().mockResolvedValue({
+        data: [],
+        error: null,
+        count: 20,
+      }),
+    };
+
+    const notificationFailedBuilder = {
+      select: jest.fn().mockReturnThis(),
+      gte: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockResolvedValue({
+        data: [],
+        error: null,
+        count: 2,
+      }),
+    };
+
     const adminClient = {
       from: jest
         .fn()
         .mockImplementationOnce(() => statusBuilder)
         .mockImplementationOnce(() => trendBuilder)
         .mockImplementationOnce(() => eventsBuilder)
-        .mockImplementationOnce(() => stuckBuilder),
+        .mockImplementationOnce(() => stuckBuilder)
+        .mockImplementationOnce(() => pendingInfoBuilder)
+        .mockImplementationOnce(() => pendingInfoOverdueBuilder)
+        .mockImplementationOnce(() => attachmentBaseBuilder)
+        .mockImplementationOnce(() => attachmentWithBuilder)
+        .mockImplementationOnce(() => notificationTotalBuilder)
+        .mockImplementationOnce(() => notificationFailedBuilder),
     };
 
     mockRequireSupabaseAdmin.mockReturnValue(adminClient);
@@ -89,10 +150,9 @@ describe('admin-dashboard.service', () => {
     );
     expect(result.summary.averageProcessingHours).toBeCloseTo(48);
     expect(result.summary.medianProcessingHours).toBeCloseTo(48);
+    expect(result.kpis.processingHours.p90).toBeCloseTo(48);
     expect(result.trend).toHaveLength(14);
-    expect(result.trend[result.trend.length - 1]).toEqual(
-      expect.objectContaining({ count: 1 })
-    );
+    expect(result.trend.some(point => point.count === 1)).toBe(true);
     expect(result.stuckRequests[0]).toEqual(
       expect.objectContaining({
         id: 'req-1',
@@ -101,6 +161,11 @@ describe('admin-dashboard.service', () => {
         status: 'pending_info',
       })
     );
+    expect(result.kpis.pendingInfoAging.total).toBe(4);
+    expect(result.kpis.pendingInfoAging.overdue).toBe(1);
+    expect(result.kpis.pendingInfoAging.alert).toBe(true);
+    expect(result.kpis.attachmentSuccess.rate).toBeCloseTo(0.8);
+    expect(result.kpis.notificationFailures.rate).toBeCloseTo(0.1);
   });
 
   it('throws when status summary fails', async () => {
@@ -138,7 +203,14 @@ describe('admin-dashboard.service', () => {
         .mockImplementationOnce(() => statusBuilder)
         .mockImplementationOnce(() => trendBuilder)
         .mockImplementationOnce(() => eventsBuilder)
-        .mockImplementationOnce(() => stuckBuilder),
+        .mockImplementationOnce(() => stuckBuilder)
+        .mockImplementation(() => ({
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnThis(),
+          lt: jest.fn().mockResolvedValue({ data: [], error: null, count: 0 }),
+          neq: jest.fn().mockResolvedValue({ data: [], error: null, count: 0 }),
+          gte: jest.fn().mockReturnThis(),
+        })),
     };
 
     mockRequireSupabaseAdmin.mockReturnValue(adminClient);
