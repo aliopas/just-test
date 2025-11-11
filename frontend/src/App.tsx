@@ -380,9 +380,6 @@ function AppFooter() {
       }}
     >
       <Logo size={96} stacked tagline="Bacura · Empowering smart capital" />
-      <span style={{ fontSize: '0.95rem', color: palette.textSecondary }}>
-        Powered by Supabase & Netlify – Bakurah Investors Portal
-      </span>
     </footer>
   );
 }
