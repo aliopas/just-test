@@ -1,4 +1,5 @@
 ﻿import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import type { AdminRequest } from '../../../types/admin';
 import { useLanguage } from '../../../context/LanguageContext';
 import { tAdminRequests } from '../../../locales/adminRequests';
@@ -86,12 +87,16 @@ export function AdminRequestsTable({
             return (
               <tr key={request.id}>
                 <td>
-                  <a
-                    href={`/app/admin/requests/${request.id}`}
-                    style={{ color: 'var(--color-brand-primary-strong)', textDecoration: 'none', fontWeight: 600 }}
+                  <Link
+                    to={`/admin/requests/${request.id}`}
+                    style={{
+                      color: 'var(--color-brand-primary-strong)',
+                      textDecoration: 'none',
+                      fontWeight: 600,
+                    }}
                   >
                     {request.requestNumber}
-                  </a>
+                  </Link>
                 </td>
                 <td>{investorName}</td>
                 <td>{amountFormatted}</td>
