@@ -98,16 +98,21 @@ async function fetchUserRoles(userId: string): Promise<FetchRolesResult> {
   return { roles: roleSlugs, hasExplicitAssignment };
 }
 
+type RelationSlug =
+  | {
+      slug: string | null;
+    }
+  | Array<{
+      slug: string | null;
+    }>
+  | null;
+
 type RolePermissionRow = {
   role_slug?: string | null;
   permission_slug?: string | null;
   grant_type: 'allow' | 'deny';
-  permissions?: {
-    slug: string | null;
-  } | null;
-  roles?: {
-    slug: string | null;
-  } | null;
+  permissions?: RelationSlug;
+  roles?: RelationSlug;
 };
 
 async function fetchUserPermissions(
@@ -160,7 +165,11 @@ async function fetchUserPermissions(
     denied = new Set<string>();
 
     fallbackRows.forEach(row => {
-      const slug = row.permissions?.slug ?? row.permission_slug ?? null;
+      const permissionRelation = row.permissions;
+      const relationSlug = Array.isArray(permissionRelation)
+        ? permissionRelation[0]?.slug ?? null
+        : permissionRelation?.slug ?? null;
+      const slug = relationSlug ?? row.permission_slug ?? null;
       if (!slug) {
         return;
       }
