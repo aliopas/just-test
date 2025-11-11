@@ -1,4 +1,4 @@
-import { ChangeEvent, FormEvent, useMemo, useState } from 'react';
+import { ChangeEvent, FormEvent, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useRegister } from '../hooks/useRegister';
 import { useToast } from '../context/ToastContext';
@@ -8,40 +8,33 @@ import { palette } from '../styles/theme';
 import { ApiError } from '../utils/api-client';
 
 type RegisterFormState = {
+  fullName: string;
   email: string;
-  password: string;
-  confirmPassword: string;
   phone?: string;
-  role: 'investor' | 'admin';
+  company?: string;
+  message?: string;
+  language: 'ar' | 'en';
 };
 
 export function RegisterPage() {
-  const passwordRequirements = useMemo(
-    () => ({
-      regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/,
-      message: {
-        ar: 'كلمة المرور يجب أن تكون من 8 أحرف على الأقل وتحتوي على حرف كبير، حرف صغير، ورقم.',
-        en: 'Password must be at least 8 characters and include uppercase, lowercase, and a number.',
-      },
-    }),
-    []
-  );
   const { language } = useLanguage();
   const navigate = useNavigate();
   const { pushToast } = useToast();
   const registerMutation = useRegister();
   const [form, setForm] = useState<RegisterFormState>({
+    fullName: '',
     email: '',
-    password: '',
-    confirmPassword: '',
     phone: '',
-    role: 'investor',
+    company: '',
+    message: '',
+    language,
   });
 
   const direction = language === 'ar' ? 'rtl' : 'ltr';
 
   const handleChange =
-    (field: keyof RegisterFormState) => (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    (field: keyof RegisterFormState) =>
+    (event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
       const value = event.target.value;
       setForm(current => ({
         ...current,
@@ -51,70 +44,39 @@ export function RegisterPage() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!passwordRequirements.regex.test(form.password)) {
-      pushToast({
-        variant: 'error',
-        message: language === 'ar' ? passwordRequirements.message.ar : passwordRequirements.message.en,
-      });
-      return;
-    }
-    if (form.password !== form.confirmPassword) {
-      pushToast({
-        variant: 'error',
-        message:
-          language === 'ar'
-            ? 'كلمتا المرور غير متطابقتين.'
-            : 'Passwords do not match.',
-      });
-      return;
-    }
 
     try {
-      await registerMutation.mutateAsync({
+      const response = await registerMutation.mutateAsync({
+        fullName: form.fullName.trim(),
         email: form.email.trim(),
-        password: form.password,
         phone: form.phone?.trim() || undefined,
-        role: form.role,
+        company: form.company?.trim() || undefined,
+        message: form.message?.trim() || undefined,
+        language: form.language,
       });
 
       pushToast({
         variant: 'success',
         message:
-          language === 'ar'
-            ? 'تم إنشاء الحساب بنجاح. يمكنك تسجيل الدخول الآن.'
-            : 'Account created successfully. You can sign in now.',
+          response?.message ??
+          (language === 'ar'
+            ? 'تم استلام طلب إنشاء الحساب وسيتم التواصل معك بعد المراجعة.'
+            : 'Your account request has been submitted and will be reviewed shortly.'),
       });
-      navigate('/');
+      navigate('/', { replace: true });
     } catch (error) {
       let message: string;
       if (error instanceof ApiError) {
-        const detailsMessage =
-          typeof error.payload === 'object' &&
-          error.payload !== null &&
-          'error' in error.payload &&
-          typeof (error.payload as { error?: unknown }).error === 'object' &&
-          (error.payload as { error?: { details?: unknown } }).error?.details &&
-          Array.isArray((error.payload as { error?: { details?: unknown } }).error?.details)
-            ? (
-                (error.payload as {
-                  error?: { details?: Array<{ message?: string }> };
-                }).error?.details ?? []
-              )
-                .map(item => item?.message)
-                .find((item): item is string => typeof item === 'string')
-            : undefined;
-
         message =
-          detailsMessage ||
           error.message ||
           (language === 'ar'
-            ? 'تعذّر إنشاء الحساب. يرجى التحقق من البيانات والمحاولة مرة أخرى.'
-            : 'Failed to create account. Please review your details and try again.');
+            ? 'تعذّر إرسال الطلب. يرجى التحقق من البيانات والمحاولة مرة أخرى.'
+            : 'Failed to submit the request. Please review your details and try again.');
       } else {
         message =
           language === 'ar'
-            ? 'تعذّر إنشاء الحساب. يرجى التحقق من البيانات والمحاولة مرة أخرى.'
-            : 'Failed to create account. Please review your details and try again.';
+            ? 'تعذّر إرسال الطلب. يرجى التحقق من البيانات والمحاولة مرة أخرى.'
+            : 'Failed to submit the request. Please review your details and try again.';
       }
       pushToast({
         variant: 'error',
@@ -165,7 +127,7 @@ export function RegisterPage() {
                 color: palette.textPrimary,
               }}
             >
-              {language === 'ar' ? 'إنشاء حساب جديد' : 'Create a new account'}
+              {language === 'ar' ? 'طلب إنشاء حساب مستثمر' : 'Request an investor account'}
             </h1>
             <p
               style={{
@@ -175,8 +137,8 @@ export function RegisterPage() {
               }}
             >
               {language === 'ar'
-                ? 'اختر نوع الحساب وأدخل بياناتك، ثم سجّل الدخول مباشرةً بعد الإنشاء.'
-                : 'Choose your role, provide your details, then sign in right away after you finish.'}
+                ? 'أرسل بياناتك للتسجيل كمستثمر، وسيقوم فريق الإدارة بمراجعة الطلب وإرسال تعليمات الدخول إذا تمت الموافقة.'
+                : 'Share your details to request an investor account. The admin team will review your request and contact you with next steps upon approval.'}
             </p>
           </div>
         </div>
@@ -198,27 +160,22 @@ export function RegisterPage() {
             }}
           >
             <span style={{ fontWeight: 600 }}>
-              {language === 'ar' ? 'نوع الحساب' : 'Account type'}
+              {language === 'ar' ? 'الاسم الكامل' : 'Full name'}
             </span>
-            <select
-              value={form.role}
-              onChange={handleChange('role')}
+            <input
+              type="text"
+              required
+              value={form.fullName}
+              onChange={handleChange('fullName')}
               style={{
                 padding: '0.9rem 1rem',
                 borderRadius: '0.85rem',
                 border: `1px solid ${palette.neutralBorder}`,
                 fontSize: '1rem',
                 outline: 'none',
-                backgroundColor: '#fff',
               }}
-            >
-              <option value="investor">
-                {language === 'ar' ? 'مستثمر' : 'Investor'}
-              </option>
-              <option value="admin">
-                {language === 'ar' ? 'أدمن' : 'Admin'}
-              </option>
-            </select>
+              placeholder={language === 'ar' ? 'الاسم كما هو في وثائقك الرسمية' : 'Your full legal name'}
+            />
           </label>
 
           <label
@@ -255,69 +212,6 @@ export function RegisterPage() {
             }}
           >
             <span style={{ fontWeight: 600 }}>
-              {language === 'ar' ? 'كلمة المرور' : 'Password'}
-            </span>
-            <input
-              type="password"
-              required
-              autoComplete="new-password"
-              value={form.password}
-              onChange={handleChange('password')}
-              style={{
-                padding: '0.9rem 1rem',
-                borderRadius: '0.85rem',
-                border: `1px solid ${palette.neutralBorder}`,
-                fontSize: '1rem',
-                outline: 'none',
-              }}
-            />
-            <span
-              style={{
-                fontSize: '0.8rem',
-                color: palette.textSecondary,
-                lineHeight: 1.4,
-              }}
-            >
-              {language === 'ar' ? passwordRequirements.message.ar : passwordRequirements.message.en}
-            </span>
-          </label>
-
-          <label
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.5rem',
-              color: palette.textPrimary,
-            }}
-          >
-            <span style={{ fontWeight: 600 }}>
-              {language === 'ar' ? 'تأكيد كلمة المرور' : 'Confirm password'}
-            </span>
-            <input
-              type="password"
-              required
-              autoComplete="new-password"
-              value={form.confirmPassword}
-              onChange={handleChange('confirmPassword')}
-              style={{
-                padding: '0.9rem 1rem',
-                borderRadius: '0.85rem',
-                border: `1px solid ${palette.neutralBorder}`,
-                fontSize: '1rem',
-                outline: 'none',
-              }}
-            />
-          </label>
-
-          <label
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.5rem',
-              color: palette.textPrimary,
-            }}
-          >
-            <span style={{ fontWeight: 600 }}>
               {language === 'ar' ? 'رقم الجوال (اختياري)' : 'Phone (optional)'}
             </span>
             <input
@@ -334,6 +228,98 @@ export function RegisterPage() {
               }}
             />
           </label>
+
+        <label
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem',
+            color: palette.textPrimary,
+          }}
+        >
+          <span style={{ fontWeight: 600 }}>
+            {language === 'ar' ? 'اللغة المفضلة' : 'Preferred language'}
+          </span>
+          <select
+            value={form.language}
+            onChange={handleChange('language')}
+            style={{
+              padding: '0.9rem 1rem',
+              borderRadius: '0.85rem',
+              border: `1px solid ${palette.neutralBorder}`,
+              fontSize: '1rem',
+              outline: 'none',
+              backgroundColor: '#fff',
+            }}
+          >
+            <option value="ar">{language === 'ar' ? 'العربية' : 'Arabic'}</option>
+            <option value="en">{language === 'ar' ? 'الإنجليزية' : 'English'}</option>
+          </select>
+        </label>
+
+        <label
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem',
+            color: palette.textPrimary,
+          }}
+        >
+          <span style={{ fontWeight: 600 }}>
+            {language === 'ar' ? 'الجهة أو الشركة (اختياري)' : 'Organisation or company (optional)'}
+          </span>
+          <input
+            type="text"
+            value={form.company}
+            onChange={handleChange('company')}
+            style={{
+              padding: '0.9rem 1rem',
+              borderRadius: '0.85rem',
+              border: `1px solid ${palette.neutralBorder}`,
+              fontSize: '1rem',
+              outline: 'none',
+            }}
+            placeholder={
+              language === 'ar'
+                ? 'اسم الشركة أو الجهة الاستثمارية'
+                : 'Company or organisation name'
+            }
+          />
+        </label>
+
+        <label
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem',
+            color: palette.textPrimary,
+          }}
+        >
+          <span style={{ fontWeight: 600 }}>
+            {language === 'ar'
+              ? 'نبذة عن أهدافك الاستثمارية (اختياري)'
+              : 'Tell us about your investment goals (optional)'}
+          </span>
+          <textarea
+            value={form.message}
+            onChange={handleChange('message')}
+            rows={4}
+            style={{
+              padding: '0.9rem 1rem',
+              borderRadius: '0.85rem',
+              border: `1px solid ${palette.neutralBorder}`,
+              fontSize: '1rem',
+              outline: 'none',
+              resize: 'vertical',
+              minHeight: '6rem',
+            }}
+            placeholder={
+              language === 'ar'
+                ? 'شارك أي تفاصيل تود أن يعرفها فريق الدعم قبل إنشاء الحساب.'
+                : 'Share any details you would like the admin team to know.'
+            }
+          />
+        </label>
 
           <button
             type="submit"
@@ -352,12 +338,12 @@ export function RegisterPage() {
             }}
           >
             {registerMutation.isPending
-              ? language === 'ar'
-                ? 'جارٍ إنشاء الحساب…'
-                : 'Creating account…'
-              : language === 'ar'
-                ? 'إنشاء الحساب'
-                : 'Create account'}
+            ? language === 'ar'
+              ? 'جارٍ إرسال الطلب…'
+              : 'Submitting request…'
+            : language === 'ar'
+              ? 'إرسال الطلب'
+              : 'Submit request'}
           </button>
         </form>
 
@@ -378,7 +364,7 @@ export function RegisterPage() {
               textDecoration: 'none',
             }}
           >
-            {language === 'ar' ? 'سجّل الدخول' : 'Sign in'}
+          {language === 'ar' ? 'سجّل الدخول' : 'Sign in'}
           </Link>
         </p>
       </div>

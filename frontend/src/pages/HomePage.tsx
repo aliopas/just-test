@@ -271,7 +271,7 @@ export function HomePage() {
                   : 'Read the full story in the news hub'}
               </span>
               <Link
-                to={`/app/news/${item.id}`}
+                to={`/news/${item.id}`}
                 style={{
                   padding: '0.55rem 1.25rem',
                   borderRadius: '0.75rem',

@@ -10,13 +10,13 @@ import {
 } from '../schemas/auth.schema';
 import { otpService } from '../services/otp.service';
 import { totpService } from '../services/totp.service';
-import { rbacService } from '../services/rbac.service';
 import {
   clearAuthCookies,
   getAccessToken,
   getRefreshToken,
   setAuthCookies,
 } from '../utils/auth.util';
+import { investorSignupRequestService } from '../services/investor-signup-request.service';
 
 type EmptyParams = Record<string, never>;
 
@@ -46,103 +46,48 @@ export const authController = {
     res: Response
   ) => {
     try {
-      const { email, password, phone, role: requestedRole } = req.body;
-      const role = requestedRole === 'admin' ? 'admin' : 'investor';
-
-      // Sign up user with Supabase Auth
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        phone: phone || undefined,
-        options: {
-          emailRedirectTo: process.env.EMAIL_REDIRECT_TO || undefined,
-          data: {
-            role,
-          },
-        },
+      const language = req.body.language ?? 'ar';
+      const request = await investorSignupRequestService.createRequest({
+        email: req.body.email,
+        fullName: req.body.fullName,
+        phone: req.body.phone,
+        company: req.body.company,
+        message: req.body.message,
+        language,
       });
 
-      if (error) {
-        // Handle Supabase Auth errors
-        if (
-          error.message.includes('already registered') ||
-          error.message.includes('already exists')
-        ) {
-          return res.status(409).json({
-            error: {
-              code: 'CONFLICT',
-              message: 'Email already registered',
-            },
-          });
-        }
-
-        // Generic Supabase error
-        return res.status(400).json({
-          error: {
-            code: 'AUTH_ERROR',
-            message: error.message,
-          },
-        });
-      }
-
-      if (!data.user) {
-        return res.status(500).json({
-          error: {
-            code: 'INTERNAL_ERROR',
-            message: 'Failed to create user',
-          },
-        });
-      }
-
-      const adminClient = requireSupabaseAdmin();
-
-      // Create user record in users table (link Supabase Auth user with users table)
-      const { error: userError } = await adminClient.from('users').insert({
-        id: data.user.id,
-        email: data.user.email,
-        phone: phone || null,
-        role,
-        status: 'active',
-      });
-
-      if (userError) {
-        console.error('Failed to create user record:', userError);
-        return res.status(500).json({
-          error: {
-            code: 'INTERNAL_ERROR',
-            message: 'Failed to persist user profile',
-          },
-        });
-      }
-
-      // Assign investor role to user
-      try {
-        await rbacService.assignRole(data.user.id, role);
-      } catch (roleError) {
-        console.error('Failed to assign role:', roleError);
-        return res.status(500).json({
-          error: {
-            code: 'INTERNAL_ERROR',
-            message: 'Failed to assign role to user',
-          },
-        });
-      }
-
-      // Success response
-      return res.status(201).json({
-        user: {
-          id: data.user.id,
-          email: data.user.email,
+      return res.status(202).json({
+        request: {
+          id: request.id,
+          status: request.status,
+          createdAt: request.created_at,
         },
-        emailConfirmationSent: false,
-        otpSent: false,
+        message:
+          language === 'ar'
+            ? 'تم استقبال طلب إنشاء الحساب وسيتم مراجعة الطلب من قبل فريق الإدارة.'
+            : 'Your investor signup request has been received and will be reviewed by the admin team.',
       });
     } catch (error) {
-      // Unexpected error
-      return res.status(500).json({
+      const status =
+        (error as Error & { status?: number }).status ??
+        (error instanceof Error &&
+        (error.message === 'REQUEST_ALREADY_PENDING' ||
+          error.message === 'USER_ALREADY_EXISTS')
+          ? 409
+          : 500);
+
+      return res.status(status).json({
         error: {
-          code: 'INTERNAL_ERROR',
-          message: 'An unexpected error occurred',
+          code:
+            error instanceof Error &&
+            (error.message === 'REQUEST_ALREADY_PENDING' ||
+              error.message === 'USER_ALREADY_EXISTS')
+              ? error.message
+              : 'INTERNAL_ERROR',
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Failed to submit signup request',
         },
       });
     }

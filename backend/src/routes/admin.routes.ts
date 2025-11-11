@@ -6,6 +6,7 @@ import { adminDashboardController } from '../controllers/admin-dashboard.control
 import { adminAuditLogController } from '../controllers/admin-audit-log.controller';
 import { adminReportsController } from '../controllers/admin-reports.controller';
 import { adminContentAnalyticsController } from '../controllers/admin-content-analytics.controller';
+import { investorSignupRequestController } from '../controllers/investor-signup-request.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { requirePermission } from '../middleware/rbac.middleware';
 
@@ -205,6 +206,27 @@ adminRouter.post(
   authenticate,
   requirePermission('admin.users.manage'),
   adminUserController.createUser
+);
+
+adminRouter.get(
+  '/account-requests',
+  authenticate,
+  requirePermission('admin.users.manage'),
+  investorSignupRequestController.list
+);
+
+adminRouter.post(
+  '/account-requests/:id/approve',
+  authenticate,
+  requirePermission('admin.users.manage'),
+  investorSignupRequestController.approve
+);
+
+adminRouter.post(
+  '/account-requests/:id/reject',
+  authenticate,
+  requirePermission('admin.users.manage'),
+  investorSignupRequestController.reject
 );
 
 export { adminRouter };

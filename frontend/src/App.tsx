@@ -14,13 +14,17 @@ import { RegisterPage } from './pages/RegisterPage';
 import { VerifyOtpPage } from './pages/VerifyOtpPage';
 import { AdminRequestsInboxPage } from './pages/AdminRequestsInboxPage';
 import { AdminRequestDetailPage } from './pages/AdminRequestDetailPage';
+import { InvestorNewsListPage } from './pages/InvestorNewsListPage';
+import { InvestorNewsDetailPage } from './pages/InvestorNewsDetailPage';
 import { AdminNewsPage } from './pages/AdminNewsPage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { AdminReportsPage } from './pages/AdminReportsPage';
 import { AdminAuditLogPage } from './pages/AdminAuditLogPage';
 import { AdminInvestorsPage } from './pages/AdminInvestorsPage';
 import { InvestorDashboardPage } from './pages/InvestorDashboardPage';
+import { InvestorStocksPage } from './pages/InvestorStocksPage';
 import { MyRequestsPage } from './pages/MyRequestsPage';
+import { AdminSignupRequestsPage } from './pages/AdminSignupRequestsPage';
 
 const navLinkStyle: React.CSSProperties = {
   borderRadius: '0.75rem',
@@ -129,6 +133,16 @@ function HeaderNav() {
           end
         >
           {language === 'ar' ? 'لوحة المتابعة' : 'Dashboard'}
+        </NavLink>
+        <NavLink
+          to="/stocks"
+          style={({ isActive }) => ({
+            ...navLinkStyle,
+            background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
+            color: isActive ? palette.textPrimary : palette.textSecondary,
+          })}
+        >
+          {language === 'ar' ? 'سوق باكورة' : 'Bacura stock'}
         </NavLink>
         <NavLink
           to="/requests"
@@ -288,6 +302,16 @@ function AdminHeaderNav() {
           {language === 'ar' ? 'الأخبار والمحتوى' : 'News & content'}
         </NavLink>
         <NavLink
+          to="/admin/signup-requests"
+          style={({ isActive }) => ({
+            ...navLinkStyle,
+            background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
+            color: isActive ? palette.textPrimary : palette.textSecondary,
+          })}
+        >
+          {language === 'ar' ? 'طلبات إنشاء حساب مستثمر' : 'Investor signup requests'}
+        </NavLink>
+        <NavLink
           to="/admin/investors"
           style={({ isActive }) => ({
             ...navLinkStyle,
@@ -370,10 +394,13 @@ function InvestorApp() {
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<InvestorDashboardPage />} />
+        <Route path="/stocks" element={<InvestorStocksPage />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/requests" element={<MyRequestsPage />} />
         <Route path="/requests/new" element={<NewRequestPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/news" element={<InvestorNewsListPage />} />
+        <Route path="/news/:id" element={<InvestorNewsDetailPage />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
       <AppFooter />
@@ -391,6 +418,7 @@ function AdminApp() {
         <Route path="/admin/requests" element={<AdminRequestsInboxPage />} />
         <Route path="/admin/requests/:id" element={<AdminRequestDetailPage />} />
         <Route path="/admin/news" element={<AdminNewsPage />} />
+        <Route path="/admin/signup-requests" element={<AdminSignupRequestsPage />} />
         <Route path="/admin/investors" element={<AdminInvestorsPage />} />
         <Route path="/admin/reports" element={<AdminReportsPage />} />
         <Route path="/admin/audit" element={<AdminAuditLogPage />} />

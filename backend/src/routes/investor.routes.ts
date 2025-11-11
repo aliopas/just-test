@@ -6,6 +6,7 @@ import { validate } from '../middleware/validation.middleware';
 import { investorProfileUpdateSchema } from '../schemas/investor-profile.schema';
 import { requestController } from '../controllers/request.controller';
 import { investorDashboardController } from '../controllers/investor-dashboard.controller';
+import { investorStocksController } from '../controllers/investor-stocks.controller';
 
 const investorRouter = Router();
 
@@ -21,6 +22,17 @@ investorRouter.get(
   authenticate,
   requirePermission(['investor.requests.read', 'admin.requests.review']),
   investorDashboardController.getDashboard
+);
+
+investorRouter.get(
+  '/stocks',
+  authenticate,
+  requirePermission([
+    'investor.market.read',
+    'investor.requests.read',
+    'admin.requests.review',
+  ]),
+  investorStocksController.getStockFeed
 );
 
 investorRouter.get(

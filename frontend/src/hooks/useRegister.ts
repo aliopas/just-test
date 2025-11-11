@@ -3,18 +3,20 @@ import { apiClient, type ApiClientOptions } from '../utils/api-client';
 
 type RegisterPayload = {
   email: string;
-  password: string;
+  fullName: string;
   phone?: string;
-  role?: 'investor' | 'admin';
+  company?: string;
+  message?: string;
+  language?: 'ar' | 'en';
 };
 
 type RegisterResponse = {
-  user: {
+  request: {
     id: string;
-    email: string;
+    status: 'pending' | 'approved' | 'rejected';
+    createdAt: string;
   };
-  emailConfirmationSent?: boolean;
-  otpSent?: boolean;
+  message: string;
 };
 
 async function registerRequest(payload: RegisterPayload) {
