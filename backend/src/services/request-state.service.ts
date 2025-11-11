@@ -24,10 +24,10 @@ export const REQUEST_STATUSES: RequestStatus[] = [
 ];
 
 const stateMachine: Record<RequestStatus, RequestStatus[]> = {
-  draft: ['submitted'],
-  submitted: ['screening', 'pending_info', 'rejected'],
-  screening: ['pending_info', 'compliance_review', 'rejected'],
-  pending_info: ['screening', 'compliance_review', 'rejected'],
+  draft: ['submitted', 'screening', 'pending_info', 'compliance_review', 'rejected'],
+  submitted: ['screening', 'pending_info', 'compliance_review', 'approved', 'rejected'],
+  screening: ['pending_info', 'compliance_review', 'approved', 'rejected'],
+  pending_info: ['screening', 'compliance_review', 'approved', 'rejected'],
   compliance_review: ['approved', 'pending_info', 'rejected'],
   approved: ['settling', 'rejected'],
   settling: ['completed', 'rejected'],
