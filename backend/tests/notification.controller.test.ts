@@ -80,6 +80,7 @@ describe('notificationController.list', () => {
           channel: 'email',
           payload: { requestId: 'req-1' },
           readAt: null,
+          stateRead: false,
           createdAt: '2025-11-09T10:00:00Z',
         },
       ],

@@ -18,6 +18,7 @@ export interface TimelineNotificationData {
   channel: NotificationChannel;
   payload: Record<string, unknown>;
   readAt: string | null;
+  stateRead: boolean;
   userId: string;
 }
 
@@ -143,6 +144,7 @@ function buildNotificationItem(
       channel: row.channel,
       payload: row.payload ?? {},
       readAt: row.read_at ?? null,
+      stateRead: row.read_at != null,
       userId: row.user_id,
     },
   };

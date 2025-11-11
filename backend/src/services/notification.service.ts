@@ -135,6 +135,7 @@ export type NotificationListItem = {
   channel: NotificationChannel;
   payload: Record<string, unknown>;
   readAt: string | null;
+  stateRead: boolean;
   createdAt: string;
 };
 
@@ -405,6 +406,7 @@ function mapNotificationRow(row: NotificationRow): NotificationListItem {
     channel: row.channel,
     payload: row.payload ?? {},
     readAt: row.read_at,
+    stateRead: row.read_at != null,
     createdAt: row.created_at,
   };
 }

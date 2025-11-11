@@ -16,6 +16,7 @@ export interface NotificationItem {
   channel: NotificationChannel;
   payload: Record<string, unknown>;
   readAt: string | null;
+  stateRead: boolean;
   createdAt: string;
 }
 

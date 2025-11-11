@@ -92,6 +92,10 @@ export function RequestTimeline({
             : language === 'ar'
               ? 'مرئي للمشرفين فقط'
               : 'Admin only';
+        const isNotificationEntry =
+          entry.entryType === 'notification' && Boolean(entry.notification);
+        const isUnreadNotification =
+          isNotificationEntry && entry.notification?.stateRead === false;
 
         let title = '';
         let body: string | null = null;
@@ -105,6 +109,7 @@ export function RequestTimeline({
               channel: entry.notification.channel,
               payload: entry.notification.payload,
               readAt: entry.notification.readAt,
+              stateRead: entry.notification.stateRead,
               createdAt: entry.createdAt,
             },
             language
@@ -148,13 +153,17 @@ export function RequestTimeline({
           <article
             key={entry.id}
             style={{
-              border: '1px solid var(--color-border)',
+              border: isUnreadNotification
+                ? '1px solid var(--color-brand-primary-soft)'
+                : '1px solid var(--color-border)',
               borderRadius: '1.25rem',
               padding: '1.25rem 1.5rem',
               display: 'flex',
               flexDirection: 'column',
               gap: '0.75rem',
-              backgroundColor: 'var(--color-background-soft)',
+              backgroundColor: isUnreadNotification
+                ? 'rgba(37, 99, 235, 0.06)'
+                : 'var(--color-background-soft)',
             }}
           >
             <header
@@ -184,6 +193,45 @@ export function RequestTimeline({
                 >
                   {timestamp}
                 </span>
+                {isNotificationEntry ? (
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      padding: '0.2rem 0.65rem',
+                      borderRadius: '999px',
+                      fontSize: '0.72rem',
+                      fontWeight: 600,
+                      backgroundColor: isUnreadNotification
+                        ? 'rgba(37, 99, 235, 0.12)'
+                        : 'rgba(34, 197, 94, 0.12)',
+                      color: isUnreadNotification
+                        ? 'var(--color-brand-primary-strong)'
+                        : 'var(--color-success-strong, #166534)',
+                      width: 'fit-content',
+                    }}
+                  >
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        width: '0.45rem',
+                        height: '0.45rem',
+                        borderRadius: '50%',
+                        backgroundColor: isUnreadNotification
+                          ? 'var(--color-brand-primary-strong)'
+                          : 'var(--color-success-strong, #166534)',
+                      }}
+                    />
+                    {isUnreadNotification
+                      ? language === 'ar'
+                        ? 'غير مقروء'
+                        : 'Unread'
+                      : language === 'ar'
+                        ? 'مقروء'
+                        : 'Read'}
+                  </span>
+                ) : null}
                 <h3
                   style={{
                     margin: 0,

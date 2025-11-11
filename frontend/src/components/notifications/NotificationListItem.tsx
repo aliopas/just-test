@@ -66,7 +66,7 @@ export function NotificationListItem({
 }: NotificationListItemProps) {
   const { title, description } = resolveNotificationCopy(notification, language);
   const createdAtLabel = formatTimestamp(notification.createdAt, language);
-  const isUnread = !notification.readAt;
+  const isUnread = notification.stateRead === false;
   const payload = notification.payload ?? {};
 
   const infoMessage =
@@ -125,6 +125,43 @@ export function NotificationListItem({
             }}
           >
             {createdAtLabel}
+          </span>
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              padding: '0.2rem 0.75rem',
+              borderRadius: '999px',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              backgroundColor: isUnread
+                ? 'rgba(37, 99, 235, 0.12)'
+                : 'rgba(34, 197, 94, 0.12)',
+              color: isUnread
+                ? 'var(--color-brand-primary-strong)'
+                : 'var(--color-success-strong, #166534)',
+              width: 'fit-content',
+            }}
+          >
+            <span
+              style={{
+                display: 'inline-block',
+                width: '0.5rem',
+                height: '0.5rem',
+                borderRadius: '50%',
+                backgroundColor: isUnread
+                  ? 'var(--color-brand-primary-strong)'
+                  : 'var(--color-success-strong, #166534)',
+              }}
+            />
+            {isUnread
+              ? language === 'ar'
+                ? 'غير مقروء'
+                : 'Unread'
+              : language === 'ar'
+                ? 'مقروء'
+                : 'Read'}
           </span>
           <h3
             style={{

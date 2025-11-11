@@ -80,6 +80,7 @@ describe('notification.service', () => {
         type: 'request_submitted',
         channel: 'email',
         readAt: null,
+        stateRead: false,
       })
     );
     expect(result.meta.total).toBe(1);

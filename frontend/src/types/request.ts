@@ -130,6 +130,7 @@ export interface RequestTimelineEntry {
     channel: NotificationChannel;
     payload: Record<string, unknown>;
     readAt: string | null;
+    stateRead: boolean;
     userId: string;
   };
   event?: {

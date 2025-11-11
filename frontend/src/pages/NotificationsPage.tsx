@@ -91,6 +91,7 @@ function NotificationsPageInner() {
         current.map(item => ({
           ...item,
           readAt: item.readAt ?? new Date().toISOString(),
+          stateRead: true,
         }))
       );
       pushToast({
@@ -259,7 +260,11 @@ function NotificationsPageInner() {
         setFeed(current =>
           current.map(item =>
             item.id === notificationId
-              ? { ...item, readAt: new Date().toISOString() }
+              ? {
+                  ...item,
+                  readAt: new Date().toISOString(),
+                  stateRead: true,
+                }
               : item
           )
         );
