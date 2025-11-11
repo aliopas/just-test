@@ -15,7 +15,22 @@ export const investorStocksController = {
         });
       }
 
-      const feed = await getBacuraStockFeed();
+      const rawLimit = req.query.limit;
+      let limit: number | undefined;
+
+      if (typeof rawLimit === 'string') {
+        const parsed = Number.parseInt(rawLimit, 10);
+        if (Number.isFinite(parsed)) {
+          limit = parsed;
+        }
+      } else if (Array.isArray(rawLimit) && rawLimit[0]) {
+        const parsed = Number.parseInt(String(rawLimit[0]), 10);
+        if (Number.isFinite(parsed)) {
+          limit = parsed;
+        }
+      }
+
+      const feed = await getBacuraStockFeed({ limit });
 
       return res.status(200).json(feed);
     } catch (error) {
