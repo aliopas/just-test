@@ -14,13 +14,20 @@ import type {
 export const investorProfileQueryKey = ['investor-profile'];
 
 async function fetchInvestorProfile(): Promise<InvestorProfile | null> {
-  const response = await apiClient<InvestorProfileResponse>(
-    '/investor/profile',
-    {
-      method: 'GET',
+  try {
+    const response = await apiClient<InvestorProfileResponse>(
+      '/investor/profile',
+      {
+        method: 'GET',
+      }
+    );
+    return response.profile;
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      return null;
     }
-  );
-  return response.profile;
+    throw error;
+  }
 }
 
 async function patchInvestorProfile(

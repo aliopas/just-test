@@ -115,6 +115,11 @@ type RolePermissionRow = {
   roles?: RelationSlug;
 };
 
+type RoleRow = {
+  id: string | null;
+  slug: string | null;
+};
+
 async function fetchUserPermissions(
   userId: string,
   options?: { fallbackRoles?: Set<string> }
@@ -151,10 +156,27 @@ async function fetchUserPermissions(
     options.fallbackRoles.size > 0
   ) {
     const fallbackRoleSlugs = Array.from(options.fallbackRoles);
+    const { data: roleRows, error: roleError } = await adminClient
+      .from('roles')
+      .select('id, slug')
+      .in('slug', fallbackRoleSlugs);
+
+    if (roleError) {
+      throw new Error(`Failed to load fallback roles: ${roleError.message}`);
+    }
+
+    const roleIds = ((roleRows as RoleRow[] | null) ?? [])
+      .map(row => row?.id)
+      .filter((id): id is string => typeof id === 'string' && id.length > 0);
+
+    if (roleIds.length === 0) {
+      return allowed;
+    }
+
     const { data: fallbackData, error: fallbackError } = await adminClient
       .from('role_permissions')
-      .select('grant_type, permissions:permission_id (slug), roles:role_id (slug)')
-      .in('roles.slug', fallbackRoleSlugs);
+      .select('grant_type, permissions:permission_id (slug)')
+      .in('role_id', roleIds);
 
     if (fallbackError) {
       throw new Error(`Failed to load fallback role permissions: ${fallbackError.message}`);
