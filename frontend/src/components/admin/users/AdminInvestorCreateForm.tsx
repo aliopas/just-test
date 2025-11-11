@@ -69,7 +69,13 @@ function buildFormSchema(messages: {
       temporaryPassword: z
         .string()
         .trim()
-        .transform(value => (value.length === 0 ? undefined : value))
+        .optional()
+        .transform(value => {
+          if (value === undefined || value.length === 0) {
+            return undefined;
+          }
+          return value;
+        })
         .refine(
           value => value === undefined || passwordRegex.test(value),
           messages.password
