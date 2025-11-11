@@ -1,28 +1,11 @@
 import { z } from 'zod';
+import {
+  investorSignupRequestSchema,
+  type InvestorSignupRequestInput,
+} from './account-request.schema';
 
-// Phone validation: E.164 format (optional)
-const phoneRegex = /^\+[1-9]\d{1,14}$/;
-
-// Password validation: 8+ chars, uppercase, lowercase, number, optional symbol
-const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
-
-export const registerSchema = z.object({
-  email: z.string().email('Invalid email format').min(1, 'Email is required'),
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(
-      passwordRegex,
-      'Password must contain at least one uppercase letter, one lowercase letter, and one number'
-    ),
-  phone: z
-    .string()
-    .regex(phoneRegex, 'Phone must be in E.164 format (e.g., +9665xxxxxxx)')
-    .optional(),
-  role: z.enum(['investor', 'admin']).optional(),
-});
-
-export type RegisterInput = z.infer<typeof registerSchema>;
+export const registerSchema = investorSignupRequestSchema;
+export type RegisterInput = InvestorSignupRequestInput;
 
 export const verifyOTPSchema = z.object({
   email: z.string().email('Invalid email format').min(1, 'Email is required'),

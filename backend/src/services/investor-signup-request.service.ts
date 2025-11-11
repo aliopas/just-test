@@ -1,0 +1,294 @@
+import { requireSupabaseAdmin } from '../lib/supabase';
+import type {
+  InvestorSignupRequestInput,
+  InvestorSignupDecisionInput,
+} from '../schemas/account-request.schema';
+import { adminUserService } from './admin-user.service';
+
+const TABLE_NAME = 'investor_signup_requests';
+
+type SignupRequestStatus = 'pending' | 'approved' | 'rejected';
+
+type SignupRequestRow = {
+  id: string;
+  email: string;
+  full_name: string | null;
+  phone: string | null;
+  company: string | null;
+  message: string | null;
+  requested_role: string | null;
+  status: SignupRequestStatus;
+  payload: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+  reviewer_id: string | null;
+  reviewed_at: string | null;
+  decision_note: string | null;
+  approved_user_id: string | null;
+};
+
+type ListParams = {
+  status?: SignupRequestStatus;
+  search?: string;
+  page?: number;
+  limit?: number;
+};
+
+type ApproveParams = {
+  requestId: string;
+  actorId: string;
+  decision: InvestorSignupDecisionInput;
+};
+
+type RejectParams = {
+  requestId: string;
+  actorId: string;
+  note?: string;
+};
+
+const DEFAULT_LIMIT = 20;
+const MAX_LIMIT = 100;
+
+function normaliseEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+export const investorSignupRequestService = {
+  async createRequest(
+    input: InvestorSignupRequestInput
+  ): Promise<SignupRequestRow> {
+    const adminClient = requireSupabaseAdmin();
+    const email = normaliseEmail(input.email);
+
+    const { data: existingUser } = await adminClient
+      .from('users')
+      .select('id')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (existingUser) {
+      const error = new Error('USER_ALREADY_EXISTS');
+      (error as Error & { status?: number }).status = 409;
+      throw error;
+    }
+
+    const { data: existingPending } = await adminClient
+      .from(TABLE_NAME)
+      .select('id, status, created_at')
+      .eq('email', email)
+      .eq('status', 'pending')
+      .maybeSingle();
+
+    if (existingPending) {
+      const error = new Error('REQUEST_ALREADY_PENDING');
+      (error as Error & { status?: number }).status = 409;
+      throw error;
+    }
+
+    const { data, error } = await adminClient
+      .from(TABLE_NAME)
+      .insert({
+        email,
+        full_name: input.fullName,
+        phone: input.phone ?? null,
+        company: input.company ?? null,
+        message: input.message ?? null,
+        requested_role: 'investor',
+        status: 'pending',
+        payload: {
+          language: input.language ?? 'ar',
+        },
+      })
+      .select('*')
+      .single<SignupRequestRow>();
+
+    if (error || !data) {
+      throw new Error(
+        `Failed to create signup request: ${error?.message ?? 'unknown'}`
+      );
+    }
+
+    return data;
+  },
+
+  async listRequests(params: ListParams) {
+    const adminClient = requireSupabaseAdmin();
+
+    const page = Math.max(1, params.page ?? 1);
+    const limit = Math.min(
+      Math.max(1, params.limit ?? DEFAULT_LIMIT),
+      MAX_LIMIT
+    );
+    const offset = (page - 1) * limit;
+
+    let query = adminClient
+      .from(TABLE_NAME)
+      .select(
+        `
+          id,
+          email,
+          full_name,
+          phone,
+          company,
+          message,
+          requested_role,
+          status,
+          payload,
+          created_at,
+          updated_at,
+          reviewer_id,
+          reviewed_at,
+          decision_note,
+          approved_user_id
+        `,
+        { count: 'exact' }
+      )
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (params.status) {
+      query = query.eq('status', params.status);
+    }
+
+    if (params.search) {
+      const pattern = `%${params.search.trim().toLowerCase()}%`;
+      query = query.or(
+        `email.ilike.${pattern},full_name.ilike.${pattern},company.ilike.${pattern}`
+      );
+    }
+
+    const { data, count, error } = await query;
+
+    if (error) {
+      throw new Error(`Failed to list signup requests: ${error.message}`);
+    }
+
+    const requests = ((data as SignupRequestRow[] | null) ?? []).map(row => ({
+      id: row.id,
+      email: row.email,
+      fullName: row.full_name,
+      phone: row.phone,
+      company: row.company,
+      message: row.message,
+      requestedRole: row.requested_role ?? 'investor',
+      status: row.status,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      reviewerId: row.reviewer_id,
+      reviewedAt: row.reviewed_at,
+      decisionNote: row.decision_note,
+      approvedUserId: row.approved_user_id,
+      payload: row.payload ?? {},
+    }));
+
+    const total = count ?? 0;
+    const pageCount = total === 0 ? 0 : Math.ceil(total / limit);
+
+    return {
+      requests,
+      meta: {
+        page,
+        limit,
+        total,
+        pageCount,
+        hasNext: page < pageCount,
+      },
+    };
+  },
+
+  async approveRequest(params: ApproveParams) {
+    const adminClient = requireSupabaseAdmin();
+
+    const { data: requestRow, error: fetchError } = await adminClient
+      .from(TABLE_NAME)
+      .select('*')
+      .eq('id', params.requestId)
+      .single<SignupRequestRow>();
+
+    if (fetchError || !requestRow) {
+      const error = new Error('REQUEST_NOT_FOUND');
+      (error as Error & { status?: number }).status = 404;
+      throw error;
+    }
+
+    if (requestRow.status !== 'pending') {
+      const error = new Error('REQUEST_ALREADY_REVIEWED');
+      (error as Error & { status?: number }).status = 409;
+      throw error;
+    }
+
+    const decision = params.decision ?? {
+      note: undefined,
+      sendInvite: true,
+      locale: 'ar',
+    };
+
+    const createdUser = await adminUserService.createUser({
+      actorId: params.actorId,
+      email: requestRow.email,
+      phone: requestRow.phone,
+      fullName: requestRow.full_name ?? undefined,
+      role: (requestRow.requested_role ?? 'investor').toLowerCase(),
+      status: 'active',
+      locale: decision.locale ?? 'ar',
+      sendInvite: decision.sendInvite ?? true,
+    });
+
+    const { data: updated, error: updateError } = await adminClient
+      .from(TABLE_NAME)
+      .update({
+        status: 'approved',
+        reviewer_id: params.actorId,
+        reviewed_at: new Date().toISOString(),
+        decision_note: decision.note ?? null,
+        approved_user_id: createdUser.id,
+      })
+      .eq('id', params.requestId)
+      .eq('status', 'pending')
+      .select('*')
+      .single<SignupRequestRow>();
+
+    if (updateError || !updated) {
+      throw new Error(
+        `Failed to update signup request: ${updateError?.message ?? 'unknown'}`
+      );
+    }
+
+    return {
+      request: updated,
+      user: createdUser,
+    };
+  },
+
+  async rejectRequest(params: RejectParams) {
+    const adminClient = requireSupabaseAdmin();
+
+    const { data: updated, error: updateError } = await adminClient
+      .from(TABLE_NAME)
+      .update({
+        status: 'rejected',
+        reviewer_id: params.actorId,
+        reviewed_at: new Date().toISOString(),
+        decision_note: params.note ?? null,
+      })
+      .eq('id', params.requestId)
+      .eq('status', 'pending')
+      .select('*')
+      .single<SignupRequestRow>();
+
+    if (updateError) {
+      throw new Error(
+        `Failed to reject signup request: ${updateError.message}`
+      );
+    }
+
+    if (!updated) {
+      const error = new Error('REQUEST_NOT_FOUND');
+      (error as Error & { status?: number }).status = 404;
+      throw error;
+    }
+
+    return updated;
+  },
+};
+
