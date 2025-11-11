@@ -305,8 +305,10 @@ export function LoginPage() {
                 fontWeight: 600,
                 textDecoration: 'none',
               }}
-            >
-              {language === 'ar' ? 'أنشئ طلب   انشاء حساب مسثمر جديداً' : 'Create one'}
+          >
+            {language === 'ar'
+              ? ' طلب إنشاء حساب مستثمر جديد'
+              : 'Submit a new investor signup request'}
             </Link>
           </p>
         </div>
