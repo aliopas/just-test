@@ -11,6 +11,8 @@ import {
   addAdminRequestComment,
   startRequestSettlement,
   completeRequestSettlement,
+  moveAdminRequestToStatus,
+  type WorkflowStatus,
 } from '../services/admin-request.service';
 import { getAdminRequestTimeline } from '../services/request-timeline.service';
 
@@ -181,6 +183,97 @@ export const adminRequestController = {
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to load request timeline',
+        },
+      });
+    }
+  },
+
+  async updateStatus(req: AuthenticatedRequest, res: Response) {
+    try {
+      const actorId = req.user?.id;
+      if (!actorId) {
+        return res.status(401).json({
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'User not authenticated',
+          },
+        });
+      }
+
+      const requestId = req.params.id;
+      if (!requestId) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Request id is required',
+          },
+        });
+      }
+
+      const rawStatus =
+        typeof req.body?.status === 'string'
+          ? req.body.status.trim().toLowerCase()
+          : '';
+
+      const allowedStatuses: WorkflowStatus[] = ['screening', 'compliance_review'];
+      const statusValue = allowedStatuses.find(status => status === rawStatus) ?? null;
+
+      if (!statusValue) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Unsupported status transition',
+          },
+        });
+      }
+
+      const note =
+        typeof req.body?.note === 'string'
+          ? req.body.note.slice(0, 500)
+          : undefined;
+
+      const result = await moveAdminRequestToStatus({
+        actorId,
+        requestId,
+        status: statusValue,
+        note,
+        ipAddress: req.ip,
+        userAgent: req.headers?.['user-agent'] ?? null,
+      });
+
+      return res.status(200).json({
+        requestId,
+        status: result.request.status,
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message.includes('not found')) {
+          return res.status(404).json({
+            error: {
+              code: 'NOT_FOUND',
+              message: 'Request not found',
+            },
+          });
+        }
+
+        if (
+          error.message.includes('Transition') ||
+          error.message.includes('already in the target status')
+        ) {
+          return res.status(409).json({
+            error: {
+              code: 'INVALID_STATE',
+              message: 'Request cannot move to the desired status',
+            },
+          });
+        }
+      }
+
+      console.error('Failed to update admin request status:', error);
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to update request status',
         },
       });
     }

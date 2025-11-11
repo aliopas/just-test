@@ -476,6 +476,46 @@ type DecisionParams = {
   userAgent?: string | null;
 };
 
+export type WorkflowStatus = 'screening' | 'compliance_review';
+
+export async function moveAdminRequestToStatus(params: DecisionParams & {
+  status: WorkflowStatus;
+}) {
+  const trimmedNote = params.note?.trim() || null;
+
+  const transition = await transitionRequestStatus({
+    requestId: params.requestId,
+    actorId: params.actorId,
+    toStatus: params.status,
+    note: trimmedNote,
+  });
+
+  const diff: Record<string, { before: unknown; after: unknown }> = {
+    status: {
+      before: transition.event.from_status,
+      after: transition.event.to_status,
+    },
+  };
+
+  if (trimmedNote) {
+    diff.note = {
+      before: null,
+      after: trimmedNote,
+    };
+  }
+
+  await logRequestAudit({
+    actorId: params.actorId,
+    action: `request.status.${params.status}`,
+    requestId: params.requestId,
+    diff,
+    ipAddress: params.ipAddress,
+    userAgent: params.userAgent,
+  });
+
+  return transition;
+}
+
 export async function approveAdminRequest(params: DecisionParams) {
   const transition = await transitionRequestStatus({
     requestId: params.requestId,

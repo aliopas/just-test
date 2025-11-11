@@ -40,6 +40,13 @@ adminRouter.get(
 );
 
 adminRouter.patch(
+  '/requests/:id/status',
+  authenticate,
+  requirePermission('admin.requests.review'),
+  adminRequestController.updateStatus
+);
+
+adminRouter.patch(
   '/requests/:id/approve',
   authenticate,
   requirePermission('admin.requests.review'),
