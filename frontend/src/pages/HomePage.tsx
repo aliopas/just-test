@@ -5,6 +5,23 @@ import { palette } from '../styles/theme';
 import { Logo } from '../components/Logo';
 import { useInvestorNewsList } from '../hooks/useInvestorNews';
 
+function resolveCoverUrl(coverKey: string | null): string | null {
+  if (!coverKey) {
+    return null;
+  }
+
+  const base =
+    (typeof window !== 'undefined' && window.__ENV__?.SUPABASE_STORAGE_URL) ??
+    import.meta.env.VITE_SUPABASE_STORAGE_URL ??
+    '';
+
+  if (!base) {
+    return null;
+  }
+
+  return `${base.replace(/\/$/, '')}/${coverKey}`;
+}
+
 export function HomePage() {
   const { direction, language } = useLanguage();
   const {
@@ -115,10 +132,16 @@ export function HomePage() {
     }
 
     return latestNews.map(item => {
+      const coverUrl = resolveCoverUrl(item.coverKey);
       const publishedLabel = new Date(item.publishedAt).toLocaleDateString(
         language === 'ar' ? 'ar-SA' : 'en-GB',
         { month: 'short', day: 'numeric' }
       );
+      const excerpt =
+        item.excerpt ??
+        (language === 'ar'
+          ? 'تفاصيل هذا الخبر متاحة في مركز الأخبار للتعمق في ما يقدمه فريق باكورة.'
+          : 'Visit the news center for the full story and additional context from the Bakurah team.');
 
       return (
         <article
@@ -126,75 +149,143 @@ export function HomePage() {
           style={{
             border: `1px solid ${palette.neutralBorder}`,
             borderRadius: '1.25rem',
-            padding: '1.5rem',
+            overflow: 'hidden',
+            background: palette.backgroundSurface,
             display: 'flex',
             flexDirection: 'column',
-            gap: '0.75rem',
-            background: palette.backgroundSurface,
+            boxShadow: '0 22px 48px rgba(4, 38, 63, 0.12)',
           }}
         >
-          <span
+          <div
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.45rem',
-              fontSize: '0.85rem',
-              color: palette.brandPrimaryStrong,
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '0.12em',
+              position: 'relative',
+              paddingBottom: '56%',
+              background: coverUrl
+                ? palette.backgroundInverse
+                : palette.neutralBorder,
             }}
           >
-            {language === 'ar' ? 'خبر باكورة' : 'Bakurah News'}
+            {coverUrl ? (
+              <img
+                src={coverUrl}
+                alt={item.title}
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: palette.textSecondary,
+                  fontWeight: 600,
+                }}
+              >
+                {language === 'ar' ? 'لا توجد صورة مرفقة' : 'No cover image'}
+              </div>
+            )}
             <span
               style={{
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                background: palette.brandSecondarySoft,
+                position: 'absolute',
+                top: '1rem',
+                left: direction === 'rtl' ? undefined : '1rem',
+                right: direction === 'rtl' ? '1rem' : undefined,
+                padding: '0.35rem 0.75rem',
+                borderRadius: '999px',
+                background: `${palette.backgroundSurface}E6`,
+                color: palette.brandPrimaryStrong,
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
               }}
-            />
-            <time
-              style={{ color: palette.textSecondary, textTransform: 'none' }}
             >
-              {publishedLabel}
-            </time>
-          </span>
-          <h4
+              {language === 'ar' ? 'خبر باكورة' : 'Bakurah News'}
+            </span>
+          </div>
+
+          <div
             style={{
-              margin: 0,
-              fontSize: '1.1rem',
-              color: palette.textPrimary,
-              lineHeight: 1.35,
-            }}
-          >
-            {item.title}
-          </h4>
-          <p
-            style={{
-              margin: 0,
-              color: palette.textSecondary,
-              lineHeight: 1.5,
+              padding: '1.5rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.75rem',
               flexGrow: 1,
             }}
           >
-            {item.excerpt ??
-              (language === 'ar'
-                ? 'تفاصيل هذا الخبر متاحة في مركز الأخبار للتعمق في ما يقدمه فريق باكورة.'
-                : 'Visit the news center for the full story and additional context from the Bakurah team.')}
-          </p>
-          <span
-            style={{
-              marginTop: 'auto',
-              color: palette.brandAccentDeep,
-              fontWeight: 600,
-              fontSize: '0.95rem',
-            }}
-          >
-            {language === 'ar'
-              ? 'متوفر بالكامل في مركز الأخبار'
-              : 'Full story available in the news center'}
-          </span>
+            <time
+              style={{
+                fontSize: '0.85rem',
+                color: palette.textSecondary,
+              }}
+            >
+              {publishedLabel}
+            </time>
+            <h4
+              style={{
+                margin: 0,
+                fontSize: '1.25rem',
+                color: palette.textPrimary,
+                lineHeight: 1.4,
+              }}
+            >
+              {item.title}
+            </h4>
+            <p
+              style={{
+                margin: 0,
+                color: palette.textSecondary,
+                lineHeight: 1.6,
+                flexGrow: 1,
+              }}
+            >
+              {excerpt}
+            </p>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginTop: 'auto',
+                gap: '0.75rem',
+                flexWrap: 'wrap',
+              }}
+            >
+              <span
+                style={{
+                  color: palette.brandAccentDeep,
+                  fontWeight: 600,
+                  fontSize: '0.95rem',
+                }}
+              >
+                {language === 'ar'
+                  ? 'اقرأ المزيد داخل مركز الأخبار'
+                  : 'Read the full story in the news hub'}
+              </span>
+              <Link
+                to={`/app/news/${item.id}`}
+                style={{
+                  padding: '0.55rem 1.25rem',
+                  borderRadius: '0.75rem',
+                  background: palette.brandPrimaryStrong,
+                  color: palette.textOnBrand,
+                  textDecoration: 'none',
+                  fontWeight: 600,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {language === 'ar' ? 'عرض التفاصيل' : 'View details'}
+              </Link>
+            </div>
+          </div>
         </article>
       );
     });

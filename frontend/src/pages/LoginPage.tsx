@@ -293,18 +293,6 @@ export function LoginPage() {
           <p
             style={{
               margin: 0,
-              fontSize: '0.85rem',
-              color: palette.textSecondary,
-              lineHeight: 1.5,
-            }}
-          >
-            {language === 'ar'
-              ? 'هذا الوصول مخصص للمستخدمين التجريبيين: admin.demo@invastors.dev أو investor.demo@invastors.dev.'
-              : 'Use the demo accounts admin.demo@invastors.dev or investor.demo@invastors.dev to explore.'}
-          </p>
-          <p
-            style={{
-              margin: 0,
               fontSize: '0.95rem',
               color: palette.textSecondary,
             }}
@@ -318,7 +306,7 @@ export function LoginPage() {
                 textDecoration: 'none',
               }}
             >
-              {language === 'ar' ? 'أنشئ حساباً جديداً' : 'Create one'}
+              {language === 'ar' ? 'أنشئ طلب   انشاء حساب مسثمر جديداً' : 'Create one'}
             </Link>
           </p>
         </div>
