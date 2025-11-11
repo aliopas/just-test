@@ -1,48 +1,204 @@
-﻿import { Link } from 'react-router-dom';
+﻿import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { palette } from '../styles/theme';
 import { Logo } from '../components/Logo';
-
-type NewsItem = {
-  id: string;
-  title: string;
-  summary: string;
-  category: string;
-  publishedAt: string;
-  href?: string;
-};
-
-const newsItems: NewsItem[] = [
-  {
-    id: '1',
-    title: 'Saudi Tadawul launches new fintech sandbox',
-    summary:
-      'The Capital Market Authority announced an extended sandbox programme aimed at supporting fintech startups entering the Saudi market.',
-    category: 'Regulation',
-    publishedAt: '2025-11-03',
-    href: 'https://www.cma.org.sa/',
-  },
-  {
-    id: '2',
-    title: 'Bakurah portfolio company closes Series A round',
-    summary:
-      'Our fintech portfolio company “RiyadhPay” has completed a SAR 75M Series A to accelerate AI-driven credit scoring.',
-    category: 'Portfolio',
-    publishedAt: '2025-10-28',
-  },
-  {
-    id: '3',
-    title: 'Supabase announces enhanced database observability tools',
-    summary:
-      'Supabase shipped new observability features, improving query tracing, row-level security debugging, and real-time performance dashboards.',
-    category: 'Technology',
-    publishedAt: '2025-10-21',
-    href: 'https://supabase.com/blog',
-  },
-];
+import { useInvestorNewsList } from '../hooks/useInvestorNews';
 
 export function HomePage() {
   const { direction, language } = useLanguage();
+  const {
+    data: newsResponse,
+    isLoading: isNewsLoading,
+    isError: isNewsError,
+    isFetching: isNewsFetching,
+  } = useInvestorNewsList({ page: 1, limit: 3 });
+
+  const latestNews = useMemo(
+    () => newsResponse?.news ?? [],
+    [newsResponse]
+  );
+
+  const renderNewsCards = () => {
+    if (isNewsLoading && latestNews.length === 0) {
+      return Array.from({ length: 3 }).map((_, index) => (
+        <article
+          key={`news-skeleton-${index}`}
+          style={{
+            border: `1px solid ${palette.neutralBorder}`,
+            borderRadius: '1.25rem',
+            padding: '1.5rem',
+            background: palette.backgroundSurface,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.9rem',
+            animation: 'pulse 1.6s ease-in-out infinite',
+          }}
+        >
+          <div
+            style={{
+              height: '0.85rem',
+              width: '60%',
+              background: `${palette.neutralBorder}66`,
+              borderRadius: '999px',
+            }}
+          />
+          <div
+            style={{
+              height: '1.1rem',
+              width: '80%',
+              background: `${palette.neutralBorder}66`,
+              borderRadius: '0.75rem',
+            }}
+          />
+          <div
+            style={{
+              height: '3.2rem',
+              width: '100%',
+              background: `${palette.neutralBorder}44`,
+              borderRadius: '0.75rem',
+            }}
+          />
+          <div
+            style={{
+              height: '0.9rem',
+              width: '40%',
+              background: `${palette.neutralBorder}66`,
+              borderRadius: '0.75rem',
+              marginTop: 'auto',
+            }}
+          />
+        </article>
+      ));
+    }
+
+    if (isNewsError) {
+      return (
+        <div
+          style={{
+            padding: '2rem',
+            borderRadius: '1.25rem',
+            background: palette.backgroundBase,
+            border: `1px dashed ${palette.brandSecondaryMuted}`,
+            textAlign: 'center',
+            color: palette.textSecondary,
+            fontSize: '0.95rem',
+            lineHeight: 1.6,
+          }}
+        >
+          {language === 'ar'
+            ? 'تعذر تحميل الأخبار الآن. نعمل على إصلاح المشكلة، حاول مرة أخرى لاحقاً.'
+            : 'We could not load the latest news right now. Please try again shortly.'}
+        </div>
+      );
+    }
+
+    if (latestNews.length === 0) {
+      return (
+        <div
+          style={{
+            padding: '2rem',
+            borderRadius: '1.25rem',
+            background: palette.backgroundBase,
+            border: `1px dashed ${palette.brandSecondaryMuted}`,
+            textAlign: 'center',
+            color: palette.textSecondary,
+            fontSize: '0.95rem',
+            lineHeight: 1.6,
+          }}
+        >
+          {language === 'ar'
+            ? 'لم يتم نشر أخبار جديدة بعد. تابعنا لتتعرف على أحدث التحديثات من فريق باكورة.'
+            : 'No news have been published yet. Check back soon for the latest updates from the Bakurah team.'}
+        </div>
+      );
+    }
+
+    return latestNews.map(item => {
+      const publishedLabel = new Date(item.publishedAt).toLocaleDateString(
+        language === 'ar' ? 'ar-SA' : 'en-GB',
+        { month: 'short', day: 'numeric' }
+      );
+
+      return (
+        <article
+          key={item.id}
+          style={{
+            border: `1px solid ${palette.neutralBorder}`,
+            borderRadius: '1.25rem',
+            padding: '1.5rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.75rem',
+            background: palette.backgroundSurface,
+          }}
+        >
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              fontSize: '0.85rem',
+              color: palette.brandPrimaryStrong,
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.12em',
+            }}
+          >
+            {language === 'ar' ? 'خبر باكورة' : 'Bakurah News'}
+            <span
+              style={{
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: palette.brandSecondarySoft,
+              }}
+            />
+            <time
+              style={{ color: palette.textSecondary, textTransform: 'none' }}
+            >
+              {publishedLabel}
+            </time>
+          </span>
+          <h4
+            style={{
+              margin: 0,
+              fontSize: '1.1rem',
+              color: palette.textPrimary,
+              lineHeight: 1.35,
+            }}
+          >
+            {item.title}
+          </h4>
+          <p
+            style={{
+              margin: 0,
+              color: palette.textSecondary,
+              lineHeight: 1.5,
+              flexGrow: 1,
+            }}
+          >
+            {item.excerpt ??
+              (language === 'ar'
+                ? 'تفاصيل هذا الخبر متاحة في مركز الأخبار للتعمق في ما يقدمه فريق باكورة.'
+                : 'Visit the news center for the full story and additional context from the Bakurah team.')}
+          </p>
+          <span
+            style={{
+              marginTop: 'auto',
+              color: palette.brandAccentDeep,
+              fontWeight: 600,
+              fontSize: '0.95rem',
+            }}
+          >
+            {language === 'ar'
+              ? 'متوفر بالكامل في مركز الأخبار'
+              : 'Full story available in the news center'}
+          </span>
+        </article>
+      );
+    });
+  };
 
   return (
     <div
@@ -239,97 +395,20 @@ export function HomePage() {
               gap: '1.5rem',
             }}
           >
-            {newsItems.map(item => (
-              <article
-                key={item.id}
-                style={{
-                  border: `1px solid ${palette.neutralBorder}`,
-                  borderRadius: '1.25rem',
-                  padding: '1.5rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.75rem',
-                  background: palette.backgroundSurface,
-                }}
-              >
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.4rem',
-                    fontSize: '0.85rem',
-                    color: palette.brandPrimaryStrong,
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.12em',
-                  }}
-                >
-                  {item.category}
-                  <span
-                    style={{
-                      width: '6px',
-                      height: '6px',
-                      borderRadius: '50%',
-                      background: palette.brandSecondarySoft,
-                    }}
-                  />
-                  <time style={{ color: palette.textSecondary, textTransform: 'none' }}>
-                    {new Date(item.publishedAt).toLocaleDateString(
-                      language === 'ar' ? 'ar-SA' : 'en-GB',
-                      { month: 'short', day: 'numeric' }
-                    )}
-                  </time>
-                </span>
-                <h4
-                  style={{
-                    margin: 0,
-                    fontSize: '1.1rem',
-                    color: palette.textPrimary,
-                  }}
-                >
-                  {item.title}
-                </h4>
-                <p
-                  style={{
-                    margin: 0,
-                    color: palette.textSecondary,
-                    lineHeight: 1.5,
-                    flexGrow: 1,
-                  }}
-                >
-                  {item.summary}
-                </p>
-                {item.href ? (
-                  <a
-                    href={item.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{
-                      marginTop: 'auto',
-                      color: palette.brandPrimaryStrong,
-                      fontWeight: 600,
-                      textDecoration: 'none',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.35rem',
-                    }}
-                  >
-                    {language === 'ar' ? 'قراءة المزيد' : 'Read article →'}
-                  </a>
-                ) : (
-                  <span
-                    style={{
-                      marginTop: 'auto',
-                      color: palette.brandAccentDeep,
-                      fontWeight: 600,
-                    }}
-                  >
-                    {language === 'ar' ? 'تحديث داخلي' : 'Internal update'}
-                  </span>
-                )}
-              </article>
-            ))}
+            {renderNewsCards()}
           </div>
+          {isNewsFetching && !isNewsLoading && latestNews.length > 0 ? (
+            <div
+              style={{
+                marginTop: '1.5rem',
+                fontSize: '0.85rem',
+                color: palette.textSecondary,
+                textAlign: 'center',
+              }}
+            >
+              {language === 'ar' ? 'جارٍ تحديث آخر الأخبار…' : 'Refreshing the latest stories…'}
+            </div>
+          ) : null}
         </section>
       </section>
     </div>
