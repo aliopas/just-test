@@ -57,7 +57,7 @@ export function ProfileTabs({ tabs }: ProfileTabsProps) {
               transition: 'all 0.2s ease',
             }}
           >
-            {tab.icon ?? 'â€¢'}{' '}
+            {tab.icon ?? '\u2022'}{' '}
             {getMessage(
               `tabs.${tab.label}` as
                 | 'tabs.basic'

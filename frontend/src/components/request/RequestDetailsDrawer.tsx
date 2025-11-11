@@ -199,7 +199,7 @@ export function RequestDetailsDrawer({
                 fontWeight: 600,
               }}
             >
-              âŸ³
+              {'\u21BB'}
             </button>
           </div>
         )}
@@ -328,10 +328,10 @@ export function RequestDetailsDrawer({
                         fontSize: '0.85rem',
                       }}
                     >
-                      {attachment.mimeType ?? 'â€”'} â€¢{' '}
+                      {attachment.mimeType ?? '\u2014'} {'\u2022'}{' '}
                       {attachment.size != null
                         ? `${(attachment.size / (1024 * 1024)).toFixed(2)} MB`
-                        : 'â€”'}
+                        : '\u2014'}
                     </span>
                   </div>
                   <button

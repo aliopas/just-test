@@ -255,7 +255,7 @@ function MyRequestsPageInner() {
           fontWeight: 600,
         }}
       >
-        âŸ³
+        {'\u21BB'}
       </button>
 
       {selectedRequest && (

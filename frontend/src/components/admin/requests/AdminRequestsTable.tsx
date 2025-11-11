@@ -37,7 +37,7 @@ export function AdminRequestsTable({
           <span>{tAdminRequests('table.error', language)}</span>
           {onRetry && (
             <button type="button" onClick={onRetry} style={retryButtonStyle}>
-              âŸ³
+              {'\u21BB'}
             </button>
           )}
         </div>
@@ -71,7 +71,7 @@ export function AdminRequestsTable({
               request.investor?.fullName ??
               request.investor?.preferredName ??
               request.investor?.email ??
-              'â€”';
+              '\u2014';
             const amountFormatted = new Intl.NumberFormat(
               language === 'ar' ? 'ar-SA' : 'en-US',
               {

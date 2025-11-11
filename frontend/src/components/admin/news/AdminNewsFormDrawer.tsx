@@ -87,6 +87,14 @@ export function AdminNewsFormDrawer({
     [mode, language]
   );
 
+  useEffect(() => {
+    return () => {
+      if (coverPreview) {
+        URL.revokeObjectURL(coverPreview);
+      }
+    };
+  }, [coverPreview]);
+
   if (!open) {
     return null;
   }
@@ -141,13 +149,6 @@ export function AdminNewsFormDrawer({
       setUploading(false);
     }
   };
-  useEffect(() => {
-    return () => {
-      if (coverPreview) {
-        URL.revokeObjectURL(coverPreview);
-      }
-    };
-  }, [coverPreview]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -425,7 +426,7 @@ export function AdminNewsFormDrawer({
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                     {reviewEntries.map(review => {
                       const reviewerLabel =
-                        review.reviewer.email ?? review.reviewer.id ?? 'â€”';
+                        review.reviewer.email ?? review.reviewer.id ?? '\u2014';
                       const actionLabel =
                         review.action === 'approve'
                           ? tAdminNews('table.approve', language)
@@ -441,13 +442,13 @@ export function AdminNewsFormDrawer({
                             </span>
                           </div>
                           <div style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem' }}>
-                            {tAdminNews('table.reviewer', language)}: {reviewerLabel || 'â€”'}
+                            {tAdminNews('table.reviewer', language)}: {reviewerLabel || '\u2014'}
                           </div>
                           <div style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem', whiteSpace: 'pre-wrap' }}>
                             <strong>{tAdminNews('table.reviewComment', language)}:</strong>{' '}
                             {review.comment && review.comment.trim().length > 0
                               ? review.comment
-                              : 'â€”'}
+                              : '\u2014'}
                           </div>
                         </article>
                       );

@@ -211,7 +211,7 @@ export function AdminRequestsFilterBar({ filters, onChange, onReset }: Props) {
           onClick={() => update({ order: filters.order === 'asc' ? 'desc' : 'asc' })}
           style={applyButtonStyle}
         >
-          {filters.order === 'asc' ? 'â†‘' : 'â†“'}
+          {filters.order === 'asc' ? '\u2191' : '\u2193'}
         </button>
       </div>
     </div>

@@ -16,9 +16,9 @@ import { analytics } from '../../utils/analytics';
 import { useToast } from '../../context/ToastContext';
 
 const channelIcons: Record<CommunicationChannels, string> = {
-  email: 'âœ‰ï¸',
-  sms: 'ðŸ“±',
-  push: 'ðŸ””',
+  email: '\u2709\uFE0F',
+  sms: '\u{1F4F1}',
+  push: '\u{1F514}',
 };
 
 interface ProfileFormProps {

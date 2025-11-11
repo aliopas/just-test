@@ -269,10 +269,10 @@ function AdminRequestDetailPageInner() {
         style: 'currency',
         currency: request.currency ?? 'SAR',
       }).format(request.amount)
-    : 'â€”';
+    : '\u2014';
 
   const formatDateTime = (value?: string | null) => {
-    if (!value) return 'â€”';
+    if (!value) return '\u2014';
     try {
       return new Date(value).toLocaleString(
         language === 'ar' ? 'ar-SA' : 'en-US',
@@ -321,7 +321,7 @@ function AdminRequestDetailPageInner() {
             alignSelf: direction === 'rtl' ? 'flex-end' : 'flex-start',
           }}
         >
-          â† {tAdminRequests('detail.back', language)}
+          {'\u2190'} {tAdminRequests('detail.back', language)}
         </a>
         <div
           style={{
@@ -415,15 +415,15 @@ function AdminRequestDetailPageInner() {
                       request.investor?.fullName ??
                       request.investor?.preferredName ??
                       request.investor?.email ??
-                      'â€”',
+                      '\u2014',
                   },
                   {
                     label: 'Email',
-                    value: request.investor?.email ?? 'â€”',
+                    value: request.investor?.email ?? '\u2014',
                   },
                   {
                     label: 'Language',
-                    value: request.investor?.language ?? 'â€”',
+                    value: request.investor?.language ?? '\u2014',
                   },
                 ]}
               />
@@ -491,7 +491,7 @@ function AdminRequestDetailPageInner() {
                         'detail.settlementReference',
                         language
                       ),
-                      value: settlement?.reference?.trim() || 'â€”',
+                      value: settlement?.reference?.trim() || '\u2014',
                     },
                     {
                       label: tAdminRequests(
@@ -678,10 +678,10 @@ function AdminRequestDetailPageInner() {
                       {attachmentCategoryLabel(attachment.category)}
                     </span>
                     <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem' }}>
-                      {attachment.mimeType ?? 'â€”'} Â·{' '}
+                      {attachment.mimeType ?? '\u2014'} {'\u00B7'}{' '}
                       {attachment.size != null
                         ? `${(attachment.size / (1024 * 1024)).toFixed(2)} MB`
-                        : 'â€”'}
+                        : '\u2014'}
                     </span>
                   </li>
                 ))}
@@ -834,7 +834,7 @@ function AdminRequestDetailPageInner() {
                   minHeight: '4rem',
                 }}
               >
-                {request.notes ?? 'â€”'}
+                {request.notes ?? '\u2014'}
               </div>
             )}
           </Card>
@@ -856,7 +856,7 @@ function AdminRequestDetailPageInner() {
           cursor: isFetching ? 'progress' : 'pointer',
         }}
       >
-        âŸ³
+        {'\u21BB'}
       </button>
     </div>
   );

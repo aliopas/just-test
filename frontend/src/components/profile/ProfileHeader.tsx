@@ -97,7 +97,7 @@ export function ProfileHeader({
             minWidth: '8rem',
           }}
         >
-          âœŽ {getMessage('actions.edit', language)}
+          {'\u270F\uFE0F'} {getMessage('actions.edit', language)}
         </button>
         <button
           type="button"
@@ -119,7 +119,7 @@ export function ProfileHeader({
             minWidth: '8rem',
           }}
         >
-          âŸ³ {isRefreshing
+          {'\u21BB'} {isRefreshing
             ? `${getMessage('status.loading', language)}`
             : getMessage('actions.refresh', language)}
         </button>

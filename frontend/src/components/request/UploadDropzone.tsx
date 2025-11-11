@@ -68,7 +68,7 @@ export function UploadDropzone({ onFilesChange }: UploadDropzoneProps) {
           onChange={event => handleFiles(event.target.files)}
         />
         <label htmlFor="attachments" style={{ cursor: 'pointer' }}>
-          <strong>â¬†ï¸</strong>
+          <strong>{'\u{1F4CE}'}</strong>
           <div style={{ marginTop: '0.5rem', fontSize: '0.95rem' }}>
             {tRequest('form.uploadHint', language)}
           </div>
@@ -99,7 +99,7 @@ export function UploadDropzone({ onFilesChange }: UploadDropzoneProps) {
               }}
             >
               <span style={{ color: 'var(--color-text-primary)', fontSize: '0.9rem' }}>
-                ðŸ“„ {file.name}
+                {'\u{1F4C4}'} {file.name}
               </span>
               <span style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
                 {(file.size / (1024 * 1024)).toFixed(2)} MB

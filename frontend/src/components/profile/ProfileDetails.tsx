@@ -35,7 +35,7 @@ function InfoPair({ label, value }: { label: string; value?: string | null }) {
           minHeight: '1.25rem',
         }}
       >
-        {value || 'â€”'}
+        {value || '\u2014'}
       </span>
     </div>
   );

@@ -66,7 +66,7 @@ function ProfilePageInner() {
       {
         id: 'preferences',
         label: 'preferences',
-        icon: 'âš™ï¸',
+        icon: '\u2699\uFE0F',
         content: <PreferencesDetails profile={profile} />,
       },
     ];
@@ -161,7 +161,7 @@ function ProfilePageInner() {
                 color: '#B91C1C',
               }}
             >
-              {getMessage('toast.error', language)} â€“ {updateError.message}
+              {getMessage('toast.error', language)} {'\u2013'} {updateError.message}
             </div>
           )}
         </div>
@@ -176,11 +176,11 @@ function IdentityDetails({ profile }: { profile: InvestorProfile }) {
   const pairs = [
     {
       label: getMessage('fields.idType', language),
-      value: profile.idType ?? 'â€”',
+      value: profile.idType ?? '\u2014',
     },
     {
       label: getMessage('fields.idNumber', language),
-      value: profile.idNumber ?? 'â€”',
+      value: profile.idNumber ?? '\u2014',
     },
     {
       label: getMessage('fields.idExpiry', language),
@@ -188,7 +188,7 @@ function IdentityDetails({ profile }: { profile: InvestorProfile }) {
         ? new Date(profile.idExpiry).toLocaleDateString(
             language === 'ar' ? 'ar-SA' : 'en-US'
           )
-        : 'â€”',
+        : '\u2014',
     },
     {
       label: getMessage('fields.kycStatus', language),
@@ -231,7 +231,7 @@ function IdentityDetails({ profile }: { profile: InvestorProfile }) {
               color: 'var(--color-text-primary)',
             }}
           >
-            {pair.value ?? 'â€”'}
+            {pair.value ?? '\u2014'}
           </dd>
         </div>
       ))}

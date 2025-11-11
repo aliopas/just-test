@@ -43,7 +43,7 @@ export function AdminNewsTable({
       <div style={stateStyle}>
         <span>{tAdminNews('table.error', language)}</span>
         <button type="button" onClick={onRetry} style={retryButtonStyle}>
-          â†»
+          {'\u21BB'}
         </button>
       </div>
     );
@@ -134,7 +134,7 @@ export function AdminNewsTable({
                             !onApprove || isApprovePending || isRejectPending ? 0.65 : 1,
                         }}
                       >
-                        âœ… {tAdminNews('table.approve', language)}
+                        {'\u2705'} {tAdminNews('table.approve', language)}
                       </button>
                       <button
                         type="button"
@@ -150,7 +150,7 @@ export function AdminNewsTable({
                             !onReject || isApprovePending || isRejectPending ? 0.65 : 1,
                         }}
                       >
-                        ðŸš« {tAdminNews('table.reject', language)}
+                        {'\u{1F6AB}'} {tAdminNews('table.reject', language)}
                       </button>
                     </>
                   )}
@@ -159,14 +159,14 @@ export function AdminNewsTable({
                     onClick={() => onEdit(item)}
                     style={actionButtonStyle}
                   >
-                    âœï¸ {tAdminNews('table.edit', language)}
+                    {'\u270F\uFE0F'} {tAdminNews('table.edit', language)}
                   </button>
                   <button
                     type="button"
                     onClick={() => onDelete(item)}
                     style={{ ...actionButtonStyle, color: '#DC2626' }}
                   >
-                    ðŸ—‘ {tAdminNews('table.delete', language)}
+                    {'\u{1F5D1}'} {tAdminNews('table.delete', language)}
                   </button>
                 </div>
               </td>
@@ -179,7 +179,7 @@ export function AdminNewsTable({
 }
 
 function formatDate(value: string | null, language: InvestorLanguage) {
-  if (!value) return 'â€”';
+  if (!value) return '\u2014';
   try {
     return new Date(value).toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US', {
       dateStyle: 'medium',
