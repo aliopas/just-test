@@ -6,6 +6,7 @@ type MessageKey =
   | 'actions.create'
   | 'filters.status.label'
   | 'filters.status.all'
+  | 'filters.reset'
   | 'filters.kyc.label'
   | 'filters.kyc.all'
   | 'filters.search.placeholder'
@@ -56,7 +57,9 @@ type MessageKey =
   | 'kyc.rejected'
   | 'risk.conservative'
   | 'risk.balanced'
-  | 'risk.aggressive';
+  | 'risk.aggressive'
+  | 'pagination.previous'
+  | 'pagination.next';
 
 type MessageDictionary = Record<MessageKey, string>;
 
@@ -68,6 +71,7 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'actions.create': 'Add investor',
     'filters.status.label': 'Status',
     'filters.status.all': 'All statuses',
+    'filters.reset': 'Reset filters',
     'filters.kyc.label': 'KYC status',
     'filters.kyc.all': 'All KYC statuses',
     'filters.search.placeholder': 'Search by email, phone, or name…',
@@ -125,6 +129,8 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'risk.conservative': 'Conservative',
     'risk.balanced': 'Balanced',
     'risk.aggressive': 'Aggressive',
+    'pagination.previous': 'Previous',
+    'pagination.next': 'Next',
   },
   ar: {
     'page.title': 'حسابات المستثمرين',
@@ -133,6 +139,7 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'actions.create': 'إضافة مستثمر',
     'filters.status.label': 'حالة الحساب',
     'filters.status.all': 'جميع الحالات',
+    'filters.reset': 'إعادة التصفية',
     'filters.kyc.label': 'حالة اعرف عميلك',
     'filters.kyc.all': 'جميع حالات اعرف عميلك',
     'filters.search.placeholder': 'ابحث بالبريد الإلكتروني أو الهاتف أو الاسم…',
@@ -190,6 +197,8 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'risk.conservative': 'متحفظ',
     'risk.balanced': 'متوازن',
     'risk.aggressive': 'مغامر',
+    'pagination.previous': 'السابق',
+    'pagination.next': 'التالي',
   },
 };
 

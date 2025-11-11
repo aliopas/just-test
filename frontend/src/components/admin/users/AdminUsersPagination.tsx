@@ -1,0 +1,87 @@
+import type { AdminUserListMeta } from '../../../types/admin-users';
+import { useLanguage } from '../../../context/LanguageContext';
+import { tAdminUsers } from '../../../locales/adminUsers';
+
+interface Props {
+  meta: AdminUserListMeta;
+  onPageChange: (page: number) => void;
+}
+
+export function AdminUsersPagination({ meta, onPageChange }: Props) {
+  const { language, direction } = useLanguage();
+
+  const handlePrevious = () => {
+    if (meta.page > 1) {
+      onPageChange(meta.page - 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (meta.hasNext) {
+      onPageChange(meta.page + 1);
+    }
+  };
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '0.75rem',
+        direction,
+        color: 'var(--color-text-secondary)',
+        fontSize: '0.9rem',
+      }}
+    >
+      <span>
+        {meta.total > 0
+          ? `${meta.page} / ${meta.pageCount} (${meta.total})`
+          : '0 / 0 (0)'}
+      </span>
+      <div style={{ display: 'flex', gap: '0.75rem' }}>
+        <button
+          type="button"
+          onClick={handlePrevious}
+          disabled={meta.page <= 1}
+          style={{
+            ...buttonStyle,
+            cursor: meta.page <= 1 ? 'not-allowed' : 'pointer',
+            background:
+              meta.page <= 1
+                ? 'var(--color-background-surface)'
+                : 'var(--color-background-base)',
+          }}
+        >
+          {tAdminUsers('pagination.previous', language)}
+        </button>
+        <button
+          type="button"
+          onClick={handleNext}
+          disabled={!meta.hasNext}
+          style={{
+            ...buttonStyle,
+            cursor: meta.hasNext ? 'pointer' : 'not-allowed',
+            background: meta.hasNext
+              ? 'var(--color-background-base)'
+              : 'var(--color-background-surface)',
+          }}
+        >
+          {tAdminUsers('pagination.next', language)}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+const buttonStyle: React.CSSProperties = {
+  padding: '0.6rem 1.4rem',
+  borderRadius: '0.85rem',
+  border: '1px solid var(--color-brand-secondary-soft)',
+  color: 'var(--color-brand-accent-deep)',
+  fontWeight: 600,
+  background: 'var(--color-background-surface)',
+};
+
+

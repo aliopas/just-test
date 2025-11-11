@@ -30,6 +30,10 @@ type UserRoleRow = {
   }> | null;
 };
 
+type UserRow = {
+  role: string | null;
+};
+
 type CachedRbacContext = {
   roles: Set<string>;
   permissions: Set<string>;
@@ -41,7 +45,12 @@ const RBAC_CACHE_TTL_MS =
 
 const contextCache = new Map<string, CachedRbacContext>();
 
-async function fetchUserRoles(userId: string): Promise<Set<string>> {
+type FetchRolesResult = {
+  roles: Set<string>;
+  hasExplicitAssignment: boolean;
+};
+
+async function fetchUserRoles(userId: string): Promise<FetchRolesResult> {
   const adminClient = requireSupabaseAdmin();
   const { data, error } = await adminClient
     .from('user_roles')
@@ -67,10 +76,44 @@ async function fetchUserRoles(userId: string): Promise<Set<string>> {
     }
   });
 
-  return roleSlugs;
+  const hasExplicitAssignment = roleSlugs.size > 0;
+
+  if (!hasExplicitAssignment) {
+    const { data: userRow, error: userError } = await adminClient
+      .from('users')
+      .select('role')
+      .eq('id', userId)
+      .single();
+
+    if (userError) {
+      throw new Error(`Failed to fetch user role: ${userError.message}`);
+    }
+
+    const fallbackRole = (userRow as UserRow | null)?.role;
+    if (fallbackRole) {
+      roleSlugs.add(fallbackRole);
+    }
+  }
+
+  return { roles: roleSlugs, hasExplicitAssignment };
 }
 
-async function fetchUserPermissions(userId: string): Promise<Set<string>> {
+type RolePermissionRow = {
+  role_slug?: string | null;
+  permission_slug?: string | null;
+  grant_type: 'allow' | 'deny';
+  permissions?: {
+    slug: string | null;
+  } | null;
+  roles?: {
+    slug: string | null;
+  } | null;
+};
+
+async function fetchUserPermissions(
+  userId: string,
+  options?: { fallbackRoles?: Set<string> }
+): Promise<Set<string>> {
   const adminClient = requireSupabaseAdmin();
   const { data, error } = await adminClient
     .from('v_user_permissions')
@@ -82,21 +125,52 @@ async function fetchUserPermissions(userId: string): Promise<Set<string>> {
   }
 
   const rows = (data as UserPermissionRow[] | null) ?? [];
-  const allowed = new Set<string>();
-  const denied = new Set<string>();
+  let allowed = new Set<string>();
+  let denied = new Set<string>();
 
   rows.forEach(row => {
-    if (!row.permission_slug) {
+    const slug = row.permission_slug;
+    if (!slug) {
       return;
     }
-
     if (row.grant_type === 'deny') {
-      denied.add(row.permission_slug);
-      return;
+      denied.add(slug);
+    } else {
+      allowed.add(slug);
+    }
+  });
+
+  if (
+    rows.length === 0 &&
+    options?.fallbackRoles &&
+    options.fallbackRoles.size > 0
+  ) {
+    const fallbackRoleSlugs = Array.from(options.fallbackRoles);
+    const { data: fallbackData, error: fallbackError } = await adminClient
+      .from('role_permissions')
+      .select('grant_type, permissions:permission_id (slug), roles:role_id (slug)')
+      .in('roles.slug', fallbackRoleSlugs);
+
+    if (fallbackError) {
+      throw new Error(`Failed to load fallback role permissions: ${fallbackError.message}`);
     }
 
-    allowed.add(row.permission_slug);
-  });
+    const fallbackRows = (fallbackData as RolePermissionRow[] | null) ?? [];
+    allowed = new Set<string>();
+    denied = new Set<string>();
+
+    fallbackRows.forEach(row => {
+      const slug = row.permissions?.slug ?? row.permission_slug ?? null;
+      if (!slug) {
+        return;
+      }
+      if (row.grant_type === 'deny') {
+        denied.add(slug);
+      } else {
+        allowed.add(slug);
+      }
+    });
+  }
 
   if (denied.size === 0) {
     return allowed;
@@ -113,10 +187,10 @@ async function fetchUserPermissions(userId: string): Promise<Set<string>> {
 }
 
 async function loadUserContext(userId: string): Promise<CachedRbacContext> {
-  const [roles, permissions] = await Promise.all([
-    fetchUserRoles(userId),
-    fetchUserPermissions(userId),
-  ]);
+  const { roles } = await fetchUserRoles(userId);
+  const permissions = await fetchUserPermissions(userId, {
+    fallbackRoles: roles,
+  });
 
   return {
     roles,
