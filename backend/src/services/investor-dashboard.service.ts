@@ -208,17 +208,20 @@ export async function getInvestorDashboard(params: {
     total += 1;
   }
 
-  const recentRequests = ((recentResult.data ?? []) as RequestRow[]).map(
-    row => ({
+  const recentRequests = ((recentResult.data ?? []) as RequestRow[]).map(row => {
+    const normalizedType: RequestType =
+      row.type === 'sell' ? 'sell' : 'buy';
+
+    return {
       id: row.id,
       requestNumber: row.request_number,
-      type: row.type === 'sell' ? 'sell' : 'buy',
+      type: normalizedType,
       status: row.status,
       amount: Number(row.amount ?? 0),
       currency: row.currency ?? 'SAR',
       createdAt: row.created_at,
-    })
-  );
+    };
+  });
 
   const pendingItems = ((pendingResult.data ?? []) as PendingRow[]).map(
     row => ({
@@ -258,7 +261,7 @@ export async function getInvestorDashboard(params: {
         ? {
             id: lastRecent.id,
             requestNumber: lastRecent.requestNumber,
-            type: lastRecent.type,
+            type: lastRecent.type as RequestType,
             status: lastRecent.status,
             amount: lastRecent.amount,
             currency: lastRecent.currency,
