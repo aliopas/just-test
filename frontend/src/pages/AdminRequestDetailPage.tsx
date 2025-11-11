@@ -17,6 +17,8 @@ import { RequestTimeline } from '../components/request/RequestTimeline';
 
 const queryClient = new QueryClient();
 
+type WorkflowStatus = 'screening' | 'compliance_review';
+
 function resolveRequestId(): string | null {
   const segments = window.location.pathname.split('/').filter(Boolean);
   if (segments.length === 0) return null;
@@ -165,8 +167,8 @@ function AdminRequestDetailPageInner() {
     },
   });
 
-  const completeSettlementMutation = useMutation({
-    mutationFn: async (payload: { reference: string; note?: string }) => {
+const completeSettlementMutation = useMutation({
+  mutationFn: async (payload: { reference: string; note?: string }) => {
       if (!requestId) {
         throw new Error('Request id is missing');
       }
@@ -186,6 +188,40 @@ function AdminRequestDetailPageInner() {
       });
       setDecisionNote('');
       refetch();
+    },
+    onError: (mutationError: unknown) => {
+      const message =
+        mutationError instanceof Error
+          ? mutationError.message
+          : tAdminRequests('table.error', language);
+      pushToast({
+        message,
+        variant: 'error',
+      });
+    },
+  });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async (payload: { status: WorkflowStatus; note?: string }) => {
+      if (!requestId) {
+        throw new Error('Request id is missing');
+      }
+      return apiClient(`/admin/requests/${requestId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      });
+    },
+    onSuccess: (_data, variables) => {
+      const successKey =
+        variables.status === 'screening'
+          ? 'decision.screeningSuccess'
+          : 'decision.complianceSuccess';
+      pushToast({
+        message: tAdminRequests(successKey, language),
+        variant: 'success',
+      });
+      refetch();
+      refetchTimeline();
     },
     onError: (mutationError: unknown) => {
       const message =
@@ -261,7 +297,8 @@ function AdminRequestDetailPageInner() {
     rejectMutation.isPending ||
     requestInfoMutation.isPending ||
     startSettlementMutation.isPending ||
-    completeSettlementMutation.isPending;
+    completeSettlementMutation.isPending ||
+    updateStatusMutation.isPending;
   const isCommentBusy = addCommentMutation.isPending;
 
   const amountFormatted = request
@@ -289,6 +326,11 @@ function AdminRequestDetailPageInner() {
     }
     return tAdminRequests('detail.attachmentCategory.general', language);
   };
+
+  const canMoveToScreening =
+    request?.status === 'submitted' || request?.status === 'pending_info';
+  const canMoveToCompliance =
+    request?.status === 'screening' || request?.status === 'pending_info';
 
   return (
     <div
@@ -725,6 +767,30 @@ function AdminRequestDetailPageInner() {
                 maxLength={120}
                 placeholder={tAdminRequests('decision.referencePlaceholder', language)}
                 style={{ ...inputStyle, direction }}
+              />
+              <ActionButton
+                label={tAdminRequests('detail.moveToScreening', language)}
+                variant="secondary"
+                onClick={() =>
+                  updateStatusMutation.mutate({
+                    status: 'screening',
+                    note: decisionNote.trim() ? decisionNote.trim() : undefined,
+                  })
+                }
+                disabled={!canMoveToScreening || isActionBusy || !request}
+                loading={updateStatusMutation.isPending && updateStatusMutation.variables?.status === 'screening'}
+              />
+              <ActionButton
+                label={tAdminRequests('detail.moveToCompliance', language)}
+                variant="secondary"
+                onClick={() =>
+                  updateStatusMutation.mutate({
+                    status: 'compliance_review',
+                    note: decisionNote.trim() ? decisionNote.trim() : undefined,
+                  })
+                }
+                disabled={!canMoveToCompliance || isActionBusy || !request}
+                loading={updateStatusMutation.isPending && updateStatusMutation.variables?.status === 'compliance_review'}
               />
               <ActionButton
                 label={tAdminRequests('detail.approve', language)}

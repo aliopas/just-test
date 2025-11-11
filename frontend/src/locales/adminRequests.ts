@@ -67,10 +67,14 @@ type MessageKey =
   | 'detail.approve'
   | 'detail.reject'
   | 'detail.requestInfoAction'
+  | 'detail.moveToScreening'
+  | 'detail.moveToCompliance'
   | 'detail.updatedAt'
   | 'decision.approvedSuccess'
   | 'decision.rejectedSuccess'
   | 'decision.infoRequestedSuccess'
+  | 'decision.screeningSuccess'
+  | 'decision.complianceSuccess'
   | 'decision.settlementStartedSuccess'
   | 'decision.settlementCompletedSuccess'
   | 'decision.notePlaceholder'
@@ -153,10 +157,14 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'detail.approve': 'Approve',
     'detail.reject': 'Reject',
     'detail.requestInfoAction': 'Request info',
+    'detail.moveToScreening': 'Move to screening',
+    'detail.moveToCompliance': 'Move to compliance review',
     'detail.updatedAt': 'Last updated',
     'decision.approvedSuccess': 'Request approved successfully',
     'decision.rejectedSuccess': 'Request rejected successfully',
     'decision.infoRequestedSuccess': 'Information request sent successfully',
+    'decision.screeningSuccess': 'Request moved to screening.',
+    'decision.complianceSuccess': 'Request moved to compliance review.',
     'decision.settlementStartedSuccess': 'تم تعليم عملية التسوية كمبدوءة.',
     'decision.settlementCompletedSuccess': 'اكتملت عملية التسوية وتم إغلاق الطلب.',
     'decision.notePlaceholder': 'Add an internal note (optional, max 500 characters)…',
@@ -236,10 +244,14 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'detail.approve': 'قبول',
     'detail.reject': 'رفض',
     'detail.requestInfoAction': 'طلب معلومات',
+    'detail.moveToScreening': 'نقل إلى التصفية الأولية',
+    'detail.moveToCompliance': 'نقل إلى مراجعة الالتزام',
     'detail.updatedAt': 'آخر تحديث',
     'decision.approvedSuccess': 'تمت الموافقة على الطلب بنجاح',
     'decision.rejectedSuccess': 'تم رفض الطلب بنجاح',
     'decision.infoRequestedSuccess': 'تم إرسال طلب المعلومات الإضافية بنجاح',
+    'decision.screeningSuccess': 'تم نقل الطلب إلى مرحلة التصفية الأولية.',
+    'decision.complianceSuccess': 'تم نقل الطلب إلى مرحلة مراجعة الالتزام.',
     'decision.settlementStartedSuccess': 'تم تعليم عملية التسوية كمبدوءة.',
     'decision.settlementCompletedSuccess': 'اكتملت عملية التسوية وتم إغلاق الطلب.',
     'decision.notePlaceholder': 'أضف ملاحظة داخلية (اختياري، بحد أقصى 500 حرف)…',
