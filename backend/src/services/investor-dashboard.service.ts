@@ -140,15 +140,12 @@ export async function getInvestorDashboard(params: {
       .maybeSingle<{ average: number | null }>()
   );
 
-  const [statusResult, recentResult, pendingResult, unreadResult] =
+  const [statusResult, recentResult, pendingResult, unreadResult, rollingVolumeResult, averageBuyResult, averageSellResult] =
     await Promise.all([
       statusPromise,
       recentPromise,
       pendingInfoPromise,
       unreadPromise as unknown as Promise<NotificationCount>,
-    ]);
-  const [rollingVolumeResult, averageBuyResult, averageSellResult] =
-    await Promise.all([
       rollingVolumePromise,
       averagePromises[0],
       averagePromises[1],
@@ -178,23 +175,18 @@ export async function getInvestorDashboard(params: {
     );
   }
 
-  if (rollingVolumeResult.error) {
-    throw new Error(
-      `FAILED_ROLLING_VOLUME:${rollingVolumeResult.error.message ?? 'unknown'}`
-    );
-  }
-
-  if (averageBuyResult.error) {
-    throw new Error(
-      `FAILED_AVERAGE_BUY:${averageBuyResult.error.message ?? 'unknown'}`
-    );
-  }
-
-  if (averageSellResult.error) {
-    throw new Error(
-      `FAILED_AVERAGE_SELL:${averageSellResult.error.message ?? 'unknown'}`
-    );
-  }
+  const rollingVolume =
+    rollingVolumeResult.error || !rollingVolumeResult.data
+      ? 0
+      : Number(rollingVolumeResult.data.total ?? 0);
+  const averageBuy =
+    averageBuyResult.error || !averageBuyResult.data
+      ? 0
+      : Number(averageBuyResult.data.average ?? 0);
+  const averageSell =
+    averageSellResult.error || !averageSellResult.data
+      ? 0
+      : Number(averageSellResult.data.average ?? 0);
 
   const statusCounts = initialiseStatusMap();
   let total = 0;
@@ -236,11 +228,11 @@ export async function getInvestorDashboard(params: {
   const lastRecent = recentRequests[0] ?? null;
 
   const averageAmountByType: Record<RequestType, number> = {
-    buy: Number(averageBuyResult.data?.average ?? 0),
-    sell: Number(averageSellResult.data?.average ?? 0),
+    buy: averageBuy,
+    sell: averageSell,
   };
 
-  const rolling30DayVolume = Number(rollingVolumeResult.data?.total ?? 0);
+  const rolling30DayVolume = rollingVolume;
 
   return {
     requestSummary: {
