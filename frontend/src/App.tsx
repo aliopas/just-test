@@ -38,6 +38,57 @@ const navLinkStyle: React.CSSProperties = {
   color: palette.textPrimary,
 };
 
+const adminNavItems = [
+  {
+    to: '/admin/dashboard',
+    labelAr: 'لوحة المتابعة',
+    labelEn: 'Dashboard',
+  },
+  {
+    to: '/admin/requests',
+    labelAr: 'طلبات الاستثمار',
+    labelEn: 'Requests inbox',
+  },
+  {
+    to: '/admin/news',
+    labelAr: 'الأخبار والمحتوى',
+    labelEn: 'News & content',
+  },
+  {
+    to: '/admin/signup-requests',
+    labelAr: 'طلب إنشاء حساب مستثمر جديد',
+    labelEn: 'New investor signup request',
+  },
+  {
+    to: '/admin/investors',
+    labelAr: 'إدارة المستثمرين',
+    labelEn: 'Investors',
+  },
+  {
+    to: '/admin/reports',
+    labelAr: 'التقارير',
+    labelEn: 'Reports',
+  },
+  {
+    to: '/admin/audit',
+    labelAr: 'سجل التدقيق',
+    labelEn: 'Audit log',
+  },
+];
+
+const adminSidebarLinkBase: React.CSSProperties = {
+  borderRadius: '0.85rem',
+  padding: '0.85rem 1rem',
+  fontWeight: 600,
+  textDecoration: 'none',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.85rem',
+  transition: 'all 0.2s ease',
+  cursor: 'pointer',
+  border: `1px solid ${palette.neutralBorderSoft}`,
+};
+
 function HeaderNav() {
   const { language } = useLanguage();
   const logout = useLogout();
@@ -198,7 +249,7 @@ function HeaderNav() {
   );
 }
 
-function AdminHeaderNav() {
+function AdminSidebarNav() {
   const { language } = useLanguage();
   const logout = useLogout();
   const portalName =
@@ -207,163 +258,120 @@ function AdminHeaderNav() {
     language === 'ar'
       ? 'إدارة الطلبات والأخبار والمحتوى التشغيلي لمنصة باكورة.'
       : 'Manage investor requests, news, and operational content for Bakurah.';
+  const isArabic = language === 'ar';
 
   return (
-    <header
+    <aside
+      dir={isArabic ? 'rtl' : 'ltr'}
       style={{
         background: palette.backgroundSurface,
         color: palette.textPrimary,
-        padding: '1rem 2rem',
+        width: '280px',
+        minHeight: '100vh',
+        borderInlineEnd: `1px solid ${palette.neutralBorderSoft}`,
+        padding: '2rem 1.5rem',
         display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        gap: '0.75rem',
-        flexWrap: 'wrap',
-        rowGap: '0.5rem',
-        borderBottom: `1px solid ${palette.neutralBorderSoft}`,
+        flexDirection: 'column',
+        gap: '2rem',
+        position: 'sticky',
+        top: 0,
       }}
     >
       <div
         style={{
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'flex-start',
-          gap: '0.85rem',
-          flexWrap: 'wrap',
-          maxWidth: '100%',
+          flexDirection: 'column',
+          gap: '1.5rem',
         }}
       >
-        <Logo size={56} showWordmark={false} aria-hidden />
         <div
           style={{
             display: 'flex',
-            flexDirection: 'column',
-            gap: '0.35rem',
+            flexDirection: isArabic ? 'row-reverse' : 'row',
+            alignItems: 'center',
+            gap: '1rem',
           }}
         >
-          <span
+          <Logo size={48} showWordmark={false} aria-hidden />
+          <div
             style={{
-              fontSize: '1.25rem',
-              fontWeight: 700,
-              letterSpacing: '0.02em',
-              color: palette.textPrimary,
-              whiteSpace: 'nowrap',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: isArabic ? 'flex-end' : 'flex-start',
+              gap: '0.35rem',
             }}
           >
-            {portalName}
-          </span>
-          <span
-            style={{
-              fontSize: '0.95rem',
-              color: palette.textSecondary,
-            }}
-          >
-            {portalSubtitle}
-          </span>
+            <span
+              style={{
+                fontSize: '1.2rem',
+                fontWeight: 700,
+                letterSpacing: '0.02em',
+                color: palette.textPrimary,
+              }}
+            >
+              {portalName}
+            </span>
+            <span
+              style={{
+                fontSize: '0.9rem',
+                color: palette.textSecondary,
+                lineHeight: 1.4,
+              }}
+            >
+              {portalSubtitle}
+            </span>
+          </div>
         </div>
-      </div>
-      <nav
-        style={{
-          display: 'flex',
-          gap: '0.75rem',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-        }}
-      >
-        <NavLink
-          to="/admin/dashboard"
-          style={({ isActive }) => ({
-            ...navLinkStyle,
-            background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
-            color: isActive ? palette.textPrimary : palette.textSecondary,
-          })}
-          end
-        >
-          {language === 'ar' ? 'لوحة المتابعة' : 'Dashboard'}
-        </NavLink>
-        <NavLink
-          to="/admin/requests"
-          style={({ isActive }) => ({
-            ...navLinkStyle,
-            background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
-            color: isActive ? palette.textPrimary : palette.textSecondary,
-          })}
-        >
-          {language === 'ar' ? 'طلبات الاستثمار' : 'Requests inbox'}
-        </NavLink>
-        <NavLink
-          to="/admin/news"
-          style={({ isActive }) => ({
-            ...navLinkStyle,
-            background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
-            color: isActive ? palette.textPrimary : palette.textSecondary,
-          })}
-        >
-          {language === 'ar' ? 'الأخبار والمحتوى' : 'News & content'}
-        </NavLink>
-        <NavLink
-          to="/admin/signup-requests"
-          style={({ isActive }) => ({
-            ...navLinkStyle,
-            background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
-            color: isActive ? palette.textPrimary : palette.textSecondary,
-          })}
-        >
-          {language === 'ar'
-            ? 'طلب إنشاء حساب مستثمر جديد'
-            : 'New investor signup request'}
-        </NavLink>
-        <NavLink
-          to="/admin/investors"
-          style={({ isActive }) => ({
-            ...navLinkStyle,
-            background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
-            color: isActive ? palette.textPrimary : palette.textSecondary,
-          })}
-        >
-          {language === 'ar' ? 'إدارة المستثمرين' : 'Investors'}
-        </NavLink>
-        <NavLink
-          to="/admin/reports"
-          style={({ isActive }) => ({
-            ...navLinkStyle,
-            background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
-            color: isActive ? palette.textPrimary : palette.textSecondary,
-          })}
-        >
-          {language === 'ar' ? 'التقارير' : 'Reports'}
-        </NavLink>
-        <NavLink
-          to="/admin/audit"
-          style={({ isActive }) => ({
-            ...navLinkStyle,
-            background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
-            color: isActive ? palette.textPrimary : palette.textSecondary,
-          })}
-        >
-          {language === 'ar' ? 'سجل التدقيق' : 'Audit log'}
-        </NavLink>
-        <button
-          type="button"
-          onClick={() => logout.mutate()}
+        <nav
           style={{
-            ...navLinkStyle,
-            borderColor: palette.brandPrimaryStrong,
-            background: palette.brandPrimaryStrong,
-            color: palette.textOnBrand,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.75rem',
           }}
-          disabled={logout.isPending}
         >
-          {logout.isPending
-            ? language === 'ar'
-              ? 'جارٍ تسجيل الخروج…'
-              : 'Signing out…'
-            : language === 'ar'
-              ? 'تسجيل الخروج'
-              : 'Sign out'}
-        </button>
-      </nav>
-    </header>
+          {adminNavItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === '/admin/dashboard'}
+              style={({ isActive }) => ({
+                ...adminSidebarLinkBase,
+                flexDirection: isArabic ? 'row-reverse' : 'row',
+                justifyContent: isArabic ? 'flex-end' : 'flex-start',
+                textAlign: isArabic ? 'right' : 'left',
+                background: isActive ? palette.brandSecondarySoft : 'transparent',
+                color: isActive ? palette.textPrimary : palette.textSecondary,
+                borderColor: isActive ? palette.brandSecondary : palette.neutralBorderSoft,
+                boxShadow: isActive ? '0 0 0 1px rgba(0,0,0,0.04)' : 'none',
+              })}
+            >
+              {language === 'ar' ? item.labelAr : item.labelEn}
+            </NavLink>
+          ))}
+        </nav>
+      </div>
+      <button
+        type="button"
+        onClick={() => logout.mutate()}
+        style={{
+          ...adminSidebarLinkBase,
+          marginTop: 'auto',
+          justifyContent: 'center',
+          borderColor: palette.brandPrimaryStrong,
+          background: palette.brandPrimaryStrong,
+          color: palette.textOnBrand,
+        }}
+        disabled={logout.isPending}
+      >
+        {logout.isPending
+          ? language === 'ar'
+            ? 'جارٍ تسجيل الخروج…'
+            : 'Signing out…'
+          : language === 'ar'
+            ? 'تسجيل الخروج'
+            : 'Sign out'}
+      </button>
+    </aside>
   );
 }
 
@@ -409,21 +417,44 @@ function InvestorApp() {
 
 function AdminApp() {
   return (
-    <Fragment>
-      <AdminHeaderNav />
-      <Routes>
-        <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-        <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-        <Route path="/admin/requests" element={<AdminRequestsInboxPage />} />
-        <Route path="/admin/requests/:id" element={<AdminRequestDetailPage />} />
-        <Route path="/admin/news" element={<AdminNewsPage />} />
-        <Route path="/admin/signup-requests" element={<AdminSignupRequestsPage />} />
-        <Route path="/admin/investors" element={<AdminInvestorsPage />} />
-        <Route path="/admin/reports" element={<AdminReportsPage />} />
-        <Route path="/admin/audit" element={<AdminAuditLogPage />} />
-        <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
-      </Routes>
-    </Fragment>
+    <div
+      style={{
+        display: 'flex',
+        minHeight: '100vh',
+        background: palette.backgroundBase,
+      }}
+    >
+      <AdminSidebarNav />
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minWidth: 0,
+        }}
+      >
+        <div
+          style={{
+            flex: 1,
+            padding: '2rem',
+            minWidth: 0,
+          }}
+        >
+          <Routes>
+            <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+            <Route path="/admin/requests" element={<AdminRequestsInboxPage />} />
+            <Route path="/admin/requests/:id" element={<AdminRequestDetailPage />} />
+            <Route path="/admin/news" element={<AdminNewsPage />} />
+            <Route path="/admin/signup-requests" element={<AdminSignupRequestsPage />} />
+            <Route path="/admin/investors" element={<AdminInvestorsPage />} />
+            <Route path="/admin/reports" element={<AdminReportsPage />} />
+            <Route path="/admin/audit" element={<AdminAuditLogPage />} />
+            <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+          </Routes>
+        </div>
+      </div>
+    </div>
   );
 }
 
