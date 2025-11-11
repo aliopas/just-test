@@ -4,12 +4,15 @@ import { REQUEST_STATUSES, type RequestStatus } from './request-state.service';
 type RequestRow = {
   id: string;
   request_number: string;
+  type: RequestType | null;
   status: RequestStatus;
   amount: number;
   currency: string | null;
   created_at: string;
   updated_at?: string;
 };
+
+type RequestType = 'buy' | 'sell';
 
 type StatusRow = {
   status: string | null;
@@ -36,6 +39,7 @@ export interface InvestorDashboardResponse {
   recentRequests: Array<{
     id: string;
     requestNumber: string;
+    type: RequestType;
     status: RequestStatus;
     amount: number;
     currency: string;
@@ -51,6 +55,19 @@ export interface InvestorDashboardResponse {
   };
   unreadNotifications: number;
   generatedAt: string;
+  insights: {
+    averageAmountByType: Record<RequestType, number>;
+    rolling30DayVolume: number;
+    lastRequest: {
+      id: string;
+      requestNumber: string;
+      type: RequestType;
+      status: RequestStatus;
+      amount: number;
+      currency: string;
+      createdAt: string;
+    } | null;
+  };
 }
 
 function initialiseStatusMap(): Record<RequestStatus, number> {
@@ -68,7 +85,8 @@ export async function getInvestorDashboard(params: {
   recentLimit?: number;
 }): Promise<InvestorDashboardResponse> {
   const adminClient = requireSupabaseAdmin();
-  const recentLimit = params.recentLimit ?? 5;
+  const recentLimit = params.recentLimit ?? 8;
+  const thirtyDaysAgoIso = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
   const statusPromise = adminClient
     .from('requests')
@@ -81,6 +99,7 @@ export async function getInvestorDashboard(params: {
       `
         id,
         request_number,
+        type,
         status,
         amount,
         currency,
@@ -105,12 +124,34 @@ export async function getInvestorDashboard(params: {
     .eq('user_id', params.userId)
     .is('read_at', null);
 
+  const rollingVolumePromise = adminClient
+    .from('requests')
+    .select('total:sum(amount)', { head: false })
+    .eq('user_id', params.userId)
+    .gte('created_at', thirtyDaysAgoIso)
+    .maybeSingle<{ total: number | null }>();
+
+  const averagePromises = (['buy', 'sell'] as const).map(type =>
+    adminClient
+      .from('requests')
+      .select('average:avg(amount)', { head: false })
+      .eq('user_id', params.userId)
+      .eq('type', type)
+      .maybeSingle<{ average: number | null }>()
+  );
+
   const [statusResult, recentResult, pendingResult, unreadResult] =
     await Promise.all([
       statusPromise,
       recentPromise,
       pendingInfoPromise,
       unreadPromise as unknown as Promise<NotificationCount>,
+    ]);
+  const [rollingVolumeResult, averageBuyResult, averageSellResult] =
+    await Promise.all([
+      rollingVolumePromise,
+      averagePromises[0],
+      averagePromises[1],
     ]);
 
   if (statusResult.error) {
@@ -137,6 +178,24 @@ export async function getInvestorDashboard(params: {
     );
   }
 
+  if (rollingVolumeResult.error) {
+    throw new Error(
+      `FAILED_ROLLING_VOLUME:${rollingVolumeResult.error.message ?? 'unknown'}`
+    );
+  }
+
+  if (averageBuyResult.error) {
+    throw new Error(
+      `FAILED_AVERAGE_BUY:${averageBuyResult.error.message ?? 'unknown'}`
+    );
+  }
+
+  if (averageSellResult.error) {
+    throw new Error(
+      `FAILED_AVERAGE_SELL:${averageSellResult.error.message ?? 'unknown'}`
+    );
+  }
+
   const statusCounts = initialiseStatusMap();
   let total = 0;
   for (const row of (statusResult.data ?? []) as StatusRow[]) {
@@ -153,6 +212,7 @@ export async function getInvestorDashboard(params: {
     row => ({
       id: row.id,
       requestNumber: row.request_number,
+      type: row.type === 'sell' ? 'sell' : 'buy',
       status: row.status,
       amount: Number(row.amount ?? 0),
       currency: row.currency ?? 'SAR',
@@ -170,6 +230,15 @@ export async function getInvestorDashboard(params: {
 
   const pendingInfoCount = statusCounts.pending_info ?? pendingItems.length;
 
+  const lastRecent = recentRequests[0] ?? null;
+
+  const averageAmountByType: Record<RequestType, number> = {
+    buy: Number(averageBuyResult.data?.average ?? 0),
+    sell: Number(averageSellResult.data?.average ?? 0),
+  };
+
+  const rolling30DayVolume = Number(rollingVolumeResult.data?.total ?? 0);
+
   return {
     requestSummary: {
       total,
@@ -182,5 +251,20 @@ export async function getInvestorDashboard(params: {
     },
     unreadNotifications: unreadResult.count ?? 0,
     generatedAt: new Date().toISOString(),
+    insights: {
+      averageAmountByType,
+      rolling30DayVolume,
+      lastRequest: lastRecent
+        ? {
+            id: lastRecent.id,
+            requestNumber: lastRecent.requestNumber,
+            type: lastRecent.type,
+            status: lastRecent.status,
+            amount: lastRecent.amount,
+            currency: lastRecent.currency,
+            createdAt: lastRecent.createdAt,
+          }
+        : null,
+    },
   };
 }

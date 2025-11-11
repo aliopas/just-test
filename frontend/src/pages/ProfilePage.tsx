@@ -6,6 +6,7 @@ import type {
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
 import { useInvestorProfile } from '../hooks/useInvestorProfile';
+import { useInvestorDashboard } from '../hooks/useInvestorDashboard';
 import { ProfileHeader } from '../components/profile/ProfileHeader';
 import { ProfileSummaryCard } from '../components/profile/ProfileSummaryCard';
 import { ProfileSkeleton } from '../components/profile/ProfileSkeleton';
@@ -13,6 +14,7 @@ import { ProfileEmptyState } from '../components/profile/ProfileEmptyState';
 import { ProfileForm } from '../components/profile/ProfileForm';
 import { ProfileTabs } from '../components/profile/ProfileTabs';
 import { ProfileDetails } from '../components/profile/ProfileDetails';
+import { ProfileInsightsPanel } from '../components/profile/ProfileInsightsPanel';
 import { getMessage } from '../locales/investorProfile';
 import { analytics } from '../utils/analytics';
 
@@ -26,6 +28,13 @@ function ProfilePageInner() {
     isUpdating,
     updateError,
   } = useInvestorProfile();
+  const {
+    data: dashboard,
+    isLoading: isDashboardLoading,
+    isFetching: isDashboardFetching,
+    isError: isDashboardError,
+    refetch: refetchDashboard,
+  } = useInvestorDashboard();
   const { language } = useLanguage();
   const { pushToast } = useToast();
 
@@ -42,7 +51,7 @@ function ProfilePageInner() {
   };
 
   const handleRefresh = async () => {
-    await refetch();
+    await Promise.all([refetch(), refetchDashboard()]);
     pushToast({ message: getMessage('actions.refresh', language), variant: 'info' });
   };
 
@@ -133,7 +142,22 @@ function ProfilePageInner() {
           gap: '2rem',
         }}
       >
-        <ProfileSummaryCard profile={profile} />
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.25rem',
+          }}
+        >
+          <ProfileSummaryCard profile={profile} />
+          <ProfileInsightsPanel
+            insights={dashboard?.insights ?? null}
+            recentRequests={dashboard?.recentRequests ?? []}
+            isLoading={isDashboardLoading || isDashboardFetching}
+            isError={isDashboardError}
+            onRetry={refetchDashboard}
+          />
+        </div>
         <div
           style={{
             display: 'flex',

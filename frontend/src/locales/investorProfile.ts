@@ -36,7 +36,16 @@ type MessageKey =
   | 'toast.uploadPlaceholder'
   | 'analytics.update'
   | 'language.switch.ar'
-  | 'language.switch.en';
+  | 'language.switch.en'
+  | 'insights.title'
+  | 'insights.subtitle'
+  | 'insights.averageBuy'
+  | 'insights.averageSell'
+  | 'insights.rollingVolume'
+  | 'insights.lastRequest'
+  | 'insights.noRecent'
+  | 'insights.error'
+  | 'insights.retry';
 
 type MessageDictionary = Record<MessageKey, string>;
 
@@ -82,6 +91,15 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'analytics.update': 'Investor profile updated',
     'language.switch.ar': 'العربية',
     'language.switch.en': 'English',
+    'insights.title': 'Activity insights',
+    'insights.subtitle': 'Powered by Supabase — refreshed automatically.',
+    'insights.averageBuy': 'Avg. buy amount',
+    'insights.averageSell': 'Avg. sell amount',
+    'insights.rollingVolume': '30-day volume',
+    'insights.lastRequest': 'Recent requests',
+    'insights.noRecent': 'No recent investor requests yet.',
+    'insights.error': 'Unable to load activity insights.',
+    'insights.retry': 'Retry',
   },
   ar: {
     pageTitle: 'الملف الشخصي للمستثمر',
@@ -124,6 +142,15 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'analytics.update': 'تم تحديث الملف الشخصي للمستثمر',
     'language.switch.ar': 'العربية',
     'language.switch.en': 'الإنجليزية',
+    'insights.title': 'رؤى النشاط',
+    'insights.subtitle': 'مدعومة من Supabase ويتم تحديثها تلقائياً.',
+    'insights.averageBuy': 'متوسط مبالغ الشراء',
+    'insights.averageSell': 'متوسط مبالغ البيع',
+    'insights.rollingVolume': 'إجمالي 30 يوماً',
+    'insights.lastRequest': 'أحدث الطلبات',
+    'insights.noRecent': 'لا توجد طلبات حديثة حتى الآن.',
+    'insights.error': 'تعذّر تحميل مؤشرات النشاط.',
+    'insights.retry': 'إعادة المحاولة',
   },
 };
 

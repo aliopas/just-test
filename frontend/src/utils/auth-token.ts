@@ -3,7 +3,6 @@ function decodeJwtPayload(token: string): Record<string, unknown> | null {
   if (parts.length < 2) {
     return null;
   }
-
   try {
     const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
     if (typeof window === 'undefined' || typeof window.atob !== 'function') {

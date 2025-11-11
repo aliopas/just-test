@@ -1,4 +1,4 @@
-import type { RequestStatus } from './request';
+import type { RequestStatus, RequestType } from './request';
 
 export interface DashboardRequestSummary {
   total: number;
@@ -8,6 +8,7 @@ export interface DashboardRequestSummary {
 export interface DashboardRecentRequest {
   id: string;
   requestNumber: string;
+  type: RequestType;
   status: RequestStatus;
   amount: number;
   currency: string;
@@ -29,5 +30,18 @@ export interface InvestorDashboardResponse {
   };
   unreadNotifications: number;
   generatedAt: string;
+  insights: {
+    averageAmountByType: Record<RequestType, number>;
+    rolling30DayVolume: number;
+    lastRequest: {
+      id: string;
+      requestNumber: string;
+      type: RequestType;
+      status: RequestStatus;
+      amount: number;
+      currency: string;
+      createdAt: string;
+    } | null;
+  };
 }
 

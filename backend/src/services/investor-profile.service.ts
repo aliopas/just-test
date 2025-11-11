@@ -53,6 +53,46 @@ export const DEFAULT_COMMUNICATION_PREFERENCES: Record<
   push: true,
 };
 
+const PROFILE_CACHE_TTL_MS =
+  Number.parseInt(process.env.INVESTOR_PROFILE_CACHE_MS ?? '60000', 10) || 60000;
+
+type CacheEntry<T> = {
+  value: T;
+  expiresAt: number;
+};
+
+const profileViewCache = new Map<string, CacheEntry<InvestorProfileView | null>>();
+const profileRecordCache = new Map<string, CacheEntry<InvestorProfileRecord | null>>();
+
+type CacheRead<T> =
+  | {
+      hit: true;
+      value: T;
+    }
+  | { hit: false };
+
+function readCache<T>(
+  cache: Map<string, CacheEntry<T>>,
+  key: string
+): CacheRead<T> {
+  const entry = cache.get(key);
+  if (!entry) {
+    return { hit: false };
+  }
+  if (entry.expiresAt < Date.now()) {
+    cache.delete(key);
+    return { hit: false };
+  }
+  return { hit: true, value: entry.value };
+}
+
+function writeCache<T>(cache: Map<string, CacheEntry<T>>, key: string, value: T): void {
+  cache.set(key, {
+    value,
+    expiresAt: Date.now() + PROFILE_CACHE_TTL_MS,
+  });
+}
+
 function isNotFound(error: PostgrestError | null): boolean {
   return Boolean(error && error.code === 'PGRST116');
 }
@@ -77,6 +117,11 @@ function normalizeCommunicationPreferences(
 
 export const investorProfileService = {
   async getProfile(userId: string): Promise<InvestorProfileView | null> {
+    const cached = readCache(profileViewCache, userId);
+    if (cached.hit) {
+      return cached.value;
+    }
+
     const adminClient = requireSupabaseAdmin();
     const { data, error } = await adminClient
       .from('v_investor_profiles')
@@ -89,20 +134,28 @@ export const investorProfileService = {
     }
 
     if (!data) {
+      writeCache(profileViewCache, userId, null);
       return null;
     }
 
-    return {
+    const view = {
       ...(data as InvestorProfileView),
       communication_preferences: normalizeCommunicationPreferences(
         (data as InvestorProfileView).communication_preferences
       ),
     };
+    writeCache(profileViewCache, userId, view);
+    return view;
   },
 
   async getProfileRecord(
     userId: string
   ): Promise<InvestorProfileRecord | null> {
+    const cached = readCache(profileRecordCache, userId);
+    if (cached.hit) {
+      return cached.value;
+    }
+
     const adminClient = requireSupabaseAdmin();
     const { data, error } = await adminClient
       .from('investor_profiles')
@@ -117,15 +170,18 @@ export const investorProfileService = {
     }
 
     if (!data) {
+      writeCache(profileRecordCache, userId, null);
       return null;
     }
 
-    return {
+    const record = {
       ...(data as InvestorProfileRecord),
       communication_preferences: normalizeCommunicationPreferences(
         (data as InvestorProfileRecord).communication_preferences
       ),
     };
+    writeCache(profileRecordCache, userId, record);
+    return record;
   },
 
   async upsertProfile(
@@ -170,6 +226,9 @@ export const investorProfileService = {
         (viewData as InvestorProfileView).communication_preferences
       ),
     };
+
+    writeCache(profileRecordCache, payload.user_id, record);
+    writeCache(profileViewCache, payload.user_id, view);
 
     return { record, view };
   },

@@ -1,9 +1,54 @@
-﻿import { useLanguage } from '../context/LanguageContext';
+﻿import { useMemo } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import { NewRequestForm } from '../components/request/NewRequestForm';
 import { tRequest } from '../locales/newRequest';
+import { useInvestorDashboard } from '../hooks/useInvestorDashboard';
+import type { RequestCurrency } from '../types/request';
 
 function NewRequestPageInner() {
   const { language, direction } = useLanguage();
+  const {
+    data: dashboard,
+    isLoading: isDashboardLoading,
+    isFetching: isDashboardFetching,
+  } = useInvestorDashboard();
+
+  const quickAmounts = useMemo(() => {
+    if (!dashboard?.insights) {
+      return [];
+    }
+    const candidates = [
+      dashboard.insights.averageAmountByType.buy,
+      dashboard.insights.averageAmountByType.sell,
+    ];
+    if (dashboard.insights.rolling30DayVolume > 0) {
+      const averageVolume =
+        dashboard.insights.rolling30DayVolume /
+        Math.max(dashboard.requestSummary.total || 1, 1);
+      candidates.push(averageVolume);
+    }
+
+    return Array.from(
+      new Set(
+        candidates
+          .map(value => Math.round(Number(value ?? 0)))
+          .filter(value => Number.isFinite(value) && value > 0)
+      )
+    )
+      .sort((a, b) => b - a)
+      .slice(0, 3);
+  }, [dashboard]);
+
+  const suggestedCurrency = useMemo<RequestCurrency | undefined>(() => {
+    const currency = dashboard?.insights?.lastRequest?.currency ?? null;
+    if (!currency) {
+      return undefined;
+    }
+    if (currency === 'SAR' || currency === 'USD' || currency === 'EUR') {
+      return currency;
+    }
+    return undefined;
+  }, [dashboard]);
 
   return (
     <div
@@ -70,7 +115,11 @@ function NewRequestPageInner() {
           <span>{tRequest('summary.autoSubmit', language)}</span>
         </div>
 
-        <NewRequestForm />
+        <NewRequestForm
+          quickAmounts={quickAmounts}
+          isQuickAmountsLoading={isDashboardLoading || isDashboardFetching}
+          suggestedCurrency={suggestedCurrency}
+        />
       </section>
     </div>
   );

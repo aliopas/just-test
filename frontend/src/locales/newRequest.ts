@@ -13,6 +13,8 @@ type MessageKey =
   | 'form.submit'
   | 'form.reset'
   | 'form.uploadHint'
+  | 'form.quickFill'
+  | 'form.quickFillHint'
   | 'status.submitting'
   | 'status.success'
   | 'status.error'
@@ -36,6 +38,8 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'form.submit': 'Submit request',
     'form.reset': 'Reset form',
     'form.uploadHint': 'Drag & drop files here or click to browse (PDF/JPG/PNG).',
+    'form.quickFill': 'Smart suggestions',
+    'form.quickFillHint': 'Based on your recent activity',
     'status.submitting': 'Saving request…',
     'status.success':
       'Request saved as draft. Submit after attaching required documents.',
@@ -59,6 +63,8 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'form.reset': 'إعادة تعيين النموذج',
     'form.uploadHint':
       'اسحب الملفات هنا أو اضغط للاختيار (PDF/JPG/PNG).',
+    'form.quickFill': 'اقتراحات سريعة',
+    'form.quickFillHint': 'مستندة إلى نشاطك الأخير',
     'status.submitting': 'جاري حفظ الطلب…',
     'status.success':
       'تم حفظ الطلب كمسودة. أرسل الطلب بعد إرفاق المستندات المطلوبة.',

@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { supabase, requireSupabaseAdmin } from '../lib/supabase';
 import { getAccessToken } from '../utils/auth.util';
+import { rbacService } from '../services/rbac.service';
 
 export type AuthenticatedUser = {
   id: string;
@@ -46,15 +48,8 @@ export const authenticate = async (
       });
     }
 
-    // Get user from users table
-    const adminClient = requireSupabaseAdmin();
-    const { data: userData, error: userError } = await adminClient
-      .from('users')
-      .select('id, email, role')
-      .eq('id', data.user.id)
-      .single();
-
-    if (userError || !userData) {
+    const userRecord = await ensureUserRecord(data.user);
+    if (!userRecord) {
       return res.status(401).json({
         error: {
           code: 'UNAUTHORIZED',
@@ -65,10 +60,10 @@ export const authenticate = async (
 
     // Attach user to request
     req.user = {
-      id: userData.id,
-      email: userData.email,
-      role: userData.role,
-      roles: userData.role ? [userData.role] : [],
+      id: userRecord.id,
+      email: userRecord.email,
+      role: userRecord.role?? 'investor' ,
+      roles: userRecord.role ? [userRecord.role] : [],
       permissions: [],
     };
 
@@ -82,3 +77,67 @@ export const authenticate = async (
     });
   }
 };
+
+type UserRow = {
+  id: string;
+  email: string;
+  role: string | null;
+};
+
+async function ensureUserRecord(user: SupabaseUser): Promise<UserRow | null> {
+  const adminClient = requireSupabaseAdmin();
+
+  const { data: existingUser, error: existingError } = await adminClient
+    .from('users')
+    .select('id, email, role')
+    .eq('id', user.id)
+    .single<UserRow>();
+
+  if (existingUser && !existingError) {
+    return existingUser;
+  }
+
+  const metadataRole =
+    ((user.user_metadata as { role?: string } | null | undefined)?.role ??
+      (user.app_metadata as { role?: string } | null | undefined)?.role) ??
+    undefined;
+
+  const inferredRole = metadataRole && typeof metadataRole === 'string'
+    ? metadataRole
+    : 'investor';
+
+  const email =
+    user.email ??
+    (typeof user.phone === 'string' && user.phone.length > 0
+      ? user.phone
+      : `user-${user.id}@generated.local`);
+
+  const { data: insertedUser, error: insertError } = await adminClient
+    .from('users')
+    .upsert(
+      {
+        id: user.id,
+        email,
+        phone: user.phone ?? null,
+        role: inferredRole,
+        status: 'active',
+      },
+      {
+        onConflict: 'id',
+      }
+    )
+    .select('id, email, role')
+    .single<UserRow>();
+
+  if (insertError || !insertedUser) {
+    return null;
+  }
+
+  try {
+    await rbacService.assignRole(user.id, inferredRole);
+  } catch (roleError) {
+    void roleError;
+  }
+
+  return insertedUser;
+}

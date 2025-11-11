@@ -4,8 +4,10 @@ import {
   useContext,
   useMemo,
   useState,
+  useEffect,
   type ReactNode,
 } from 'react';
+import { getStoredAccessToken } from '../utils/auth-token';
 
 type UserRole = 'investor' | 'admin';
 
@@ -26,6 +28,18 @@ const STORAGE_KEY = 'auth_user';
 
 function readStoredUser(): AuthUser | null {
   if (typeof window === 'undefined') {
+    return null;
+  }
+
+  let existingToken: string | undefined;
+  try {
+    existingToken = getStoredAccessToken();
+  } catch (error) {
+    console.warn('Failed to read stored access token', error);
+    existingToken = undefined;
+  }
+
+  if (!existingToken) {
     return null;
   }
 
@@ -78,6 +92,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const hydrate = useCallback(() => {
     setUserState(readStoredUser());
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const handleFocus = () => {
+      setUserState(readStoredUser());
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   const value = useMemo<AuthContextValue>(

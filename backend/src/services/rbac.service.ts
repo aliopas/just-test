@@ -179,7 +179,9 @@ async function fetchUserPermissions(
       .in('role_id', roleIds);
 
     if (fallbackError) {
-      throw new Error(`Failed to load fallback role permissions: ${fallbackError.message}`);
+      throw new Error(
+        `Failed to load fallback role permissions: ${fallbackError.message}`
+      );
     }
 
     const fallbackRows = (fallbackData as RolePermissionRow[] | null) ?? [];
@@ -189,8 +191,8 @@ async function fetchUserPermissions(
     fallbackRows.forEach(row => {
       const permissionRelation = row.permissions;
       const relationSlug = Array.isArray(permissionRelation)
-        ? permissionRelation[0]?.slug ?? null
-        : permissionRelation?.slug ?? null;
+        ? (permissionRelation[0]?.slug ?? null)
+        : (permissionRelation?.slug ?? null);
       const slug = relationSlug ?? row.permission_slug ?? null;
       if (!slug) {
         return;
