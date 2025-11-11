@@ -13,6 +13,7 @@ import { useAuth } from './context/AuthContext';
 import { RegisterPage } from './pages/RegisterPage';
 import { VerifyOtpPage } from './pages/VerifyOtpPage';
 import { AdminRequestsInboxPage } from './pages/AdminRequestsInboxPage';
+import { AdminRequestDetailPage } from './pages/AdminRequestDetailPage';
 import { AdminNewsPage } from './pages/AdminNewsPage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { AdminReportsPage } from './pages/AdminReportsPage';
@@ -388,6 +389,7 @@ function AdminApp() {
         <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
         <Route path="/admin/requests" element={<AdminRequestsInboxPage />} />
+        <Route path="/admin/requests/:id" element={<AdminRequestDetailPage />} />
         <Route path="/admin/news" element={<AdminNewsPage />} />
         <Route path="/admin/investors" element={<AdminInvestorsPage />} />
         <Route path="/admin/reports" element={<AdminReportsPage />} />
