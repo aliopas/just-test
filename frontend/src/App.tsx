@@ -309,7 +309,9 @@ function AdminHeaderNav() {
             color: isActive ? palette.textPrimary : palette.textSecondary,
           })}
         >
-          {language === 'ar' ? 'طلبات إنشاء حساب مستثمر' : 'Investor signup requests'}
+          {language === 'ar'
+            ? 'طلب إنشاء حساب مستثمر جديد'
+            : 'New investor signup request'}
         </NavLink>
         <NavLink
           to="/admin/investors"
