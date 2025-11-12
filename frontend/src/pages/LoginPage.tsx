@@ -232,28 +232,20 @@ export function LoginPage() {
     <div
       style={{
         minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'stretch',
-        background: `
-          radial-gradient(90% 120% at 10% 10%, rgba(32, 55, 90, 0.45), transparent 60%),
-          radial-gradient(80% 120% at 90% 20%, rgba(16, 61, 135, 0.5), transparent 70%),
-          linear-gradient(135deg, ${palette.backgroundInverse} 0%, ${palette.brandPrimary} 55%, ${palette.brandPrimaryMuted} 100%)
-        `,
-        padding: '3.5rem 1.5rem',
+        background: palette.backgroundAlt,
+        padding: '2.5rem 1.25rem 3rem',
         direction,
+        display: 'flex',
+        justifyContent: 'center',
       }}
     >
       <div
         style={{
           width: '100%',
-          maxWidth: '1120px',
-          margin: '0 auto',
+          maxWidth: '1200px',
           display: 'grid',
-          gap: '2.5rem',
-          gridTemplateColumns:
-            direction === 'rtl'
-              ? 'minmax(0, 0.95fr) minmax(0, 1.05fr)'
-              : 'minmax(0, 1.05fr) minmax(0, 0.95fr)',
+          gap: '2rem',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
           alignItems: 'stretch',
           direction,
         }}
@@ -584,6 +576,34 @@ export function LoginPage() {
               </span>
             ))}
           </div>
+          <div
+            style={{
+              position: 'relative',
+              zIndex: 1,
+              marginTop: 'auto',
+              borderRadius: '1.1rem',
+              padding: '1rem 1.35rem',
+              background: 'rgba(6, 16, 40, 0.6)',
+              border: '1px solid rgba(148, 197, 253, 0.25)',
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                gap: '2rem',
+                whiteSpace: 'nowrap',
+                animation: 'news-marquee 28s linear infinite',
+                animationDirection: direction === 'rtl' ? 'reverse' : 'normal',
+                fontSize: '0.88rem',
+                color: 'rgba(226, 232, 240, 0.82)',
+              }}
+            >
+              {[...ticker, ...ticker].map((item, idx) => (
+                <span key={`${item}-${idx}`}>{item}</span>
+              ))}
+            </div>
+          </div>
         </section>
 
         <section
@@ -807,63 +827,11 @@ export function LoginPage() {
           </footer>
         </section>
       </div>
-      <aside
-        style={{
-          position: 'fixed',
-          left: 0,
-          right: 0,
-          bottom: 0,
-          padding: '0.65rem 0',
-          background:
-            'linear-gradient(90deg, rgba(15, 23, 42, 0.9) 0%, rgba(15, 23, 42, 0.75) 100%)',
-          borderTop: '1px solid rgba(148, 163, 184, 0.35)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '1.25rem',
-          color: '#E2E8F0',
-          fontSize: '0.9rem',
-          letterSpacing: '0.05em',
-          overflow: 'hidden',
-          zIndex: 5,
-        }}
-      >
-        <span
-          style={{
-            marginInlineStart: direction === 'rtl' ? '1.5rem' : '1rem',
-            marginInlineEnd: direction === 'rtl' ? '1rem' : '1.5rem',
-            padding: '0.35rem 0.85rem',
-            borderRadius: '999px',
-            background: 'rgba(79, 70, 229, 0.2)',
-            border: '1px solid rgba(129, 140, 248, 0.35)',
-            fontWeight: 600,
-          }}
-        >
-          {language === 'ar' ? 'نشرة الأخبار' : 'Market Bulletin'}
-        </span>
-        <div
-          style={{
-            display: 'flex',
-            gap: '2.5rem',
-            animation: 'ticker-scroll 28s linear infinite',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {[...ticker, ...ticker].map((item, index) => (
-            <span key={`${item}-${index}`} style={{ opacity: 0.85 }}>
-              {item}
-            </span>
-          ))}
-        </div>
-      </aside>
       <style>
         {`
-          @keyframes ticker-scroll {
-            0% {
-              transform: translateX(${direction === 'rtl' ? '0' : '0'});
-            }
-            100% {
-              transform: translateX(${direction === 'rtl' ? '25%' : '-50%'});
-            }
+          @keyframes news-marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
           }
         `}
       </style>
