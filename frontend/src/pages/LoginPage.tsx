@@ -457,9 +457,9 @@ export function LoginPage() {
             </p>
             <span style={{ fontSize: '0.82rem', color: palette.textMuted }}>
               {language === 'ar'
-                ? 'محمي عبر المصادقة متعددة العوامل وRLS على مستوى الصفوف.'
+                ? 'محمي عبر المصادقة متعددة العوامل و RLS على مستوى الصفوف.'
                 : 'Secured with multi-factor authentication and row-level security.'}
-            </span>
+            </span>0
           </footer>
         </section>
       </div>
