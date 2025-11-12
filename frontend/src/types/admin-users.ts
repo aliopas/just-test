@@ -68,7 +68,7 @@ export interface AdminCreateUserPayload {
   status: AdminUserStatus;
   locale: InvestorLanguage;
   sendInvite: boolean;
-  temporaryPassword?: string;
+  temporaryPassword: string;
   investorProfile?: {
     language?: InvestorLanguage;
     idType?: string;

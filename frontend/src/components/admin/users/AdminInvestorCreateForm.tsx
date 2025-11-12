@@ -69,17 +69,8 @@ function buildFormSchema(messages: {
       temporaryPassword: z
         .string()
         .trim()
-        .optional()
-        .transform(value => {
-          if (value === undefined || value.length === 0) {
-            return undefined;
-          }
-          return value;
-        })
-        .refine(
-          value => value === undefined || passwordRegex.test(value),
-          messages.password
-        ),
+        .min(8, messages.password)
+        .refine(value => passwordRegex.test(value), messages.password),
       investorLanguage: z.enum(localeValues),
       idType: z
         .union([
@@ -127,15 +118,6 @@ function buildFormSchema(messages: {
       riskProfile: z
         .union([z.literal(''), z.enum(riskValues)])
         .transform(value => (value === '' ? undefined : value)),
-    })
-    .superRefine((data, ctx) => {
-      if (!data.sendInvite && !data.temporaryPassword) {
-        ctx.addIssue({
-          path: ['temporaryPassword'],
-          code: z.ZodIssueCode.custom,
-          message: messages.tempPasswordRequired,
-        });
-      }
     });
 }
 
@@ -187,7 +169,6 @@ export function AdminInvestorCreateForm({ onSubmit, submitting }: Props) {
     register,
     handleSubmit,
     reset,
-    watch,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -197,8 +178,8 @@ export function AdminInvestorCreateForm({ onSubmit, submitting }: Props) {
       phone: undefined,
       locale: language,
       status: 'pending',
-      sendInvite: true,
-      temporaryPassword: undefined,
+      sendInvite: false,
+      temporaryPassword: '',
       investorLanguage: language,
       idType: undefined,
       idNumber: undefined,
@@ -210,8 +191,6 @@ export function AdminInvestorCreateForm({ onSubmit, submitting }: Props) {
     },
   });
 
-  const sendInvite = watch('sendInvite');
-
   const onSubmitForm = async (values: FormValues) => {
     const payload: AdminCreateUserPayload = {
       email: values.email.trim(),
@@ -221,9 +200,7 @@ export function AdminInvestorCreateForm({ onSubmit, submitting }: Props) {
       status: values.status,
       locale: values.locale,
       sendInvite: values.sendInvite,
-      temporaryPassword: values.sendInvite
-        ? undefined
-        : values.temporaryPassword,
+      temporaryPassword: values.temporaryPassword,
       investorProfile: {
         language: values.investorLanguage ?? values.locale,
         idType: values.idType,
@@ -243,8 +220,8 @@ export function AdminInvestorCreateForm({ onSubmit, submitting }: Props) {
       phone: undefined,
       locale: language,
       status: 'pending',
-      sendInvite: true,
-      temporaryPassword: undefined,
+      sendInvite: false,
+      temporaryPassword: '',
       investorLanguage: language,
       idType: undefined,
       idNumber: undefined,
@@ -425,22 +402,20 @@ export function AdminInvestorCreateForm({ onSubmit, submitting }: Props) {
           </span>
         </div>
 
-        {!sendInvite && (
-          <FormField
-            label={tAdminUsers('form.temporaryPassword', language)}
-            error={errors.temporaryPassword?.message}
-          >
-            <input
-              type="password"
-              {...register('temporaryPassword')}
-              disabled={submitting}
-              style={inputStyle}
-            />
-            <small style={helpTextStyle}>
-              {tAdminUsers('form.temporaryPassword.help', language)}
-            </small>
-          </FormField>
-        )}
+        <FormField
+          label={tAdminUsers('form.temporaryPassword', language)}
+          error={errors.temporaryPassword?.message}
+        >
+          <input
+            type="password"
+            {...register('temporaryPassword')}
+            disabled={submitting}
+            style={inputStyle}
+          />
+          <small style={helpTextStyle}>
+            {tAdminUsers('form.temporaryPassword.help', language)}
+          </small>
+        </FormField>
 
         <div style={gridRowStyle}>
           <FormField
