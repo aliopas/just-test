@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
+import { useMemo } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Logo } from '../components/Logo';
 import { palette } from '../styles/theme';
+import { useInvestorNewsList } from '../hooks/useInvestorNews';
 
 const heroSectionStyle: React.CSSProperties = {
   padding: '4rem 2rem',
@@ -29,9 +31,33 @@ const featureCardStyle: React.CSSProperties = {
   boxShadow: '0 12px 24px rgba(15, 23, 42, 0.08)',
 };
 
+function resolveCoverUrl(coverKey: string | null): string | null {
+  if (!coverKey) {
+    return null;
+  }
+
+  const base =
+    (typeof window !== 'undefined' && window.__ENV__?.SUPABASE_STORAGE_URL) ??
+    import.meta.env.VITE_SUPABASE_STORAGE_URL ??
+    '';
+
+  if (!base) {
+    return null;
+  }
+
+  return `${base.replace(/\/$/, '')}/${coverKey}`;
+}
+
 export function PublicLandingPage() {
   const { language } = useLanguage();
   const isArabic = language === 'ar';
+  const {
+    data: newsResponse,
+    isLoading: isNewsLoading,
+    isError: isNewsError,
+    isFetching: isNewsFetching,
+  } = useInvestorNewsList({ page: 1, limit: 3 });
+  const newsItems = useMemo(() => newsResponse?.news ?? [], [newsResponse]);
 
   const heroTitle = isArabic
     ? 'منصة باكورة للتقنيات'
@@ -82,27 +108,222 @@ export function PublicLandingPage() {
       ];
 
   const newsTitle = isArabic ? 'أحدث القصص الإخبارية' : 'Latest newsroom highlights';
-  const newsItems = isArabic
-    ? [
+  const newsEmptyMessage = isArabic
+    ? 'لم يتم نشر أخبار جديدة بعد. تابع باكورة للتقنيات للاطلاع على آخر المستجدات.'
+    : 'No newsroom updates are available yet. Follow Bakurah Technologies for upcoming announcements.';
+  const newsErrorMessage = isArabic
+    ? 'تعذر تحميل الأخبار حالياً. يرجى المحاولة مرة أخرى لاحقاً.'
+    : 'We could not load the newsroom feed right now. Please try again soon.';
+  const readMoreLabel = isArabic ? 'تعرّف على التفاصيل بعد تسجيل الدخول' : 'Sign in to read more';
+  const publishedLabel = isArabic ? 'تاريخ النشر' : 'Published';
+
+  const renderNewsContent = () => {
+    if (isNewsLoading && newsItems.length === 0) {
+      return Array.from({ length: 3 }).map((_, index) => (
+        <article
+          key={`news-skeleton-${index}`}
+          style={{
+            padding: '1.75rem',
+            borderRadius: '1rem',
+            border: `1px solid ${palette.neutralBorderSoft}`,
+            background: palette.backgroundBase,
+            display: 'grid',
+            gap: '1rem',
+            animation: 'pulse 1.6s ease-in-out infinite',
+          }}
+        >
+          <div
+            style={{
+              height: '0.9rem',
+              width: '40%',
+              borderRadius: '999px',
+              background: `${palette.neutralBorderSoft}80`,
+            }}
+          />
+          <div
+            style={{
+              height: '1.2rem',
+              width: '70%',
+              borderRadius: '0.75rem',
+              background: `${palette.neutralBorderSoft}66`,
+            }}
+          />
+          <div
+            style={{
+              height: '3.5rem',
+              borderRadius: '0.75rem',
+              background: `${palette.neutralBorderSoft}4D`,
+            }}
+          />
+          <div
+            style={{
+              height: '0.85rem',
+              width: '30%',
+              borderRadius: '0.75rem',
+              background: `${palette.neutralBorderSoft}66`,
+            }}
+          />
+        </article>
+      ));
+    }
+
+    if (isNewsError) {
+      return (
+        <div
+          style={{
+            padding: '2rem',
+            borderRadius: '1.25rem',
+            border: `1px dashed ${palette.brandSecondaryMuted}`,
+            background: palette.backgroundBase,
+            textAlign: 'center',
+            color: palette.textSecondary,
+            fontSize: '0.95rem',
+            lineHeight: 1.6,
+          }}
+        >
+          {newsErrorMessage}
+        </div>
+      );
+    }
+
+    if (newsItems.length === 0) {
+      return (
+        <div
+          style={{
+            padding: '2rem',
+            borderRadius: '1.25rem',
+            border: `1px dashed ${palette.brandSecondaryMuted}`,
+            background: palette.backgroundBase,
+            textAlign: 'center',
+            color: palette.textSecondary,
+            fontSize: '0.95rem',
+            lineHeight: 1.6,
+          }}
+        >
+          {newsEmptyMessage}
+        </div>
+      );
+    }
+
+    return newsItems.map(item => {
+      const coverUrl = resolveCoverUrl(item.coverKey);
+      const publishedAt = new Date(item.publishedAt).toLocaleDateString(
+        isArabic ? 'ar-SA' : 'en-GB',
         {
-          heading: 'باكورة تطلق مبادرة الاستثمارات التقنية للعام 2025',
-          body: 'أطلقت باكورة مسارًا جديدًا لدعم الشركات الناشئة في مجالات الذكاء الاصطناعي والحوسبة المتقدمة بالتعاون مع شركاء محليين وعالميين.',
-        },
-        {
-          heading: 'تقرير ربع سنوي عن مؤشرات التقنيات الناشئة',
-          body: 'يكشف التقرير عن زيادة ملحوظة في الاستثمارات الخليجية في قطاع الأمن السيبراني والتطبيقات السحابية المتخصصة.',
-        },
-      ]
-    : [
-        {
-          heading: 'Bakurah launches 2025 Tech Investment Track',
-          body: 'A new program partnering with regional and international funds to accelerate AI and advanced computing ventures.',
-        },
-        {
-          heading: 'Q3 emerging tech insights published',
-          body: 'Latest report spotlights increased GCC investor activity across cybersecurity and vertical cloud applications.',
-        },
-      ];
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        }
+      );
+      const excerpt =
+        item.excerpt ??
+        (isArabic
+          ? 'للاطلاع على تفاصيل هذا الخبر، الرجاء تسجيل الدخول إلى بوابة باكورة.'
+          : 'Sign in to the Bakurah portal to read the full story.');
+
+      return (
+        <article
+          key={item.id}
+          style={{
+            borderRadius: '1rem',
+            border: `1px solid ${palette.neutralBorderSoft}`,
+            background: palette.backgroundBase,
+            overflow: 'hidden',
+            boxShadow: '0 12px 32px rgba(15, 23, 42, 0.12)',
+            display: 'grid',
+            gridTemplateColumns: coverUrl ? 'minmax(0, 1fr) minmax(0, 1.25fr)' : '1fr',
+          }}
+        >
+          {coverUrl && (
+            <div
+              style={{
+                position: 'relative',
+                minHeight: '220px',
+                background: palette.backgroundInverse,
+              }}
+            >
+              <img
+                src={coverUrl}
+                alt={item.title}
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                }}
+              />
+            </div>
+          )}
+          <div
+            style={{
+              padding: '1.75rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.9rem',
+              textAlign: isArabic ? 'right' : 'left',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: '0.75rem',
+                color: palette.textSecondary,
+                fontSize: '0.85rem',
+              }}
+            >
+              <span>{publishedLabel}</span>
+              <time dateTime={item.publishedAt}>{publishedAt}</time>
+            </div>
+            <h3
+              style={{
+                margin: 0,
+                fontSize: '1.35rem',
+                fontWeight: 700,
+                color: palette.textPrimary,
+              }}
+            >
+              {item.title}
+            </h3>
+            <p
+              style={{
+                margin: 0,
+                color: palette.textSecondary,
+                lineHeight: 1.65,
+              }}
+            >
+              {excerpt}
+            </p>
+            <div style={{ marginTop: 'auto' }}>
+              <Link
+                to="/login"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  color: palette.brandSecondary,
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                }}
+              >
+                {readMoreLabel}
+                <span
+                  aria-hidden
+                  style={{
+                    transform: isArabic ? 'scaleX(-1)' : 'none',
+                  }}
+                >
+                  →
+                </span>
+              </Link>
+            </div>
+          </div>
+        </article>
+      );
+    });
+  };
 
   return (
     <div
@@ -275,42 +496,24 @@ export function PublicLandingPage() {
           >
             {newsTitle}
           </h2>
+          {isNewsFetching && newsItems.length > 0 && !isNewsError && (
+            <span
+              style={{
+                textAlign: 'center',
+                color: palette.textSecondary,
+                fontSize: '0.85rem',
+              }}
+            >
+              {isArabic ? 'يتم تحديث النشرة الإخبارية…' : 'Refreshing newsroom feed…'}
+            </span>
+          )}
           <div
             style={{
               display: 'grid',
               gap: '1.5rem',
             }}
           >
-            {newsItems.map((item) => (
-              <article
-                key={item.heading}
-                style={{
-                  padding: '1.5rem',
-                  borderRadius: '1rem',
-                  border: `1px solid ${palette.neutralBorderSoft}`,
-                  background: palette.backgroundBase,
-                }}
-              >
-                <h3
-                  style={{
-                    marginTop: 0,
-                    marginBottom: '0.5rem',
-                    fontSize: '1.25rem',
-                  }}
-                >
-                  {item.heading}
-                </h3>
-                <p
-                  style={{
-                    margin: 0,
-                    color: palette.textSecondary,
-                    lineHeight: 1.6,
-                  }}
-                >
-                  {item.body}
-                </p>
-              </article>
-            ))}
+            {renderNewsContent()}
           </div>
         </section>
       </main>
