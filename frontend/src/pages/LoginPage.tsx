@@ -27,6 +27,91 @@ export function LoginPage() {
 
   const direction = language === 'ar' ? 'rtl' : 'ltr';
 
+  const copy = {
+    ar: {
+      headline: 'بوابة المستثمرين',
+      heroTitle: 'مرحباً بك في مركز أخبار باكورة',
+      heroSubtitle:
+        'تابع آخر المستجدات الاستثمارية، تقارير السوق، والمصادقة على الصفقات قبل الانضمام إلى منصتك.',
+      highlightsTitle: 'مختارات اليوم',
+      snapshotTitle: 'نظرة على السوق',
+      snapshotItems: [
+        { label: 'مؤشر تاسي', value: '+1.3%' },
+        { label: 'قطاع التقنية', value: '+2.1%' },
+        { label: 'صفقات جارية', value: '17' },
+      ],
+      formTitle: 'تسجيل الدخول',
+      formSubtitle:
+        'ادخل بيانات الوصول الخاصة بك للاستمرار إلى لوحة التحكم الاستثمارية.',
+      emailLabel: 'البريد الإلكتروني',
+      passwordLabel: 'كلمة المرور',
+      totpLabel: 'رمز التحقق الثنائي',
+      signIn: 'تسجيل الدخول',
+      signingIn: 'جارٍ تسجيل الدخول…',
+      inviteCta: 'طلب إنشاء حساب مستثمر جديد',
+      noAccount: 'ليس لديك حساب؟',
+      quickLinks: ['الملف الاستثماري', 'التقارير التفاعلية', 'مركز التنبيهات'],
+    },
+    en: {
+      headline: 'Investors Portal',
+      heroTitle: 'Your Investment Newsroom',
+      heroSubtitle:
+        'Track market sentiment, monitor Bakurah initiatives, and authenticate your access to the investor workspace.',
+      highlightsTitle: 'Today’s Highlights',
+      snapshotTitle: 'Market Snapshot',
+      snapshotItems: [
+        { label: 'TASI Index', value: '+1.3%' },
+        { label: 'Tech Sector', value: '+2.1%' },
+        { label: 'Active Deals', value: '17' },
+      ],
+      formTitle: 'Sign In',
+      formSubtitle:
+        'Enter your secure credentials to unlock the investor operations console.',
+      emailLabel: 'Email address',
+      passwordLabel: 'Password',
+      totpLabel: '2FA verification code',
+      signIn: 'Sign in',
+      signingIn: 'Signing in…',
+      inviteCta: 'Submit a new investor signup request',
+      noAccount: "Don't have an account?",
+      quickLinks: ['Investor Profile', 'Interactive Reports', 'Alert Center'],
+    },
+  } as const;
+
+  const headlineStories = {
+    ar: [
+      {
+        title: 'مذكرة تفاهم مع صندوق نمو واعد',
+        summary: 'فرص استثمار مشتركة في التقنية المالية والأسواق الناشئة.',
+      },
+      {
+        title: 'تقرير الربع الثالث',
+        summary: 'أداء المحافظ الاستثمارية يتفوق على المؤشر بـ 2.4٪.',
+      },
+      {
+        title: 'نشرة المخاطر',
+        summary: 'توجيهات للحد من مكامن التذبذب في رأس المال الجريء.',
+      },
+    ],
+    en: [
+      {
+        title: 'Strategic MoU with Prominent Growth Fund',
+        summary: 'Co-investment pipeline expands across fintech and emerging markets.',
+      },
+      {
+        title: 'Q3 Performance Brief',
+        summary: 'Managed portfolios outperformed the market benchmark by 2.4%.',
+      },
+      {
+        title: 'Risk Advisory Bulletin',
+        summary: 'Guidance to navigate volatility across venture allocations.',
+      },
+    ],
+  } as const;
+
+  const currentCopy = copy[language];
+  const stories = headlineStories[language];
+
   const handleChange = (field: keyof LoginFormState) => (event: ChangeEvent<HTMLInputElement>) => {
     setForm(current => ({
       ...current,
@@ -108,210 +193,441 @@ export function LoginPage() {
       style={{
         minHeight: '100vh',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: `linear-gradient(135deg, ${palette.backgroundInverse} 0%, ${palette.brandPrimary} 60%, ${palette.brandPrimaryMuted} 100%)`,
-        padding: '2rem 1rem',
+        alignItems: 'stretch',
+        background: `
+          radial-gradient(90% 120% at 10% 10%, rgba(32, 55, 90, 0.45), transparent 60%),
+          radial-gradient(80% 120% at 90% 20%, rgba(16, 61, 135, 0.5), transparent 70%),
+          linear-gradient(135deg, ${palette.backgroundInverse} 0%, ${palette.brandPrimary} 55%, ${palette.brandPrimaryMuted} 100%)
+        `,
+        padding: '3.5rem 1.5rem',
         direction,
       }}
     >
       <div
         style={{
           width: '100%',
-          maxWidth: '420px',
-          background: palette.backgroundSurface,
-          borderRadius: '1.5rem',
-          boxShadow: '0 30px 80px rgba(10, 24, 64, 0.25)',
-          padding: '2.75rem 2.25rem',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '2rem',
+          maxWidth: '1120px',
+          margin: '0 auto',
+          display: 'grid',
+          gap: '2.5rem',
+          gridTemplateColumns:
+            direction === 'rtl'
+              ? 'minmax(0, 0.95fr) minmax(0, 1.05fr)'
+              : 'minmax(0, 1.05fr) minmax(0, 0.95fr)',
+          alignItems: 'stretch',
+          direction,
         }}
       >
-        <div
+        <section
           style={{
+            position: 'relative',
+            borderRadius: '1.75rem',
+            padding: '2.75rem',
+            background: `linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(13, 35, 74, 0.35) 45%, rgba(8, 29, 66, 0.8) 100%)`,
+            color: '#F8FAFC',
+            boxShadow: '0 45px 90px rgba(8, 25, 58, 0.35)',
+            overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
-            gap: '1rem',
-            textAlign: direction === 'rtl' ? 'right' : 'left',
+            gap: '2rem',
           }}
         >
-          <Logo size={72} stacked />
-          <div>
-            <h1
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background:
+                direction === 'rtl'
+                  ? 'radial-gradient(120% 85% at 95% 15%, rgba(59,130,246,0.35), transparent), radial-gradient(120% 130% at 10% 90%, rgba(96,165,250,0.15), transparent)'
+                  : 'radial-gradient(120% 85% at 5% 15%, rgba(59,130,246,0.35), transparent), radial-gradient(120% 130% at 90% 90%, rgba(96,165,250,0.15), transparent)',
+              opacity: 0.9,
+            }}
+          />
+          <div
+            style={{
+              position: 'relative',
+              zIndex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1.5rem',
+            }}
+          >
+            <Logo
+              size={88}
+              stacked
+              tagline={
+                language === 'ar'
+                  ? 'استثمر بذكاء مع باكورة'
+                  : 'Invest smarter with Bakurah'
+              }
+            />
+            <div>
+              <span
+                style={{
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  letterSpacing: '0.4em',
+                  textTransform: 'uppercase',
+                  color: 'rgba(226, 232, 240, 0.75)',
+                }}
+              >
+                {currentCopy.headline}
+              </span>
+              <h1
+                style={{
+                  margin: '1rem 0 0.35rem',
+                  fontSize: '2.45rem',
+                  lineHeight: 1.2,
+                  fontWeight: 700,
+                }}
+              >
+                {currentCopy.heroTitle}
+              </h1>
+              <p
+                style={{
+                  margin: 0,
+                  color: 'rgba(226, 232, 240, 0.85)',
+                  lineHeight: 1.7,
+                  fontSize: '1.05rem',
+                  maxWidth: '34rem',
+                }}
+              >
+                {currentCopy.heroSubtitle}
+              </p>
+            </div>
+          </div>
+
+          <div
+            style={{
+              position: 'relative',
+              zIndex: 1,
+              display: 'grid',
+              gap: '1.4rem',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            }}
+          >
+            <div
+              style={{
+                background: 'rgba(15, 118, 237, 0.15)',
+                border: '1px solid rgba(148, 197, 253, 0.3)',
+                borderRadius: '1.25rem',
+                padding: '1.35rem',
+                backdropFilter: 'blur(6px)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.75rem',
+              }}
+            >
+              <strong style={{ fontSize: '1.05rem', letterSpacing: '0.06em' }}>
+                {currentCopy.snapshotTitle}
+              </strong>
+              <ul
+                style={{
+                  margin: 0,
+                  padding: 0,
+                  listStyle: 'none',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.65rem',
+                  color: 'rgba(226, 232, 240, 0.85)',
+                  fontSize: '0.95rem',
+                }}
+              >
+                {currentCopy.snapshotItems.map(item => (
+                  <li
+                    key={item.label}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      gap: '0.75rem',
+                    }}
+                  >
+                    <span>{item.label}</span>
+                    <span style={{ fontWeight: 600, color: '#F8FAFC' }}>
+                      {item.value}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div
+              style={{
+                background: 'rgba(15, 23, 42, 0.55)',
+                border: '1px solid rgba(148, 163, 184, 0.2)',
+                borderRadius: '1.25rem',
+                padding: '1.35rem 1.5rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem',
+                backdropFilter: 'blur(4px)',
+              }}
+            >
+              <strong style={{ fontSize: '1.05rem', letterSpacing: '0.05em' }}>
+                {currentCopy.highlightsTitle}
+              </strong>
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.9rem',
+                }}
+              >
+                {stories.map(item => (
+                  <div
+                    key={item.title}
+                    style={{
+                      padding: '0.1rem 0 0.35rem',
+                      borderBottom: '1px solid rgba(148, 163, 184, 0.2)',
+                    }}
+                  >
+                    <h3
+                      style={{
+                        margin: 0,
+                        fontSize: '1rem',
+                        fontWeight: 600,
+                        color: '#F8FAFC',
+                      }}
+                    >
+                      {item.title}
+                    </h3>
+                    <p
+                      style={{
+                        margin: '0.35rem 0 0',
+                        fontSize: '0.88rem',
+                        color: 'rgba(226, 232, 240, 0.65)',
+                        lineHeight: 1.55,
+                      }}
+                    >
+                      {item.summary}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div
+            style={{
+              position: 'relative',
+              zIndex: 1,
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '0.75rem',
+              color: 'rgba(226, 232, 240, 0.75)',
+              fontSize: '0.9rem',
+            }}
+          >
+            {currentCopy.quickLinks.map(label => (
+              <span
+                key={label}
+                style={{
+                  padding: '0.35rem 0.9rem',
+                  borderRadius: '999px',
+                  border: '1px solid rgba(148, 197, 253, 0.25)',
+                  background: 'rgba(148, 197, 253, 0.08)',
+                  backdropFilter: 'blur(6px)',
+                }}
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+        </section>
+
+        <section
+          style={{
+            background: palette.backgroundSurface,
+            borderRadius: '1.75rem',
+            boxShadow: '0 32px 70px rgba(15, 23, 42, 0.18)',
+            padding: '2.75rem 2.5rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '2.25rem',
+          }}
+        >
+          <header
+            style={{
+              textAlign: direction === 'rtl' ? 'right' : 'left',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.75rem',
+            }}
+          >
+            <h2
               style={{
                 margin: 0,
-                fontSize: '2rem',
+                fontSize: '2.05rem',
+                fontWeight: 700,
                 color: palette.textPrimary,
               }}
             >
-              {language === 'ar' ? 'تسجيل الدخول إلى البوابة' : 'Sign in to the portal'}
-            </h1>
+              {currentCopy.formTitle}
+            </h2>
             <p
               style={{
-                marginTop: '0.5rem',
+                margin: 0,
                 color: palette.textSecondary,
-                lineHeight: 1.6,
+                lineHeight: 1.7,
+                fontSize: '0.98rem',
               }}
             >
-              {language === 'ar'
-                ? 'أدخل بريدك الإلكتروني وكلمة المرور للوصول إلى نظام باكورة.'
-                : 'Enter your email and password to access the Bakurah platform.'}
+              {currentCopy.formSubtitle}
             </p>
-          </div>
-        </div>
+          </header>
 
-        <form
-          onSubmit={handleSubmit}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1.25rem',
-          }}
-        >
-          <label
+          <form
+            onSubmit={handleSubmit}
             style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: '0.5rem',
-              color: palette.textPrimary,
+              gap: '1.35rem',
             }}
           >
-            <span style={{ fontWeight: 600 }}>
-              {language === 'ar' ? 'البريد الإلكتروني' : 'Email address'}
-            </span>
-            <input
-              type="email"
-              required
-              autoComplete="email"
-              value={form.email}
-              onChange={handleChange('email')}
-              style={{
-                padding: '0.85rem 1rem',
-                borderRadius: '0.85rem',
-                border: `1px solid ${palette.neutralBorder}`,
-                fontSize: '1rem',
-                outline: 'none',
-              }}
-            />
-          </label>
-
-          <label
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.5rem',
-              color: palette.textPrimary,
-            }}
-          >
-            <span style={{ fontWeight: 600 }}>
-              {language === 'ar' ? 'كلمة المرور' : 'Password'}
-            </span>
-            <input
-              type="password"
-              required
-              autoComplete="current-password"
-              value={form.password}
-              onChange={handleChange('password')}
-              style={{
-                padding: '0.85rem 1rem',
-                borderRadius: '0.85rem',
-                border: `1px solid ${palette.neutralBorder}`,
-                fontSize: '1rem',
-                outline: 'none',
-              }}
-            />
-          </label>
-
-          {requires2FA ? (
             <label
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '0.5rem',
+                gap: '0.55rem',
+                color: palette.textPrimary,
+              }}
+            >
+              <span style={{ fontWeight: 600 }}>{currentCopy.emailLabel}</span>
+              <input
+                type="email"
+                required
+                autoComplete="email"
+                value={form.email}
+                onChange={handleChange('email')}
+                style={{
+                  padding: '0.95rem 1rem',
+                  borderRadius: '0.95rem',
+                  border: `1px solid ${palette.neutralBorder}`,
+                  fontSize: '1rem',
+                  outline: 'none',
+                  background: palette.backgroundBase,
+                  transition: 'border 0.2s ease, box-shadow 0.2s ease',
+                  boxShadow: '0 8px 20px rgba(15, 23, 42, 0.04)',
+                }}
+              />
+            </label>
+
+            <label
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.55rem',
                 color: palette.textPrimary,
               }}
             >
               <span style={{ fontWeight: 600 }}>
-                {language === 'ar' ? 'رمز التحقق 2FA' : '2FA verification code'}
+                {currentCopy.passwordLabel}
               </span>
               <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
+                type="password"
                 required
-                maxLength={6}
-                value={form.totpToken}
-                onChange={handleChange('totpToken')}
+                autoComplete="current-password"
+                value={form.password}
+                onChange={handleChange('password')}
                 style={{
-                  padding: '0.85rem 1rem',
-                  borderRadius: '0.85rem',
+                  padding: '0.95rem 1rem',
+                  borderRadius: '0.95rem',
                   border: `1px solid ${palette.neutralBorder}`,
                   fontSize: '1rem',
                   outline: 'none',
-                  letterSpacing: '0.4rem',
-                  textAlign: 'center',
+                  background: palette.backgroundBase,
+                  transition: 'border 0.2s ease, box-shadow 0.2s ease',
+                  boxShadow: '0 8px 20px rgba(15, 23, 42, 0.04)',
                 }}
               />
             </label>
-          ) : null}
 
-          <button
-            type="submit"
-            disabled={loginMutation.isPending}
-            style={{
-              marginTop: '0.5rem',
-              padding: '0.95rem 1rem',
-              borderRadius: '0.95rem',
-              border: 'none',
-              background: palette.brandPrimaryStrong,
-              color: palette.textOnBrand,
-              fontWeight: 700,
-              fontSize: '1rem',
-              cursor: loginMutation.isPending ? 'wait' : 'pointer',
-              transition: 'transform 0.2s ease',
-            }}
-          >
-            {loginMutation.isPending
-              ? language === 'ar'
-                ? 'جارٍ تسجيل الدخول…'
-                : 'Signing in…'
-              : language === 'ar'
-                ? 'تسجيل الدخول'
-                : 'Sign in'}
-          </button>
-        </form>
+            {requires2FA ? (
+              <label
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.55rem',
+                  color: palette.textPrimary,
+                }}
+              >
+                <span style={{ fontWeight: 600 }}>{currentCopy.totpLabel}</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  required
+                  maxLength={6}
+                  value={form.totpToken}
+                  onChange={handleChange('totpToken')}
+                  style={{
+                    padding: '0.95rem 1rem',
+                    borderRadius: '0.95rem',
+                    border: `1px solid ${palette.brandSecondarySoft}`,
+                    fontSize: '1.05rem',
+                    outline: 'none',
+                    letterSpacing: '0.4rem',
+                    textAlign: 'center',
+                    background: palette.backgroundBase,
+                    boxShadow: '0 8px 18px rgba(59, 130, 246, 0.15)',
+                  }}
+                />
+              </label>
+            ) : null}
 
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.75rem',
-            textAlign: 'center',
-          }}
-        >
-          <p
-            style={{
-              margin: 0,
-              fontSize: '0.95rem',
-              color: palette.textSecondary,
-            }}
-          >
-            {language === 'ar' ? 'ليس لديك حساب؟ ' : "Don't have an account? "}
-            <Link
-              to="/register"
+            <button
+              type="submit"
+              disabled={loginMutation.isPending}
               style={{
-                color: palette.brandPrimaryStrong,
-                fontWeight: 600,
-                textDecoration: 'none',
+                marginTop: '0.5rem',
+                padding: '1rem',
+                borderRadius: '1rem',
+                border: 'none',
+                background: palette.brandPrimaryStrong,
+                color: palette.textOnBrand,
+                fontWeight: 700,
+                fontSize: '1.05rem',
+                cursor: loginMutation.isPending ? 'wait' : 'pointer',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                boxShadow: '0 22px 40px rgba(44, 116, 204, 0.25)',
               }}
+            >
+              {loginMutation.isPending
+                ? currentCopy.signingIn
+                : currentCopy.signIn}
+            </button>
+          </form>
+
+          <footer
+            style={{
+              textAlign: 'center',
+              color: palette.textSecondary,
+              fontSize: '0.95rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.75rem',
+            }}
           >
-            {language === 'ar'
-              ? ' طلب إنشاء حساب مستثمر جديد'
-              : 'Submit a new investor signup request'}
-            </Link>
-          </p>
-        </div>
+            <p style={{ margin: 0 }}>
+              {currentCopy.noAccount}{' '}
+              <Link
+                to="/register"
+                style={{
+                  color: palette.brandPrimaryStrong,
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                }}
+              >
+                {currentCopy.inviteCta}
+              </Link>
+            </p>
+            <span style={{ fontSize: '0.82rem', color: palette.textMuted }}>
+              {language === 'ar'
+                ? 'محمي عبر المصادقة متعددة العوامل وRLS على مستوى الصفوف.'
+                : 'Secured with multi-factor authentication and row-level security.'}
+            </span>
+          </footer>
+        </section>
       </div>
     </div>
   );
