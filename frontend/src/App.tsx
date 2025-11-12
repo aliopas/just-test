@@ -22,7 +22,6 @@ import { AdminReportsPage } from './pages/AdminReportsPage';
 import { AdminAuditLogPage } from './pages/AdminAuditLogPage';
 import { AdminInvestorsPage } from './pages/AdminInvestorsPage';
 import { InvestorDashboardPage } from './pages/InvestorDashboardPage';
-import { InvestorStocksPage } from './pages/InvestorStocksPage';
 import { MyRequestsPage } from './pages/MyRequestsPage';
 import { AdminSignupRequestsPage } from './pages/AdminSignupRequestsPage';
 
@@ -96,7 +95,7 @@ function HeaderNav() {
     language === 'ar' ? 'بوابة باكورة للمستثمرين' : 'Bakurah Investors Portal';
   const portalSubtitle =
     language === 'ar'
-      ? 'تجربة موحدة لاستقبال المستثمرين، بناء الملفات، وتقديم الطلبات بسهولة.'
+            ? 'تجربة موحدة لاستقبال المستثمرين.'
       : 'Investor onboarding, profiling, and request submission experiences.';
 
   return (
@@ -184,16 +183,6 @@ function HeaderNav() {
           end
         >
           {language === 'ar' ? 'لوحة المتابعة' : 'Dashboard'}
-        </NavLink>
-        <NavLink
-          to="/stocks"
-          style={({ isActive }) => ({
-            ...navLinkStyle,
-            background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
-            color: isActive ? palette.textPrimary : palette.textSecondary,
-          })}
-        >
-          {language === 'ar' ? 'سوق باكورة' : 'Bacura stock'}
         </NavLink>
         <NavLink
           to="/requests"
@@ -401,7 +390,6 @@ function InvestorApp() {
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<InvestorDashboardPage />} />
-        <Route path="/stocks" element={<InvestorStocksPage />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/requests" element={<MyRequestsPage />} />
         <Route path="/requests/new" element={<NewRequestPage />} />
