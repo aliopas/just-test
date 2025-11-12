@@ -1,4 +1,4 @@
-import { ChangeEvent, FormEvent, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLogin } from '../hooks/useLogin';
 import { useToast } from '../context/ToastContext';
@@ -111,6 +111,46 @@ export function LoginPage() {
 
   const currentCopy = copy[language];
   const stories = headlineStories[language];
+  const marketMood = {
+    ar: ['إيجابي', 'محايد', 'حذر'],
+    en: ['Bullish', 'Neutral', 'Cautious'],
+  } as const;
+  const tickerItems = {
+    ar: [
+      'تقارير الربع الرابع تصدر الأسبوع القادم',
+      'سياسات هيئة السوق الجديدة تدخل حيّز التنفيذ',
+      'انتهاء فترة الاكتتاب العام لفرصة التقنية المتقدمة',
+    ],
+    en: [
+      'Q4 reports scheduled for release next week',
+      'CMA introduces updated listing guidelines',
+      'Subscription window closing for Advanced Tech opportunity',
+    ],
+  } as const;
+
+  const [currentTime, setCurrentTime] = useState(() => new Date());
+  const [headlineIndex, setHeadlineIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const rotator = window.setInterval(() => {
+      setHeadlineIndex(prev => (prev + 1) % stories.length);
+    }, 8_000);
+    return () => window.clearInterval(rotator);
+  }, [stories.length]);
+
+  useEffect(() => {
+    setHeadlineIndex(0);
+  }, [language]);
+
+  const currentHeadline = stories[headlineIndex];
+  const ticker = tickerItems[language];
 
   const handleChange = (field: keyof LoginFormState) => (event: ChangeEvent<HTMLInputElement>) => {
     setForm(current => ({
@@ -261,6 +301,69 @@ export function LoginPage() {
                   : 'Invest smarter with Bakurah'
               }
             />
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                justifyContent: 'space-between',
+                gap: '0.85rem',
+                alignItems: 'center',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.85rem',
+                  fontSize: '0.92rem',
+                  color: 'rgba(226, 232, 240, 0.85)',
+                }}
+              >
+                <span
+                  style={{
+                    padding: '0.4rem 0.8rem',
+                    borderRadius: '999px',
+                    background: 'rgba(15, 118, 237, 0.25)',
+                    border: '1px solid rgba(148, 197, 253, 0.3)',
+                    fontWeight: 600,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {language === 'ar' ? 'تحديث مباشر' : 'Live Update'}
+                </span>
+                <span>
+                  {currentTime.toLocaleString(
+                    language === 'ar' ? 'ar-SA' : 'en-US',
+                    {
+                      weekday: 'short',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    }
+                  )}
+                </span>
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.6rem',
+                  fontSize: '0.9rem',
+                  color: 'rgba(226, 232, 240, 0.8)',
+                }}
+              >
+                <span
+                  style={{
+                    width: '0.65rem',
+                    height: '0.65rem',
+                    borderRadius: '999px',
+                    background: '#34D399',
+                    boxShadow: '0 0 12px rgba(52, 211, 153, 0.5)',
+                  }}
+                />
+                <span>{marketMood[language][headlineIndex % marketMood[language].length]}</span>
+              </div>
+            </div>
             <div>
               <span
                 style={{
@@ -404,6 +507,54 @@ export function LoginPage() {
                   </div>
                 ))}
               </div>
+            </div>
+            <div
+              style={{
+                background: 'rgba(8, 16, 35, 0.65)',
+                border: '1px solid rgba(148, 163, 184, 0.25)',
+                borderRadius: '1.25rem',
+                padding: '1.5rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.75rem',
+                backdropFilter: 'blur(6px)',
+              }}
+            >
+              <strong style={{ fontSize: '1.02rem', letterSpacing: '0.05em' }}>
+                {language === 'ar' ? 'زاوية التحليل' : 'Analyst Corner'}
+              </strong>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: '0.9rem',
+                  lineHeight: 1.6,
+                  color: 'rgba(226, 232, 240, 0.75)',
+                }}
+              >
+                {language === 'ar'
+                  ? currentHeadline.summary
+                  : currentHeadline.summary}
+              </p>
+              <span
+                style={{
+                  fontSize: '0.82rem',
+                  color: 'rgba(148, 197, 253, 0.8)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.18em',
+                }}
+              >
+                {language === 'ar' ? 'مميّز الآن' : 'Spotlight'}
+              </span>
+              <h3
+                style={{
+                  margin: 0,
+                  fontSize: '1.15rem',
+                  fontWeight: 600,
+                  color: '#F8FAFC',
+                }}
+              >
+                {currentHeadline.title}
+              </h3>
             </div>
           </div>
 
@@ -596,6 +747,33 @@ export function LoginPage() {
                 ? currentCopy.signingIn
                 : currentCopy.signIn}
             </button>
+            <ul
+              style={{
+                margin: '0.25rem 0 0',
+                paddingInlineStart: direction === 'rtl' ? '1.2rem' : '1.4rem',
+                color: palette.textSecondary,
+                fontSize: '0.85rem',
+                lineHeight: 1.6,
+                display: 'grid',
+                gap: '0.35rem',
+              }}
+            >
+              <li>
+                {language === 'ar'
+                  ? 'مصادقة متعددة العوامل مع رموز مؤقتة لمدة 60 ثانية.'
+                  : 'Multi-factor auth with rolling 60-second TOTP codes.'}
+              </li>
+              <li>
+                {language === 'ar'
+                  ? 'حماية RLS على مستوى البيانات لضمان خصوصية المحافظ.'
+                  : 'Row-level security keeps portfolios isolated per investor.'}
+              </li>
+              <li>
+                {language === 'ar'
+                  ? 'يتم مراقبة التسجيلات والتحذيرات عبر لوحة العمليات.'
+                  : 'Session events and alerts monitored by the ops desk.'}
+              </li>
+            </ul>
           </form>
 
           <footer
@@ -629,6 +807,66 @@ export function LoginPage() {
           </footer>
         </section>
       </div>
+      <aside
+        style={{
+          position: 'fixed',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          padding: '0.65rem 0',
+          background:
+            'linear-gradient(90deg, rgba(15, 23, 42, 0.9) 0%, rgba(15, 23, 42, 0.75) 100%)',
+          borderTop: '1px solid rgba(148, 163, 184, 0.35)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1.25rem',
+          color: '#E2E8F0',
+          fontSize: '0.9rem',
+          letterSpacing: '0.05em',
+          overflow: 'hidden',
+          zIndex: 5,
+        }}
+      >
+        <span
+          style={{
+            marginInlineStart: direction === 'rtl' ? '1.5rem' : '1rem',
+            marginInlineEnd: direction === 'rtl' ? '1rem' : '1.5rem',
+            padding: '0.35rem 0.85rem',
+            borderRadius: '999px',
+            background: 'rgba(79, 70, 229, 0.2)',
+            border: '1px solid rgba(129, 140, 248, 0.35)',
+            fontWeight: 600,
+          }}
+        >
+          {language === 'ar' ? 'نشرة الأخبار' : 'Market Bulletin'}
+        </span>
+        <div
+          style={{
+            display: 'flex',
+            gap: '2.5rem',
+            animation: 'ticker-scroll 28s linear infinite',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {[...ticker, ...ticker].map((item, index) => (
+            <span key={`${item}-${index}`} style={{ opacity: 0.85 }}>
+              {item}
+            </span>
+          ))}
+        </div>
+      </aside>
+      <style>
+        {`
+          @keyframes ticker-scroll {
+            0% {
+              transform: translateX(${direction === 'rtl' ? '0' : '0'});
+            }
+            100% {
+              transform: translateX(${direction === 'rtl' ? '25%' : '-50%'});
+            }
+          }
+        `}
+      </style>
     </div>
   );
 }
