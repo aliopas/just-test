@@ -12,6 +12,7 @@ import { LoginPage } from './pages/LoginPage';
 import { useAuth } from './context/AuthContext';
 import { RegisterPage } from './pages/RegisterPage';
 import { VerifyOtpPage } from './pages/VerifyOtpPage';
+import { PublicLandingPage } from './pages/PublicLandingPage';
 import { AdminRequestsInboxPage } from './pages/AdminRequestsInboxPage';
 import { AdminRequestDetailPage } from './pages/AdminRequestDetailPage';
 import { InvestorNewsListPage } from './pages/InvestorNewsListPage';
@@ -452,9 +453,11 @@ export function App() {
   if (!isAuthenticated) {
     return (
       <Routes>
+        <Route path="/" element={<PublicLandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/verify" element={<VerifyOtpPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="*" element={<LoginPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
   }
