@@ -1,4 +1,4 @@
-import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
+import { ChangeEvent, FormEvent, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLogin } from '../hooks/useLogin';
 import { useToast } from '../context/ToastContext';
@@ -33,13 +33,6 @@ export function LoginPage() {
       heroTitle: 'مرحباً بك في مركز أخبار باكورة',
       heroSubtitle:
         'تابع آخر المستجدات الاستثمارية، تقارير السوق، والمصادقة على الصفقات قبل الانضمام إلى منصتك.',
-      highlightsTitle: 'مختارات اليوم',
-      snapshotTitle: 'نظرة على السوق',
-      snapshotItems: [
-        { label: 'مؤشر تاسي', value: '+1.3%' },
-        { label: 'قطاع التقنية', value: '+2.1%' },
-        { label: 'صفقات جارية', value: '17' },
-      ],
       formTitle: 'تسجيل الدخول',
       formSubtitle:
         'ادخل بيانات الوصول الخاصة بك للاستمرار إلى لوحة التحكم الاستثمارية.',
@@ -50,20 +43,12 @@ export function LoginPage() {
       signingIn: 'جارٍ تسجيل الدخول…',
       inviteCta: 'طلب إنشاء حساب مستثمر جديد',
       noAccount: 'ليس لديك حساب؟',
-      quickLinks: ['الملف الاستثماري', 'التقارير التفاعلية', 'مركز التنبيهات'],
     },
     en: {
       headline: 'Investors Portal',
       heroTitle: 'Your Investment Newsroom',
       heroSubtitle:
         'Track market sentiment, monitor Bakurah initiatives, and authenticate your access to the investor workspace.',
-      highlightsTitle: 'Today’s Highlights',
-      snapshotTitle: 'Market Snapshot',
-      snapshotItems: [
-        { label: 'TASI Index', value: '+1.3%' },
-        { label: 'Tech Sector', value: '+2.1%' },
-        { label: 'Active Deals', value: '17' },
-      ],
       formTitle: 'Sign In',
       formSubtitle:
         'Enter your secure credentials to unlock the investor operations console.',
@@ -74,83 +59,10 @@ export function LoginPage() {
       signingIn: 'Signing in…',
       inviteCta: 'Submit a new investor signup request',
       noAccount: "Don't have an account?",
-      quickLinks: ['Investor Profile', 'Interactive Reports', 'Alert Center'],
     },
   } as const;
 
-  const headlineStories = {
-    ar: [
-      {
-        title: 'مذكرة تفاهم مع صندوق نمو واعد',
-        summary: 'فرص استثمار مشتركة في التقنية المالية والأسواق الناشئة.',
-      },
-      {
-        title: 'تقرير الربع الثالث',
-        summary: 'أداء المحافظ الاستثمارية يتفوق على المؤشر بـ 2.4٪.',
-      },
-      {
-        title: 'نشرة المخاطر',
-        summary: 'توجيهات للحد من مكامن التذبذب في رأس المال الجريء.',
-      },
-    ],
-    en: [
-      {
-        title: 'Strategic MoU with Prominent Growth Fund',
-        summary: 'Co-investment pipeline expands across fintech and emerging markets.',
-      },
-      {
-        title: 'Q3 Performance Brief',
-        summary: 'Managed portfolios outperformed the market benchmark by 2.4%.',
-      },
-      {
-        title: 'Risk Advisory Bulletin',
-        summary: 'Guidance to navigate volatility across venture allocations.',
-      },
-    ],
-  } as const;
-
   const currentCopy = copy[language];
-  const stories = headlineStories[language];
-  const marketMood = {
-    ar: ['إيجابي', 'محايد', 'حذر'],
-    en: ['Bullish', 'Neutral', 'Cautious'],
-  } as const;
-  const tickerItems = {
-    ar: [
-      'تقارير الربع الرابع تصدر الأسبوع القادم',
-      'سياسات هيئة السوق الجديدة تدخل حيّز التنفيذ',
-      'انتهاء فترة الاكتتاب العام لفرصة التقنية المتقدمة',
-    ],
-    en: [
-      'Q4 reports scheduled for release next week',
-      'CMA introduces updated listing guidelines',
-      'Subscription window closing for Advanced Tech opportunity',
-    ],
-  } as const;
-
-  const [currentTime, setCurrentTime] = useState(() => new Date());
-  const [headlineIndex, setHeadlineIndex] = useState(0);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60_000);
-    return () => window.clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    const rotator = window.setInterval(() => {
-      setHeadlineIndex(prev => (prev + 1) % stories.length);
-    }, 8_000);
-    return () => window.clearInterval(rotator);
-  }, [stories.length]);
-
-  useEffect(() => {
-    setHeadlineIndex(0);
-  }, [language]);
-
-  const currentHeadline = stories[headlineIndex];
-  const ticker = tickerItems[language];
 
   const handleChange = (field: keyof LoginFormState) => (event: ChangeEvent<HTMLInputElement>) => {
     setForm(current => ({
@@ -293,69 +205,6 @@ export function LoginPage() {
                   : 'Invest smarter with Bakurah'
               }
             />
-            <div
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                justifyContent: 'space-between',
-                gap: '0.85rem',
-                alignItems: 'center',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.85rem',
-                  fontSize: '0.92rem',
-                  color: 'rgba(226, 232, 240, 0.85)',
-                }}
-              >
-                <span
-                  style={{
-                    padding: '0.4rem 0.8rem',
-                    borderRadius: '999px',
-                    background: 'rgba(15, 118, 237, 0.25)',
-                    border: '1px solid rgba(148, 197, 253, 0.3)',
-                    fontWeight: 600,
-                    letterSpacing: '0.08em',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  {language === 'ar' ? 'تحديث مباشر' : 'Live Update'}
-                </span>
-                <span>
-                  {currentTime.toLocaleString(
-                    language === 'ar' ? 'ar-SA' : 'en-US',
-                    {
-                      weekday: 'short',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    }
-                  )}
-                </span>
-              </div>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.6rem',
-                  fontSize: '0.9rem',
-                  color: 'rgba(226, 232, 240, 0.8)',
-                }}
-              >
-                <span
-                  style={{
-                    width: '0.65rem',
-                    height: '0.65rem',
-                    borderRadius: '999px',
-                    background: '#34D399',
-                    boxShadow: '0 0 12px rgba(52, 211, 153, 0.5)',
-                  }}
-                />
-                <span>{marketMood[language][headlineIndex % marketMood[language].length]}</span>
-              </div>
-            </div>
             <div>
               <span
                 style={{
@@ -389,219 +238,6 @@ export function LoginPage() {
               >
                 {currentCopy.heroSubtitle}
               </p>
-            </div>
-          </div>
-
-          <div
-            style={{
-              position: 'relative',
-              zIndex: 1,
-              display: 'grid',
-              gap: '1.4rem',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            }}
-          >
-            <div
-              style={{
-                background: 'rgba(15, 118, 237, 0.15)',
-                border: '1px solid rgba(148, 197, 253, 0.3)',
-                borderRadius: '1.25rem',
-                padding: '1.35rem',
-                backdropFilter: 'blur(6px)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.75rem',
-              }}
-            >
-              <strong style={{ fontSize: '1.05rem', letterSpacing: '0.06em' }}>
-                {currentCopy.snapshotTitle}
-              </strong>
-              <ul
-                style={{
-                  margin: 0,
-                  padding: 0,
-                  listStyle: 'none',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.65rem',
-                  color: 'rgba(226, 232, 240, 0.85)',
-                  fontSize: '0.95rem',
-                }}
-              >
-                {currentCopy.snapshotItems.map(item => (
-                  <li
-                    key={item.label}
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      gap: '0.75rem',
-                    }}
-                  >
-                    <span>{item.label}</span>
-                    <span style={{ fontWeight: 600, color: '#F8FAFC' }}>
-                      {item.value}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div
-              style={{
-                background: 'rgba(15, 23, 42, 0.55)',
-                border: '1px solid rgba(148, 163, 184, 0.2)',
-                borderRadius: '1.25rem',
-                padding: '1.35rem 1.5rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1rem',
-                backdropFilter: 'blur(4px)',
-              }}
-            >
-              <strong style={{ fontSize: '1.05rem', letterSpacing: '0.05em' }}>
-                {currentCopy.highlightsTitle}
-              </strong>
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.9rem',
-                }}
-              >
-                {stories.map(item => (
-                  <div
-                    key={item.title}
-                    style={{
-                      padding: '0.1rem 0 0.35rem',
-                      borderBottom: '1px solid rgba(148, 163, 184, 0.2)',
-                    }}
-                  >
-                    <h3
-                      style={{
-                        margin: 0,
-                        fontSize: '1rem',
-                        fontWeight: 600,
-                        color: '#F8FAFC',
-                      }}
-                    >
-                      {item.title}
-                    </h3>
-                    <p
-                      style={{
-                        margin: '0.35rem 0 0',
-                        fontSize: '0.88rem',
-                        color: 'rgba(226, 232, 240, 0.65)',
-                        lineHeight: 1.55,
-                      }}
-                    >
-                      {item.summary}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div
-              style={{
-                background: 'rgba(8, 16, 35, 0.65)',
-                border: '1px solid rgba(148, 163, 184, 0.25)',
-                borderRadius: '1.25rem',
-                padding: '1.5rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.75rem',
-                backdropFilter: 'blur(6px)',
-              }}
-            >
-              <strong style={{ fontSize: '1.02rem', letterSpacing: '0.05em' }}>
-                {language === 'ar' ? 'زاوية التحليل' : 'Analyst Corner'}
-              </strong>
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: '0.9rem',
-                  lineHeight: 1.6,
-                  color: 'rgba(226, 232, 240, 0.75)',
-                }}
-              >
-                {language === 'ar'
-                  ? currentHeadline.summary
-                  : currentHeadline.summary}
-              </p>
-              <span
-                style={{
-                  fontSize: '0.82rem',
-                  color: 'rgba(148, 197, 253, 0.8)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.18em',
-                }}
-              >
-                {language === 'ar' ? 'مميّز الآن' : 'Spotlight'}
-              </span>
-              <h3
-                style={{
-                  margin: 0,
-                  fontSize: '1.15rem',
-                  fontWeight: 600,
-                  color: '#F8FAFC',
-                }}
-              >
-                {currentHeadline.title}
-              </h3>
-            </div>
-          </div>
-
-          <div
-            style={{
-              position: 'relative',
-              zIndex: 1,
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '0.75rem',
-              color: 'rgba(226, 232, 240, 0.75)',
-              fontSize: '0.9rem',
-            }}
-          >
-            {currentCopy.quickLinks.map(label => (
-              <span
-                key={label}
-                style={{
-                  padding: '0.35rem 0.9rem',
-                  borderRadius: '999px',
-                  border: '1px solid rgba(148, 197, 253, 0.25)',
-                  background: 'rgba(148, 197, 253, 0.08)',
-                  backdropFilter: 'blur(6px)',
-                }}
-              >
-                {label}
-              </span>
-            ))}
-          </div>
-          <div
-            style={{
-              position: 'relative',
-              zIndex: 1,
-              marginTop: 'auto',
-              borderRadius: '1.1rem',
-              padding: '1rem 1.35rem',
-              background: 'rgba(6, 16, 40, 0.6)',
-              border: '1px solid rgba(148, 197, 253, 0.25)',
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                gap: '2rem',
-                whiteSpace: 'nowrap',
-                animation: 'news-marquee 28s linear infinite',
-                animationDirection: direction === 'rtl' ? 'reverse' : 'normal',
-                fontSize: '0.88rem',
-                color: 'rgba(226, 232, 240, 0.82)',
-              }}
-            >
-              {[...ticker, ...ticker].map((item, idx) => (
-                <span key={`${item}-${idx}`}>{item}</span>
-              ))}
             </div>
           </div>
         </section>
