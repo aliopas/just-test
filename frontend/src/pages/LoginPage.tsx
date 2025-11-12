@@ -463,14 +463,6 @@ export function LoginPage() {
           </footer>
         </section>
       </div>
-      <style>
-        {`
-          @keyframes news-marquee {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-          }
-        `}
-      </style>
     </div>
   );
 }
