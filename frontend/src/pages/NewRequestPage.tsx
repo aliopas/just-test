@@ -3,7 +3,6 @@ import { useLanguage } from '../context/LanguageContext';
 import { NewRequestForm } from '../components/request/NewRequestForm';
 import { tRequest } from '../locales/newRequest';
 import { useInvestorDashboard } from '../hooks/useInvestorDashboard';
-import type { RequestCurrency } from '../types/request';
 
 function NewRequestPageInner() {
   const { language, direction } = useLanguage();
@@ -39,16 +38,6 @@ function NewRequestPageInner() {
       .slice(0, 3);
   }, [dashboard]);
 
-  const suggestedCurrency = useMemo<RequestCurrency | undefined>(() => {
-    const currency = dashboard?.insights?.lastRequest?.currency ?? null;
-    if (!currency) {
-      return undefined;
-    }
-    if (currency === 'SAR' || currency === 'USD' || currency === 'EUR') {
-      return currency;
-    }
-    return undefined;
-  }, [dashboard]);
 
   return (
     <div
@@ -118,7 +107,6 @@ function NewRequestPageInner() {
         <NewRequestForm
           quickAmounts={quickAmounts}
           isQuickAmountsLoading={isDashboardLoading || isDashboardFetching}
-          suggestedCurrency={suggestedCurrency}
         />
       </section>
     </div>
