@@ -1131,6 +1131,7 @@ export async function getPublishedNewsById(
       created_at: string;
       updated_at: string;
       status: NewsStatus;
+      audience: NewsAudience;
     }>();
 
   if (error) {
