@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { apiClient, ApiError } from '../utils/api-client';
 import { getSupabaseBrowserClient } from '../utils/supabase-client';
+import { storeSessionTokens } from '../utils/session-storage';
 
 interface VerifyResetTokenResponse {
   verified: boolean;
@@ -32,6 +33,12 @@ async function verifyResetToken(input: VerifyResetTokenInput) {
     await supabase.auth.setSession({
       access_token: response.session.access_token,
       refresh_token: response.session.refresh_token,
+    });
+
+    // Store tokens in localStorage so apiClient can use them
+    storeSessionTokens({
+      accessToken: response.session.access_token,
+      refreshToken: response.session.refresh_token,
     });
   }
 

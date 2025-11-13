@@ -9,6 +9,7 @@ import { Logo } from '../components/Logo';
 import { palette } from '../styles/theme';
 import { ApiError } from '../utils/api-client';
 import { getSupabaseBrowserClient } from '../utils/supabase-client';
+import { storeSessionTokens } from '../utils/session-storage';
 
 export function ResetPasswordPage() {
   const { language } = useLanguage();
@@ -118,6 +119,12 @@ export function ResetPasswordPage() {
             if (sessionError || !data.session) {
               throw sessionError || new Error('Failed to set session');
             }
+
+            // Store tokens in localStorage so apiClient can use them
+            storeSessionTokens({
+              accessToken: data.session.access_token,
+              refreshToken: data.session.refresh_token,
+            });
 
             setIsVerified(true);
           } else {
