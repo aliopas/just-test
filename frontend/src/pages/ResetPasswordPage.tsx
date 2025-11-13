@@ -8,6 +8,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { Logo } from '../components/Logo';
 import { palette } from '../styles/theme';
 import { ApiError } from '../utils/api-client';
+import { getSupabaseBrowserClient } from '../utils/supabase-client';
 
 export function ResetPasswordPage() {
   const { language } = useLanguage();
@@ -88,9 +89,13 @@ export function ResetPasswordPage() {
         return;
       }
 
-      // Get token_hash and type from URL
+      // Supabase sends access_token and refresh_token in hash for password reset
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      const type = hashParams.get('type');
+      
+      // Also check for token_hash (older format)
       const tokenHash = searchParams.get('token_hash') || hashParams.get('token_hash');
-      const type = searchParams.get('type') || hashParams.get('type');
       const email = searchParams.get('email') || hashParams.get('email');
       
       // Save email for requesting new link if expired
@@ -98,36 +103,66 @@ export function ResetPasswordPage() {
         setExpiredEmail(email);
       }
 
-      if (!tokenHash || type !== 'recovery') {
-        // Don't show toast here - the UI already shows the error message
-        setIsVerifying(false);
+      // If we have access_token in hash, use it directly (new Supabase format)
+      if (accessToken && refreshToken && type === 'recovery') {
+        try {
+          // Set session directly using access_token
+          const supabase = getSupabaseBrowserClient();
+          
+          if (supabase) {
+            const { data, error: sessionError } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
+
+            if (sessionError || !data.session) {
+              throw sessionError || new Error('Failed to set session');
+            }
+
+            setIsVerified(true);
+          } else {
+            throw new Error('Supabase client not available');
+          }
+        } catch (error) {
+          console.error('Password reset session error:', error);
+          setIsVerified(false);
+        } finally {
+          setIsVerifying(false);
+        }
         return;
       }
 
-      try {
-        // Verify the recovery token via API
-        const result = await verifyTokenMutation.mutateAsync({
-          token_hash: tokenHash,
-          email: email || undefined,
-        });
-
-        if (result.verified) {
-          setIsVerified(true);
-        } else {
-          throw new Error('Verification failed');
-        }
-      } catch (error) {
-        console.error('Password reset verification error:', error);
-        // Only show toast for API errors, not for expired links (UI already shows message)
-        if (error instanceof ApiError && !error.message.includes('expired') && !error.message.includes('Invalid')) {
-          pushToast({
-            variant: 'error',
-            message: error.message,
+      // Fallback: use token_hash if available (older format)
+      if (tokenHash && type === 'recovery') {
+        try {
+          // Verify the recovery token via API
+          const result = await verifyTokenMutation.mutateAsync({
+            token_hash: tokenHash,
+            email: email || undefined,
           });
+
+          if (result.verified) {
+            setIsVerified(true);
+          } else {
+            throw new Error('Verification failed');
+          }
+        } catch (error) {
+          console.error('Password reset verification error:', error);
+          // Only show toast for API errors, not for expired links (UI already shows message)
+          if (error instanceof ApiError && !error.message.includes('expired') && !error.message.includes('Invalid')) {
+            pushToast({
+              variant: 'error',
+              message: error.message,
+            });
+          }
+        } finally {
+          setIsVerifying(false);
         }
-      } finally {
-        setIsVerifying(false);
+        return;
       }
+
+      // No valid token found
+      setIsVerifying(false);
     };
 
     verifyResetToken();
