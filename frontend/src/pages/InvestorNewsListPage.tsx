@@ -10,6 +10,7 @@ import { useInvestorNewsList } from '../hooks/useInvestorNews';
 import type { InvestorNewsItem } from '../types/news';
 import { tInvestorNews } from '../locales/investorNews';
 import { palette } from '../styles/theme';
+import { resolveCoverUrl } from '../utils/supabase-storage';
 
 const queryClient = new QueryClient();
 const PAGE_LIMIT = 12;
@@ -29,23 +30,6 @@ function formatDate(value: string, language: 'ar' | 'en') {
   }
 }
 
-function resolveCoverUrl(coverKey: string | null): string | null {
-  if (!coverKey) {
-    return null;
-  }
-
-  const base =
-    (typeof window !== 'undefined' &&
-      window.__ENV__?.SUPABASE_STORAGE_URL) ??
-    import.meta.env.VITE_SUPABASE_STORAGE_URL ??
-    '';
-
-  if (!base) {
-    return null;
-  }
-  
-  return `${base.replace(/\/$/, '')}/${coverKey}`;
-}
 
 function InvestorNewsListPageInner() {
   const { language, direction } = useLanguage();

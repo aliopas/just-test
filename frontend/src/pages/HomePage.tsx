@@ -4,23 +4,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { palette } from '../styles/theme';
 import { Logo } from '../components/Logo';
 import { useInvestorNewsList } from '../hooks/useInvestorNews';
-
-function resolveCoverUrl(coverKey: string | null): string | null {
-  if (!coverKey) {
-    return null;
-  }
-
-  const base =
-    (typeof window !== 'undefined' && window.__ENV__?.SUPABASE_STORAGE_URL) ??
-    import.meta.env.VITE_SUPABASE_STORAGE_URL ??
-    '';
-
-  if (!base) {
-    return null;
-  }
-
-  return `${base.replace(/\/$/, '')}/${coverKey}`;
-}
+import { resolveCoverUrl } from '../utils/supabase-storage';
 
 export function HomePage() {
   const { direction, language } = useLanguage();

@@ -4,6 +4,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { Logo } from '../components/Logo';
 import { palette } from '../styles/theme';
 import { useInvestorNewsList } from '../hooks/useInvestorNews';
+import { resolveCoverUrl } from '../utils/supabase-storage';
 
 const heroSectionStyle: React.CSSProperties = {
   padding: '4rem 2rem',
@@ -31,22 +32,6 @@ const featureCardStyle: React.CSSProperties = {
   boxShadow: '0 12px 24px rgba(15, 23, 42, 0.08)',
 };
 
-function resolveCoverUrl(coverKey: string | null): string | null {
-  if (!coverKey) {
-    return null;
-  }
-
-  const base =
-    (typeof window !== 'undefined' && window.__ENV__?.SUPABASE_STORAGE_URL) ??
-    import.meta.env.VITE_SUPABASE_STORAGE_URL ??
-    '';
-
-  if (!base) {
-    return null;
-  }
-
-  return `${base.replace(/\/$/, '')}/${coverKey}`;
-}
 
 export function PublicLandingPage() {
   const { language } = useLanguage();

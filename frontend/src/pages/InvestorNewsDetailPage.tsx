@@ -11,6 +11,7 @@ import { useInvestorNewsDetail } from '../hooks/useInvestorNews';
 import { tInvestorNews } from '../locales/investorNews';
 import { palette } from '../styles/theme';
 import { Logo } from '../components/Logo';
+import { resolveCoverUrl } from '../utils/supabase-storage';
 
 const queryClient = new QueryClient();
 
@@ -36,23 +37,6 @@ function formatDate(
   }
 }
 
-function resolveCoverUrl(coverKey: string | null): string | null {
-  if (!coverKey) {
-    return null;
-  }
-
-  const base =
-    (typeof window !== 'undefined' &&
-      window.__ENV__?.SUPABASE_STORAGE_URL) ??
-    import.meta.env.VITE_SUPABASE_STORAGE_URL ??
-    '';
-
-  if (!base) {
-    return null;
-  }
-
-  return `${base.replace(/\/$/, '')}/${coverKey}`;
-}
 
 function renderMarkdown(
   markdown: string,
