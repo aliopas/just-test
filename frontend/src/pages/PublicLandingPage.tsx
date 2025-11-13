@@ -108,46 +108,62 @@ export function PublicLandingPage() {
         <article
           key={`news-skeleton-${index}`}
           style={{
-            padding: '1.75rem',
-            borderRadius: '1rem',
+            borderRadius: '1.25rem',
             border: `1px solid ${palette.neutralBorderSoft}`,
-            background: palette.backgroundBase,
-            display: 'grid',
-            gap: '1rem',
+            background: palette.backgroundSurface,
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
             animation: 'pulse 1.6s ease-in-out infinite',
           }}
         >
           <div
             style={{
-              height: '0.9rem',
-              width: '40%',
-              borderRadius: '999px',
-              background: `${palette.neutralBorderSoft}80`,
+              paddingBottom: '56.25%',
+              background: `${palette.neutralBorderSoft}40`,
             }}
           />
           <div
             style={{
-              height: '1.2rem',
-              width: '70%',
-              borderRadius: '0.75rem',
-              background: `${palette.neutralBorderSoft}66`,
+              padding: '2rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1rem',
             }}
-          />
-          <div
-            style={{
-              height: '3.5rem',
-              borderRadius: '0.75rem',
-              background: `${palette.neutralBorderSoft}4D`,
-            }}
-          />
-          <div
-            style={{
-              height: '0.85rem',
-              width: '30%',
-              borderRadius: '0.75rem',
-              background: `${palette.neutralBorderSoft}66`,
-            }}
-          />
+          >
+            <div
+              style={{
+                height: '0.875rem',
+                width: '40%',
+                borderRadius: '999px',
+                background: `${palette.neutralBorderSoft}80`,
+              }}
+            />
+            <div
+              style={{
+                height: '1.4rem',
+                width: '85%',
+                borderRadius: '0.5rem',
+                background: `${palette.neutralBorderSoft}66`,
+              }}
+            />
+            <div
+              style={{
+                height: '3.5rem',
+                borderRadius: '0.5rem',
+                background: `${palette.neutralBorderSoft}4D`,
+              }}
+            />
+            <div
+              style={{
+                height: '2.5rem',
+                width: '45%',
+                borderRadius: '0.75rem',
+                background: `${palette.neutralBorderSoft}66`,
+                marginTop: '0.5rem',
+              }}
+            />
+          </div>
         </article>
       ));
     }
@@ -156,14 +172,15 @@ export function PublicLandingPage() {
       return (
         <div
           style={{
-            padding: '2rem',
+            gridColumn: '1 / -1',
+            padding: '3rem 2rem',
             borderRadius: '1.25rem',
             border: `1px dashed ${palette.brandSecondaryMuted}`,
-            background: palette.backgroundBase,
+            background: palette.backgroundSurface,
             textAlign: 'center',
             color: palette.textSecondary,
-            fontSize: '0.95rem',
-            lineHeight: 1.6,
+            fontSize: '1rem',
+            lineHeight: 1.7,
           }}
         >
           {newsErrorMessage}
@@ -175,14 +192,15 @@ export function PublicLandingPage() {
       return (
         <div
           style={{
-            padding: '2rem',
+            gridColumn: '1 / -1',
+            padding: '3rem 2rem',
             borderRadius: '1.25rem',
             border: `1px dashed ${palette.brandSecondaryMuted}`,
-            background: palette.backgroundBase,
+            background: palette.backgroundSurface,
             textAlign: 'center',
             color: palette.textSecondary,
-            fontSize: '0.95rem',
-            lineHeight: 1.6,
+            fontSize: '1rem',
+            lineHeight: 1.7,
           }}
         >
           {newsEmptyMessage}
@@ -210,21 +228,33 @@ export function PublicLandingPage() {
         <article
           key={item.id}
           style={{
-            borderRadius: '1rem',
+            borderRadius: '1.25rem',
             border: `1px solid ${palette.neutralBorderSoft}`,
-            background: palette.backgroundBase,
+            background: palette.backgroundSurface,
             overflow: 'hidden',
-            boxShadow: '0 12px 32px rgba(15, 23, 42, 0.12)',
-            display: 'grid',
-            gridTemplateColumns: coverUrl ? 'minmax(0, 1fr) minmax(0, 1.25fr)' : '1fr',
+            boxShadow: '0 4px 20px rgba(4, 44, 84, 0.08)',
+            display: 'flex',
+            flexDirection: 'column',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            cursor: 'pointer',
           }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-4px)';
+            e.currentTarget.style.boxShadow = '0 8px 32px rgba(4, 44, 84, 0.15)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 4px 20px rgba(4, 44, 84, 0.08)';
+          }}
+          onClick={() => window.location.href = '/login'}
         >
           {coverUrl && (
             <div
               style={{
                 position: 'relative',
-                minHeight: '220px',
+                paddingBottom: '56.25%',
                 background: palette.backgroundInverse,
+                overflow: 'hidden',
               }}
             >
               <img
@@ -238,14 +268,32 @@ export function PublicLandingPage() {
                   objectFit: 'cover',
                 }}
               />
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '1rem',
+                  ...(isArabic ? { right: '1rem' } : { left: '1rem' }),
+                  padding: '0.4rem 0.85rem',
+                  borderRadius: '999px',
+                  background: `${palette.backgroundSurface}E6`,
+                  backdropFilter: 'blur(8px)',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  color: palette.brandPrimaryStrong,
+                  letterSpacing: '0.05em',
+                }}
+              >
+                {isArabic ? 'خبر باكورة' : 'Bakurah News'}
+              </div>
             </div>
           )}
           <div
             style={{
-              padding: '1.75rem',
+              padding: '2rem',
               display: 'flex',
               flexDirection: 'column',
-              gap: '0.9rem',
+              gap: '1rem',
+              flexGrow: 1,
               textAlign: isArabic ? 'right' : 'left',
             }}
           >
@@ -256,7 +304,8 @@ export function PublicLandingPage() {
                 alignItems: 'center',
                 gap: '0.75rem',
                 color: palette.textSecondary,
-                fontSize: '0.85rem',
+                fontSize: '0.875rem',
+                fontWeight: 500,
               }}
             >
               <span>{publishedLabel}</span>
@@ -265,9 +314,11 @@ export function PublicLandingPage() {
             <h3
               style={{
                 margin: 0,
-                fontSize: '1.35rem',
+                fontSize: '1.4rem',
                 fontWeight: 700,
                 color: palette.textPrimary,
+                lineHeight: 1.3,
+                marginBottom: '0.5rem',
               }}
             >
               {item.title}
@@ -276,21 +327,34 @@ export function PublicLandingPage() {
               style={{
                 margin: 0,
                 color: palette.textSecondary,
-                lineHeight: 1.65,
+                lineHeight: 1.7,
+                fontSize: '0.95rem',
+                flexGrow: 1,
               }}
             >
               {excerpt}
             </p>
-            <div style={{ marginTop: 'auto' }}>
+            <div style={{ marginTop: '1.25rem' }}>
               <Link
                 to="/login"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '0.5rem',
-                  color: palette.brandSecondary,
+                  padding: '0.65rem 1.25rem',
+                  borderRadius: '0.75rem',
+                  background: palette.brandPrimaryStrong,
+                  color: palette.textOnBrand,
                   fontWeight: 600,
                   textDecoration: 'none',
+                  fontSize: '0.9rem',
+                  transition: 'background 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = palette.brandPrimary;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = palette.brandPrimaryStrong;
                 }}
               >
                 {readMoreLabel}
@@ -298,6 +362,7 @@ export function PublicLandingPage() {
                   aria-hidden
                   style={{
                     transform: isArabic ? 'scaleX(-1)' : 'none',
+                    fontSize: '1.1rem',
                   }}
                 >
                   →
@@ -395,27 +460,6 @@ export function PublicLandingPage() {
             >
               {heroSubtitle}
             </p>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'center',
-              }}
-            >
-              <Link
-                to="/login"
-                style={{
-                  padding: '0.9rem 2.25rem',
-                  borderRadius: '999px',
-                  border: `1px solid ${palette.brandSecondary}`,
-                  background: palette.brandSecondary,
-                  color: palette.textOnBrand,
-                  fontWeight: 700,
-                  textDecoration: 'none',
-                }}
-              >
-                {ctaLabel}
-              </Link>
-            </div>
           </div>
         </section>
 
@@ -465,37 +509,64 @@ export function PublicLandingPage() {
         <section
           style={{
             ...sectionStyle,
-            background: palette.backgroundSurface,
-            borderTop: `1px solid ${palette.neutralBorderSoft}`,
-            borderBottom: `1px solid ${palette.neutralBorderSoft}`,
+            padding: '4rem 2rem',
+            maxWidth: '1200px',
+            background: palette.backgroundBase,
           }}
           dir={isArabic ? 'rtl' : 'ltr'}
         >
-          <h2
+          <div
             style={{
-              margin: 0,
-              fontSize: '1.75rem',
-              fontWeight: 700,
               textAlign: 'center',
+              marginBottom: '3rem',
             }}
           >
-            {newsTitle}
-          </h2>
-          {isNewsFetching && newsItems.length > 0 && !isNewsError && (
-            <span
+            <h2
               style={{
-                textAlign: 'center',
-                color: palette.textSecondary,
-                fontSize: '0.85rem',
+                margin: 0,
+                fontSize: '2rem',
+                fontWeight: 700,
+                color: palette.textPrimary,
+                marginBottom: '0.75rem',
               }}
             >
-              {isArabic ? 'يتم تحديث النشرة الإخبارية…' : 'Refreshing newsroom feed…'}
-            </span>
+              {newsTitle}
+            </h2>
+            <p
+              style={{
+                margin: 0,
+                fontSize: '1.05rem',
+                color: palette.textSecondary,
+                lineHeight: 1.6,
+              }}
+            >
+              {isArabic
+                ? 'تابع آخر التحديثات والأخبار لمنصة باكورة للتقنيات'
+                : 'Stay updated with the latest news and updates from Bakurah Technologies'}
+            </p>
+          </div>
+          {isNewsFetching && newsItems.length > 0 && !isNewsError && (
+            <div
+              style={{
+                textAlign: 'center',
+                marginBottom: '1.5rem',
+              }}
+            >
+              <span
+                style={{
+                  color: palette.textSecondary,
+                  fontSize: '0.9rem',
+                }}
+              >
+                {isArabic ? 'يتم تحديث النشرة الإخبارية…' : 'Refreshing newsroom feed…'}
+              </span>
+            </div>
           )}
           <div
             style={{
               display: 'grid',
-              gap: '1.5rem',
+              gap: '2rem',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
             }}
           >
             {renderNewsContent()}
@@ -517,5 +588,6 @@ export function PublicLandingPage() {
     </div>
   );
 }
+
 
 
