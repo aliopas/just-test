@@ -7,9 +7,27 @@ function resolveSupabaseConfig() {
     return { url: undefined, key: undefined };
   }
 
+  // Try multiple sources for environment variables
   const env = window.__ENV__ ?? {};
-  const url = env.SUPABASE_URL ?? import.meta.env.VITE_SUPABASE_URL;
-  const key = env.SUPABASE_ANON_KEY ?? import.meta.env.VITE_SUPABASE_ANON_KEY;
+  
+  // Priority: window.__ENV__ > import.meta.env (for Vite)
+  const url = env.SUPABASE_URL ?? import.meta.env.VITE_SUPABASE_URL ?? import.meta.env.SUPABASE_URL;
+  const key = env.SUPABASE_ANON_KEY ?? import.meta.env.VITE_SUPABASE_ANON_KEY ?? import.meta.env.SUPABASE_ANON_KEY;
+
+  // Debug logging in development
+  if (import.meta.env.DEV) {
+    if (!url || !key) {
+      console.warn('[Supabase Config Debug]', {
+        hasWindowEnv: !!window.__ENV__,
+        windowEnvUrl: env.SUPABASE_URL ? 'set' : 'missing',
+        windowEnvKey: env.SUPABASE_ANON_KEY ? 'set' : 'missing',
+        viteEnvUrl: import.meta.env.VITE_SUPABASE_URL ? 'set' : 'missing',
+        viteEnvKey: import.meta.env.VITE_SUPABASE_ANON_KEY ? 'set' : 'missing',
+        resolvedUrl: url ? 'found' : 'missing',
+        resolvedKey: key ? 'found' : 'missing',
+      });
+    }
+  }
 
   return { url, key };
 }

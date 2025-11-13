@@ -1,18 +1,27 @@
 # Supabase Client Setup Guide
 
 ## المشكلة
-إذا ظهرت رسالة الخطأ: `Supabase client not available`، فهذا يعني أن متغيرات البيئة الخاصة بـ Supabase غير معرّفة بشكل صحيح.
+إذا ظهرت رسالة الخطأ: `Supabase client not available` أو `Missing configuration: SUPABASE_URL, SUPABASE_ANON_KEY`، فهذا يعني أن متغيرات البيئة الخاصة بـ Supabase غير معرّفة بشكل صحيح.
 
-## الحل
+## الحل السريع
 
 ### 1. إنشاء ملف `.env.local` في مجلد `frontend/`
 
-أنشئ ملف `.env.local` في مجلد `frontend/` وأضف المتغيرات التالية:
+**في Windows (PowerShell):**
+```powershell
+cd frontend
+New-Item -Path .env.local -ItemType File
+```
+
+**أو يدوياً:**
+أنشئ ملف جديد باسم `.env.local` في مجلد `frontend/` وأضف المتغيرات التالية:
 
 ```env
 VITE_SUPABASE_URL=https://your-project-id.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key-here
 ```
+
+**⚠️ مهم:** يجب أن تبدأ المتغيرات بـ `VITE_` حتى تعمل مع Vite.
 
 ### 2. الحصول على القيم من Supabase Dashboard
 
