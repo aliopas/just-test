@@ -34,6 +34,11 @@ export function getSupabaseBrowserClient(): SupabaseClient | null {
       persistSession: false,
       autoRefreshToken: false,
     },
+    realtime: {
+      params: {
+        eventsPerSecond: 10,
+      },
+    },
   });
 
   return client;
