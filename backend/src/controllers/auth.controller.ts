@@ -813,16 +813,18 @@ export const authController = {
         });
       }
 
-      // Update password using Supabase
-      const { error } = await supabase.auth.updateUser({
-        password: password,
-      });
+      // Use admin client to update password (most reliable method)
+      const adminClient = requireSupabaseAdmin();
+      const { error: updateError } = await adminClient.auth.admin.updateUserById(
+        req.user.id,
+        { password: password }
+      );
 
-      if (error) {
+      if (updateError) {
         return res.status(400).json({
           error: {
             code: 'PASSWORD_UPDATE_FAILED',
-            message: error.message || 'Failed to update password',
+            message: updateError.message || 'Failed to update password',
           },
         });
       }
