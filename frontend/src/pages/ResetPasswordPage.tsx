@@ -68,10 +68,26 @@ export function ResetPasswordPage() {
         return;
       }
 
+      // Check for Supabase errors in URL hash (e.g., expired link)
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const error = hashParams.get('error');
+      const errorCode = hashParams.get('error_code');
+      const errorDescription = hashParams.get('error_description');
+
+      if (error || errorCode === 'otp_expired') {
+        pushToast({
+          variant: 'error',
+          message: currentCopy.invalidLink,
+        });
+        setIsVerifying(false);
+        setIsVerified(false);
+        return;
+      }
+
       // Get token_hash and type from URL
-      const tokenHash = searchParams.get('token_hash');
-      const type = searchParams.get('type');
-      const email = searchParams.get('email');
+      const tokenHash = searchParams.get('token_hash') || hashParams.get('token_hash');
+      const type = searchParams.get('type') || hashParams.get('type');
+      const email = searchParams.get('email') || hashParams.get('email');
 
       if (!tokenHash || type !== 'recovery') {
         pushToast({
@@ -238,32 +254,53 @@ export function ResetPasswordPage() {
         ) : !isVerified ? (
           <div
             style={{
-              padding: '1rem',
+              padding: '1.5rem',
               borderRadius: '0.95rem',
               background: palette.brandSecondarySoft,
               border: `1px solid ${palette.brandSecondary}`,
               textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1rem',
             }}
           >
-            <p style={{ margin: 0, color: palette.textPrimary }}>
-              {currentCopy.invalidLinkDesc}
-            </p>
-            <button
-              type="button"
-              onClick={() => navigate('/login', { replace: true })}
-              style={{
-                marginTop: '1rem',
-                padding: '0.75rem 1.5rem',
-                borderRadius: '0.75rem',
-                border: `1px solid ${palette.brandPrimaryStrong}`,
-                background: palette.brandPrimaryStrong,
-                color: palette.textOnBrand,
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              {language === 'ar' ? 'العودة لتسجيل الدخول' : 'Back to Sign In'}
-            </button>
+            <div>
+              <p style={{ margin: 0, color: palette.textPrimary, fontWeight: 600, marginBottom: '0.5rem' }}>
+                {currentCopy.invalidLink}
+              </p>
+              <p style={{ margin: 0, color: palette.textSecondary, fontSize: '0.9rem' }}>
+                {currentCopy.invalidLinkDesc}
+              </p>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <button
+                type="button"
+                onClick={() => navigate('/login', { replace: true })}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '0.75rem',
+                  border: `1px solid ${palette.brandPrimaryStrong}`,
+                  background: palette.brandPrimaryStrong,
+                  color: palette.textOnBrand,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.02)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+              >
+                {language === 'ar' ? 'العودة لتسجيل الدخول' : 'Back to Sign In'}
+              </button>
+              <p style={{ margin: 0, color: palette.textSecondary, fontSize: '0.85rem' }}>
+                {language === 'ar' 
+                  ? 'يمكنك طلب رابط استعادة جديد من صفحة تسجيل الدخول'
+                  : 'You can request a new reset link from the sign in page'}
+              </p>
+            </div>
           </div>
         ) : (
           <form
