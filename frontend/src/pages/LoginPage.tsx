@@ -400,14 +400,14 @@ export function LoginPage() {
           style={{
             position: 'relative',
             borderRadius: '1.75rem',
-            padding: '2.75rem',
+            padding: '2rem 2.25rem',
             background: `linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(13, 35, 74, 0.35) 45%, rgba(8, 29, 66, 0.8) 100%)`,
             color: '#F8FAFC',
             boxShadow: '0 45px 90px rgba(8, 25, 58, 0.35)',
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
-            gap: '2rem',
+            gap: '1.5rem',
           }}
         >
           <div
@@ -427,11 +427,11 @@ export function LoginPage() {
               zIndex: 1,
               display: 'flex',
               flexDirection: 'column',
-              gap: '1.5rem',
+              gap: '1.25rem',
             }}
           >
             <Logo
-              size={88}
+              size={72}
               stacked
               tagline={
                 language === 'ar'
@@ -442,7 +442,7 @@ export function LoginPage() {
             <div>
               <span
                 style={{
-                  fontSize: '0.85rem',
+                  fontSize: '0.8rem',
                   fontWeight: 600,
                   letterSpacing: '0.4em',
                   textTransform: 'uppercase',
@@ -453,8 +453,8 @@ export function LoginPage() {
               </span>
               <h1
                 style={{
-                  margin: '1rem 0 0.35rem',
-                  fontSize: '2.45rem',
+                  margin: '0.75rem 0 0.5rem',
+                  fontSize: '2rem',
                   lineHeight: 1.2,
                   fontWeight: 700,
                 }}
@@ -465,13 +465,145 @@ export function LoginPage() {
                 style={{
                   margin: 0,
                   color: 'rgba(226, 232, 240, 0.85)',
-                  lineHeight: 1.7,
-                  fontSize: '1.05rem',
+                  lineHeight: 1.6,
+                  fontSize: '0.95rem',
                   maxWidth: '34rem',
+                  marginBottom: '1.5rem',
                 }}
               >
                 {currentCopy.heroSubtitle}
               </p>
+            </div>
+            
+            {/* Feature Icons */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '1rem',
+                marginTop: '0.5rem',
+              }}
+            >
+              {/* Security Icon */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '1rem',
+                  borderRadius: '1rem',
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  backdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                }}
+              >
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{ color: 'rgba(226, 232, 240, 0.9)' }}
+                >
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+                <span
+                  style={{
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    color: 'rgba(226, 232, 240, 0.8)',
+                    textAlign: 'center',
+                  }}
+                >
+                  {language === 'ar' ? 'الأمان' : 'Security'}
+                </span>
+              </div>
+
+              {/* Analytics Icon */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '1rem',
+                  borderRadius: '1rem',
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  backdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                }}
+              >
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{ color: 'rgba(226, 232, 240, 0.9)' }}
+                >
+                  <line x1="18" y1="20" x2="18" y2="10" />
+                  <line x1="12" y1="20" x2="12" y2="4" />
+                  <line x1="6" y1="20" x2="6" y2="14" />
+                </svg>
+                <span
+                  style={{
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    color: 'rgba(226, 232, 240, 0.8)',
+                    textAlign: 'center',
+                  }}
+                >
+                  {language === 'ar' ? 'التحليلات' : 'Analytics'}
+                </span>
+              </div>
+
+              {/* Network Icon */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '1rem',
+                  borderRadius: '1rem',
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  backdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                }}
+              >
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{ color: 'rgba(226, 232, 240, 0.9)' }}
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="2" y1="12" x2="22" y2="12" />
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                </svg>
+                <span
+                  style={{
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    color: 'rgba(226, 232, 240, 0.8)',
+                    textAlign: 'center',
+                  }}
+                >
+                  {language === 'ar' ? 'الشبكة' : 'Network'}
+                </span>
+              </div>
             </div>
           </div>
         </section>
