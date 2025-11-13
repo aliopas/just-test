@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useUpdatePassword } from '../hooks/useUpdatePassword';
+import { useResetPassword } from '../hooks/useResetPassword';
 import { useToast } from '../context/ToastContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Logo } from '../components/Logo';
@@ -11,12 +12,14 @@ export function ResetPasswordPage() {
   const { language } = useLanguage();
   const { pushToast } = useToast();
   const updatePasswordMutation = useUpdatePassword();
+  const resetPasswordMutation = useResetPassword();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isVerifying, setIsVerifying] = useState(true);
   const [isVerified, setIsVerified] = useState(false);
+  const [expiredEmail, setExpiredEmail] = useState<string | null>(null);
 
   const direction = language === 'ar' ? 'rtl' : 'ltr';
 
@@ -34,7 +37,10 @@ export function ResetPasswordPage() {
       minLength: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل',
       verifying: 'جارٍ التحقق من الرابط…',
       invalidLink: 'الرابط غير صالح أو منتهي الصلاحية',
-      invalidLinkDesc: 'يرجى طلب رابط استعادة جديد',
+      invalidLinkDesc: 'الرابط منتهي الصلاحية. روابط إعادة تعيين كلمة المرور صالحة لمدة ساعة واحدة فقط.',
+      requestNewLink: 'طلب رابط جديد',
+      requestingLink: 'جارٍ الإرسال…',
+      newLinkSent: 'تم إرسال رابط جديد إلى بريدك الإلكتروني',
     },
     en: {
       title: 'Reset Password',
@@ -49,7 +55,10 @@ export function ResetPasswordPage() {
       minLength: 'Password must be at least 8 characters',
       verifying: 'Verifying link…',
       invalidLink: 'Invalid or expired link',
-      invalidLinkDesc: 'Please request a new reset link',
+      invalidLinkDesc: 'The link has expired. Password reset links are valid for 1 hour only.',
+      requestNewLink: 'Request New Link',
+      requestingLink: 'Sending…',
+      newLinkSent: 'A new link has been sent to your email',
     },
   } as const;
 
@@ -88,6 +97,11 @@ export function ResetPasswordPage() {
       const tokenHash = searchParams.get('token_hash') || hashParams.get('token_hash');
       const type = searchParams.get('type') || hashParams.get('type');
       const email = searchParams.get('email') || hashParams.get('email');
+      
+      // Save email for requesting new link if expired
+      if (email) {
+        setExpiredEmail(email);
+      }
 
       if (!tokenHash || type !== 'recovery') {
         pushToast({
@@ -273,32 +287,101 @@ export function ResetPasswordPage() {
               </p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <button
-                type="button"
-                onClick={() => navigate('/login', { replace: true })}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  borderRadius: '0.75rem',
-                  border: `1px solid ${palette.brandPrimaryStrong}`,
-                  background: palette.brandPrimaryStrong,
-                  color: palette.textOnBrand,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'transform 0.2s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'scale(1.02)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'scale(1)';
-                }}
-              >
-                {language === 'ar' ? 'العودة لتسجيل الدخول' : 'Back to Sign In'}
-              </button>
+              {expiredEmail ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        await resetPasswordMutation.mutateAsync(expiredEmail);
+                        pushToast({
+                          variant: 'success',
+                          message: currentCopy.newLinkSent,
+                        });
+                      } catch (error) {
+                        // Error is already handled by the mutation
+                      }
+                    }}
+                    disabled={resetPasswordMutation.isPending}
+                    style={{
+                      padding: '0.75rem 1.5rem',
+                      borderRadius: '0.75rem',
+                      border: `1px solid ${palette.brandPrimaryStrong}`,
+                      background: palette.brandPrimaryStrong,
+                      color: palette.textOnBrand,
+                      fontWeight: 600,
+                      cursor: resetPasswordMutation.isPending ? 'wait' : 'pointer',
+                      transition: 'transform 0.2s ease',
+                      opacity: resetPasswordMutation.isPending ? 0.7 : 1,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!resetPasswordMutation.isPending) {
+                        e.currentTarget.style.transform = 'scale(1.02)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                  >
+                    {resetPasswordMutation.isPending
+                      ? currentCopy.requestingLink
+                      : currentCopy.requestNewLink}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/login', { replace: true })}
+                    style={{
+                      padding: '0.75rem 1.5rem',
+                      borderRadius: '0.75rem',
+                      border: `1px solid ${palette.neutralBorder}`,
+                      background: 'transparent',
+                      color: palette.textPrimary,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'transform 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'scale(1.02)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                  >
+                    {language === 'ar' ? 'العودة لتسجيل الدخول' : 'Back to Sign In'}
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => navigate('/login', { replace: true })}
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '0.75rem',
+                    border: `1px solid ${palette.brandPrimaryStrong}`,
+                    background: palette.brandPrimaryStrong,
+                    color: palette.textOnBrand,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'transform 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.02)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
+                >
+                  {language === 'ar' ? 'العودة لتسجيل الدخول' : 'Back to Sign In'}
+                </button>
+              )}
               <p style={{ margin: 0, color: palette.textSecondary, fontSize: '0.85rem' }}>
                 {language === 'ar' 
-                  ? 'يمكنك طلب رابط استعادة جديد من صفحة تسجيل الدخول'
-                  : 'You can request a new reset link from the sign in page'}
+                  ? expiredEmail
+                    ? 'يمكنك طلب رابط جديد مباشرة أو العودة إلى صفحة تسجيل الدخول'
+                    : 'يمكنك طلب رابط استعادة جديد من صفحة تسجيل الدخول'
+                  : expiredEmail
+                    ? 'You can request a new link directly or go back to the sign in page'
+                    : 'You can request a new reset link from the sign in page'}
               </p>
             </div>
           </div>
