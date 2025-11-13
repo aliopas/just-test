@@ -17,7 +17,6 @@ import { RequestTimeline } from '../components/request/RequestTimeline';
 
 const queryClient = new QueryClient();
 
-type WorkflowStatus = 'screening' | 'compliance_review';
 
 function resolveRequestId(): string | null {
   const segments = window.location.pathname.split('/').filter(Boolean);
@@ -33,7 +32,6 @@ function AdminRequestDetailPageInner() {
   const { data, isLoading, isError, error, refetch, isFetching } =
     useAdminRequestDetail(requestId);
   const [decisionNote, setDecisionNote] = useState('');
-  const [settlementReference, setSettlementReference] = useState('');
   const [newComment, setNewComment] = useState('');
   const {
     data: timelineData,
@@ -73,167 +71,6 @@ function AdminRequestDetailPageInner() {
     },
   });
 
-  const rejectMutation = useMutation({
-    mutationFn: async (payload: { note?: string }) => {
-      if (!requestId) {
-        throw new Error('Request id is missing');
-      }
-      return apiClient(`/admin/requests/${requestId}/reject`, {
-        method: 'PATCH',
-        body: JSON.stringify(payload),
-      });
-    },
-    onSuccess: () => {
-      pushToast({
-        message: tAdminRequests('decision.rejectedSuccess', language),
-        variant: 'success',
-      });
-      setDecisionNote('');
-      refetch();
-    },
-    onError: (mutationError: unknown) => {
-      const message =
-        mutationError instanceof Error
-          ? mutationError.message
-          : tAdminRequests('table.error', language);
-      pushToast({
-        message,
-        variant: 'error',
-      });
-    },
-  });
-
-  const requestInfoMutation = useMutation({
-    mutationFn: async (payload: { message: string }) => {
-      if (!requestId) {
-        throw new Error('Request id is missing');
-      }
-      return apiClient(`/admin/requests/${requestId}/request-info`, {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      });
-    },
-    onSuccess: () => {
-      pushToast({
-        message: tAdminRequests('decision.infoRequestedSuccess', language),
-        variant: 'success',
-      });
-      setDecisionNote('');
-      refetch();
-    },
-    onError: (mutationError: unknown) => {
-      const message =
-        mutationError instanceof Error
-          ? mutationError.message
-          : tAdminRequests('table.error', language);
-      pushToast({
-        message,
-        variant: 'error',
-      });
-    },
-  });
-
-  const startSettlementMutation = useMutation({
-    mutationFn: async (payload: { reference: string; note?: string }) => {
-      if (!requestId) {
-        throw new Error('Request id is missing');
-      }
-      return apiClient(`/admin/requests/${requestId}/settle`, {
-        method: 'PATCH',
-        body: JSON.stringify({
-          stage: 'start',
-          reference: payload.reference,
-          note: payload.note,
-        }),
-      });
-    },
-    onSuccess: () => {
-      pushToast({
-        message: tAdminRequests('decision.settlementStartedSuccess', language),
-        variant: 'success',
-      });
-      setDecisionNote('');
-      refetch();
-    },
-    onError: (mutationError: unknown) => {
-      const message =
-        mutationError instanceof Error
-          ? mutationError.message
-          : tAdminRequests('table.error', language);
-      pushToast({
-        message,
-        variant: 'error',
-      });
-    },
-  });
-
-const completeSettlementMutation = useMutation({
-  mutationFn: async (payload: { reference: string; note?: string }) => {
-      if (!requestId) {
-        throw new Error('Request id is missing');
-      }
-      return apiClient(`/admin/requests/${requestId}/settle`, {
-        method: 'PATCH',
-        body: JSON.stringify({
-          stage: 'complete',
-          reference: payload.reference,
-          note: payload.note,
-        }),
-      });
-    },
-    onSuccess: () => {
-      pushToast({
-        message: tAdminRequests('decision.settlementCompletedSuccess', language),
-        variant: 'success',
-      });
-      setDecisionNote('');
-      refetch();
-    },
-    onError: (mutationError: unknown) => {
-      const message =
-        mutationError instanceof Error
-          ? mutationError.message
-          : tAdminRequests('table.error', language);
-      pushToast({
-        message,
-        variant: 'error',
-      });
-    },
-  });
-
-  const updateStatusMutation = useMutation({
-    mutationFn: async (payload: { status: WorkflowStatus; note?: string }) => {
-      if (!requestId) {
-        throw new Error('Request id is missing');
-      }
-      return apiClient(`/admin/requests/${requestId}/status`, {
-        method: 'PATCH',
-        body: JSON.stringify(payload),
-      });
-    },
-    onSuccess: (_data, variables) => {
-      const successKey =
-        variables.status === 'screening'
-          ? 'decision.screeningSuccess'
-          : 'decision.complianceSuccess';
-      pushToast({
-        message: tAdminRequests(successKey, language),
-        variant: 'success',
-      });
-      refetch();
-      refetchTimeline();
-    },
-    onError: (mutationError: unknown) => {
-      const message =
-        mutationError instanceof Error
-          ? mutationError.message
-          : tAdminRequests('table.error', language);
-      pushToast({
-        message,
-        variant: 'error',
-      });
-    },
-  });
 
   const addCommentMutation = useMutation({
     mutationFn: async (payload: { comment: string }) => {
@@ -277,14 +114,6 @@ const completeSettlementMutation = useMutation({
     });
   }, [isError, error, pushToast, language]);
 
-  useEffect(() => {
-    if (!data?.request?.settlement) {
-      setSettlementReference('');
-      return;
-    }
-
-    setSettlementReference(data.request.settlement.reference ?? '');
-  }, [data?.request?.settlement?.reference]);
 
   const request = data?.request;
   const settlement = request?.settlement;
@@ -292,13 +121,7 @@ const completeSettlementMutation = useMutation({
   const isDecisionFinal = request
     ? request.status === 'approved' || request.status === 'rejected'
     : false;
-  const isActionBusy =
-    approveMutation.isPending ||
-    rejectMutation.isPending ||
-    requestInfoMutation.isPending ||
-    startSettlementMutation.isPending ||
-    completeSettlementMutation.isPending ||
-    updateStatusMutation.isPending;
+  const isActionBusy = approveMutation.isPending;
   const isCommentBusy = addCommentMutation.isPending;
 
   const amountFormatted = request
@@ -327,10 +150,6 @@ const completeSettlementMutation = useMutation({
     return tAdminRequests('detail.attachmentCategory.general', language);
   };
 
-  const canMoveToScreening =
-    request?.status === 'submitted' || request?.status === 'pending_info';
-  const canMoveToCompliance =
-    request?.status === 'screening' || request?.status === 'pending_info';
 
   return (
     <div
@@ -452,19 +271,57 @@ const completeSettlementMutation = useMutation({
               <InfoGrid
                 items={[
                   {
-                    label: tAdminRequests('table.investor', language),
-                    value:
-                      request.investor?.fullName ??
-                      request.investor?.preferredName ??
-                      request.investor?.email ??
-                      '\u2014',
+                    label: language === 'ar' ? 'الاسم الكامل' : 'Full Name',
+                    value: request.investor?.fullName ?? '\u2014',
+                  },
+                  {
+                    label: language === 'ar' ? 'الاسم المفضل' : 'Preferred Name',
+                    value: request.investor?.preferredName ?? '\u2014',
                   },
                   {
                     label: 'Email',
                     value: request.investor?.email ?? '\u2014',
                   },
                   {
-                    label: 'Language',
+                    label: language === 'ar' ? 'رقم الجوال' : 'Phone',
+                    value: request.investor?.phoneCc && request.investor?.phone
+                      ? `${request.investor.phoneCc} ${request.investor.phone}`
+                      : request.investor?.phone ?? '\u2014',
+                  },
+                  {
+                    label: language === 'ar' ? 'نوع الهوية' : 'ID Type',
+                    value: request.investor?.idType ?? '\u2014',
+                  },
+                  {
+                    label: language === 'ar' ? 'رقم الهوية' : 'ID Number',
+                    value: request.investor?.idNumber ?? '\u2014',
+                  },
+                  {
+                    label: language === 'ar' ? 'انتهاء الهوية' : 'ID Expiry',
+                    value: request.investor?.idExpiry
+                      ? new Date(request.investor.idExpiry).toLocaleDateString(
+                          language === 'ar' ? 'ar-SA' : 'en-US'
+                        )
+                      : '\u2014',
+                  },
+                  {
+                    label: language === 'ar' ? 'الجنسية' : 'Nationality',
+                    value: request.investor?.nationality ?? '\u2014',
+                  },
+                  {
+                    label: language === 'ar' ? 'بلد الإقامة' : 'Residency Country',
+                    value: request.investor?.residencyCountry ?? '\u2014',
+                  },
+                  {
+                    label: language === 'ar' ? 'المدينة' : 'City',
+                    value: request.investor?.city ?? '\u2014',
+                  },
+                  {
+                    label: language === 'ar' ? 'حالة KYC' : 'KYC Status',
+                    value: request.investor?.kycStatus ?? '\u2014',
+                  },
+                  {
+                    label: language === 'ar' ? 'اللغة' : 'Language',
                     value: request.investor?.language ?? '\u2014',
                   },
                 ]}
@@ -732,7 +589,7 @@ const completeSettlementMutation = useMutation({
           </Card>
 
           <Card>
-            <CardTitle>{tAdminRequests('detail.actions', language)}</CardTitle>
+            <CardTitle>{language === 'ar' ? 'قبول الطلب' : 'Approve Request'}</CardTitle>
             <div
               style={{
                 display: 'flex',
@@ -744,56 +601,11 @@ const completeSettlementMutation = useMutation({
                 value={decisionNote}
                 onChange={event => setDecisionNote(event.target.value)}
                 maxLength={500}
-                placeholder={tAdminRequests('decision.notePlaceholder', language)}
+                placeholder={language === 'ar' ? 'ملاحظات (اختياري)' : 'Notes (optional)'}
                 style={{ ...textAreaStyle, direction }}
               />
-              <label
-                style={{
-                  display: 'flex',
-                  flexDirection: direction === 'rtl' ? 'row-reverse' : 'row',
-                  justifyContent: direction === 'rtl' ? 'flex-end' : 'flex-start',
-                  alignItems: 'center',
-                  fontSize: '0.85rem',
-                  color: 'var(--color-text-secondary)',
-                  fontWeight: 600,
-                }}
-              >
-                {tAdminRequests('decision.referenceLabel', language)}
-              </label>
-              <input
-                type="text"
-                value={settlementReference}
-                onChange={event => setSettlementReference(event.target.value)}
-                maxLength={120}
-                placeholder={tAdminRequests('decision.referencePlaceholder', language)}
-                style={{ ...inputStyle, direction }}
-              />
               <ActionButton
-                label={tAdminRequests('detail.moveToScreening', language)}
-                variant="secondary"
-                onClick={() =>
-                  updateStatusMutation.mutate({
-                    status: 'screening',
-                    note: decisionNote.trim() ? decisionNote.trim() : undefined,
-                  })
-                }
-                disabled={!canMoveToScreening || isActionBusy || !request}
-                loading={updateStatusMutation.isPending && updateStatusMutation.variables?.status === 'screening'}
-              />
-              <ActionButton
-                label={tAdminRequests('detail.moveToCompliance', language)}
-                variant="secondary"
-                onClick={() =>
-                  updateStatusMutation.mutate({
-                    status: 'compliance_review',
-                    note: decisionNote.trim() ? decisionNote.trim() : undefined,
-                  })
-                }
-                disabled={!canMoveToCompliance || isActionBusy || !request}
-                loading={updateStatusMutation.isPending && updateStatusMutation.variables?.status === 'compliance_review'}
-              />
-              <ActionButton
-                label={tAdminRequests('detail.approve', language)}
+                label={language === 'ar' ? 'قبول الطلب' : 'Approve Request'}
                 onClick={() =>
                   approveMutation.mutate({
                     note: decisionNote.trim() ? decisionNote.trim() : undefined,
@@ -802,78 +614,6 @@ const completeSettlementMutation = useMutation({
                 disabled={isDecisionFinal || isActionBusy || !request}
                 loading={approveMutation.isPending}
               />
-              <ActionButton
-                label={tAdminRequests('detail.reject', language)}
-                variant="danger"
-                onClick={() =>
-                  rejectMutation.mutate({
-                    note: decisionNote.trim() ? decisionNote.trim() : undefined,
-                  })
-                }
-                disabled={isDecisionFinal || isActionBusy || !request}
-                loading={rejectMutation.isPending}
-              />
-              <ActionButton
-                label={tAdminRequests('detail.requestInfoAction', language)}
-                variant="secondary"
-                onClick={() => {
-                  const message = decisionNote.trim();
-                  if (!message) {
-                    pushToast({
-                      message: tAdminRequests('decision.noteRequired', language),
-                      variant: 'error',
-                    });
-                    return;
-                  }
-                  requestInfoMutation.mutate({ message });
-                }}
-                disabled={isActionBusy || !request}
-                loading={requestInfoMutation.isPending}
-              />
-              {request?.status === 'approved' && (
-                <ActionButton
-                  label={tAdminRequests('detail.startSettlement', language)}
-                  variant="secondary"
-                  onClick={() => {
-                    const reference = settlementReference.trim();
-                    if (!reference) {
-                      pushToast({
-                        message: tAdminRequests('decision.referenceRequired', language),
-                        variant: 'error',
-                      });
-                      return;
-                    }
-                    startSettlementMutation.mutate({
-                      reference,
-                      note: decisionNote.trim() ? decisionNote.trim() : undefined,
-                    });
-                  }}
-                  disabled={isActionBusy || !request}
-                  loading={startSettlementMutation.isPending}
-                />
-              )}
-              {request?.status === 'settling' && (
-                <ActionButton
-                  label={tAdminRequests('detail.completeSettlement', language)}
-                  variant="secondary"
-                  onClick={() => {
-                    const reference = settlementReference.trim();
-                    if (!reference) {
-                      pushToast({
-                        message: tAdminRequests('decision.referenceRequired', language),
-                        variant: 'error',
-                      });
-                      return;
-                    }
-                    completeSettlementMutation.mutate({
-                      reference,
-                      note: decisionNote.trim() ? decisionNote.trim() : undefined,
-                    });
-                  }}
-                  disabled={isActionBusy || !request}
-                  loading={completeSettlementMutation.isPending}
-                />
-              )}
             </div>
             <p
               style={{
@@ -882,7 +622,9 @@ const completeSettlementMutation = useMutation({
                 fontSize: '0.85rem',
               }}
             >
-              {`* ${tAdminRequests('detail.noteHelper', language)}`}
+              {language === 'ar' 
+                ? '* سيتم إرسال إشعار للمستثمر عند قبول الطلب'
+                : '* An notification will be sent to the investor upon approval'}
             </p>
           </Card>
 

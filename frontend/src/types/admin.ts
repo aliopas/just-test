@@ -3,9 +3,18 @@
 export interface AdminRequestInvestor {
   id: string | null;
   email: string | null;
+  phone: string | null;
+  phoneCc: string | null;
   fullName: string | null;
   preferredName: string | null;
   language: 'ar' | 'en' | null;
+  idType: string | null;
+  idNumber: string | null;
+  idExpiry: string | null;
+  nationality: string | null;
+  residencyCountry: string | null;
+  city: string | null;
+  kycStatus: string | null;
 }
 
 export interface AdminRequest {

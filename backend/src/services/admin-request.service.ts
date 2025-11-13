@@ -194,10 +194,19 @@ type AdminRequestDetailRow = {
   users?: MaybeArray<{
     id: string;
     email: string | null;
+    phone: string | null;
+    phone_cc: string | null;
     profile?: MaybeArray<{
       full_name: string | null;
       preferred_name: string | null;
       language: string | null;
+      id_type: string | null;
+      id_number: string | null;
+      id_expiry: string | null;
+      nationality: string | null;
+      residency_country: string | null;
+      city: string | null;
+      kyc_status: string | null;
     }>;
   }>;
 };
@@ -278,10 +287,19 @@ export async function getAdminRequestDetail(params: {
         users:users!requests_user_id_fkey (
           id,
           email,
+          phone,
+          phone_cc,
           profile:investor_profiles (
             full_name,
             preferred_name,
-            language
+            language,
+            id_type,
+            id_number,
+            id_expiry,
+            nationality,
+            residency_country,
+            city,
+            kyc_status
           )
         )
       `
