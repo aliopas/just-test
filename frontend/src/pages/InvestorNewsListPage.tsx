@@ -11,6 +11,7 @@ import type { InvestorNewsItem } from '../types/news';
 import { tInvestorNews } from '../locales/investorNews';
 import { palette } from '../styles/theme';
 import { resolveCoverUrl } from '../utils/supabase-storage';
+import { OptimizedImage } from '../components/OptimizedImage';
 
 const queryClient = new QueryClient();
 const PAGE_LIMIT = 12;
@@ -183,43 +184,13 @@ function InvestorNewsListPageInner() {
                   minHeight: '100%',
                 }}
               >
-                <div
-                  style={{
-                    position: 'relative',
-                    paddingBottom: '56.25%',
-                    background: coverUrl ? palette.backgroundInverse : palette.neutralBorder,
-                  }}
-                >
-                  {coverUrl ? (
-                    <img
-                      src={coverUrl}
-                      alt={item.title}
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                      }}
-                    />
-                  ) : (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '2.5rem',
-                        fontWeight: 700,
-                        color: palette.brandSecondaryMuted,
-                        background: `linear-gradient(135deg, ${palette.neutralBorder} 0%, ${palette.backgroundSurface} 100%)`,
-                      }}
-                    >
-                      {item.title.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                </div>
+                <OptimizedImage
+                  src={coverUrl}
+                  alt={item.title}
+                  aspectRatio={16 / 9}
+                  fallbackText={item.title.charAt(0).toUpperCase()}
+                  objectFit="cover"
+                />
 
                 <div
                   style={{

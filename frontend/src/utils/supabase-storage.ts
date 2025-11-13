@@ -66,7 +66,56 @@ export function resolveCoverUrl(
     return null;
   }
 
-  return getStoragePublicUrl(bucket, coverKey);
+  const url = getStoragePublicUrl(bucket, coverKey);
+  
+  // Add image transformation parameters for better performance
+  // Supabase Storage supports image transformations via query params
+  if (url) {
+    // You can add transformations like: ?width=800&height=600&quality=80
+    // For now, we return the base URL and let the component handle sizing
+    return url;
+  }
+  
+  return null;
+}
+
+/**
+ * Get optimized image URL with transformations
+ * @param coverKey - The storage key/path
+ * @param options - Transformation options
+ * @param bucket - Optional bucket name (default: 'news-covers')
+ * @returns The optimized URL or null
+ */
+export function getOptimizedImageUrl(
+  coverKey: string | null,
+  options: {
+    width?: number;
+    height?: number;
+    quality?: number;
+    format?: 'webp' | 'jpeg' | 'png';
+  } = {},
+  bucket: string = 'news-covers'
+): string | null {
+  if (!coverKey) {
+    return null;
+  }
+
+  const baseUrl = getStoragePublicUrl(bucket, coverKey);
+  if (!baseUrl) {
+    return null;
+  }
+
+  const params = new URLSearchParams();
+  if (options.width) params.append('width', options.width.toString());
+  if (options.height) params.append('height', options.height.toString());
+  if (options.quality) params.append('quality', options.quality.toString());
+  if (options.format) params.append('format', options.format);
+
+  if (params.toString()) {
+    return `${baseUrl}?${params.toString()}`;
+  }
+
+  return baseUrl;
 }
 
 /**

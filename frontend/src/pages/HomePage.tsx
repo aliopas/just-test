@@ -5,6 +5,7 @@ import { palette } from '../styles/theme';
 import { Logo } from '../components/Logo';
 import { useInvestorNewsList } from '../hooks/useInvestorNews';
 import { resolveCoverUrl } from '../utils/supabase-storage';
+import { OptimizedImage } from '../components/OptimizedImage';
 
 export function HomePage() {
   const { direction, language } = useLanguage();
@@ -140,61 +141,34 @@ export function HomePage() {
             boxShadow: '0 22px 48px rgba(4, 38, 63, 0.12)',
           }}
         >
-          <div
-            style={{
-              position: 'relative',
-              paddingBottom: '56%',
-              background: coverUrl
-                ? palette.backgroundInverse
-                : palette.neutralBorder,
-            }}
-          >
-            {coverUrl ? (
-              <img
+            <div style={{ position: 'relative' }}>
+              <OptimizedImage
                 src={coverUrl}
                 alt={item.title}
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                }}
+                aspectRatio={16 / 9}
+                fallbackText={language === 'ar' ? 'لا توجد صورة مرفقة' : 'No cover image'}
+                objectFit="cover"
               />
-            ) : (
-              <div
+              <span
                 style={{
                   position: 'absolute',
-                  inset: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: palette.textSecondary,
+                  top: '1rem',
+                  left: direction === 'rtl' ? undefined : '1rem',
+                  right: direction === 'rtl' ? '1rem' : undefined,
+                  padding: '0.35rem 0.75rem',
+                  borderRadius: '999px',
+                  background: `${palette.backgroundSurface}E6`,
+                  color: palette.brandPrimaryStrong,
+                  fontSize: '0.75rem',
                   fontWeight: 600,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  zIndex: 1,
                 }}
               >
-                {language === 'ar' ? 'لا توجد صورة مرفقة' : 'No cover image'}
-              </div>
-            )}
-            <span
-              style={{
-                position: 'absolute',
-                top: '1rem',
-                left: direction === 'rtl' ? undefined : '1rem',
-                right: direction === 'rtl' ? '1rem' : undefined,
-                padding: '0.35rem 0.75rem',
-                borderRadius: '999px',
-                background: `${palette.backgroundSurface}E6`,
-                color: palette.brandPrimaryStrong,
-                fontSize: '0.75rem',
-                fontWeight: 600,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-              }}
-            >
-              {language === 'ar' ? 'خبر باكورة' : 'Bakurah News'}
-            </span>
-          </div>
+                {language === 'ar' ? 'خبر باكورة' : 'Bakurah News'}
+              </span>
+            </div>
 
           <div
             style={{

@@ -12,6 +12,7 @@ import { tInvestorNews } from '../locales/investorNews';
 import { palette } from '../styles/theme';
 import { Logo } from '../components/Logo';
 import { resolveCoverUrl } from '../utils/supabase-storage';
+import { OptimizedImage } from '../components/OptimizedImage';
 
 const queryClient = new QueryClient();
 
@@ -232,40 +233,21 @@ function InvestorNewsDetailPageInner() {
       >
         <div
           style={{
-            position: 'relative',
-            paddingBottom: '48%',
             borderRadius: '1.2rem',
             overflow: 'hidden',
             boxShadow: '0 25px 55px rgba(15, 23, 42, 0.18)',
-            background: coverUrl ? palette.backgroundInverse : palette.backgroundSurface,
           }}
         >
-          {coverUrl ? (
-            <img
-              src={coverUrl}
-              alt={data?.title ?? 'Cover image'}
-              style={{
-                position: 'absolute',
-                inset: 0,
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-              }}
-            />
-          ) : (
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: palette.backgroundSurface,
-              }}
-            >
-              <Logo size={96} stacked />
-            </div>
-          )}
+          <OptimizedImage
+            src={coverUrl}
+            alt={data?.title ?? 'Cover image'}
+            aspectRatio={2.08} // 48% padding = ~2.08:1
+            fallbackText={data?.title ? data.title.charAt(0).toUpperCase() : undefined}
+            objectFit="cover"
+            style={{
+              borderRadius: '1.2rem',
+            }}
+          />
         </div>
       </div>
 

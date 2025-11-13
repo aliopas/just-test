@@ -5,6 +5,7 @@ import { Logo } from '../components/Logo';
 import { palette } from '../styles/theme';
 import { useInvestorNewsList } from '../hooks/useInvestorNews';
 import { resolveCoverUrl } from '../utils/supabase-storage';
+import { OptimizedImage } from '../components/OptimizedImage';
 
 const heroSectionStyle: React.CSSProperties = {
   padding: '4rem 2rem',
@@ -249,24 +250,12 @@ export function PublicLandingPage() {
           onClick={() => window.location.href = '/login'}
         >
           {coverUrl && (
-            <div
-              style={{
-                position: 'relative',
-                paddingBottom: '56.25%',
-                background: palette.backgroundInverse,
-                overflow: 'hidden',
-              }}
-            >
-              <img
+            <div style={{ position: 'relative' }}>
+              <OptimizedImage
                 src={coverUrl}
                 alt={item.title}
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                }}
+                aspectRatio={16 / 9}
+                objectFit="cover"
               />
               <div
                 style={{
@@ -281,6 +270,7 @@ export function PublicLandingPage() {
                   fontWeight: 600,
                   color: palette.brandPrimaryStrong,
                   letterSpacing: '0.05em',
+                  zIndex: 1,
                 }}
               >
                 {isArabic ? 'خبر باكورة' : 'Bakurah News'}
