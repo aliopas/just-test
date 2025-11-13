@@ -24,11 +24,13 @@ export const REQUEST_STATUSES: RequestStatus[] = [
 ];
 
 const stateMachine: Record<RequestStatus, RequestStatus[]> = {
-  draft: ['submitted', 'screening', 'pending_info', 'compliance_review', 'rejected'],
+  // Allow approval from any active status (except final states)
+  draft: ['submitted', 'screening', 'pending_info', 'compliance_review', 'approved', 'rejected'],
   submitted: ['screening', 'pending_info', 'compliance_review', 'approved', 'rejected'],
   screening: ['pending_info', 'compliance_review', 'approved', 'rejected'],
   pending_info: ['screening', 'compliance_review', 'approved', 'rejected'],
   compliance_review: ['approved', 'pending_info', 'rejected'],
+  // Final states - cannot be changed
   approved: ['settling', 'rejected'],
   settling: ['completed', 'rejected'],
   completed: [],
