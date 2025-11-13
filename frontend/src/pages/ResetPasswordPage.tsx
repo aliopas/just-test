@@ -20,6 +20,7 @@ export function ResetPasswordPage() {
   const [isVerifying, setIsVerifying] = useState(true);
   const [isVerified, setIsVerified] = useState(false);
   const [expiredEmail, setExpiredEmail] = useState<string | null>(null);
+  const [emailInput, setEmailInput] = useState('');
 
   const direction = language === 'ar' ? 'rtl' : 'ltr';
 
@@ -84,6 +85,11 @@ export function ResetPasswordPage() {
       const errorDescription = hashParams.get('error_description');
 
       if (error || errorCode === 'otp_expired') {
+        // Try to extract email from URL before showing error
+        const emailFromUrl = searchParams.get('email') || hashParams.get('email');
+        if (emailFromUrl) {
+          setExpiredEmail(emailFromUrl);
+        }
         pushToast({
           variant: 'error',
           message: currentCopy.invalidLink,
@@ -286,7 +292,7 @@ export function ResetPasswordPage() {
                 {currentCopy.invalidLinkDesc}
               </p>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {expiredEmail ? (
                 <>
                   <button
@@ -351,37 +357,131 @@ export function ResetPasswordPage() {
                   </button>
                 </>
               ) : (
-                <button
-                  type="button"
-                  onClick={() => navigate('/login', { replace: true })}
-                  style={{
-                    padding: '0.75rem 1.5rem',
-                    borderRadius: '0.75rem',
-                    border: `1px solid ${palette.brandPrimaryStrong}`,
-                    background: palette.brandPrimaryStrong,
-                    color: palette.textOnBrand,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    transition: 'transform 0.2s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'scale(1.02)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'scale(1)';
-                  }}
-                >
-                  {language === 'ar' ? 'العودة لتسجيل الدخول' : 'Back to Sign In'}
-                </button>
+                <>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <label
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.5rem',
+                        color: palette.textPrimary,
+                      }}
+                    >
+                      <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>
+                        {language === 'ar' ? 'البريد الإلكتروني' : 'Email Address'}
+                      </span>
+                      <input
+                        type="email"
+                        value={emailInput}
+                        onChange={(e) => setEmailInput(e.target.value)}
+                        placeholder={language === 'ar' ? 'أدخل بريدك الإلكتروني' : 'Enter your email'}
+                        style={{
+                          padding: '0.75rem 1rem',
+                          borderRadius: '0.75rem',
+                          border: `1px solid ${palette.neutralBorder}`,
+                          fontSize: '0.95rem',
+                          outline: 'none',
+                          background: palette.backgroundBase,
+                          transition: 'border 0.2s ease',
+                        }}
+                        onFocus={(e) => {
+                          e.currentTarget.style.borderColor = palette.brandPrimary;
+                        }}
+                        onBlur={(e) => {
+                          e.currentTarget.style.borderColor = palette.neutralBorder;
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!emailInput.trim()) {
+                        pushToast({
+                          variant: 'error',
+                          message: language === 'ar' 
+                            ? 'يرجى إدخال البريد الإلكتروني'
+                            : 'Please enter your email address',
+                        });
+                        return;
+                      }
+                      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                      if (!emailRegex.test(emailInput.trim())) {
+                        pushToast({
+                          variant: 'error',
+                          message: language === 'ar'
+                            ? 'البريد الإلكتروني غير صحيح'
+                            : 'Invalid email address',
+                        });
+                        return;
+                      }
+                      try {
+                        await resetPasswordMutation.mutateAsync(emailInput.trim());
+                        pushToast({
+                          variant: 'success',
+                          message: currentCopy.newLinkSent,
+                        });
+                      } catch (error) {
+                        // Error is already handled by the mutation
+                      }
+                    }}
+                    disabled={resetPasswordMutation.isPending || !emailInput.trim()}
+                    style={{
+                      padding: '0.75rem 1.5rem',
+                      borderRadius: '0.75rem',
+                      border: `1px solid ${palette.brandPrimaryStrong}`,
+                      background: palette.brandPrimaryStrong,
+                      color: palette.textOnBrand,
+                      fontWeight: 600,
+                      cursor: resetPasswordMutation.isPending || !emailInput.trim() ? 'not-allowed' : 'pointer',
+                      transition: 'transform 0.2s ease',
+                      opacity: resetPasswordMutation.isPending || !emailInput.trim() ? 0.7 : 1,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!resetPasswordMutation.isPending && emailInput.trim()) {
+                        e.currentTarget.style.transform = 'scale(1.02)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                  >
+                    {resetPasswordMutation.isPending
+                      ? currentCopy.requestingLink
+                      : currentCopy.requestNewLink}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/login', { replace: true })}
+                    style={{
+                      padding: '0.75rem 1.5rem',
+                      borderRadius: '0.75rem',
+                      border: `1px solid ${palette.neutralBorder}`,
+                      background: 'transparent',
+                      color: palette.textPrimary,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'transform 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'scale(1.02)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                  >
+                    {language === 'ar' ? 'العودة لتسجيل الدخول' : 'Back to Sign In'}
+                  </button>
+                </>
               )}
               <p style={{ margin: 0, color: palette.textSecondary, fontSize: '0.85rem' }}>
                 {language === 'ar' 
                   ? expiredEmail
                     ? 'يمكنك طلب رابط جديد مباشرة أو العودة إلى صفحة تسجيل الدخول'
-                    : 'يمكنك طلب رابط استعادة جديد من صفحة تسجيل الدخول'
+                    : 'أدخل بريدك الإلكتروني لطلب رابط استعادة جديد'
                   : expiredEmail
                     ? 'You can request a new link directly or go back to the sign in page'
-                    : 'You can request a new reset link from the sign in page'}
+                    : 'Enter your email address to request a new reset link'}
               </p>
             </div>
           </div>
