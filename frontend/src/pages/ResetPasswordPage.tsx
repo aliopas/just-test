@@ -1,18 +1,20 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useUpdatePassword } from '../hooks/useUpdatePassword';
-import { useResetPassword } from '../hooks/useResetPassword';
+import { useUpdatePasswordViaAPI } from '../hooks/useUpdatePasswordViaAPI';
+import { useResetPasswordRequest } from '../hooks/useResetPasswordRequest';
+import { useVerifyResetToken } from '../hooks/useVerifyResetToken';
 import { useToast } from '../context/ToastContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Logo } from '../components/Logo';
 import { palette } from '../styles/theme';
-import { getSupabaseBrowserClient } from '../utils/supabase-client';
+import { ApiError } from '../utils/api-client';
 
 export function ResetPasswordPage() {
   const { language } = useLanguage();
   const { pushToast } = useToast();
-  const updatePasswordMutation = useUpdatePassword();
-  const resetPasswordMutation = useResetPassword();
+  const updatePasswordMutation = useUpdatePasswordViaAPI();
+  const resetPasswordMutation = useResetPasswordRequest();
+  const verifyTokenMutation = useVerifyResetToken();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [password, setPassword] = useState('');
@@ -68,16 +70,6 @@ export function ResetPasswordPage() {
   // Verify the reset token from URL when component mounts
   useEffect(() => {
     const verifyResetToken = async () => {
-      const supabase = getSupabaseBrowserClient();
-      if (!supabase) {
-        pushToast({
-          variant: 'error',
-          message: currentCopy.invalidLink,
-        });
-        setIsVerifying(false);
-        return;
-      }
-
       // Check for Supabase errors in URL hash (e.g., expired link)
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const error = hashParams.get('error');
@@ -119,29 +111,24 @@ export function ResetPasswordPage() {
       }
 
       try {
-        // Verify the recovery token
-        const { data, error } = await supabase.auth.verifyOtp({
-          email: email || undefined,
+        // Verify the recovery token via API
+        const result = await verifyTokenMutation.mutateAsync({
           token_hash: tokenHash,
-          type: 'recovery',
+          email: email || undefined,
         });
 
-        if (error || !data.session) {
-          throw error || new Error('Verification failed');
+        if (result.verified) {
+          setIsVerified(true);
+        } else {
+          throw new Error('Verification failed');
         }
-
-        // Set session to allow password update
-        await supabase.auth.setSession({
-          access_token: data.session.access_token,
-          refresh_token: data.session.refresh_token,
-        });
-
-        setIsVerified(true);
       } catch (error) {
         console.error('Password reset verification error:', error);
         pushToast({
           variant: 'error',
-          message: currentCopy.invalidLink,
+          message: error instanceof ApiError 
+            ? error.message 
+            : currentCopy.invalidLink,
         });
       } finally {
         setIsVerifying(false);
@@ -149,7 +136,7 @@ export function ResetPasswordPage() {
     };
 
     verifyResetToken();
-  }, [searchParams, pushToast, currentCopy.invalidLink]);
+  }, [searchParams, pushToast, currentCopy.invalidLink, verifyTokenMutation]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -189,11 +176,13 @@ export function ResetPasswordPage() {
       pushToast({
         variant: 'error',
         message:
-          error instanceof Error
+          error instanceof ApiError
             ? error.message
-            : language === 'ar'
-              ? 'فشل تحديث كلمة المرور. يرجى المحاولة مرة أخرى.'
-              : 'Failed to update password. Please try again.',
+            : error instanceof Error
+              ? error.message
+              : language === 'ar'
+                ? 'فشل تحديث كلمة المرور. يرجى المحاولة مرة أخرى.'
+                : 'Failed to update password. Please try again.',
       });
     }
   };

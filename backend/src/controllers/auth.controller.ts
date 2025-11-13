@@ -7,6 +7,9 @@ import {
   ResendOTPInput,
   LoginInput,
   ConfirmEmailInput,
+  ResetPasswordRequestInput,
+  VerifyResetTokenInput,
+  UpdatePasswordInput,
 } from '../schemas/auth.schema';
 import { otpService } from '../services/otp.service';
 import { totpService } from '../services/totp.service';
@@ -686,6 +689,150 @@ export const authController = {
         message: '2FA disabled successfully',
       });
     } catch (error) {
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'An unexpected error occurred',
+        },
+      });
+    }
+  },
+
+  // Password Reset Endpoints
+  resetPasswordRequest: async (
+    req: Request<EmptyParams, unknown, ResetPasswordRequestInput>,
+    res: Response
+  ) => {
+    try {
+      const { email } = req.body;
+
+      // Use Supabase to send password reset email
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${process.env.FRONTEND_URL || 'https://investor-bacura.netlify.app'}/reset-password`,
+      });
+
+      if (error) {
+        // Don't reveal if user exists or not for security
+        if (error.message.includes('rate limit') || error.message.includes('too many')) {
+          return res.status(429).json({
+            error: {
+              code: 'RATE_LIMIT_EXCEEDED',
+              message: 'Too many requests. Please wait a few minutes before trying again.',
+            },
+          });
+        }
+
+        // For security, always return success even if user doesn't exist
+        return res.status(200).json({
+          message: 'If an account exists with this email, a password reset link has been sent.',
+        });
+      }
+
+      return res.status(200).json({
+        message: 'If an account exists with this email, a password reset link has been sent.',
+      });
+    } catch (error) {
+      console.error('Password reset request error:', error);
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'An unexpected error occurred',
+        },
+      });
+    }
+  },
+
+  verifyResetToken: async (
+    req: Request<EmptyParams, unknown, VerifyResetTokenInput>,
+    res: Response
+  ) => {
+    try {
+      const { token_hash, email } = req.body;
+
+      // Verify the recovery token with Supabase
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: email || undefined,
+        token_hash,
+        type: 'recovery',
+      });
+
+      if (error || !data.session) {
+        return res.status(400).json({
+          error: {
+            code: 'INVALID_OR_EXPIRED_TOKEN',
+            message: 'Invalid or expired reset token. Please request a new link.',
+          },
+        });
+      }
+
+      // Return session tokens for client to use
+      if (!data.user) {
+        return res.status(400).json({
+          error: {
+            code: 'INVALID_OR_EXPIRED_TOKEN',
+            message: 'Invalid or expired reset token. Please request a new link.',
+          },
+        });
+      }
+
+      return res.status(200).json({
+        verified: true,
+        session: {
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        },
+        user: {
+          id: data.user.id,
+          email: data.user.email,
+        },
+      });
+    } catch (error) {
+      console.error('Verify reset token error:', error);
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'An unexpected error occurred',
+        },
+      });
+    }
+  },
+
+  updatePassword: async (
+    req: AuthenticatedRequest,
+    res: Response
+  ) => {
+    try {
+      const { password } = req.body as UpdatePasswordInput;
+
+      if (!req.user) {
+        return res.status(401).json({
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'Authentication required',
+          },
+        });
+      }
+
+      // Update password using Supabase
+      const { error } = await supabase.auth.updateUser({
+        password: password,
+      });
+
+      if (error) {
+        return res.status(400).json({
+          error: {
+            code: 'PASSWORD_UPDATE_FAILED',
+            message: error.message || 'Failed to update password',
+          },
+        });
+      }
+
+      return res.status(200).json({
+        updated: true,
+        message: 'Password updated successfully',
+      });
+    } catch (error) {
+      console.error('Update password error:', error);
       return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',

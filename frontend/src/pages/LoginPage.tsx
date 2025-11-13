@@ -1,7 +1,7 @@
 import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useLogin } from '../hooks/useLogin';
-import { useResetPassword } from '../hooks/useResetPassword';
+import { useResetPasswordRequest } from '../hooks/useResetPasswordRequest';
 import { useUpdatePassword } from '../hooks/useUpdatePassword';
 import { useToast } from '../context/ToastContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -20,7 +20,7 @@ export function LoginPage() {
   const { language } = useLanguage();
   const { pushToast } = useToast();
   const loginMutation = useLogin();
-  const resetPasswordMutation = useResetPassword();
+  const resetPasswordMutation = useResetPasswordRequest();
   const updatePasswordMutation = useUpdatePassword();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();

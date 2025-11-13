@@ -86,3 +86,29 @@ export const totpVerifySchema = z.object({
 });
 
 export type TOTPVerifyInput = z.infer<typeof totpVerifySchema>;
+
+// Password Reset Schemas
+export const resetPasswordRequestSchema = z.object({
+  email: z.string().email('Invalid email format').min(1, 'Email is required'),
+});
+
+export type ResetPasswordRequestInput = z.infer<typeof resetPasswordRequestSchema>;
+
+export const verifyResetTokenSchema = z.object({
+  token_hash: z.string().min(1, 'token_hash is required'),
+  email: z.string().email('Invalid email format').optional(),
+});
+
+export type VerifyResetTokenInput = z.infer<typeof verifyResetTokenSchema>;
+
+export const updatePasswordSchema = z.object({
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+      'Password must contain uppercase, lowercase, and a number'
+    ),
+});
+
+export type UpdatePasswordInput = z.infer<typeof updatePasswordSchema>;

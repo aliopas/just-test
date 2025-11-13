@@ -10,6 +10,9 @@ import {
   refreshSchema,
   totpVerifySchema,
   confirmEmailSchema,
+  resetPasswordRequestSchema,
+  verifyResetTokenSchema,
+  updatePasswordSchema,
 } from '../schemas/auth.schema';
 
 const authRouter = Router();
@@ -44,5 +47,23 @@ authRouter.post(
   authController.verify2FA
 );
 authRouter.post('/2fa/disable', authenticate, authController.disable2FA);
+
+// Password Reset Endpoints
+authRouter.post(
+  '/reset-password-request',
+  validate(resetPasswordRequestSchema),
+  authController.resetPasswordRequest
+);
+authRouter.post(
+  '/verify-reset-token',
+  validate(verifyResetTokenSchema),
+  authController.verifyResetToken
+);
+authRouter.post(
+  '/update-password',
+  authenticate,
+  validate(updatePasswordSchema),
+  authController.updatePassword
+);
 
 export { authRouter };
