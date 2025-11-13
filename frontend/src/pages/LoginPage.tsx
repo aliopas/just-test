@@ -1,6 +1,7 @@
 import { ChangeEvent, FormEvent, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLogin } from '../hooks/useLogin';
+import { useResetPassword } from '../hooks/useResetPassword';
 import { useToast } from '../context/ToastContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Logo } from '../components/Logo';
@@ -17,8 +18,11 @@ export function LoginPage() {
   const { language } = useLanguage();
   const { pushToast } = useToast();
   const loginMutation = useLogin();
+  const resetPasswordMutation = useResetPassword();
   const navigate = useNavigate();
   const [requires2FA, setRequires2FA] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
   const [form, setForm] = useState<LoginFormState>({
     email: '',
     password: '',
@@ -43,6 +47,13 @@ export function LoginPage() {
       signingIn: 'جارٍ تسجيل الدخول…',
       inviteCta: 'طلب إنشاء حساب مستثمر جديد',
       noAccount: 'ليس لديك حساب؟',
+      forgotPassword: 'نسيت كلمة المرور؟',
+      resetPasswordTitle: 'استعادة كلمة المرور',
+      resetPasswordSubtitle: 'أدخل بريدك الإلكتروني وسنرسل لك رابطاً لإعادة تعيين كلمة المرور',
+      resetPasswordButton: 'إرسال رابط الاستعادة',
+      resetPasswordSending: 'جارٍ الإرسال…',
+      resetPasswordSuccess: 'تم إرسال رابط الاستعادة إلى بريدك الإلكتروني',
+      backToLogin: 'العودة لتسجيل الدخول',
     },
     en: {
       headline: 'Investors Portal',
@@ -59,6 +70,13 @@ export function LoginPage() {
       signingIn: 'Signing in…',
       inviteCta: 'Submit a new investor signup request',
       noAccount: "Don't have an account?",
+      forgotPassword: 'Forgot password?',
+      resetPasswordTitle: 'Reset Password',
+      resetPasswordSubtitle: 'Enter your email address and we\'ll send you a link to reset your password',
+      resetPasswordButton: 'Send Reset Link',
+      resetPasswordSending: 'Sending…',
+      resetPasswordSuccess: 'Password reset link has been sent to your email',
+      backToLogin: 'Back to Sign In',
     },
   } as const;
 
@@ -136,6 +154,41 @@ export function LoginPage() {
           language === 'ar'
             ? 'حدث خطأ غير متوقع أثناء تسجيل الدخول.'
             : 'An unexpected error occurred during sign-in.',
+      });
+    }
+  };
+
+  const handleResetPassword = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!resetEmail.trim()) {
+      pushToast({
+        variant: 'error',
+        message:
+          language === 'ar'
+            ? 'يرجى إدخال بريدك الإلكتروني'
+            : 'Please enter your email address',
+      });
+      return;
+    }
+
+    try {
+      await resetPasswordMutation.mutateAsync(resetEmail.trim());
+      pushToast({
+        variant: 'success',
+        message: currentCopy.resetPasswordSuccess,
+      });
+      setShowResetPassword(false);
+      setResetEmail('');
+    } catch (error) {
+      pushToast({
+        variant: 'error',
+        message:
+          error instanceof Error
+            ? error.message
+            : language === 'ar'
+              ? 'فشل إرسال رابط الاستعادة. يرجى المحاولة مرة أخرى.'
+              : 'Failed to send reset link. Please try again.',
       });
     }
   };
@@ -330,23 +383,50 @@ export function LoginPage() {
               <span style={{ fontWeight: 600 }}>
                 {currentCopy.passwordLabel}
               </span>
-              <input
-                type="password"
-                required
-                autoComplete="current-password"
-                value={form.password}
-                onChange={handleChange('password')}
+              <div
                 style={{
-                  padding: '0.95rem 1rem',
-                  borderRadius: '0.95rem',
-                  border: `1px solid ${palette.neutralBorder}`,
-                  fontSize: '1rem',
-                  outline: 'none',
-                  background: palette.backgroundBase,
-                  transition: 'border 0.2s ease, box-shadow 0.2s ease',
-                  boxShadow: '0 8px 20px rgba(15, 23, 42, 0.04)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.5rem',
                 }}
-              />
+              >
+                <input
+                  type="password"
+                  required
+                  autoComplete="current-password"
+                  value={form.password}
+                  onChange={handleChange('password')}
+                  style={{
+                    padding: '0.95rem 1rem',
+                    borderRadius: '0.95rem',
+                    border: `1px solid ${palette.neutralBorder}`,
+                    fontSize: '1rem',
+                    outline: 'none',
+                    background: palette.backgroundBase,
+                    transition: 'border 0.2s ease, box-shadow 0.2s ease',
+                    boxShadow: '0 8px 20px rgba(15, 23, 42, 0.04)',
+                  }}
+                />
+                {!showResetPassword && (
+                  <button
+                    type="button"
+                    onClick={() => setShowResetPassword(true)}
+                    style={{
+                      alignSelf: direction === 'rtl' ? 'flex-start' : 'flex-end',
+                      background: 'none',
+                      border: 'none',
+                      color: palette.brandPrimaryStrong,
+                      fontSize: '0.9rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      padding: '0.25rem 0',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    {currentCopy.forgotPassword}
+                  </button>
+                )}
+              </div>
             </label>
 
             {requires2FA ? (
@@ -382,27 +462,139 @@ export function LoginPage() {
               </label>
             ) : null}
 
-            <button
-              type="submit"
-              disabled={loginMutation.isPending}
-              style={{
-                marginTop: '0.5rem',
-                padding: '1rem',
-                borderRadius: '1rem',
-                border: 'none',
-                background: palette.brandPrimaryStrong,
-                color: palette.textOnBrand,
-                fontWeight: 700,
-                fontSize: '1.05rem',
-                cursor: loginMutation.isPending ? 'wait' : 'pointer',
-                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                boxShadow: '0 22px 40px rgba(44, 116, 204, 0.25)',
-              }}
-            >
-              {loginMutation.isPending
-                ? currentCopy.signingIn
-                : currentCopy.signIn}
-            </button>
+            {showResetPassword ? (
+              <>
+                <div
+                  style={{
+                    padding: '1rem',
+                    borderRadius: '0.95rem',
+                    background: palette.brandSecondarySoft,
+                    border: `1px solid ${palette.brandSecondary}`,
+                    marginBottom: '0.5rem',
+                  }}
+                >
+                  <h3
+                    style={{
+                      margin: '0 0 0.5rem',
+                      fontSize: '1.1rem',
+                      fontWeight: 700,
+                      color: palette.textPrimary,
+                    }}
+                  >
+                    {currentCopy.resetPasswordTitle}
+                  </h3>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: '0.9rem',
+                      color: palette.textSecondary,
+                    }}
+                  >
+                    {currentCopy.resetPasswordSubtitle}
+                  </p>
+                </div>
+                <form onSubmit={handleResetPassword}>
+                  <label
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.55rem',
+                      color: palette.textPrimary,
+                      marginBottom: '1rem',
+                    }}
+                  >
+                    <span style={{ fontWeight: 600 }}>{currentCopy.emailLabel}</span>
+                    <input
+                      type="email"
+                      required
+                      autoComplete="email"
+                      value={resetEmail}
+                      onChange={(e) => setResetEmail(e.target.value)}
+                      style={{
+                        padding: '0.95rem 1rem',
+                        borderRadius: '0.95rem',
+                        border: `1px solid ${palette.neutralBorder}`,
+                        fontSize: '1rem',
+                        outline: 'none',
+                        background: palette.backgroundBase,
+                        transition: 'border 0.2s ease, box-shadow 0.2s ease',
+                        boxShadow: '0 8px 20px rgba(15, 23, 42, 0.04)',
+                      }}
+                    />
+                  </label>
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: '0.75rem',
+                      flexDirection: direction === 'rtl' ? 'row-reverse' : 'row',
+                    }}
+                  >
+                    <button
+                      type="submit"
+                      disabled={resetPasswordMutation.isPending}
+                      style={{
+                        flex: 1,
+                        padding: '1rem',
+                        borderRadius: '1rem',
+                        border: 'none',
+                        background: palette.brandPrimaryStrong,
+                        color: palette.textOnBrand,
+                        fontWeight: 700,
+                        fontSize: '1.05rem',
+                        cursor: resetPasswordMutation.isPending ? 'wait' : 'pointer',
+                        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                        boxShadow: '0 22px 40px rgba(44, 116, 204, 0.25)',
+                      }}
+                    >
+                      {resetPasswordMutation.isPending
+                        ? currentCopy.resetPasswordSending
+                        : currentCopy.resetPasswordButton}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowResetPassword(false);
+                        setResetEmail('');
+                      }}
+                      style={{
+                        padding: '1rem 1.5rem',
+                        borderRadius: '1rem',
+                        border: `1px solid ${palette.neutralBorder}`,
+                        background: palette.backgroundBase,
+                        color: palette.textPrimary,
+                        fontWeight: 600,
+                        fontSize: '1.05rem',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {currentCopy.backToLogin}
+                    </button>
+                  </div>
+                </form>
+              </>
+            ) : (
+              <button
+                type="submit"
+                disabled={loginMutation.isPending}
+                style={{
+                  marginTop: '0.5rem',
+                  padding: '1rem',
+                  borderRadius: '1rem',
+                  border: 'none',
+                  background: palette.brandPrimaryStrong,
+                  color: palette.textOnBrand,
+                  fontWeight: 700,
+                  fontSize: '1.05rem',
+                  cursor: loginMutation.isPending ? 'wait' : 'pointer',
+                  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                  boxShadow: '0 22px 40px rgba(44, 116, 204, 0.25)',
+                }}
+              >
+                {loginMutation.isPending
+                  ? currentCopy.signingIn
+                  : currentCopy.signIn}
+              </button>
+            )}
             <ul
               style={{
                 margin: '0.25rem 0 0',
