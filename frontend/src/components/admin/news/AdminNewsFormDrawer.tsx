@@ -1,6 +1,14 @@
-﻿import { useEffect, useMemo, useState } from 'react';
-import type { AdminNewsItem, NewsStatus } from '../../../types/news';
-import type { NewsImagePresignResponse } from '../../../types/news';
+﻿import { useEffect, useMemo, useRef, useState } from 'react';
+import type {
+  AdminNewsItem,
+  NewsStatus,
+  NewsAttachment,
+  NewsAudience,
+} from '../../../types/news';
+import type {
+  NewsImagePresignResponse,
+  NewsAttachmentPresignResponse,
+} from '../../../types/news';
 import { useLanguage } from '../../../context/LanguageContext';
 import { tAdminNews } from '../../../locales/adminNews';
 
@@ -12,6 +20,8 @@ type FormValues = {
   scheduledAt: string;
   publishedAt: string;
   coverKey: string | null;
+  audience: NewsAudience;
+  attachments: NewsAttachment[];
 };
 
 interface Props {
@@ -28,11 +38,16 @@ interface Props {
     coverKey: string | null;
     scheduledAt: string | null;
     publishedAt: string | null;
+    audience: NewsAudience;
+    attachments: NewsAttachment[];
   }) => Promise<void>;
   submitting: boolean;
   onDelete?: () => Promise<void>;
   deleting?: boolean;
   onPresignImage: (file: File) => Promise<NewsImagePresignResponse>;
+  onPresignAttachment: (
+    file: File
+  ) => Promise<NewsAttachmentPresignResponse>;
 }
 
 type ValidationErrors = Partial<Record<'scheduledAt' | 'publishedAt' | 'title' | 'slug', string>>;
@@ -48,12 +63,15 @@ export function AdminNewsFormDrawer({
   onDelete,
   deleting,
   onPresignImage,
+  onPresignAttachment,
 }: Props) {
   const { language, direction } = useLanguage();
   const [values, setValues] = useState<FormValues>(() => initialFormValues());
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [isUploading, setUploading] = useState(false);
+  const [isAttachmentUploading, setAttachmentUploading] = useState(false);
+  const attachmentInputRef = useRef<HTMLInputElement | null>(null);
   const reviewEntries = news?.reviews ?? [];
 
   useEffect(() => {
@@ -67,6 +85,8 @@ export function AdminNewsFormDrawer({
             scheduledAt: toInputValue(news.scheduledAt),
             publishedAt: toInputValue(news.publishedAt),
             coverKey: news.coverKey,
+            audience: news.audience,
+            attachments: news.attachments ?? [],
           }
         : initialFormValues();
       setValues(nextValues);
@@ -110,6 +130,13 @@ export function AdminNewsFormDrawer({
     }));
   };
 
+  const handleAudienceChange = (audience: NewsAudience) => {
+    setValues(prev => ({
+      ...prev,
+      audience,
+    }));
+  };
+
   const handleCoverSelection = async (file: File | null) => {
     if (!file) {
       setValues(prev => ({ ...prev, coverKey: null }));
@@ -148,6 +175,72 @@ export function AdminNewsFormDrawer({
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleAttachmentsSelection = async (files: FileList | null) => {
+    if (!files || files.length === 0) {
+      return;
+    }
+
+    const fileArray = Array.from(files);
+    setAttachmentUploading(true);
+
+    try {
+      const uploaded: NewsAttachment[] = [];
+
+      for (const file of fileArray) {
+        const presign = await onPresignAttachment(file);
+        const headers = new Headers(presign.headers);
+        if (!headers.has('Content-Type')) {
+          headers.set(
+            'Content-Type',
+            file.type && file.type.length > 0
+              ? file.type
+              : 'application/octet-stream'
+          );
+        }
+
+        const response = await fetch(presign.uploadUrl, {
+          method: 'PUT',
+          headers,
+          body: file,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Attachment upload failed with status ${response.status}`);
+        }
+
+        uploaded.push({
+          id: presign.attachmentId,
+          name: file.name,
+          storageKey: presign.storageKey,
+          mimeType: file.type && file.type.length > 0 ? file.type : null,
+          size: file.size ?? null,
+          type: file.type.startsWith('image/') ? 'image' : 'document',
+        });
+      }
+
+      if (uploaded.length > 0) {
+        setValues(prev => ({
+          ...prev,
+          attachments: [...prev.attachments, ...uploaded],
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to upload attachment:', error);
+    } finally {
+      setAttachmentUploading(false);
+      if (attachmentInputRef.current) {
+        attachmentInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleAttachmentRemove = (attachmentId: string) => {
+    setValues(prev => ({
+      ...prev,
+      attachments: prev.attachments.filter(attachment => attachment.id !== attachmentId),
+    }));
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -191,6 +284,8 @@ export function AdminNewsFormDrawer({
         values.status === 'published' && values.publishedAt
           ? new Date(values.publishedAt).toISOString()
           : null,
+      audience: values.audience,
+      attachments: values.attachments,
     });
   };
 
@@ -301,6 +396,44 @@ export function AdminNewsFormDrawer({
                 {errors.publishedAt && <span style={errorStyle}>{errors.publishedAt}</span>}
               </label>
             )}
+
+            <div style={labelStyle}>
+              <span style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                {tAdminNews('form.audience.label', language)}
+              </span>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '1rem',
+                  flexWrap: 'wrap',
+                  marginTop: '0.5rem',
+                }}
+              >
+                <label style={radioLabelStyle}>
+                  <input
+                    type="radio"
+                    name="news-audience"
+                    value="public"
+                    checked={values.audience === 'public'}
+                    onChange={() => handleAudienceChange('public')}
+                  />
+                  <span>{tAdminNews('form.audience.public', language)}</span>
+                </label>
+                <label style={radioLabelStyle}>
+                  <input
+                    type="radio"
+                    name="news-audience"
+                    value="investor_internal"
+                    checked={values.audience === 'investor_internal'}
+                    onChange={() => handleAudienceChange('investor_internal')}
+                  />
+                  <span>{tAdminNews('form.audience.investor_internal', language)}</span>
+                </label>
+              </div>
+              <small style={{ color: 'var(--color-text-secondary)', marginTop: '0.35rem' }}>
+                {tAdminNews('form.audience.helper', language)}
+              </small>
+            </div>
           </section>
 
           <section style={sectionStyle}>
@@ -363,6 +496,87 @@ export function AdminNewsFormDrawer({
                 </div>
               )}
             </label>
+          </section>
+
+          <section style={sectionStyle}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '0.75rem',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <span style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                  {tAdminNews('form.attachments.label', language)}
+                </span>
+                <div>
+                  <input
+                    ref={attachmentInputRef}
+                    type="file"
+                    multiple
+                    onChange={event => handleAttachmentsSelection(event.target.files)}
+                    style={{ display: 'none' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => attachmentInputRef.current?.click()}
+                    style={secondaryButtonStyle}
+                  >
+                    {tAdminNews('form.attachments.upload', language)}
+                  </button>
+                </div>
+              </div>
+              <small style={{ color: 'var(--color-text-secondary)' }}>
+                {tAdminNews('form.attachments.helper', language)}
+              </small>
+              {isAttachmentUploading && (
+                <small style={{ color: 'var(--color-brand-primary-strong)' }}>
+                  {tAdminNews('form.attachments.uploading', language)}
+                </small>
+              )}
+              {values.attachments.length === 0 ? (
+                <div
+                  style={{
+                    padding: '1rem',
+                    borderRadius: '0.85rem',
+                    border: '1px dashed var(--color-brand-secondary-soft)',
+                    color: 'var(--color-text-secondary)',
+                    fontSize: '0.9rem',
+                  }}
+                >
+                  {tAdminNews('form.attachments.empty', language)}
+                </div>
+              ) : (
+                <ul style={attachmentListStyle}>
+                  {values.attachments.map(attachment => (
+                    <li key={attachment.id} style={attachmentItemStyle}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        <strong style={{ color: 'var(--color-text-primary)' }}>
+                          {attachment.name}
+                        </strong>
+                        <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem' }}>
+                          {attachment.type === 'image'
+                            ? tAdminNews('form.attachments.type.image', language)
+                            : tAdminNews('form.attachments.type.document', language)}
+                          {' · '}
+                          {formatAttachmentSize(attachment.size, language)}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleAttachmentRemove(attachment.id)}
+                        style={{ ...secondaryButtonStyle, padding: '0.35rem 0.8rem' }}
+                      >
+                        {tAdminNews('form.attachments.remove', language)}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </section>
 
           <section style={sectionStyle}>
@@ -486,11 +700,15 @@ export function AdminNewsFormDrawer({
               </button>
               <button
                 type="submit"
-                disabled={submitting || isUploading}
+                disabled={submitting || isUploading || isAttachmentUploading}
                 style={{
                   ...primaryButtonStyle,
-                  cursor: submitting || isUploading ? 'not-allowed' : 'pointer',
-                  opacity: submitting || isUploading ? 0.65 : 1,
+                  cursor:
+                    submitting || isUploading || isAttachmentUploading
+                      ? 'not-allowed'
+                      : 'pointer',
+                  opacity:
+                    submitting || isUploading || isAttachmentUploading ? 0.65 : 1,
                 }}
               >
                 {submitting ? `${tAdminNews('form.save', language)}…` : tAdminNews('form.save', language)}
@@ -503,6 +721,30 @@ export function AdminNewsFormDrawer({
   );
 }
 
+function formatAttachmentSize(size: number | null, language: string): string {
+  if (!size || size <= 0) {
+    return language === 'ar' ? 'غير متوفر' : 'N/A';
+  }
+
+  const units = ['B', 'KB', 'MB', 'GB'];
+  const unitsAr = ['بايت', 'ك.ب', 'م.ب', 'ج.ب'];
+  let value = size;
+  let index = 0;
+
+  while (value >= 1024 && index < units.length - 1) {
+    value /= 1024;
+    index += 1;
+  }
+
+  const formatter = new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
+    maximumFractionDigits: value < 10 ? 1 : 0,
+  });
+
+  const unitLabel = language === 'ar' ? unitsAr[index] : units[index];
+
+  return `${formatter.format(value)} ${unitLabel}`;
+}
+
 function initialFormValues(): FormValues {
   return {
     title: '',
@@ -512,6 +754,8 @@ function initialFormValues(): FormValues {
     scheduledAt: '',
     publishedAt: '',
     coverKey: null,
+    audience: 'public',
+    attachments: [],
   };
 }
 
@@ -610,6 +854,15 @@ const labelStyle: React.CSSProperties = {
   fontWeight: 600,
 };
 
+const radioLabelStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '0.4rem',
+  fontWeight: 500,
+  color: 'var(--color-text-secondary)',
+  fontSize: '0.95rem',
+};
+
 const inputStyle: React.CSSProperties = {
   padding: '0.7rem 0.95rem',
   borderRadius: '0.85rem',
@@ -672,6 +925,28 @@ const errorStyle: React.CSSProperties = {
   color: '#DC2626',
   fontSize: '0.8rem',
   fontWeight: 500,
+};
+
+const attachmentListStyle: React.CSSProperties = {
+  listStyle: 'none',
+  padding: 0,
+  margin: 0,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.65rem',
+};
+
+const attachmentItemStyle: React.CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  flexWrap: 'wrap',
+  gap: '0.75rem',
+  border: '1px solid var(--color-border-soft)',
+  borderRadius: '0.85rem',
+  padding: '0.75rem 1rem',
+  background: 'var(--color-background-surface)',
+  boxShadow: '0 8px 18px rgba(15, 23, 42, 0.05)',
 };
 
 

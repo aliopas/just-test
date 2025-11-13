@@ -6,6 +6,19 @@
   | 'rejected'
   | 'archived';
 
+export type NewsAudience = 'public' | 'investor_internal';
+
+export type NewsAttachmentType = 'document' | 'image';
+
+export interface NewsAttachment {
+  id: string;
+  name: string;
+  storageKey: string;
+  mimeType: string | null;
+  size: number | null;
+  type: NewsAttachmentType;
+}
+
 export interface NewsCategory {
   id: string;
   name: string;
@@ -37,6 +50,8 @@ export interface AdminNewsItem {
   status: NewsStatus;
   scheduledAt: string | null;
   publishedAt: string | null;
+  audience: NewsAudience;
+  attachments: NewsAttachment[];
   category: NewsCategory | null;
   author: NewsAuthor | null;
   createdAt: string;
@@ -61,9 +76,20 @@ export interface AdminNewsListFilters {
   page?: number;
   status?: NewsStatus | 'all';
   search?: string;
+  audience?: NewsAudience | 'all';
 }
 
 export interface NewsImagePresignResponse {
+  bucket: string;
+  storageKey: string;
+  uploadUrl: string;
+  token: string | null;
+  headers: Record<string, string>;
+  path: string;
+}
+
+export interface NewsAttachmentPresignResponse {
+  attachmentId: string;
   bucket: string;
   storageKey: string;
   uploadUrl: string;
@@ -103,6 +129,37 @@ export interface InvestorNewsDetail {
   publishedAt: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface InvestorInternalNewsAttachment extends NewsAttachment {
+  downloadUrl: string | null;
+}
+
+export interface InvestorInternalNewsItem {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  coverKey: string | null;
+  publishedAt: string;
+  attachments: InvestorInternalNewsAttachment[];
+}
+
+export interface InvestorInternalNewsListResponse {
+  news: InvestorInternalNewsItem[];
+  meta: InvestorNewsMeta;
+}
+
+export interface InvestorInternalNewsDetail {
+  id: string;
+  title: string;
+  slug: string;
+  bodyMd: string;
+  coverKey: string | null;
+  publishedAt: string;
+  createdAt: string;
+  updatedAt: string;
+  attachments: InvestorInternalNewsAttachment[];
 }
 
 

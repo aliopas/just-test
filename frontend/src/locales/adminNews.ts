@@ -6,6 +6,9 @@ type MessageKey =
   | 'list.emptyTitle'
   | 'list.emptySubtitle'
   | 'list.searchPlaceholder'
+  | 'list.audience.all'
+  | 'list.audience.public'
+  | 'list.audience.investor_internal'
   | 'list.status.all'
   | 'list.status.draft'
   | 'list.status.pending_review'
@@ -17,6 +20,7 @@ type MessageKey =
   | 'list.actions.publishScheduled'
   | 'table.title'
   | 'table.status'
+  | 'table.audience'
   | 'table.scheduledAt'
   | 'table.publishedAt'
   | 'table.updatedAt'
@@ -37,9 +41,21 @@ type MessageKey =
   | 'form.title'
   | 'form.slug'
   | 'form.status'
+  | 'form.audience.label'
+  | 'form.audience.public'
+  | 'form.audience.investor_internal'
+  | 'form.audience.helper'
   | 'form.body'
   | 'form.cover'
   | 'form.coverHint'
+  | 'form.attachments.label'
+  | 'form.attachments.helper'
+  | 'form.attachments.upload'
+  | 'form.attachments.empty'
+  | 'form.attachments.remove'
+  | 'form.attachments.uploading'
+  | 'form.attachments.type.document'
+  | 'form.attachments.type.image'
   | 'form.scheduleLabel'
   | 'form.schedulePlaceholder'
   | 'form.publishAtLabel'
@@ -56,6 +72,7 @@ type MessageKey =
   | 'toast.published'
   | 'toast.publishError'
   | 'toast.presignError'
+  | 'toast.presignAttachmentError'
   | 'toast.uploadError'
   | 'toast.saveError'
   | 'toast.approved'
@@ -79,6 +96,9 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'list.emptySubtitle':
       'Start by creating your first announcement and it will appear here.',
     'list.searchPlaceholder': 'Search by title or slug…',
+    'list.audience.all': 'All audiences',
+    'list.audience.public': 'Public landing content',
+    'list.audience.investor_internal': 'Investor internal updates',
     'list.status.all': 'All statuses',
     'list.status.draft': 'Draft',
     'list.status.pending_review': 'Pending review',
@@ -90,6 +110,7 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'list.actions.publishScheduled': 'Publish scheduled items',
     'table.title': 'Title',
     'table.status': 'Status',
+    'table.audience': 'Audience',
     'table.scheduledAt': 'Scheduled',
     'table.publishedAt': 'Published',
     'table.updatedAt': 'Updated',
@@ -110,10 +131,24 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'form.title': 'Title',
     'form.slug': 'Slug',
     'form.status': 'Status',
+    'form.audience.label': 'Target audience',
+    'form.audience.public': 'Public (landing page)',
+    'form.audience.investor_internal': 'Investor portal (internal)',
+    'form.audience.helper':
+      'Internal audience items require sign-in and may include private documents.',
     'form.body': 'Content (Markdown supported)',
     'form.cover': 'Cover image',
     'form.coverHint':
       'Upload a high quality image. Recommended formats: PNG, JPG, WEBP. Max 10MB.',
+    'form.attachments.label': 'Supporting documents & media',
+    'form.attachments.helper':
+      'Upload PDF, Office documents, ZIP archives, or additional images (max 25MB each).',
+    'form.attachments.upload': 'Upload attachments',
+    'form.attachments.empty': 'No attachments added yet.',
+    'form.attachments.remove': 'Remove',
+    'form.attachments.uploading': 'Uploading attachments…',
+    'form.attachments.type.document': 'Document',
+    'form.attachments.type.image': 'Image',
     'form.scheduleLabel': 'Schedule at',
     'form.schedulePlaceholder': 'Select date & time',
     'form.publishAtLabel': 'Published at',
@@ -133,6 +168,8 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'toast.published': 'Scheduled news published successfully.',
     'toast.publishError': 'Failed to publish scheduled news.',
     'toast.presignError': 'Failed to prepare image upload. Please retry.',
+    'toast.presignAttachmentError':
+      'Failed to prepare attachment upload. Please retry.',
     'toast.uploadError': 'Failed to upload image. Please retry.',
     'toast.saveError': 'Failed to save news item. Please retry.',
     'toast.approved': 'News item approved successfully.',
@@ -154,6 +191,9 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'list.emptySubtitle':
       'ابدأ بإنشاء أول إعلان وسيظهر هنا بمجرد حفظه.',
     'list.searchPlaceholder': 'ابحث بالعنوان أو بالمعرّف (slug)…',
+    'list.audience.all': 'جميع الفئات',
+    'list.audience.public': 'محتوى عام للصفحة الرئيسية',
+    'list.audience.investor_internal': 'تحديثات داخلية للمستثمرين',
     'list.status.all': 'جميع الحالات',
     'list.status.draft': 'مسودة',
     'list.status.pending_review': 'قيد المراجعة',
@@ -165,6 +205,7 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'list.actions.publishScheduled': 'نشر العناصر المجدولة',
     'table.title': 'العنوان',
     'table.status': 'الحالة',
+    'table.audience': 'الفئة المستهدفة',
     'table.scheduledAt': 'موعد الجدولة',
     'table.publishedAt': 'تاريخ النشر',
     'table.updatedAt': 'آخر تحديث',
@@ -185,10 +226,24 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'form.title': 'العنوان',
     'form.slug': 'المعرّف (slug)',
     'form.status': 'الحالة',
+    'form.audience.label': 'الفئة المستهدفة',
+    'form.audience.public': 'عام (صفحة الهبوط)',
+    'form.audience.investor_internal': 'داخلي (بوابة المستثمر)',
+    'form.audience.helper':
+      'العناصر الداخلية تظهر فقط للمستثمرين بعد تسجيل الدخول ويمكن أن تحتوي على مستندات خاصة.',
     'form.body': 'المحتوى (يدعم Markdown)',
     'form.cover': 'صورة الغلاف',
     'form.coverHint':
       'قم برفع صورة عالية الجودة. الصيغ المقترحة: PNG، JPG، WEBP. الحد الأقصى 10MB.',
+    'form.attachments.label': 'المستندات والوسائط المساندة',
+    'form.attachments.helper':
+      'يمكنك رفع ملفات PDF أو مستندات Office أو ملفات ZIP أو صور إضافية (بحد أقصى 25MB لكل ملف).',
+    'form.attachments.upload': 'رفع مرفقات',
+    'form.attachments.empty': 'لا توجد مرفقات حتى الآن.',
+    'form.attachments.remove': 'إزالة',
+    'form.attachments.uploading': 'جارٍ رفع المرفقات…',
+    'form.attachments.type.document': 'مستند',
+    'form.attachments.type.image': 'صورة',
     'form.scheduleLabel': 'تاريخ/وقت الجدولة',
     'form.schedulePlaceholder': 'اختر التاريخ والوقت',
     'form.publishAtLabel': 'تاريخ النشر',
@@ -208,6 +263,7 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'toast.published': 'تم نشر الأخبار المجدولة بنجاح.',
     'toast.publishError': 'تعذر نشر الأخبار المجدولة.',
     'toast.presignError': 'تعذّر تحضير رفع الصورة، حاول مرة أخرى.',
+    'toast.presignAttachmentError': 'تعذّر تحضير رفع المرفق، حاول مرة أخرى.',
     'toast.uploadError': 'تعذّر رفع الصورة، حاول مرة أخرى.',
     'toast.saveError': 'تعذّر حفظ الخبر، حاول مرة أخرى.',
     'toast.approved': 'تمت الموافقة على الخبر بنجاح.',

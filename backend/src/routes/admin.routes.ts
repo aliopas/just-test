@@ -110,6 +110,13 @@ adminRouter.post(
   newsController.presignImage
 );
 
+adminRouter.post(
+  '/news/attachments/presign',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  newsController.presignAttachment
+);
+
 adminRouter.get(
   '/audit-logs',
   authenticate,

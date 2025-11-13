@@ -18,10 +18,17 @@ import {
   useDeleteNewsMutation,
   usePublishScheduledMutation,
   useNewsImagePresignMutation,
+  useNewsAttachmentPresignMutation,
   useApproveNewsMutation,
   useRejectNewsMutation,
 } from '../hooks/useAdminNews';
-import type { AdminNewsItem, AdminNewsListFilters, NewsStatus } from '../types/news';
+import type {
+  AdminNewsItem,
+  AdminNewsListFilters,
+  NewsStatus,
+  NewsAttachment,
+  NewsAudience,
+} from '../types/news';
 import { tAdminNews } from '../locales/adminNews';
 import { ApiError } from '../utils/api-client';
 
@@ -31,6 +38,7 @@ const defaultFilters: AdminNewsListFilters = {
   page: 1,
   status: 'all',
   search: '',
+  audience: 'all',
 };
 
 type DrawerState = {
@@ -65,6 +73,7 @@ function AdminNewsPageInner() {
   const deleteMutation = useDeleteNewsMutation();
   const publishMutation = usePublishScheduledMutation();
   const presignMutation = useNewsImagePresignMutation();
+  const attachmentPresignMutation = useNewsAttachmentPresignMutation();
   const approveMutation = useApproveNewsMutation();
   const rejectMutation = useRejectNewsMutation();
 
@@ -163,6 +172,8 @@ function AdminNewsPageInner() {
     coverKey: string | null;
     scheduledAt: string | null;
     publishedAt: string | null;
+    attachments: NewsAttachment[];
+    audience: NewsAudience;
   }) => {
     try {
       if (drawer.mode === 'create') {
@@ -314,6 +325,26 @@ function AdminNewsPageInner() {
     }
   };
 
+  const handlePresignAttachment = async (file: File) => {
+    try {
+      return await attachmentPresignMutation.mutateAsync({
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size,
+      });
+    } catch (mutationError) {
+      const message =
+        mutationError instanceof Error
+          ? mutationError.message
+          : tAdminNews('toast.presignAttachmentError', language);
+      pushToast({
+        message,
+        variant: 'error',
+      });
+      throw mutationError;
+    }
+  };
+
   return (
     <div
       style={{
@@ -371,6 +402,14 @@ function AdminNewsPageInner() {
               page: 1,
             }))
           }
+          audience={filters.audience ?? 'all'}
+          onAudienceChange={audience =>
+            setFilters(current => ({
+              ...current,
+              audience,
+              page: 1,
+            }))
+          }
           search={filters.search ?? ''}
           onSearchChange={term =>
             setFilters(current => ({
@@ -423,6 +462,7 @@ function AdminNewsPageInner() {
         }
         deleting={deleteMutation.isPending}
         onPresignImage={handlePresign}
+        onPresignAttachment={handlePresignAttachment}
       />
     </div>
   );

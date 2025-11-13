@@ -7,6 +7,7 @@ import { investorProfileUpdateSchema } from '../schemas/investor-profile.schema'
 import { requestController } from '../controllers/request.controller';
 import { investorDashboardController } from '../controllers/investor-dashboard.controller';
 import { investorStocksController } from '../controllers/investor-stocks.controller';
+import { investorInternalNewsController } from '../controllers/investor-internal-news.controller';
 
 const investorRouter = Router();
 
@@ -76,6 +77,20 @@ investorRouter.get(
   authenticate,
   requirePermission(['investor.requests.read', 'admin.requests.review']),
   requestController.timeline
+);
+
+investorRouter.get(
+  '/internal-news',
+  authenticate,
+  requirePermission(['investor.news.read', 'admin.content.manage']),
+  investorInternalNewsController.list
+);
+
+investorRouter.get(
+  '/internal-news/:id',
+  authenticate,
+  requirePermission(['investor.news.read', 'admin.content.manage']),
+  investorInternalNewsController.detail
 );
 
 export { investorRouter };

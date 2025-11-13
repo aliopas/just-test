@@ -11,6 +11,21 @@ export const NEWS_STATUSES = [
 
 export const newsStatusEnum = z.enum(NEWS_STATUSES);
 
+export const NEWS_AUDIENCES = ['public', 'investor_internal'] as const;
+export const newsAudienceEnum = z.enum(NEWS_AUDIENCES);
+
+export const NEWS_ATTACHMENT_TYPES = ['document', 'image'] as const;
+const newsAttachmentTypeEnum = z.enum(NEWS_ATTACHMENT_TYPES);
+
+export const newsAttachmentSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().trim().min(1).max(255),
+  storageKey: z.string().trim().min(3).max(600),
+  mimeType: z.string().trim().max(150).optional().nullable(),
+  size: z.coerce.number().nonnegative().optional().nullable(),
+  type: newsAttachmentTypeEnum.optional().default('document'),
+});
+
 const slugSchema = z
   .string()
   .trim()
@@ -33,6 +48,8 @@ export const newsCreateSchema = z
     status: newsStatusEnum.optional(),
     scheduledAt: timestampSchema.optional().nullable(),
     publishedAt: timestampSchema.optional().nullable(),
+    audience: newsAudienceEnum.optional().default('public'),
+    attachments: z.array(newsAttachmentSchema).optional().default([]),
   })
   .superRefine((val, ctx) => {
     const status = val.status ?? 'draft';
@@ -64,6 +81,8 @@ export const newsUpdateSchema = z
     status: newsStatusEnum.optional(),
     scheduledAt: timestampSchema.optional().nullable(),
     publishedAt: timestampSchema.optional().nullable(),
+    audience: newsAudienceEnum.optional(),
+    attachments: z.array(newsAttachmentSchema).optional(),
   })
   .superRefine((val, ctx) => {
     if (val.status === 'scheduled' && !val.scheduledAt) {
@@ -95,6 +114,7 @@ export const newsListQuerySchema = z.object({
   categoryId: z.string().uuid().optional(),
   sortBy: z.enum(['created_at', 'published_at', 'scheduled_at']).optional(),
   order: z.enum(['asc', 'desc']).optional(),
+  audience: newsAudienceEnum.optional(),
 });
 
 export const newsImagePresignSchema = z
@@ -132,6 +152,51 @@ export type NewsUpdateInput = z.infer<typeof newsUpdateSchema>;
 export type NewsListQuery = z.infer<typeof newsListQuerySchema>;
 export type NewsStatus = z.infer<typeof newsStatusEnum>;
 export type NewsImagePresignInput = z.infer<typeof newsImagePresignSchema>;
+export type NewsAudience = z.infer<typeof newsAudienceEnum>;
+export type NewsAttachment = z.infer<typeof newsAttachmentSchema>;
+
+const ALLOWED_ATTACHMENT_EXTENSIONS = [
+  'pdf',
+  'doc',
+  'docx',
+  'ppt',
+  'pptx',
+  'xls',
+  'xlsx',
+  'csv',
+  'png',
+  'jpg',
+  'jpeg',
+  'webp',
+  'gif',
+  'bmp',
+  'txt',
+  'rtf',
+  'zip',
+] as const;
+
+export const newsAttachmentPresignSchema = z
+  .object({
+    fileName: z.string().trim().min(3).max(255),
+    fileType: z.string().trim().min(3).max(150),
+    fileSize: z.coerce
+      .number()
+      .int()
+      .positive()
+      .max(25 * 1024 * 1024, 'File size exceeds 25MB limit'),
+  })
+  .refine(
+    value => {
+      const extension = value.fileName.split('.').pop()?.toLowerCase() ?? '';
+      return ALLOWED_ATTACHMENT_EXTENSIONS.includes(extension as typeof ALLOWED_ATTACHMENT_EXTENSIONS[number]);
+    },
+    {
+      message: 'Unsupported attachment extension',
+      path: ['fileName'],
+    }
+  );
+
+export type NewsAttachmentPresignInput = z.infer<typeof newsAttachmentPresignSchema>;
 
 export const newsApproveSchema = z.object({
   comment: z

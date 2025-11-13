@@ -25,6 +25,7 @@ import { AdminInvestorsPage } from './pages/AdminInvestorsPage';
 import { InvestorDashboardPage } from './pages/InvestorDashboardPage';
 import { MyRequestsPage } from './pages/MyRequestsPage';
 import { AdminSignupRequestsPage } from './pages/AdminSignupRequestsPage';
+import { InvestorInternalNewsPage } from './pages/InvestorInternalNewsPage';
 
 const navLinkStyle: React.CSSProperties = {
   borderRadius: '0.75rem',
@@ -204,6 +205,16 @@ function HeaderNav() {
           })}
         >
           {language === 'ar' ? 'طلب استثماري' : 'New Request'}
+        </NavLink>
+        <NavLink
+          to="/internal-news"
+          style={({ isActive }) => ({
+            ...navLinkStyle,
+            background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
+            color: isActive ? palette.textPrimary : palette.textSecondary,
+          })}
+        >
+          {language === 'ar' ? 'الأخبار الداخلية' : 'Internal News'}
         </NavLink>
         <NavLink
           to="/profile"
@@ -394,6 +405,7 @@ function InvestorApp() {
         <Route path="/home" element={<HomePage />} />
         <Route path="/requests" element={<MyRequestsPage />} />
         <Route path="/requests/new" element={<NewRequestPage />} />
+        <Route path="/internal-news" element={<InvestorInternalNewsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/news" element={<InvestorNewsListPage />} />
         <Route path="/news/:id" element={<InvestorNewsDetailPage />} />

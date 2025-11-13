@@ -1,11 +1,13 @@
 ﻿import { useState } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { tAdminNews } from '../../../locales/adminNews';
-import type { NewsStatus } from '../../../types/news';
+import type { NewsAudience, NewsStatus } from '../../../types/news';
 
 interface Props {
   status: NewsStatus | 'all';
   onStatusChange: (status: NewsStatus | 'all') => void;
+  audience: NewsAudience | 'all';
+  onAudienceChange: (audience: NewsAudience | 'all') => void;
   search: string;
   onSearchChange: (term: string) => void;
   onCreate: () => void;
@@ -16,6 +18,8 @@ interface Props {
 export function AdminNewsFilterBar({
   status,
   onStatusChange,
+  audience,
+  onAudienceChange,
   search,
   onSearchChange,
   onCreate,
@@ -76,6 +80,19 @@ export function AdminNewsFilterBar({
           <option value="published">{tAdminNews('list.status.published', language)}</option>
           <option value="rejected">{tAdminNews('list.status.rejected', language)}</option>
           <option value="archived">{tAdminNews('list.status.archived', language)}</option>
+        </select>
+        <select
+          value={audience}
+          onChange={event =>
+            onAudienceChange(event.target.value as NewsAudience | 'all')
+          }
+          style={selectStyle}
+        >
+          <option value="all">{tAdminNews('list.audience.all', language)}</option>
+          <option value="public">{tAdminNews('list.audience.public', language)}</option>
+          <option value="investor_internal">
+            {tAdminNews('list.audience.investor_internal', language)}
+          </option>
         </select>
       </div>
       <div

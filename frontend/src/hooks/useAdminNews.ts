@@ -10,8 +10,11 @@ import type {
   AdminNewsListFilters,
   AdminNewsListResponse,
   NewsImagePresignResponse,
+  NewsAttachmentPresignResponse,
   NewsStatus,
   AdminNewsReview,
+  NewsAttachment,
+  NewsAudience,
 } from '../types/news';
 
 const NEWS_ROOT = ['adminNews'] as const;
@@ -29,6 +32,9 @@ function buildListQuery(filters: AdminNewsListFilters) {
   params.set('limit', String(DEFAULT_LIMIT));
   if (filters.status && filters.status !== 'all') {
     params.set('status', filters.status);
+  }
+  if (filters.audience && filters.audience !== 'all') {
+    params.set('audience', filters.audience);
   }
   if (filters.search && filters.search.trim().length > 0) {
     params.set('search', filters.search.trim());
@@ -67,6 +73,8 @@ type NewsMutationInput = {
   bodyMd: string;
   status: NewsStatus;
   coverKey: string | null;
+  audience: NewsAudience;
+  attachments: NewsAttachment[];
   scheduledAt?: string | null;
   publishedAt?: string | null;
 };
@@ -131,6 +139,16 @@ export function useNewsImagePresignMutation() {
   return useMutation({
     mutationFn: (input: { fileName: string; fileType: string; fileSize: number }) =>
       apiClient<NewsImagePresignResponse>('/admin/news/images/presign', {
+        method: 'POST',
+        body: JSON.stringify(input),
+      }),
+  });
+}
+
+export function useNewsAttachmentPresignMutation() {
+  return useMutation({
+    mutationFn: (input: { fileName: string; fileType: string; fileSize: number }) =>
+      apiClient<NewsAttachmentPresignResponse>('/admin/news/attachments/presign', {
         method: 'POST',
         body: JSON.stringify(input),
       }),

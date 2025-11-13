@@ -15,6 +15,9 @@ import type {
   NewsApproveInput,
   NewsRejectInput,
   NewsPublishInput,
+  NewsAudience,
+  NewsAttachment,
+  NewsAttachmentPresignInput,
 } from '../schemas/news.schema';
 import type { PublicNewsListQuery } from '../schemas/public-news.schema';
 
@@ -42,6 +45,8 @@ type NewsRow = {
   scheduled_at: string | null;
   published_at: string | null;
   author_id: string | null;
+  audience: NewsAudience;
+  attachments: unknown;
   created_at: string;
   updated_at: string;
   category?: MaybeArray<{
@@ -76,6 +81,8 @@ export type NewsItem = {
   status: NewsStatus;
   scheduledAt: string | null;
   publishedAt: string | null;
+  audience: NewsAudience;
+  attachments: NewsAttachment[];
   category: { id: string; name: string; slug: string } | null;
   author: { id: string; email: string | null } | null;
   createdAt: string;
@@ -108,6 +115,49 @@ function arrayFromMaybe<T>(value: MaybeArray<T>): T[] {
   return Array.isArray(value) ? (value.filter(Boolean) as T[]) : [value];
 }
 
+function sanitizeNewsAttachments(value: unknown): NewsAttachment[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map(item => {
+      if (!item || typeof item !== 'object') {
+        return null;
+      }
+      const record = item as Record<string, unknown>;
+      const id = typeof record.id === 'string' ? record.id : null;
+      const name = typeof record.name === 'string' ? record.name : null;
+      const storageKey =
+        typeof record.storageKey === 'string' ? record.storageKey : null;
+
+      if (!id || !name || !storageKey) {
+        return null;
+      }
+
+      const mimeType =
+        typeof record.mimeType === 'string' && record.mimeType.length > 0
+          ? record.mimeType
+          : null;
+      const sizeRaw = record.size;
+      const size =
+        typeof sizeRaw === 'number' && Number.isFinite(sizeRaw) && sizeRaw >= 0
+          ? Math.round(sizeRaw)
+          : null;
+      const type = record.type === 'image' ? 'image' : 'document';
+
+      return {
+        id,
+        name,
+        storageKey,
+        mimeType,
+        size,
+        type,
+      } satisfies NewsAttachment;
+    })
+    .filter(Boolean) as NewsAttachment[];
+}
+
 function mapNewsReview(row: NewsReviewRow): NewsReview {
   const reviewer = firstOrNull(row.reviewer ?? null);
   return {
@@ -136,6 +186,8 @@ function mapNewsRow(row: NewsRow): NewsItem {
     status: row.status,
     scheduledAt: row.scheduled_at,
     publishedAt: row.published_at,
+    audience: row.audience,
+    attachments: sanitizeNewsAttachments(row.attachments),
     category: category
       ? {
           id: category.id,
@@ -287,6 +339,8 @@ function buildNewsSelect(options: { includeReviews?: boolean } = {}) {
     slug,
     body_md,
     cover_key,
+    audience,
+    attachments,
     status,
     scheduled_at,
     published_at,
@@ -338,7 +392,78 @@ function resolveNewsImagePath(
   return `${safeVariant}/${year}/${month}/${uuid}${extension}`;
 }
 
+const INTERNAL_NEWS_BUCKET =
+  process.env.INTERNAL_NEWS_BUCKET?.trim() || 'internal-news-assets';
+
+function resolveInternalNewsAttachmentPath(
+  fileName: string,
+  now: Date = new Date()
+): { objectPath: string; storageKey: string } {
+  const extension = path.extname(fileName).toLowerCase();
+  const year = now.getUTCFullYear();
+  const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+  const uuid = randomUUID();
+  const objectPath = `attachments/${year}/${month}/${uuid}${extension}`;
+  const storageKey = `${INTERNAL_NEWS_BUCKET}/${objectPath}`;
+  return { objectPath, storageKey };
+}
+
+async function createSignedAttachmentDownloadUrl(
+  storageKey: string
+): Promise<string | null> {
+  try {
+    const [bucket, ...pathParts] = storageKey.split('/');
+    if (!bucket || pathParts.length === 0) {
+      return null;
+    }
+
+    const path = pathParts.join('/');
+    const adminClient = requireSupabaseAdmin();
+    const { data, error } = await adminClient.storage
+      .from(bucket)
+      .createSignedUrl(path, 60 * 60);
+
+    if (error || !data?.signedUrl) {
+      return null;
+    }
+
+    return data.signedUrl;
+  } catch (error) {
+    void error;
+    return null;
+  }
+}
+
+async function enrichAttachmentsWithSignedUrls(
+  attachments: NewsAttachment[]
+): Promise<InvestorInternalNewsAttachment[]> {
+  if (attachments.length === 0) {
+    return [];
+  }
+
+  const enriched = await Promise.all(
+    attachments.map(async attachment => ({
+      ...attachment,
+      downloadUrl: await createSignedAttachmentDownloadUrl(
+        attachment.storageKey
+      ),
+    }))
+  );
+
+  return enriched;
+}
+
 export type NewsImagePresignResult = {
+  bucket: string;
+  storageKey: string;
+  uploadUrl: string;
+  token: string | null;
+  headers: Record<string, string>;
+  path: string;
+};
+
+export type NewsAttachmentPresignResult = {
+  attachmentId: string;
   bucket: string;
   storageKey: string;
   uploadUrl: string;
@@ -378,6 +503,43 @@ export type PublicNewsDetail = {
   updatedAt: string;
 };
 
+export type InvestorInternalNewsAttachment = NewsAttachment & {
+  downloadUrl: string | null;
+};
+
+export type InvestorInternalNewsItem = {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  coverKey: string | null;
+  publishedAt: string;
+  attachments: InvestorInternalNewsAttachment[];
+};
+
+export type InvestorInternalNewsListResult = {
+  news: InvestorInternalNewsItem[];
+  meta: {
+    page: number;
+    limit: number;
+    total: number;
+    pageCount: number;
+    hasNext: boolean;
+  };
+};
+
+export type InvestorInternalNewsDetail = {
+  id: string;
+  title: string;
+  slug: string;
+  bodyMd: string;
+  coverKey: string | null;
+  publishedAt: string;
+  createdAt: string;
+  updatedAt: string;
+  attachments: InvestorInternalNewsAttachment[];
+};
+
 export async function createNews(params: {
   authorId: string | null;
   input: NewsCreateInput;
@@ -392,6 +554,8 @@ export async function createNews(params: {
       slug: params.input.slug,
       body_md: params.input.bodyMd,
       cover_key: params.input.coverKey ?? null,
+      audience: params.input.audience ?? 'public',
+      attachments: params.input.attachments ?? [],
       category_id: params.input.categoryId ?? null,
       status: params.input.status ?? 'draft',
       scheduled_at: params.input.scheduledAt ?? null,
@@ -430,6 +594,10 @@ export async function listNews(query: NewsListQuery): Promise<NewsListResult> {
 
   if (query.status) {
     builder = builder.eq('status', query.status);
+  }
+
+  if (query.audience) {
+    builder = builder.eq('audience', query.audience);
   }
 
   if (query.categoryId) {
@@ -521,6 +689,12 @@ export async function updateNews(params: {
   if (params.input.status !== undefined) {
     updatePayload.status = params.input.status;
   }
+  if (params.input.audience !== undefined) {
+    updatePayload.audience = params.input.audience;
+  }
+  if (params.input.attachments !== undefined) {
+    updatePayload.attachments = params.input.attachments;
+  }
   if (params.input.scheduledAt !== undefined) {
     updatePayload.scheduled_at = params.input.scheduledAt ?? null;
   }
@@ -593,6 +767,40 @@ export async function createNewsImageUploadUrl(
   return {
     bucket: NEWS_IMAGES_BUCKET,
     storageKey: objectPath,
+    uploadUrl: data.signedUrl,
+    token: data.token ?? null,
+    path: data.path ?? objectPath,
+    headers: {
+      'Content-Type': input.fileType,
+      'x-upsert': 'false',
+    },
+  };
+}
+
+export async function createNewsAttachmentUploadUrl(
+  input: NewsAttachmentPresignInput
+): Promise<NewsAttachmentPresignResult> {
+  const adminClient = requireSupabaseAdmin();
+  const { objectPath, storageKey } = resolveInternalNewsAttachmentPath(
+    input.fileName
+  );
+
+  const { data, error } = await adminClient.storage
+    .from(INTERNAL_NEWS_BUCKET)
+    .createSignedUploadUrl(objectPath);
+
+  if (error || !data) {
+    throw new Error(
+      `Failed to create attachment upload url: ${
+        error?.message ?? 'unknown error'
+      }`
+    );
+  }
+
+  return {
+    attachmentId: randomUUID(),
+    bucket: INTERNAL_NEWS_BUCKET,
+    storageKey,
     uploadUrl: data.signedUrl,
     token: data.token ?? null,
     path: data.path ?? objectPath,
@@ -868,6 +1076,7 @@ export async function listPublishedNews(
     .from('news')
     .select('id,title,slug,body_md,cover_key,published_at,created_at')
     .eq('status', 'published')
+    .eq('audience', 'public')
     .order('published_at', { ascending: false, nullsFirst: false })
     .range(from, to);
 
@@ -909,7 +1118,7 @@ export async function getPublishedNewsById(
   const { data, error } = await adminClient
     .from('news')
     .select(
-      'id,title,slug,body_md,cover_key,published_at,created_at,updated_at,status'
+      'id,title,slug,body_md,cover_key,published_at,created_at,updated_at,status,audience'
     )
     .eq('id', id)
     .single<{
@@ -931,7 +1140,7 @@ export async function getPublishedNewsById(
     throw new Error(`Failed to load published news: ${error.message}`);
   }
 
-  if (!data || data.status !== 'published') {
+  if (!data || data.status !== 'published' || data.audience !== 'public') {
     throw new Error('NEWS_NOT_FOUND');
   }
 
@@ -944,6 +1153,132 @@ export async function getPublishedNewsById(
     publishedAt: data.published_at ?? data.created_at,
     createdAt: data.created_at,
     updatedAt: data.updated_at,
+  };
+}
+
+export async function listInternalInvestorNews(
+  query: PublicNewsListQuery
+): Promise<InvestorInternalNewsListResult> {
+  const adminClient = requireSupabaseAdmin();
+  const page = query.page ?? 1;
+  const limit = query.limit ?? 12;
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+
+  const { data, error, count } = await adminClient
+    .from('news')
+    .select(
+      'id,title,slug,body_md,cover_key,published_at,created_at,attachments'
+    )
+    .eq('status', 'published')
+    .eq('audience', 'investor_internal')
+    .order('published_at', { ascending: false, nullsFirst: false })
+    .range(from, to);
+
+  if (error) {
+    throw new Error(`Failed to list internal news: ${error.message}`);
+  }
+
+  const total = count ?? 0;
+  const pageCount = Math.ceil(total / limit) || 0;
+  const hasNext = page < pageCount;
+  const rows =
+    (data ?? []) as Array<{
+      id: string;
+      title: string;
+      slug: string;
+      body_md: string;
+      cover_key: string | null;
+      published_at: string | null;
+      created_at: string;
+      attachments: unknown;
+    }>;
+
+  const news = await Promise.all(
+    rows.map(async row => {
+      const attachments = await enrichAttachmentsWithSignedUrls(
+        sanitizeNewsAttachments(row.attachments)
+      );
+
+      return {
+        id: row.id,
+        title: row.title,
+        slug: row.slug,
+        excerpt: createExcerpt(row.body_md),
+        coverKey: row.cover_key,
+        publishedAt: row.published_at ?? row.created_at,
+        attachments,
+      };
+    })
+  );
+
+  return {
+    news,
+    meta: {
+      page,
+      limit,
+      total,
+      pageCount,
+      hasNext,
+    },
+  };
+}
+
+export async function getInternalInvestorNewsById(
+  id: string
+): Promise<InvestorInternalNewsDetail> {
+  const adminClient = requireSupabaseAdmin();
+
+  const { data, error } = await adminClient
+    .from('news')
+    .select(
+      'id,title,slug,body_md,cover_key,published_at,created_at,updated_at,status,audience,attachments'
+    )
+    .eq('id', id)
+    .eq('audience', 'investor_internal')
+    .single<{
+      id: string;
+      title: string;
+      slug: string;
+      body_md: string;
+      cover_key: string | null;
+      published_at: string | null;
+      created_at: string;
+      updated_at: string;
+      status: NewsStatus;
+      audience: NewsAudience;
+      attachments: unknown;
+    }>();
+
+  if (error) {
+    if (error.code === 'PGRST116') {
+      throw new Error('NEWS_NOT_FOUND');
+    }
+    throw new Error(`Failed to load internal news detail: ${error.message}`);
+  }
+
+  if (
+    !data ||
+    data.status !== 'published' ||
+    data.audience !== 'investor_internal'
+  ) {
+    throw new Error('NEWS_NOT_FOUND');
+  }
+
+  const attachments = await enrichAttachmentsWithSignedUrls(
+    sanitizeNewsAttachments(data.attachments)
+  );
+
+  return {
+    id: data.id,
+    title: data.title,
+    slug: data.slug,
+    bodyMd: data.body_md,
+    coverKey: data.cover_key,
+    publishedAt: data.published_at ?? data.created_at,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+    attachments,
   };
 }
 

@@ -3,6 +3,7 @@ import type { AuthenticatedRequest } from '../middleware/auth.middleware';
 import {
   newsCreateSchema,
   newsImagePresignSchema,
+  newsAttachmentPresignSchema,
   newsListQuerySchema,
   newsUpdateSchema,
   newsApproveSchema,
@@ -20,6 +21,7 @@ import {
   approveNews,
   rejectNews,
   publishNews,
+  createNewsAttachmentUploadUrl,
 } from '../services/news.service';
 
 export const newsController = {
@@ -252,6 +254,35 @@ export const newsController = {
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to create image upload url',
+        },
+      });
+    }
+  },
+
+  async presignAttachment(req: AuthenticatedRequest, res: Response) {
+    try {
+      const validation = newsAttachmentPresignSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid request payload',
+            details: validation.error.issues.map(issue => ({
+              field: issue.path.join('.'),
+              message: issue.message,
+            })),
+          },
+        });
+      }
+
+      const result = await createNewsAttachmentUploadUrl(validation.data);
+      return res.status(201).json(result);
+    } catch (error) {
+      console.error('Failed to create attachment upload url:', error);
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to create attachment upload url',
         },
       });
     }

@@ -93,6 +93,7 @@ export function AdminNewsTable({
           <tr style={{ background: 'var(--color-background-surface)', color: 'var(--color-text-secondary)' }}>
             <th style={thStyle}>{tAdminNews('table.title', language)}</th>
             <th style={thStyle}>{tAdminNews('table.status', language)}</th>
+            <th style={thStyle}>{tAdminNews('table.audience', language)}</th>
             <th style={thStyle}>{tAdminNews('table.scheduledAt', language)}</th>
             <th style={thStyle}>{tAdminNews('table.publishedAt', language)}</th>
             <th style={thStyle}>{tAdminNews('table.updatedAt', language)}</th>
@@ -112,6 +113,16 @@ export function AdminNewsTable({
                 <span style={getStatusBadgeStyle(item.status)}>
                   {statusLabel(item.status, language)}
                 </span>
+              </td>
+              <td style={tdStyle}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                  <span style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                    {audienceLabel(item.audience, language)}
+                  </span>
+                  <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem' }}>
+                    {attachmentsSummary(item.attachments.length, language)}
+                  </span>
+                </div>
               </td>
               <td style={tdStyle}>{formatDate(item.scheduledAt, language)}</td>
               <td style={tdStyle}>{formatDate(item.publishedAt, language)}</td>
@@ -207,6 +218,27 @@ function statusLabel(status: NewsStatus, language: InvestorLanguage) {
     default:
       return status;
   }
+}
+
+function audienceLabel(
+  audience: AdminNewsItem['audience'],
+  language: InvestorLanguage
+) {
+  if (audience === 'investor_internal') {
+    return tAdminNews('form.audience.investor_internal', language);
+  }
+  return tAdminNews('form.audience.public', language);
+}
+
+function attachmentsSummary(count: number, language: InvestorLanguage) {
+  if (count === 0) {
+    return language === 'ar' ? 'بدون مرفقات' : 'No attachments';
+  }
+  if (language === 'ar') {
+    const plural = count === 1 ? 'مرفق' : count === 2 ? 'مرفقان' : 'مرفقات';
+    return `${count} ${plural}`;
+  }
+  return `${count} attachment${count > 1 ? 's' : ''}`;
 }
 
 function getStatusBadgeStyle(status: NewsStatus): React.CSSProperties {
