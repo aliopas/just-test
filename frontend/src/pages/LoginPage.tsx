@@ -499,7 +499,11 @@ export function LoginPage() {
                 color: palette.textPrimary,
               }}
             >
-              {currentCopy.formTitle}
+              {isResettingPassword && isTokenVerified
+                ? currentCopy.resetPasswordTitle
+                : showResetPassword
+                  ? currentCopy.resetPasswordTitle
+                  : currentCopy.formTitle}
             </h2>
             <p
               style={{
@@ -509,18 +513,244 @@ export function LoginPage() {
                 fontSize: '0.98rem',
               }}
             >
-              {currentCopy.formSubtitle}
+              {isResettingPassword && isTokenVerified
+                ? (language === 'ar' ? 'أدخل كلمة المرور الجديدة' : 'Enter your new password')
+                : showResetPassword
+                  ? currentCopy.resetPasswordSubtitle
+                  : currentCopy.formSubtitle}
             </p>
           </header>
 
-          <form
-            onSubmit={handleSubmit}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '1.35rem',
-            }}
-          >
+          {isResettingPassword && isTokenVerified ? (
+            // Show password update form if token is verified
+            <form
+              onSubmit={handleUpdatePassword}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1.35rem',
+              }}
+            >
+              <label
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.55rem',
+                  color: palette.textPrimary,
+                }}
+              >
+                <span style={{ fontWeight: 600 }}>{currentCopy.newPasswordLabel}</span>
+                <input
+                  type="password"
+                  required
+                  autoComplete="new-password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  minLength={8}
+                  style={{
+                    padding: '0.95rem 1rem',
+                    borderRadius: '0.95rem',
+                    border: `1px solid ${palette.neutralBorder}`,
+                    fontSize: '1rem',
+                    outline: 'none',
+                    background: palette.backgroundBase,
+                    transition: 'border 0.2s ease, box-shadow 0.2s ease',
+                    boxShadow: '0 8px 20px rgba(15, 23, 42, 0.04)',
+                  }}
+                />
+              </label>
+              <label
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.55rem',
+                  color: palette.textPrimary,
+                }}
+              >
+                <span style={{ fontWeight: 600 }}>{currentCopy.confirmPasswordLabel}</span>
+                <input
+                  type="password"
+                  required
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  minLength={8}
+                  style={{
+                    padding: '0.95rem 1rem',
+                    borderRadius: '0.95rem',
+                    border: `1px solid ${palette.neutralBorder}`,
+                    fontSize: '1rem',
+                    outline: 'none',
+                    background: palette.backgroundBase,
+                    transition: 'border 0.2s ease, box-shadow 0.2s ease',
+                    boxShadow: '0 8px 20px rgba(15, 23, 42, 0.04)',
+                  }}
+                />
+              </label>
+              <button
+                type="submit"
+                disabled={updatePasswordMutation.isPending}
+                style={{
+                  marginTop: '0.5rem',
+                  padding: '1rem',
+                  borderRadius: '1rem',
+                  border: 'none',
+                  background: palette.brandPrimaryStrong,
+                  color: palette.textOnBrand,
+                  fontWeight: 700,
+                  fontSize: '1.05rem',
+                  cursor: updatePasswordMutation.isPending ? 'wait' : 'pointer',
+                  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                  boxShadow: '0 22px 40px rgba(44, 116, 204, 0.25)',
+                }}
+              >
+                {updatePasswordMutation.isPending
+                  ? currentCopy.updatingPassword
+                  : currentCopy.updatePasswordButton}
+              </button>
+            </form>
+          ) : isResettingPassword && isVerifyingToken ? (
+            // Show verifying message while checking token
+            <div
+              style={{
+                padding: '2rem',
+                textAlign: 'center',
+                color: palette.textSecondary,
+                fontSize: '1rem',
+              }}
+            >
+              {currentCopy.verifyingToken}
+            </div>
+          ) : isResettingPassword && !isTokenVerified ? (
+            // Show error if token is invalid
+            <div
+              style={{
+                padding: '1.5rem',
+                borderRadius: '0.95rem',
+                background: palette.brandSecondarySoft,
+                border: `1px solid ${palette.brandSecondary}`,
+                textAlign: 'center',
+              }}
+            >
+              <p style={{ margin: 0, color: palette.textPrimary, marginBottom: '1rem' }}>
+                {currentCopy.invalidToken}
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  navigate('/login', { replace: true });
+                  setIsResettingPassword(false);
+                  setResetEmail('');
+                }}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '0.75rem',
+                  border: `1px solid ${palette.brandPrimaryStrong}`,
+                  background: palette.brandPrimaryStrong,
+                  color: palette.textOnBrand,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                {currentCopy.backToLogin}
+              </button>
+            </div>
+          ) : showResetPassword ? (
+            // Show email input form for requesting reset
+            <form
+              onSubmit={handleResetPassword}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1.35rem',
+              }}
+            >
+              <label
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.55rem',
+                  color: palette.textPrimary,
+                }}
+              >
+                <span style={{ fontWeight: 600 }}>{currentCopy.emailLabel}</span>
+                <input
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  style={{
+                    padding: '0.95rem 1rem',
+                    borderRadius: '0.95rem',
+                    border: `1px solid ${palette.neutralBorder}`,
+                    fontSize: '1rem',
+                    outline: 'none',
+                    background: palette.backgroundBase,
+                    transition: 'border 0.2s ease, box-shadow 0.2s ease',
+                    boxShadow: '0 8px 20px rgba(15, 23, 42, 0.04)',
+                  }}
+                />
+              </label>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '0.75rem',
+                  flexDirection: direction === 'rtl' ? 'row-reverse' : 'row',
+                }}
+              >
+                <button
+                  type="submit"
+                  disabled={resetPasswordMutation.isPending}
+                  style={{
+                    flex: 1,
+                    padding: '1rem',
+                    borderRadius: '1rem',
+                    border: 'none',
+                    background: palette.brandPrimaryStrong,
+                    color: palette.textOnBrand,
+                    fontWeight: 700,
+                    fontSize: '1.05rem',
+                    cursor: resetPasswordMutation.isPending ? 'wait' : 'pointer',
+                    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                    boxShadow: '0 22px 40px rgba(44, 116, 204, 0.25)',
+                  }}
+                >
+                  {resetPasswordMutation.isPending
+                    ? currentCopy.resetPasswordSending
+                    : currentCopy.resetPasswordButton}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowResetPassword(false);
+                    setResetEmail('');
+                  }}
+                  style={{
+                    padding: '1rem 1.5rem',
+                    borderRadius: '1rem',
+                    border: `1px solid ${palette.neutralBorder}`,
+                    background: palette.backgroundBase,
+                    color: palette.textPrimary,
+                    fontWeight: 600,
+                    fontSize: '1.05rem',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {currentCopy.backToLogin}
+                </button>
+              </div>
+            </form>
+          ) : (
+            // Show normal login form
+            <form
+              onSubmit={handleSubmit}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1.35rem',
+              }}
+            >
             <label
               style={{
                 display: 'flex',
@@ -584,7 +814,7 @@ export function LoginPage() {
                     boxShadow: '0 8px 20px rgba(15, 23, 42, 0.04)',
                   }}
                 />
-                {!showResetPassword && (
+                {!showResetPassword && !isResettingPassword && (
                   <button
                     type="button"
                     onClick={() => setShowResetPassword(true)}
@@ -639,279 +869,7 @@ export function LoginPage() {
               </label>
             ) : null}
 
-            {isResettingPassword && isTokenVerified ? (
-              // Show password update form if token is verified
-              <>
-                <div
-                  style={{
-                    padding: '1rem',
-                    borderRadius: '0.95rem',
-                    background: palette.brandSecondarySoft,
-                    border: `1px solid ${palette.brandSecondary}`,
-                    marginBottom: '0.5rem',
-                  }}
-                >
-                  <h3
-                    style={{
-                      margin: '0 0 0.5rem',
-                      fontSize: '1.1rem',
-                      fontWeight: 700,
-                      color: palette.textPrimary,
-                    }}
-                  >
-                    {currentCopy.resetPasswordTitle}
-                  </h3>
-                  <p
-                    style={{
-                      margin: 0,
-                      fontSize: '0.9rem',
-                      color: palette.textSecondary,
-                    }}
-                  >
-                    {currentCopy.formSubtitle}
-                  </p>
-                </div>
-                <form onSubmit={handleUpdatePassword}>
-                  <label
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '0.55rem',
-                      color: palette.textPrimary,
-                      marginBottom: '1rem',
-                    }}
-                  >
-                    <span style={{ fontWeight: 600 }}>{currentCopy.newPasswordLabel}</span>
-                    <input
-                      type="password"
-                      required
-                      autoComplete="new-password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      minLength={8}
-                      style={{
-                        padding: '0.95rem 1rem',
-                        borderRadius: '0.95rem',
-                        border: `1px solid ${palette.neutralBorder}`,
-                        fontSize: '1rem',
-                        outline: 'none',
-                        background: palette.backgroundBase,
-                        transition: 'border 0.2s ease, box-shadow 0.2s ease',
-                        boxShadow: '0 8px 20px rgba(15, 23, 42, 0.04)',
-                      }}
-                    />
-                  </label>
-                  <label
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '0.55rem',
-                      color: palette.textPrimary,
-                      marginBottom: '1rem',
-                    }}
-                  >
-                    <span style={{ fontWeight: 600 }}>{currentCopy.confirmPasswordLabel}</span>
-                    <input
-                      type="password"
-                      required
-                      autoComplete="new-password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      minLength={8}
-                      style={{
-                        padding: '0.95rem 1rem',
-                        borderRadius: '0.95rem',
-                        border: `1px solid ${palette.neutralBorder}`,
-                        fontSize: '1rem',
-                        outline: 'none',
-                        background: palette.backgroundBase,
-                        transition: 'border 0.2s ease, box-shadow 0.2s ease',
-                        boxShadow: '0 8px 20px rgba(15, 23, 42, 0.04)',
-                      }}
-                    />
-                  </label>
-                  <button
-                    type="submit"
-                    disabled={updatePasswordMutation.isPending}
-                    style={{
-                      marginTop: '0.5rem',
-                      padding: '1rem',
-                      borderRadius: '1rem',
-                      border: 'none',
-                      background: palette.brandPrimaryStrong,
-                      color: palette.textOnBrand,
-                      fontWeight: 700,
-                      fontSize: '1.05rem',
-                      cursor: updatePasswordMutation.isPending ? 'wait' : 'pointer',
-                      transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                      boxShadow: '0 22px 40px rgba(44, 116, 204, 0.25)',
-                    }}
-                  >
-                    {updatePasswordMutation.isPending
-                      ? currentCopy.updatingPassword
-                      : currentCopy.updatePasswordButton}
-                  </button>
-                </form>
-              </>
-            ) : isResettingPassword && isVerifyingToken ? (
-              // Show verifying message while checking token
-              <div
-                style={{
-                  padding: '2rem',
-                  textAlign: 'center',
-                  color: palette.textSecondary,
-                }}
-              >
-                {currentCopy.verifyingToken}
-              </div>
-            ) : isResettingPassword && !isTokenVerified ? (
-              // Show error if token is invalid
-              <div
-                style={{
-                  padding: '1rem',
-                  borderRadius: '0.95rem',
-                  background: palette.brandSecondarySoft,
-                  border: `1px solid ${palette.brandSecondary}`,
-                  textAlign: 'center',
-                }}
-              >
-                <p style={{ margin: 0, color: palette.textPrimary }}>
-                  {currentCopy.invalidToken}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigate('/login', { replace: true });
-                    setIsResettingPassword(false);
-                    setResetEmail('');
-                  }}
-                  style={{
-                    marginTop: '1rem',
-                    padding: '0.75rem 1.5rem',
-                    borderRadius: '0.75rem',
-                    border: `1px solid ${palette.brandPrimaryStrong}`,
-                    background: palette.brandPrimaryStrong,
-                    color: palette.textOnBrand,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                  }}
-                >
-                  {currentCopy.backToLogin}
-                </button>
-              </div>
-            ) : showResetPassword ? (
-              // Show email input form for requesting reset
-              <>
-                <div
-                  style={{
-                    padding: '1rem',
-                    borderRadius: '0.95rem',
-                    background: palette.brandSecondarySoft,
-                    border: `1px solid ${palette.brandSecondary}`,
-                    marginBottom: '0.5rem',
-                  }}
-                >
-                  <h3
-                    style={{
-                      margin: '0 0 0.5rem',
-                      fontSize: '1.1rem',
-                      fontWeight: 700,
-                      color: palette.textPrimary,
-                    }}
-                  >
-                    {currentCopy.resetPasswordTitle}
-                  </h3>
-                  <p
-                    style={{
-                      margin: 0,
-                      fontSize: '0.9rem',
-                      color: palette.textSecondary,
-                    }}
-                  >
-                    {currentCopy.resetPasswordSubtitle}
-                  </p>
-                </div>
-                <form onSubmit={handleResetPassword}>
-                  <label
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '0.55rem',
-                      color: palette.textPrimary,
-                      marginBottom: '1rem',
-                    }}
-                  >
-                    <span style={{ fontWeight: 600 }}>{currentCopy.emailLabel}</span>
-                    <input
-                      type="email"
-                      required
-                      autoComplete="email"
-                      value={resetEmail}
-                      onChange={(e) => setResetEmail(e.target.value)}
-                      style={{
-                        padding: '0.95rem 1rem',
-                        borderRadius: '0.95rem',
-                        border: `1px solid ${palette.neutralBorder}`,
-                        fontSize: '1rem',
-                        outline: 'none',
-                        background: palette.backgroundBase,
-                        transition: 'border 0.2s ease, box-shadow 0.2s ease',
-                        boxShadow: '0 8px 20px rgba(15, 23, 42, 0.04)',
-                      }}
-                    />
-                  </label>
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: '0.75rem',
-                      flexDirection: direction === 'rtl' ? 'row-reverse' : 'row',
-                    }}
-                  >
-                    <button
-                      type="submit"
-                      disabled={resetPasswordMutation.isPending}
-                      style={{
-                        flex: 1,
-                        padding: '1rem',
-                        borderRadius: '1rem',
-                        border: 'none',
-                        background: palette.brandPrimaryStrong,
-                        color: palette.textOnBrand,
-                        fontWeight: 700,
-                        fontSize: '1.05rem',
-                        cursor: resetPasswordMutation.isPending ? 'wait' : 'pointer',
-                        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                        boxShadow: '0 22px 40px rgba(44, 116, 204, 0.25)',
-                      }}
-                    >
-                      {resetPasswordMutation.isPending
-                        ? currentCopy.resetPasswordSending
-                        : currentCopy.resetPasswordButton}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowResetPassword(false);
-                        setResetEmail('');
-                      }}
-                      style={{
-                        padding: '1rem 1.5rem',
-                        borderRadius: '1rem',
-                        border: `1px solid ${palette.neutralBorder}`,
-                        background: palette.backgroundBase,
-                        color: palette.textPrimary,
-                        fontWeight: 600,
-                        fontSize: '1.05rem',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {currentCopy.backToLogin}
-                    </button>
-                  </div>
-                </form>
-              </>
-            ) : (
-              <button
+            <button
                 type="submit"
                 disabled={loginMutation.isPending}
                 style={{
@@ -932,8 +890,10 @@ export function LoginPage() {
                   ? currentCopy.signingIn
                   : currentCopy.signIn}
               </button>
-            )}
-            <ul
+            </form>
+          )}
+
+          <ul
               style={{
                 margin: '0.25rem 0 0',
                 paddingInlineStart: direction === 'rtl' ? '1.2rem' : '1.4rem',
@@ -960,7 +920,6 @@ export function LoginPage() {
                   : 'Session events and alerts monitored by the ops desk.'}
               </li>
             </ul>
-          </form>
 
           <footer
             style={{
@@ -989,7 +948,7 @@ export function LoginPage() {
               {language === 'ar'
                 ? 'محمي عبر المصادقة متعددة العوامل و RLS على مستوى الصفوف.'
                 : 'Secured with multi-factor authentication and row-level security.'}
-            </span>0
+            </span>
           </footer>
         </section>
       </div>
