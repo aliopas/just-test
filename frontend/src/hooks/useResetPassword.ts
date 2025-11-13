@@ -4,7 +4,9 @@ import { getSupabaseBrowserClient } from '../utils/supabase-client';
 async function resetPasswordRequest(email: string) {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) {
-    throw new Error('Supabase client not available');
+    throw new Error(
+      'Supabase client is not configured. Please check that VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set in your environment variables.'
+    );
   }
 
   // Validate email format

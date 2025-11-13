@@ -21,27 +21,35 @@ export function getSupabaseBrowserClient(): SupabaseClient | null {
 
   const { url, key } = resolveSupabaseConfig();
   if (!url || !key) {
-    if (import.meta.env.DEV) {
-      console.warn(
-        'Supabase realtime client not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY.'
-      );
-    }
+    const missing = [];
+    if (!url) missing.push('SUPABASE_URL');
+    if (!key) missing.push('SUPABASE_ANON_KEY');
+    
+    console.error(
+      `[Supabase] Missing configuration: ${missing.join(', ')}. ` +
+      `Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your environment variables.`
+    );
     return null;
   }
 
-  client = createClient(url, key, {
-    auth: {
-      persistSession: true, // Enable session persistence for password reset
-      autoRefreshToken: true,
-      detectSessionInUrl: true, // Detect session from URL (for password reset)
-    },
-    realtime: {
-      params: {
-        eventsPerSecond: 10,
+  try {
+    client = createClient(url, key, {
+      auth: {
+        persistSession: true, // Enable session persistence for password reset
+        autoRefreshToken: true,
+        detectSessionInUrl: true, // Detect session from URL (for password reset)
       },
-    },
-  });
+      realtime: {
+        params: {
+          eventsPerSecond: 10,
+        },
+      },
+    });
 
-  return client;
+    return client;
+  } catch (error) {
+    console.error('[Supabase] Failed to create client:', error);
+    return null;
+  }
 }
 

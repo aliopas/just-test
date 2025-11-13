@@ -125,9 +125,13 @@ export function LoginPage() {
       const verifyResetToken = async () => {
         const supabase = getSupabaseBrowserClient();
         if (!supabase) {
+          const errorMsg =
+            language === 'ar'
+              ? 'خطأ في إعدادات الاتصال. يرجى التحقق من إعدادات Supabase.'
+              : 'Connection configuration error. Please check Supabase settings.';
           pushToast({
             variant: 'error',
-            message: currentCopy.invalidToken,
+            message: errorMsg,
           });
           setIsVerifyingToken(false);
           return;
