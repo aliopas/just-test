@@ -172,23 +172,62 @@ export function LoginPage() {
       return;
     }
 
-    try {
-      await resetPasswordMutation.mutateAsync(resetEmail.trim());
-      pushToast({
-        variant: 'success',
-        message: currentCopy.resetPasswordSuccess,
-      });
-      setShowResetPassword(false);
-      setResetEmail('');
-    } catch (error) {
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(resetEmail.trim())) {
       pushToast({
         variant: 'error',
         message:
-          error instanceof Error
-            ? error.message
-            : language === 'ar'
-              ? 'فشل إرسال رابط الاستعادة. يرجى المحاولة مرة أخرى.'
-              : 'Failed to send reset link. Please try again.',
+          language === 'ar'
+            ? 'يرجى إدخال بريد إلكتروني صحيح'
+            : 'Please enter a valid email address',
+      });
+      return;
+    }
+
+    try {
+      await resetPasswordMutation.mutateAsync(resetEmail.trim());
+      
+      // Always show success message (for security, don't reveal if email exists)
+      pushToast({
+        variant: 'success',
+        message:
+          language === 'ar'
+            ? 'إذا كان هناك حساب مرتبط بهذا البريد الإلكتروني، سيتم إرسال رابط الاستعادة.'
+            : 'If an account exists with this email, a password reset link has been sent.',
+      });
+      
+      setShowResetPassword(false);
+      setResetEmail('');
+    } catch (error) {
+      console.error('Password reset error:', error);
+      
+      // Show user-friendly error message
+      let errorMessage: string;
+      if (error instanceof Error) {
+        if (error.message.includes('rate limit') || error.message.includes('too many')) {
+          errorMessage =
+            language === 'ar'
+              ? 'تم إرسال طلبات كثيرة. يرجى الانتظار بضع دقائق قبل المحاولة مرة أخرى.'
+              : 'Too many requests. Please wait a few minutes before trying again.';
+        } else if (error.message.includes('Supabase client not available')) {
+          errorMessage =
+            language === 'ar'
+              ? 'خطأ في الاتصال. يرجى التحقق من إعدادات الاتصال.'
+              : 'Connection error. Please check your connection settings.';
+        } else {
+          errorMessage = error.message;
+        }
+      } else {
+        errorMessage =
+          language === 'ar'
+            ? 'فشل إرسال رابط الاستعادة. يرجى المحاولة مرة أخرى.'
+            : 'Failed to send reset link. Please try again.';
+      }
+
+      pushToast({
+        variant: 'error',
+        message: errorMessage,
       });
     }
   };
