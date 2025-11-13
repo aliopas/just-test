@@ -1,12 +1,14 @@
-import { ChangeEvent, FormEvent, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useLogin } from '../hooks/useLogin';
 import { useResetPassword } from '../hooks/useResetPassword';
+import { useUpdatePassword } from '../hooks/useUpdatePassword';
 import { useToast } from '../context/ToastContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Logo } from '../components/Logo';
 import { palette } from '../styles/theme';
 import { ApiError } from '../utils/api-client';
+import { getSupabaseBrowserClient } from '../utils/supabase-client';
 
 type LoginFormState = {
   email: string;
@@ -19,10 +21,17 @@ export function LoginPage() {
   const { pushToast } = useToast();
   const loginMutation = useLogin();
   const resetPasswordMutation = useResetPassword();
+  const updatePasswordMutation = useUpdatePassword();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [requires2FA, setRequires2FA] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [isVerifyingToken, setIsVerifyingToken] = useState(false);
+  const [isTokenVerified, setIsTokenVerified] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [form, setForm] = useState<LoginFormState>({
     email: '',
     password: '',
@@ -54,6 +63,16 @@ export function LoginPage() {
       resetPasswordSending: 'جارٍ الإرسال…',
       resetPasswordSuccess: 'تم إرسال رابط الاستعادة إلى بريدك الإلكتروني',
       backToLogin: 'العودة لتسجيل الدخول',
+      newPasswordLabel: 'كلمة المرور الجديدة',
+      confirmPasswordLabel: 'تأكيد كلمة المرور',
+      updatePasswordButton: 'تحديث كلمة المرور',
+      updatingPassword: 'جارٍ التحديث…',
+      passwordUpdated: 'تم تحديث كلمة المرور بنجاح',
+      passwordsNotMatch: 'كلمات المرور غير متطابقة',
+      passwordRequired: 'يرجى إدخال كلمة المرور',
+      minLength: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل',
+      verifyingToken: 'جارٍ التحقق من الرابط…',
+      invalidToken: 'الرابط غير صالح أو منتهي الصلاحية',
     },
     en: {
       headline: 'Investors Portal',
@@ -77,6 +96,16 @@ export function LoginPage() {
       resetPasswordSending: 'Sending…',
       resetPasswordSuccess: 'Password reset link has been sent to your email',
       backToLogin: 'Back to Sign In',
+      newPasswordLabel: 'New Password',
+      confirmPasswordLabel: 'Confirm Password',
+      updatePasswordButton: 'Update Password',
+      updatingPassword: 'Updating…',
+      passwordUpdated: 'Password updated successfully',
+      passwordsNotMatch: 'Passwords do not match',
+      passwordRequired: 'Please enter a password',
+      minLength: 'Password must be at least 8 characters',
+      verifyingToken: 'Verifying link…',
+      invalidToken: 'Invalid or expired link',
     },
   } as const;
 
@@ -228,6 +257,61 @@ export function LoginPage() {
       pushToast({
         variant: 'error',
         message: errorMessage,
+      });
+    }
+  };
+
+  const handleUpdatePassword = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!newPassword.trim()) {
+      pushToast({
+        variant: 'error',
+        message: currentCopy.passwordRequired,
+      });
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      pushToast({
+        variant: 'error',
+        message: currentCopy.minLength,
+      });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      pushToast({
+        variant: 'error',
+        message: currentCopy.passwordsNotMatch,
+      });
+      return;
+    }
+
+    try {
+      await updatePasswordMutation.mutateAsync(newPassword);
+      pushToast({
+        variant: 'success',
+        message: currentCopy.passwordUpdated,
+      });
+      
+      // Clear URL params and reset state
+      navigate('/login', { replace: true });
+      setIsResettingPassword(false);
+      setIsTokenVerified(false);
+      setNewPassword('');
+      setConfirmPassword('');
+      setResetEmail('');
+    } catch (error) {
+      console.error('Update password error:', error);
+      pushToast({
+        variant: 'error',
+        message:
+          error instanceof Error
+            ? error.message
+            : language === 'ar'
+              ? 'فشل تحديث كلمة المرور. يرجى المحاولة مرة أخرى.'
+              : 'Failed to update password. Please try again.',
       });
     }
   };
