@@ -111,6 +111,60 @@ export function LoginPage() {
 
   const currentCopy = copy[language];
 
+  // Check for password reset token in URL on mount
+  useEffect(() => {
+    const tokenHash = searchParams.get('token_hash');
+    const type = searchParams.get('type');
+    const email = searchParams.get('email');
+
+    if (tokenHash && type === 'recovery') {
+      setIsResettingPassword(true);
+      setIsVerifyingToken(true);
+      setResetEmail(email || '');
+
+      const verifyResetToken = async () => {
+        const supabase = getSupabaseBrowserClient();
+        if (!supabase) {
+          pushToast({
+            variant: 'error',
+            message: currentCopy.invalidToken,
+          });
+          setIsVerifyingToken(false);
+          return;
+        }
+
+        try {
+          const { data, error } = await supabase.auth.verifyOtp({
+            email: email || undefined,
+            token_hash: tokenHash,
+            type: 'recovery',
+          });
+
+          if (error || !data.session) {
+            throw error || new Error('Verification failed');
+          }
+
+          await supabase.auth.setSession({
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token,
+          });
+
+          setIsTokenVerified(true);
+        } catch (error) {
+          console.error('Password reset verification error:', error);
+          pushToast({
+            variant: 'error',
+            message: currentCopy.invalidToken,
+          });
+        } finally {
+          setIsVerifyingToken(false);
+        }
+      };
+
+      verifyResetToken();
+    }
+  }, [searchParams, pushToast, currentCopy.invalidToken]);
+
   const handleChange = (field: keyof LoginFormState) => (event: ChangeEvent<HTMLInputElement>) => {
     setForm(current => ({
       ...current,
@@ -585,7 +639,168 @@ export function LoginPage() {
               </label>
             ) : null}
 
-            {showResetPassword ? (
+            {isResettingPassword && isTokenVerified ? (
+              // Show password update form if token is verified
+              <>
+                <div
+                  style={{
+                    padding: '1rem',
+                    borderRadius: '0.95rem',
+                    background: palette.brandSecondarySoft,
+                    border: `1px solid ${palette.brandSecondary}`,
+                    marginBottom: '0.5rem',
+                  }}
+                >
+                  <h3
+                    style={{
+                      margin: '0 0 0.5rem',
+                      fontSize: '1.1rem',
+                      fontWeight: 700,
+                      color: palette.textPrimary,
+                    }}
+                  >
+                    {currentCopy.resetPasswordTitle}
+                  </h3>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: '0.9rem',
+                      color: palette.textSecondary,
+                    }}
+                  >
+                    {currentCopy.formSubtitle}
+                  </p>
+                </div>
+                <form onSubmit={handleUpdatePassword}>
+                  <label
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.55rem',
+                      color: palette.textPrimary,
+                      marginBottom: '1rem',
+                    }}
+                  >
+                    <span style={{ fontWeight: 600 }}>{currentCopy.newPasswordLabel}</span>
+                    <input
+                      type="password"
+                      required
+                      autoComplete="new-password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      minLength={8}
+                      style={{
+                        padding: '0.95rem 1rem',
+                        borderRadius: '0.95rem',
+                        border: `1px solid ${palette.neutralBorder}`,
+                        fontSize: '1rem',
+                        outline: 'none',
+                        background: palette.backgroundBase,
+                        transition: 'border 0.2s ease, box-shadow 0.2s ease',
+                        boxShadow: '0 8px 20px rgba(15, 23, 42, 0.04)',
+                      }}
+                    />
+                  </label>
+                  <label
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.55rem',
+                      color: palette.textPrimary,
+                      marginBottom: '1rem',
+                    }}
+                  >
+                    <span style={{ fontWeight: 600 }}>{currentCopy.confirmPasswordLabel}</span>
+                    <input
+                      type="password"
+                      required
+                      autoComplete="new-password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      minLength={8}
+                      style={{
+                        padding: '0.95rem 1rem',
+                        borderRadius: '0.95rem',
+                        border: `1px solid ${palette.neutralBorder}`,
+                        fontSize: '1rem',
+                        outline: 'none',
+                        background: palette.backgroundBase,
+                        transition: 'border 0.2s ease, box-shadow 0.2s ease',
+                        boxShadow: '0 8px 20px rgba(15, 23, 42, 0.04)',
+                      }}
+                    />
+                  </label>
+                  <button
+                    type="submit"
+                    disabled={updatePasswordMutation.isPending}
+                    style={{
+                      marginTop: '0.5rem',
+                      padding: '1rem',
+                      borderRadius: '1rem',
+                      border: 'none',
+                      background: palette.brandPrimaryStrong,
+                      color: palette.textOnBrand,
+                      fontWeight: 700,
+                      fontSize: '1.05rem',
+                      cursor: updatePasswordMutation.isPending ? 'wait' : 'pointer',
+                      transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                      boxShadow: '0 22px 40px rgba(44, 116, 204, 0.25)',
+                    }}
+                  >
+                    {updatePasswordMutation.isPending
+                      ? currentCopy.updatingPassword
+                      : currentCopy.updatePasswordButton}
+                  </button>
+                </form>
+              </>
+            ) : isResettingPassword && isVerifyingToken ? (
+              // Show verifying message while checking token
+              <div
+                style={{
+                  padding: '2rem',
+                  textAlign: 'center',
+                  color: palette.textSecondary,
+                }}
+              >
+                {currentCopy.verifyingToken}
+              </div>
+            ) : isResettingPassword && !isTokenVerified ? (
+              // Show error if token is invalid
+              <div
+                style={{
+                  padding: '1rem',
+                  borderRadius: '0.95rem',
+                  background: palette.brandSecondarySoft,
+                  border: `1px solid ${palette.brandSecondary}`,
+                  textAlign: 'center',
+                }}
+              >
+                <p style={{ margin: 0, color: palette.textPrimary }}>
+                  {currentCopy.invalidToken}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigate('/login', { replace: true });
+                    setIsResettingPassword(false);
+                    setResetEmail('');
+                  }}
+                  style={{
+                    marginTop: '1rem',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '0.75rem',
+                    border: `1px solid ${palette.brandPrimaryStrong}`,
+                    background: palette.brandPrimaryStrong,
+                    color: palette.textOnBrand,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {currentCopy.backToLogin}
+                </button>
+              </div>
+            ) : showResetPassword ? (
+              // Show email input form for requesting reset
               <>
                 <div
                   style={{
