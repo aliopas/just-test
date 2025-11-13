@@ -7,9 +7,10 @@
   "workspaces": ["frontend"],
   "scripts": {
     "dev": "nodemon backend/src/server.ts",
-    "build": "npm run build:backend && npm run build:frontend",
+    "build": "node scripts/prepare-env.js && npm run build:backend && npm run build:frontend",
     "build:backend": "tsc -p backend/tsconfig.json",
     "build:frontend": "npm run build --workspace frontend",
+    "prepare-env": "node scripts/prepare-env.js",
     "start": "node backend/dist/server.js",
     "lint": "eslint . --ext .ts,.js --fix",
     "format": "prettier --write \"**/*.{ts,js,json,md}\"",
