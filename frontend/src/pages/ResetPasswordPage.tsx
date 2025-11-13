@@ -82,10 +82,7 @@ export function ResetPasswordPage() {
         if (emailFromUrl) {
           setExpiredEmail(emailFromUrl);
         }
-        pushToast({
-          variant: 'error',
-          message: currentCopy.invalidLink,
-        });
+        // Don't show toast here - the UI already shows the error message
         setIsVerifying(false);
         setIsVerified(false);
         return;
@@ -102,10 +99,7 @@ export function ResetPasswordPage() {
       }
 
       if (!tokenHash || type !== 'recovery') {
-        pushToast({
-          variant: 'error',
-          message: currentCopy.invalidLink,
-        });
+        // Don't show toast here - the UI already shows the error message
         setIsVerifying(false);
         return;
       }
@@ -124,19 +118,21 @@ export function ResetPasswordPage() {
         }
       } catch (error) {
         console.error('Password reset verification error:', error);
-        pushToast({
-          variant: 'error',
-          message: error instanceof ApiError 
-            ? error.message 
-            : currentCopy.invalidLink,
-        });
+        // Only show toast for API errors, not for expired links (UI already shows message)
+        if (error instanceof ApiError && !error.message.includes('expired') && !error.message.includes('Invalid')) {
+          pushToast({
+            variant: 'error',
+            message: error.message,
+          });
+        }
       } finally {
         setIsVerifying(false);
       }
     };
 
     verifyResetToken();
-  }, [searchParams, pushToast, currentCopy.invalidLink, verifyTokenMutation]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
