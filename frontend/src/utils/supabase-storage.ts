@@ -1,19 +1,115 @@
 import { getSupabaseBrowserClient } from './supabase-client';
 
+function isAbsoluteUrl(path: string): boolean {
+  return /^https?:\/\//i.test(path);
+}
+
+function getStorageBaseUrl(): string | null {
+  if (typeof window !== 'undefined') {
+    const runtime = window.__ENV__?.SUPABASE_STORAGE_URL;
+    if (runtime) {
+      return runtime.replace(/\/+$/, '');
+    }
+  }
+
+  const buildTime =
+    import.meta.env?.VITE_SUPABASE_STORAGE_URL ??
+    import.meta.env?.SUPABASE_STORAGE_URL ??
+    null;
+
+  return buildTime ? buildTime.replace(/\/+$/, '') : null;
+}
+
+function stripPublicPrefix(path: string): string {
+  return path
+    .replace(/^https?:\/\/[^/]+\/storage\/v1\/object\/public\//i, '')
+    .replace(/^public\//i, '')
+    .replace(/^\/+/, '');
+}
+
+function resolveBucketAndPath(
+  fallbackBucket: string,
+  rawPath: string
+): { bucket: string; objectPath: string } {
+  const sanitized = stripPublicPrefix(rawPath);
+  const segments = sanitized.split('/').filter(Boolean);
+
+  if (segments.length > 1) {
+    const [maybeBucket, ...rest] = segments;
+
+    if (fallbackBucket && maybeBucket === fallbackBucket) {
+      return { bucket: fallbackBucket, objectPath: rest.join('/') };
+    }
+
+    if (!fallbackBucket) {
+      return { bucket: maybeBucket, objectPath: rest.join('/') };
+    }
+
+    if (sanitized.startsWith(`${fallbackBucket}/`)) {
+      return {
+        bucket: fallbackBucket,
+        objectPath: sanitized.slice(fallbackBucket.length + 1),
+      };
+    }
+
+    return { bucket: maybeBucket, objectPath: rest.join('/') };
+  }
+
+  return { bucket: fallbackBucket, objectPath: sanitized || rawPath };
+}
+
+function buildDirectPublicUrl(
+  bucket: string,
+  objectPath: string
+): string | null {
+  const baseUrl = getStorageBaseUrl();
+  if (!baseUrl) {
+    return null;
+  }
+
+  const normalizedBucket = bucket.replace(/^\/+|\/+$/g, '');
+  const normalizedPath = objectPath.replace(/^\/+/, '');
+  return `${baseUrl}/${normalizedBucket}/${normalizedPath}`;
+}
+
 /**
  * Get public URL for a file in Supabase Storage
  * @param bucket - The storage bucket name
  * @param path - The file path/key in the bucket
  * @returns The public URL or null if client is not available
  */
-export function getStoragePublicUrl(bucket: string, path: string): string | null {
+export function getStoragePublicUrl(
+  bucket: string,
+  path: string
+): string | null {
+  if (!path) {
+    return null;
+  }
+
+  if (isAbsoluteUrl(path)) {
+    return path;
+  }
+
+  const { bucket: resolvedBucket, objectPath } = resolveBucketAndPath(
+    bucket,
+    path
+  );
+
+  const directUrl = buildDirectPublicUrl(resolvedBucket, objectPath);
+  if (directUrl) {
+    return directUrl;
+  }
+
   const client = getSupabaseBrowserClient();
   if (!client) {
     return null;
   }
 
   try {
-    const { data } = client.storage.from(bucket).getPublicUrl(path);
+    const { data } = client.storage
+      .from(resolvedBucket)
+      .getPublicUrl(objectPath);
+
     return data.publicUrl;
   } catch (error) {
     console.error('Failed to get storage public URL:', error);
@@ -33,13 +129,27 @@ export async function getStorageSignedUrl(
   path: string,
   expiresIn: number = 3600
 ): Promise<string | null> {
+  if (!path) {
+    return null;
+  }
+
+  if (isAbsoluteUrl(path)) {
+    return path;
+  }
+
   const client = getSupabaseBrowserClient();
   if (!client) {
     return null;
   }
 
   try {
-    const { data, error } = await client.storage.from(bucket).createSignedUrl(path, expiresIn);
+    const { bucket: resolvedBucket, objectPath } = resolveBucketAndPath(
+      bucket,
+      path
+    );
+    const { data, error } = await client.storage
+      .from(resolvedBucket)
+      .createSignedUrl(objectPath, expiresIn);
     if (error) {
       console.error('Failed to create signed URL:', error);
       return null;
@@ -133,6 +243,10 @@ export async function resolveAttachmentUrl(
 ): Promise<string | null> {
   if (!storageKey) {
     return null;
+  }
+
+  if (isAbsoluteUrl(storageKey)) {
+    return storageKey;
   }
 
   if (isPublic) {
