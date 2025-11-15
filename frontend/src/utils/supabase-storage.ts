@@ -1,14 +1,32 @@
 import { getSupabaseBrowserClient } from './supabase-client';
 
+function sanitizeBaseUrl(url: string): string {
+  return url.replace(/\/+$/, '');
+}
+
 function isAbsoluteUrl(path: string): boolean {
   return /^https?:\/\//i.test(path);
+}
+
+function getSupabaseProjectUrl(): string | null {
+  if (typeof window !== 'undefined') {
+    const runtime = window.__ENV__?.SUPABASE_URL;
+    if (runtime) {
+      return sanitizeBaseUrl(runtime);
+    }
+  }
+
+  const buildTime =
+    import.meta.env?.VITE_SUPABASE_URL ?? import.meta.env?.SUPABASE_URL ?? null;
+
+  return buildTime ? sanitizeBaseUrl(buildTime) : null;
 }
 
 function getStorageBaseUrl(): string | null {
   if (typeof window !== 'undefined') {
     const runtime = window.__ENV__?.SUPABASE_STORAGE_URL;
     if (runtime) {
-      return runtime.replace(/\/+$/, '');
+      return sanitizeBaseUrl(runtime);
     }
   }
 
@@ -17,7 +35,16 @@ function getStorageBaseUrl(): string | null {
     import.meta.env?.SUPABASE_STORAGE_URL ??
     null;
 
-  return buildTime ? buildTime.replace(/\/+$/, '') : null;
+  if (buildTime) {
+    return sanitizeBaseUrl(buildTime);
+  }
+
+  const supabaseUrl = getSupabaseProjectUrl();
+  if (supabaseUrl) {
+    return `${supabaseUrl}/storage/v1/object/public`;
+  }
+
+  return null;
 }
 
 function stripPublicPrefix(path: string): string {
