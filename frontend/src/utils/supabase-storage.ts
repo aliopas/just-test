@@ -61,30 +61,26 @@ function resolveBucketAndPath(
   rawPath: string
 ): { bucket: string; objectPath: string } {
   const sanitized = stripPublicPrefix(rawPath);
-  const segments = sanitized.split('/').filter(Boolean);
 
-  if (segments.length > 1) {
-    const [maybeBucket, ...rest] = segments;
-
-    if (fallbackBucket && maybeBucket === fallbackBucket) {
-      return { bucket: fallbackBucket, objectPath: rest.join('/') };
-    }
-
-    if (!fallbackBucket) {
-      return { bucket: maybeBucket, objectPath: rest.join('/') };
-    }
-
+  if (fallbackBucket) {
     if (sanitized.startsWith(`${fallbackBucket}/`)) {
+      const objectPath = sanitized.slice(fallbackBucket.length + 1);
       return {
         bucket: fallbackBucket,
-        objectPath: sanitized.slice(fallbackBucket.length + 1),
+        objectPath: objectPath || sanitized,
       };
     }
 
+    return { bucket: fallbackBucket, objectPath: sanitized || rawPath };
+  }
+
+  const segments = sanitized.split('/').filter(Boolean);
+  if (segments.length > 1) {
+    const [maybeBucket, ...rest] = segments;
     return { bucket: maybeBucket, objectPath: rest.join('/') };
   }
 
-  return { bucket: fallbackBucket, objectPath: sanitized || rawPath };
+  return { bucket: sanitized || rawPath, objectPath: '' };
 }
 
 function buildDirectPublicUrl(
