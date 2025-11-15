@@ -3,6 +3,8 @@ import { useLanguage } from '../context/LanguageContext';
 import { palette } from '../styles/theme';
 import { tInvestorInternalNews } from '../locales/investorInternalNews';
 import { useInvestorInternalNewsList } from '../hooks/useInvestorInternalNews';
+import { OptimizedImage } from '../components/OptimizedImage';
+import { NEWS_IMAGES_BUCKET, resolveCoverUrl } from '../utils/supabase-storage';
 
 function formatDate(value: string, locale: string) {
   try {
@@ -141,7 +143,12 @@ export function InvestorInternalNewsPage() {
             </p>
           </div>
         ) : (
-          newsItems.map(item => (
+          newsItems.map(item => {
+            const coverUrl = resolveCoverUrl(item.coverKey, NEWS_IMAGES_BUCKET);
+            const fallbackInitial =
+              item.title?.trim().charAt(0).toUpperCase() || 'N';
+
+            return (
             <article
               key={item.id}
               style={newsCardStyle}
@@ -154,6 +161,17 @@ export function InvestorInternalNewsPage() {
                 e.currentTarget.style.boxShadow = '0 4px 12px rgba(15, 23, 42, 0.08)';
               }}
             >
+              <OptimizedImage
+                src={coverUrl}
+                alt={item.title}
+                aspectRatio={16 / 9}
+                fallbackText={fallbackInitial}
+                objectFit="cover"
+                style={{
+                  borderRadius: '0.9rem',
+                  background: palette.neutralBorderSoft,
+                }}
+              />
               <header
                 style={{
                   display: 'flex',
@@ -288,7 +306,8 @@ export function InvestorInternalNewsPage() {
                 </section>
               )}
             </article>
-          ))
+          );
+          })
         )}
       </section>
     </div>
