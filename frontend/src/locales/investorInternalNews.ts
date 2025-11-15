@@ -10,7 +10,10 @@ type MessageKey =
   | 'refresh'
   | 'card.publishedAt'
   | 'attachments.title'
-  | 'attachments.download';
+  | 'attachments.download'
+  | 'attachments.imagesTitle'
+  | 'attachments.filesTitle'
+  | 'attachments.more';
 
 type MessageDictionary = Record<MessageKey, string>;
 
@@ -26,8 +29,11 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     error: 'We could not load the internal news feed right now. Please try again.',
     refresh: 'Refresh',
     'card.publishedAt': 'Published on',
-    'attachments.title': 'Downloads',
+    'attachments.title': 'Attachments',
     'attachments.download': 'Download',
+    'attachments.imagesTitle': 'Image gallery',
+    'attachments.filesTitle': 'Files & downloads',
+    'attachments.more': 'more',
   },
   ar: {
     pageTitle: 'التحديثات الداخلية للمستثمرين',
@@ -42,6 +48,9 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'card.publishedAt': 'تاريخ النشر',
     'attachments.title': 'المرفقات',
     'attachments.download': 'تحميل',
+    'attachments.imagesTitle': 'معرض الصور',
+    'attachments.filesTitle': 'الملفات والتنزيلات',
+    'attachments.more': 'مرفق إضافي',
   },
 };
 

@@ -3,6 +3,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { palette } from '../styles/theme';
 import { tInvestorInternalNews } from '../locales/investorInternalNews';
 import { useInvestorInternalNewsList } from '../hooks/useInvestorInternalNews';
+import type { InvestorInternalNewsAttachment } from '../types/news';
 import { OptimizedImage } from '../components/OptimizedImage';
 import { NEWS_IMAGES_BUCKET, resolveCoverUrl } from '../utils/supabase-storage';
 
@@ -147,31 +148,44 @@ export function InvestorInternalNewsPage() {
             const coverUrl = resolveCoverUrl(item.coverKey, NEWS_IMAGES_BUCKET);
             const fallbackInitial =
               item.title?.trim().charAt(0).toUpperCase() || 'N';
+            const imageAttachments = item.attachments.filter(
+              (
+                attachment
+              ): attachment is InvestorInternalNewsAttachment & {
+                downloadUrl: string;
+              } =>
+                attachment.type === 'image' && Boolean(attachment.downloadUrl)
+            );
+            const fileAttachments = item.attachments.filter(
+              attachment => attachment.type !== 'image'
+            );
 
             return (
-            <article
-              key={item.id}
-              style={newsCardStyle}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 8px 20px rgba(15, 23, 42, 0.12)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(15, 23, 42, 0.08)';
-              }}
-            >
-              <OptimizedImage
-                src={coverUrl}
-                alt={item.title}
-                aspectRatio={16 / 9}
-                fallbackText={fallbackInitial}
-                objectFit="cover"
-                style={{
-                  borderRadius: '0.9rem',
-                  background: palette.neutralBorderSoft,
+              <article
+                key={item.id}
+                style={newsCardStyle}
+                onMouseEnter={e => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow =
+                    '0 8px 20px rgba(15, 23, 42, 0.12)';
                 }}
-              />
+                onMouseLeave={e => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow =
+                    '0 4px 12px rgba(15, 23, 42, 0.08)';
+                }}
+              >
+                <OptimizedImage
+                  src={coverUrl}
+                  alt={item.title}
+                  aspectRatio={16 / 9}
+                  fallbackText={fallbackInitial}
+                  objectFit="cover"
+                  style={{
+                    borderRadius: '0.9rem',
+                    background: palette.neutralBorderSoft,
+                  }}
+                />
               <header
                 style={{
                   display: 'flex',
@@ -221,7 +235,44 @@ export function InvestorInternalNewsPage() {
                   {item.excerpt}
                 </p>
               )}
-              {item.attachments.length > 0 && (
+              {imageAttachments.length > 0 && (
+                <section style={{ marginTop: '0.5rem' }}>
+                  <h3
+                    style={{
+                      margin: 0,
+                      fontSize: '0.95rem',
+                      fontWeight: 600,
+                      color: palette.textPrimary,
+                      marginBottom: '0.6rem',
+                    }}
+                  >
+                    {tInvestorInternalNews(
+                      'attachments.imagesTitle',
+                      language
+                    )}{' '}
+                    ({imageAttachments.length})
+                  </h3>
+                  <div style={imageGalleryStyle}>
+                    {imageAttachments.map(image => {
+                      const imageFallback =
+                        image.name?.trim().charAt(0).toUpperCase() ||
+                        fallbackInitial;
+                      return (
+                        <OptimizedImage
+                          key={image.id}
+                          src={image.downloadUrl}
+                          alt={image.name}
+                          aspectRatio={4 / 3}
+                          fallbackText={imageFallback}
+                          objectFit="cover"
+                          style={imageThumbnailStyle}
+                        />
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
+              {fileAttachments.length > 0 && (
                 <section style={{ marginTop: '1rem' }}>
                   <h3
                     style={{
@@ -232,10 +283,14 @@ export function InvestorInternalNewsPage() {
                       marginBottom: '0.6rem',
                     }}
                   >
-                    {tInvestorInternalNews('attachments.title', language)} ({item.attachments.length})
+                    {tInvestorInternalNews(
+                      'attachments.filesTitle',
+                      language
+                    )}{' '}
+                    ({fileAttachments.length})
                   </h3>
                   <ul style={attachmentListStyle}>
-                    {item.attachments.slice(0, 2).map(attachment => (
+                    {fileAttachments.slice(0, 2).map(attachment => (
                       <li key={attachment.id} style={attachmentItemStyle}>
                         <div
                           style={{
@@ -291,7 +346,7 @@ export function InvestorInternalNewsPage() {
                       </li>
                     ))}
                   </ul>
-                  {item.attachments.length > 2 && (
+                  {fileAttachments.length > 2 && (
                     <p
                       style={{
                         margin: '0.5rem 0 0',
@@ -300,13 +355,14 @@ export function InvestorInternalNewsPage() {
                         textAlign: 'center',
                       }}
                     >
-                      +{item.attachments.length - 2} {language === 'ar' ? 'مرفق إضافي' : 'more'}
+                      +{fileAttachments.length - 2}{' '}
+                      {tInvestorInternalNews('attachments.more', language)}
                     </p>
                   )}
                 </section>
               )}
             </article>
-          );
+            );
           })
         )}
       </section>
@@ -335,6 +391,18 @@ const newsCardStyle: CSSProperties = {
   transition: 'transform 0.2s ease, box-shadow 0.2s ease',
   cursor: 'pointer',
   height: '100%',
+};
+
+const imageGalleryStyle: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+  gap: '0.8rem',
+};
+
+const imageThumbnailStyle: CSSProperties = {
+  borderRadius: '0.75rem',
+  border: `1px solid ${palette.neutralBorderSoft}`,
+  background: palette.backgroundBase,
 };
 
 const attachmentListStyle: CSSProperties = {
