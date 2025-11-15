@@ -12,6 +12,10 @@ type MessageKey =
   | 'detail.updatedAt'
   | 'detail.loading'
   | 'detail.error'
+  | 'detail.attachments.title'
+  | 'detail.attachments.imagesTitle'
+  | 'detail.attachments.filesTitle'
+  | 'detail.attachments.download'
   | 'toast.loadError'
   | 'toast.detailError';
 
@@ -32,6 +36,10 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'detail.updatedAt': 'Last updated',
     'detail.loading': 'Loading article…',
     'detail.error': 'Failed to load article. Please try again.',
+    'detail.attachments.title': 'Attachments',
+    'detail.attachments.imagesTitle': 'Image gallery',
+    'detail.attachments.filesTitle': 'Files & downloads',
+    'detail.attachments.download': 'Download',
     'toast.loadError': 'Unable to load news. Please try again.',
     'toast.detailError': 'Unable to load article. Please try again.',
   },
@@ -49,6 +57,10 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'detail.updatedAt': 'آخر تحديث',
     'detail.loading': 'جارٍ تحميل المقال…',
     'detail.error': 'تعذّر تحميل المقال. حاول مرة أخرى.',
+    'detail.attachments.title': 'المرفقات',
+    'detail.attachments.imagesTitle': 'معرض الصور',
+    'detail.attachments.filesTitle': 'الملفات والتنزيلات',
+    'detail.attachments.download': 'تحميل',
     'toast.loadError': 'تعذّر تحميل الأخبار. حاول مرة أخرى.',
     'toast.detailError': 'تعذّر تحميل المقال. حاول مرة أخرى.',
   },

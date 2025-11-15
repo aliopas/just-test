@@ -129,6 +129,7 @@ export interface InvestorNewsDetail {
   publishedAt: string;
   createdAt: string;
   updatedAt: string;
+  attachments: InvestorInternalNewsAttachment[];
 }
 
 export interface InvestorInternalNewsAttachment extends NewsAttachment {

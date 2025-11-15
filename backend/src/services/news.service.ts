@@ -501,6 +501,7 @@ export type PublicNewsDetail = {
   publishedAt: string;
   createdAt: string;
   updatedAt: string;
+  attachments: InvestorInternalNewsAttachment[];
 };
 
 export type InvestorInternalNewsAttachment = NewsAttachment & {
@@ -1118,7 +1119,7 @@ export async function getPublishedNewsById(
   const { data, error } = await adminClient
     .from('news')
     .select(
-      'id,title,slug,body_md,cover_key,published_at,created_at,updated_at,status,audience'
+      'id,title,slug,body_md,cover_key,published_at,created_at,updated_at,status,audience,attachments'
     )
     .eq('id', id)
     .single<{
@@ -1132,6 +1133,7 @@ export async function getPublishedNewsById(
       updated_at: string;
       status: NewsStatus;
       audience: NewsAudience;
+      attachments: unknown;
     }>();
 
   if (error) {
@@ -1145,6 +1147,10 @@ export async function getPublishedNewsById(
     throw new Error('NEWS_NOT_FOUND');
   }
 
+  const attachments = await enrichAttachmentsWithSignedUrls(
+    sanitizeNewsAttachments(data.attachments)
+  );
+
   return {
     id: data.id,
     title: data.title,
@@ -1154,6 +1160,7 @@ export async function getPublishedNewsById(
     publishedAt: data.published_at ?? data.created_at,
     createdAt: data.created_at,
     updatedAt: data.updated_at,
+    attachments,
   };
 }
 

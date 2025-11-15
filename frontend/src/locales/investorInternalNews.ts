@@ -12,8 +12,7 @@ type MessageKey =
   | 'attachments.title'
   | 'attachments.download'
   | 'attachments.imagesTitle'
-  | 'attachments.filesTitle'
-  | 'attachments.more';
+  | 'attachments.filesTitle';
 
 type MessageDictionary = Record<MessageKey, string>;
 
@@ -33,7 +32,6 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'attachments.download': 'Download',
     'attachments.imagesTitle': 'Image gallery',
     'attachments.filesTitle': 'Files & downloads',
-    'attachments.more': 'more',
   },
   ar: {
     pageTitle: 'التحديثات الداخلية للمستثمرين',
@@ -50,7 +48,6 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'attachments.download': 'تحميل',
     'attachments.imagesTitle': 'معرض الصور',
     'attachments.filesTitle': 'الملفات والتنزيلات',
-    'attachments.more': 'مرفق إضافي',
   },
 };
 

@@ -290,7 +290,7 @@ export function InvestorInternalNewsPage() {
                     ({fileAttachments.length})
                   </h3>
                   <ul style={attachmentListStyle}>
-                    {fileAttachments.slice(0, 2).map(attachment => (
+                    {fileAttachments.map(attachment => (
                       <li key={attachment.id} style={attachmentItemStyle}>
                         <div
                           style={{
@@ -346,19 +346,6 @@ export function InvestorInternalNewsPage() {
                       </li>
                     ))}
                   </ul>
-                  {fileAttachments.length > 2 && (
-                    <p
-                      style={{
-                        margin: '0.5rem 0 0',
-                        color: palette.textSecondary,
-                        fontSize: '0.85rem',
-                        textAlign: 'center',
-                      }}
-                    >
-                      +{fileAttachments.length - 2}{' '}
-                      {tInvestorInternalNews('attachments.more', language)}
-                    </p>
-                  )}
                 </section>
               )}
             </article>

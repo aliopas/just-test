@@ -1,4 +1,4 @@
-﻿import { useEffect } from 'react';
+﻿import { useEffect, type CSSProperties } from 'react';
 import {
   QueryClient,
   QueryClientProvider,
@@ -10,9 +10,9 @@ import { ToastStack } from '../components/ToastStack';
 import { useInvestorNewsDetail } from '../hooks/useInvestorNews';
 import { tInvestorNews } from '../locales/investorNews';
 import { palette } from '../styles/theme';
-import { Logo } from '../components/Logo';
 import { resolveCoverUrl, NEWS_IMAGES_BUCKET } from '../utils/supabase-storage';
 import { OptimizedImage } from '../components/OptimizedImage';
+import type { InvestorInternalNewsAttachment } from '../types/news';
 
 const queryClient = new QueryClient();
 
@@ -36,6 +36,29 @@ function formatDate(
   } catch {
     return value;
   }
+}
+
+
+function formatFileSize(bytes?: number | null): string | null {
+  if (bytes === null || bytes === undefined) {
+    return null;
+  }
+
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+
+  const units = ['KB', 'MB', 'GB', 'TB'] as const;
+  let size = bytes / 1024;
+  let unitIndex = 0;
+
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex += 1;
+  }
+
+  const formatted = size % 1 === 0 ? size.toFixed(0) : size.toFixed(1);
+  return `${formatted} ${units[unitIndex]}`;
 }
 
 
@@ -111,6 +134,86 @@ function renderMarkdown(
     });
 }
 
+const attachmentsContainerStyle: CSSProperties = {
+  borderRadius: '1.25rem',
+  border: `1px solid ${palette.neutralBorderSoft}`,
+  background: palette.backgroundSurface,
+  padding: '1.75rem',
+  boxShadow: '0 18px 40px rgba(15, 23, 42, 0.1)',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '1rem',
+};
+
+const attachmentsSectionHeaderStyle: CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  gap: '0.75rem',
+};
+
+const attachmentsSubheadingStyle: CSSProperties = {
+  margin: 0,
+  fontSize: '1.05rem',
+  fontWeight: 600,
+  color: palette.textPrimary,
+};
+
+const imageGalleryStyle: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+  gap: '1rem',
+};
+
+const imageThumbnailStyle: CSSProperties = {
+  borderRadius: '0.85rem',
+  width: '100%',
+  height: '100%',
+};
+
+const attachmentListStyle: CSSProperties = {
+  listStyle: 'none',
+  padding: 0,
+  margin: '0.75rem 0 0',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.85rem',
+};
+
+const attachmentItemStyle: CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  gap: '1rem',
+  padding: '0.95rem 1.1rem',
+  borderRadius: '1rem',
+  border: `1px solid ${palette.neutralBorderSoft}`,
+  background: palette.backgroundBase,
+  flexWrap: 'wrap',
+};
+
+const attachmentInfoStyle: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.2rem',
+  minWidth: 0,
+  flex: 1,
+};
+
+const attachmentFileNameStyle: CSSProperties = {
+  fontWeight: 600,
+  color: palette.textPrimary,
+  fontSize: '1rem',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+};
+
+const attachmentMetaStyle: CSSProperties = {
+  color: palette.textSecondary,
+  fontSize: '0.85rem',
+};
+
 function InvestorNewsDetailPageInner() {
   const { language, direction } = useLanguage();
   const { pushToast } = useToast();
@@ -135,6 +238,20 @@ function InvestorNewsDetailPageInner() {
     data?.updatedAt && data?.updatedAt !== data?.publishedAt
       ? formatDate(data.updatedAt, language)
       : null;
+  const attachments = data?.attachments ?? [];
+  const imageAttachments = attachments.filter(
+    (
+      attachment
+    ): attachment is InvestorInternalNewsAttachment & {
+      downloadUrl: string;
+    } => attachment.type === 'image' && Boolean(attachment.downloadUrl)
+  );
+  const fileAttachments = attachments.filter(
+    attachment => attachment.type !== 'image'
+  );
+  const hasImageAttachments = imageAttachments.length > 0;
+  const hasFileAttachments = fileAttachments.length > 0;
+  const showAttachmentsSection = hasImageAttachments || hasFileAttachments;
 
   return (
     <div
@@ -252,17 +369,132 @@ function InvestorNewsDetailPageInner() {
       </div>
 
       {data && (
-        <article
-          style={{
-            maxWidth: '900px',
-            margin: '2.5rem auto 4rem',
-            padding: '0 1.5rem',
-            color: palette.textPrimary,
-            direction,
-          }}
-        >
-          {renderMarkdown(data.bodyMd, language)}
-        </article>
+        <>
+          <article
+            style={{
+              maxWidth: '900px',
+              margin: '2.5rem auto 4rem',
+              padding: '0 1.5rem',
+              color: palette.textPrimary,
+              direction,
+            }}
+          >
+            {renderMarkdown(data.bodyMd, language)}
+          </article>
+
+          {showAttachmentsSection && (
+            <section
+              style={{
+                maxWidth: '900px',
+                margin: '-2rem auto 4.5rem',
+                padding: '0 1.5rem',
+                direction,
+              }}
+            >
+              <div style={attachmentsContainerStyle}>
+                <h2
+                  style={{
+                    margin: 0,
+                    fontSize: '1.4rem',
+                    fontWeight: 700,
+                    color: palette.textPrimary,
+                  }}
+                >
+                  {tInvestorNews('detail.attachments.title', language)}
+                </h2>
+
+                {hasImageAttachments && (
+                  <div style={{ marginTop: '1.2rem' }}>
+                    <div style={attachmentsSectionHeaderStyle}>
+                      <h3 style={attachmentsSubheadingStyle}>
+                        {tInvestorNews('detail.attachments.imagesTitle', language)} (
+                        {imageAttachments.length})
+                      </h3>
+                    </div>
+                    <div style={imageGalleryStyle}>
+                      {imageAttachments.map(image => {
+                        const fallbackInitial =
+                          image.name?.trim().charAt(0).toUpperCase() ??
+                          (data.title?.charAt(0).toUpperCase() ?? 'N');
+                        return (
+                          <a
+                            key={image.id}
+                            href={image.downloadUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: 'block',
+                              borderRadius: '0.85rem',
+                              overflow: 'hidden',
+                              border: `1px solid ${palette.neutralBorderSoft}`,
+                            }}
+                          >
+                            <OptimizedImage
+                              src={image.downloadUrl}
+                              alt={image.name}
+                              aspectRatio={4 / 3}
+                              fallbackText={fallbackInitial}
+                              objectFit="cover"
+                              style={imageThumbnailStyle}
+                            />
+                          </a>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {hasFileAttachments && (
+                  <div style={{ marginTop: hasImageAttachments ? '2rem' : '1.2rem' }}>
+                    <div style={attachmentsSectionHeaderStyle}>
+                      <h3 style={attachmentsSubheadingStyle}>
+                        {tInvestorNews('detail.attachments.filesTitle', language)} (
+                        {fileAttachments.length})
+                      </h3>
+                    </div>
+                    <ul style={attachmentListStyle}>
+                      {fileAttachments.map(attachment => {
+                        const sizeLabel = formatFileSize(attachment.size);
+                        return (
+                          <li key={attachment.id} style={attachmentItemStyle}>
+                            <div style={attachmentInfoStyle}>
+                              <span style={attachmentFileNameStyle}>{attachment.name}</span>
+                              <span style={attachmentMetaStyle}>
+                                {attachment.mimeType ?? '—'}
+                                {sizeLabel ? ` · ${sizeLabel}` : ''}
+                              </span>
+                            </div>
+                            <a
+                              href={attachment.downloadUrl ?? undefined}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                padding: '0.55rem 1.4rem',
+                                borderRadius: '999px',
+                                border: `1px solid ${palette.brandPrimaryStrong}`,
+                                background: palette.brandSecondarySoft,
+                                color: palette.brandPrimaryStrong,
+                                fontWeight: 600,
+                                fontSize: '0.9rem',
+                                textDecoration: 'none',
+                                cursor: attachment.downloadUrl ? 'pointer' : 'not-allowed',
+                                opacity: attachment.downloadUrl ? 1 : 0.6,
+                                whiteSpace: 'nowrap',
+                              }}
+                              aria-disabled={!attachment.downloadUrl}
+                            >
+                              {tInvestorNews('detail.attachments.download', language)}
+                            </a>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
+        </>
       )}
     </div>
   );
