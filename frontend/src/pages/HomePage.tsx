@@ -4,7 +4,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { palette } from '../styles/theme';
 import { Logo } from '../components/Logo';
 import { useInvestorNewsList } from '../hooks/useInvestorNews';
-import { resolveCoverUrl } from '../utils/supabase-storage';
+import { resolveCoverUrl, NEWS_IMAGES_BUCKET } from '../utils/supabase-storage';
 import { OptimizedImage } from '../components/OptimizedImage';
 
 export function HomePage() {
@@ -117,7 +117,7 @@ export function HomePage() {
     }
 
     return latestNews.map(item => {
-      const coverUrl = resolveCoverUrl(item.coverKey);
+      const coverUrl = resolveCoverUrl(item.coverKey, NEWS_IMAGES_BUCKET);
       const publishedLabel = new Date(item.publishedAt).toLocaleDateString(
         language === 'ar' ? 'ar-SA' : 'en-GB',
         { month: 'short', day: 'numeric' }

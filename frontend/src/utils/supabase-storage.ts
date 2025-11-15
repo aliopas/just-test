@@ -1,5 +1,7 @@
 import { getSupabaseBrowserClient } from './supabase-client';
 
+export const NEWS_IMAGES_BUCKET = 'news-images';
+
 function sanitizeBaseUrl(url: string): string {
   return url.replace(/\/+$/, '');
 }
@@ -197,7 +199,7 @@ export async function getStorageSignedUrl(
  */
 export function resolveCoverUrl(
   coverKey: string | null,
-  bucket: string = 'news-covers'
+  bucket: string = NEWS_IMAGES_BUCKET
 ): string | null {
   if (!coverKey) {
     return null;
@@ -231,7 +233,7 @@ export function getOptimizedImageUrl(
     quality?: number;
     format?: 'webp' | 'jpeg' | 'png';
   } = {},
-  bucket: string = 'news-covers'
+  bucket: string = NEWS_IMAGES_BUCKET
 ): string | null {
   if (!coverKey) {
     return null;

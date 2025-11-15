@@ -11,7 +11,7 @@ import { useInvestorNewsDetail } from '../hooks/useInvestorNews';
 import { tInvestorNews } from '../locales/investorNews';
 import { palette } from '../styles/theme';
 import { Logo } from '../components/Logo';
-import { resolveCoverUrl } from '../utils/supabase-storage';
+import { resolveCoverUrl, NEWS_IMAGES_BUCKET } from '../utils/supabase-storage';
 import { OptimizedImage } from '../components/OptimizedImage';
 
 const queryClient = new QueryClient();
@@ -129,7 +129,7 @@ function InvestorNewsDetailPageInner() {
     });
   }, [isError, pushToast, language]);
 
-  const coverUrl = resolveCoverUrl(data?.coverKey ?? null);
+  const coverUrl = resolveCoverUrl(data?.coverKey ?? null, NEWS_IMAGES_BUCKET);
   const publishedAt = formatDate(data?.publishedAt ?? null, language);
   const updatedAt =
     data?.updatedAt && data?.updatedAt !== data?.publishedAt

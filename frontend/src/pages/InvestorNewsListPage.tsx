@@ -10,7 +10,7 @@ import { useInvestorNewsList } from '../hooks/useInvestorNews';
 import type { InvestorNewsItem } from '../types/news';
 import { tInvestorNews } from '../locales/investorNews';
 import { palette } from '../styles/theme';
-import { resolveCoverUrl } from '../utils/supabase-storage';
+import { resolveCoverUrl, NEWS_IMAGES_BUCKET } from '../utils/supabase-storage';
 import { OptimizedImage } from '../components/OptimizedImage';
 
 const queryClient = new QueryClient();
@@ -170,7 +170,7 @@ function InvestorNewsListPageInner() {
           }}
         >
           {items.map(item => {
-            const coverUrl = resolveCoverUrl(item.coverKey);
+            const coverUrl = resolveCoverUrl(item.coverKey, NEWS_IMAGES_BUCKET);
             return (
               <article
                 key={item.id}

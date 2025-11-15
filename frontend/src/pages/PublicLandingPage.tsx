@@ -4,7 +4,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { Logo } from '../components/Logo';
 import { palette } from '../styles/theme';
 import { useInvestorNewsList } from '../hooks/useInvestorNews';
-import { resolveCoverUrl } from '../utils/supabase-storage';
+import { resolveCoverUrl, NEWS_IMAGES_BUCKET } from '../utils/supabase-storage';
 import { OptimizedImage } from '../components/OptimizedImage';
 
 const heroSectionStyle: React.CSSProperties = {
@@ -453,7 +453,7 @@ export function PublicLandingPage() {
     }
 
     return newsItems.map(item => {
-      const coverUrl = resolveCoverUrl(item.coverKey);
+      const coverUrl = resolveCoverUrl(item.coverKey, NEWS_IMAGES_BUCKET);
       const publishedAt = new Date(item.publishedAt).toLocaleDateString(
         isArabic ? 'ar-SA' : 'en-GB',
         {
