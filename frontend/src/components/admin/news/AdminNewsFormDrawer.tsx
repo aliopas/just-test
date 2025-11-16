@@ -777,10 +777,8 @@ export function AdminNewsFormDrawer({
               </div>
             </section>
           )}
-          </form>
-        </div>
 
-        <footer style={footerStyle}>
+          <footer style={footerStyle}>
             {onDelete && (
               <button
                 type="button"
@@ -821,7 +819,9 @@ export function AdminNewsFormDrawer({
                 {submitting ? `${tAdminNews('form.save', language)}…` : tAdminNews('form.save', language)}
               </button>
             </div>
-        </footer>
+          </footer>
+          </form>
+        </div>
         </div>
       </div>
     </>
@@ -993,8 +993,13 @@ const footerStyle: React.CSSProperties = {
   flexWrap: 'wrap',
   gap: '0.75rem',
   paddingTop: '1.5rem',
+  paddingBottom: '0.5rem',
   borderTop: '1px solid var(--color-border-soft)',
-  marginTop: '0.5rem',
+  marginTop: '1.5rem',
+  position: 'sticky',
+  bottom: 0,
+  background: 'var(--color-background-surface)',
+  zIndex: 10,
 };
 
 const primaryButtonStyle: React.CSSProperties = {
