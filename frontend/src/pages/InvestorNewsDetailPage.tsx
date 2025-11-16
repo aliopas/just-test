@@ -269,7 +269,7 @@ function InvestorNewsDetailPageInner() {
         }}
       >
         <Link
-          to="/news"
+          to="/home"
           style={{
             display: 'inline-block',
             marginBottom: '1.5rem',
