@@ -1,4 +1,4 @@
-﻿import { useMemo } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { palette } from '../styles/theme';
@@ -6,24 +6,53 @@ import { Logo } from '../components/Logo';
 import { useInvestorNewsList } from '../hooks/useInvestorNews';
 import { resolveCoverUrl, NEWS_IMAGES_BUCKET } from '../utils/supabase-storage';
 import { OptimizedImage } from '../components/OptimizedImage';
+import type { InvestorNewsItem } from '../types/news';
+
+const PAGE_LIMIT = 12;
 
 export function HomePage() {
   const { direction, language } = useLanguage();
+  const [page, setPage] = useState(1);
+  const [allNews, setAllNews] = useState<InvestorNewsItem[]>([]);
+
   const {
     data: newsResponse,
     isLoading: isNewsLoading,
     isError: isNewsError,
     isFetching: isNewsFetching,
-  } = useInvestorNewsList({ page: 1, limit: 3 });
+  } = useInvestorNewsList({ page, limit: PAGE_LIMIT });
+
+  useEffect(() => {
+    if (!newsResponse) {
+      return;
+    }
+
+    setAllNews((prev: InvestorNewsItem[]) => {
+      if (page === 1) {
+        return newsResponse.news;
+      }
+
+      const existing = new Set(prev.map((item: InvestorNewsItem) => item.id));
+      const merged = [...prev];
+      newsResponse.news.forEach((item: InvestorNewsItem) => {
+        if (!existing.has(item.id)) {
+          merged.push(item);
+        }
+      });
+      return merged;
+    });
+  }, [newsResponse, page]);
 
   const latestNews = useMemo(
-    () => newsResponse?.news ?? [],
-    [newsResponse]
+    () => allNews,
+    [allNews]
   );
+
+  const hasMore = newsResponse?.meta.hasNext ?? false;
 
   const renderNewsCards = () => {
     if (isNewsLoading && latestNews.length === 0) {
-      return Array.from({ length: 3 }).map((_, index) => (
+      return Array.from({ length: 6 }).map((_, index) => (
         <article
           key={`news-skeleton-${index}`}
           style={{
@@ -116,7 +145,7 @@ export function HomePage() {
       );
     }
 
-    return latestNews.map(item => {
+    return latestNews.map((item: InvestorNewsItem) => {
       const coverUrl = resolveCoverUrl(item.coverKey, NEWS_IMAGES_BUCKET);
       const publishedLabel = new Date(item.publishedAt).toLocaleDateString(
         language === 'ar' ? 'ar-SA' : 'en-GB',
@@ -446,7 +475,41 @@ export function HomePage() {
           >
             {renderNewsCards()}
           </div>
-          {isNewsFetching && !isNewsLoading && latestNews.length > 0 ? (
+          
+          {hasMore && (
+            <div
+              style={{
+                marginTop: '2.5rem',
+                display: 'flex',
+                justifyContent: 'center',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setPage((current: number) => current + 1)}
+                disabled={isNewsFetching}
+                style={{
+                  border: 'none',
+                  borderRadius: '999px',
+                  padding: '0.85rem 2.4rem',
+                  fontWeight: 600,
+                  fontSize: '1rem',
+                  background: palette.brandPrimaryStrong,
+                  color: palette.textOnBrand,
+                  boxShadow: '0 18px 35px rgba(44, 116, 204, 0.25)',
+                  cursor: isNewsFetching ? 'not-allowed' : 'pointer',
+                  opacity: isNewsFetching ? 0.6 : 1,
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                {isNewsFetching
+                  ? language === 'ar' ? 'جارٍ التحميل…' : 'Loading…'
+                  : language === 'ar' ? 'تحميل المزيد من الأخبار' : 'Load more news'}
+              </button>
+            </div>
+          )}
+          
+          {isNewsFetching && !isNewsLoading && latestNews.length > 0 && !hasMore ? (
             <div
               style={{
                 marginTop: '1.5rem',
