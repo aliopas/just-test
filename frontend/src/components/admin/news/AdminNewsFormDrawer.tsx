@@ -456,8 +456,14 @@ export function AdminNewsFormDrawer({
                 <input
                   type="text"
                   value={values.slug}
-                  onChange={event => handleChange('slug', event.target.value)}
-                  style={{ ...inputStyle, borderColor: errors.slug ? '#DC2626' : 'var(--color-brand-secondary-soft)' }}
+                  readOnly
+                  style={{ 
+                    ...inputStyle, 
+                    borderColor: errors.slug ? '#DC2626' : 'var(--color-brand-secondary-soft)',
+                    background: 'var(--color-background-alt)',
+                    cursor: 'not-allowed',
+                    color: 'var(--color-text-secondary)'
+                  }}
                   placeholder={language === 'ar' ? 'يتم التوليد تلقائياً' : 'Auto-generated'}
                 />
                 <button
@@ -482,8 +488,8 @@ export function AdminNewsFormDrawer({
               </div>
               <small style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
                 {language === 'ar' 
-                  ? 'يتم توليد معرّف فريد تلقائياً من العنوان. يمكنك تعديله يدوياً أو إعادة توليده.'
-                  : 'A unique identifier is auto-generated from the title. You can edit it manually or regenerate it.'}
+                  ? 'يتم توليد معرّف فريد تلقائياً من العنوان. استخدم زر التوليد لإعادة إنشائه.'
+                  : 'A unique identifier is auto-generated from the title. Use the generate button to recreate it.'}
               </small>
               {errors.slug && <span style={errorStyle}>{errors.slug}</span>}
             </label>
