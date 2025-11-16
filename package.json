@@ -21,12 +21,6 @@
   },
   "keywords": [],
   "author": "Bacura Technologies Team",
-  "contributors": [
-    {
-      "name": "Omar Al-Adaini",
-      "role": "Lead Developer"
-    }
-  ],
   "license": "ISC",
   "dependencies": {
     "@supabase/supabase-js": "^2.80.0",

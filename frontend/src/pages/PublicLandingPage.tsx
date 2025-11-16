@@ -1354,9 +1354,6 @@ export function PublicLandingPage() {
           <div style={{ fontSize: '0.9rem' }}>
             {isArabic ? 'تم التطوير بواسطة فريق باكورة التقنيات' : 'Developed by Bacura Technologies Team'}
           </div>
-          <div style={{ fontSize: '0.85rem', opacity: 0.8 }}>
-            {isArabic ? 'المطور الرئيسي: عمر العديني' : 'Lead Developer: Omar Al-Adaini'}
-          </div>
         </div>
       </footer>
     </div>
