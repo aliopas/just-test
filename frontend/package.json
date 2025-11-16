@@ -3,6 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "author": "Bacura Technologies Team",
+  "contributors": [
+    {
+      "name": "Omar Al-Adaini",
+      "role": "Lead Developer"
+    }
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

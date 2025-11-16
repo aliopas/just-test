@@ -378,6 +378,9 @@ function AdminSidebarNav() {
 }
 
 function AppFooter() {
+  const { language } = useLanguage();
+  const isArabic = language === 'ar';
+  
   return (
     <footer
       style={{
@@ -392,6 +395,23 @@ function AppFooter() {
       }}
     >
       <Logo size={96} stacked tagline="Bacura · Empowering smart capital" />
+      <div
+        style={{
+          marginTop: '1.5rem',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.5rem',
+          fontSize: '0.9rem',
+          color: palette.textSecondary,
+        }}
+      >
+        <p style={{ margin: 0 }}>
+          {isArabic ? 'تم التطوير بواسطة فريق باكورة التقنيات' : 'Developed by Bacura Technologies Team'}
+        </p>
+        <p style={{ margin: 0, fontSize: '0.85rem', opacity: 0.8 }}>
+          {isArabic ? 'المطور الرئيسي: عمر العديني' : 'Lead Developer: Omar Al-Adaini'}
+        </p>
+      </div>
     </footer>
   );
 }

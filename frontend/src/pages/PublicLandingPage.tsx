@@ -1341,11 +1341,22 @@ export function PublicLandingPage() {
             marginTop: '2rem',
             textAlign: 'center',
             color: palette.textSecondary,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.75rem',
           }}
         >
-          {isArabic
-            ? '© ' + new Date().getFullYear().toString() + ' باكورة للتقنيات. جميع الحقوق محفوظة.'
-            : `© ${new Date().toLocaleDateString(undefined, { year: 'numeric' })} Bakurah Technologies. All rights reserved.`}
+          <div>
+            {isArabic
+              ? '© ' + new Date().getFullYear().toString() + ' باكورة للتقنيات. جميع الحقوق محفوظة.'
+              : `© ${new Date().toLocaleDateString(undefined, { year: 'numeric' })} Bakurah Technologies. All rights reserved.`}
+          </div>
+          <div style={{ fontSize: '0.9rem' }}>
+            {isArabic ? 'تم التطوير بواسطة فريق باكورة التقنيات' : 'Developed by Bacura Technologies Team'}
+          </div>
+          <div style={{ fontSize: '0.85rem', opacity: 0.8 }}>
+            {isArabic ? 'المطور الرئيسي: عمر العديني' : 'Lead Developer: Omar Al-Adaini'}
+          </div>
         </div>
       </footer>
     </div>
