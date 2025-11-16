@@ -71,7 +71,9 @@ export function AdminNewsFormDrawer({
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [isUploading, setUploading] = useState(false);
   const [isAttachmentUploading, setAttachmentUploading] = useState(false);
+  const [showValidationAlert, setShowValidationAlert] = useState(false);
   const attachmentInputRef = useRef<HTMLInputElement | null>(null);
+  const formScrollRef = useRef<HTMLDivElement | null>(null);
   const reviewEntries = news?.reviews ?? [];
 
   useEffect(() => {
@@ -91,10 +93,15 @@ export function AdminNewsFormDrawer({
         : initialFormValues();
       setValues(nextValues);
       setErrors({});
+      setShowValidationAlert(false);
       if (news?.coverKey) {
         setCoverPreview(null);
       } else {
         setCoverPreview(null);
+      }
+      // Reset scroll to top when opening
+      if (formScrollRef.current) {
+        formScrollRef.current.scrollTop = 0;
       }
     }
   }, [open, news]);
@@ -267,9 +274,15 @@ export function AdminNewsFormDrawer({
 
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
+      setShowValidationAlert(true);
+      // Scroll to top to show validation alert
+      if (formScrollRef.current) {
+        formScrollRef.current.scrollTop = 0;
+      }
       return;
     }
 
+    setShowValidationAlert(false);
     await onSubmit({
       title: values.title.trim(),
       slug: values.slug.trim(),
@@ -300,9 +313,30 @@ export function AdminNewsFormDrawer({
   };
 
   return (
-    <div style={overlayStyle}>
-      <div style={drawerStyle(direction)}>
-        <header style={drawerHeaderStyle}>
+    <>
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .news-form-scroll::-webkit-scrollbar {
+          width: 8px;
+        }
+        .news-form-scroll::-webkit-scrollbar-track {
+          background: var(--color-background-alt);
+          border-radius: 4px;
+        }
+        .news-form-scroll::-webkit-scrollbar-thumb {
+          background: var(--color-brand-secondary-soft);
+          border-radius: 4px;
+        }
+        .news-form-scroll::-webkit-scrollbar-thumb:hover {
+          background: var(--color-brand-accent-deep);
+        }
+      `}</style>
+      <div style={overlayStyle}>
+        <div style={drawerStyle(direction)}>
+          <header style={drawerHeaderStyle}>
           <div>
             <h2 style={{ margin: 0, fontSize: '1.3rem', color: 'var(--color-text-primary)' }}>{drawerTitle}</h2>
             <p style={{ margin: '0.4rem 0 0', color: 'var(--color-text-secondary)', fontSize: '0.95rem' }}>
@@ -316,11 +350,82 @@ export function AdminNewsFormDrawer({
           </button>
         </header>
 
-        <form
-          onSubmit={handleSubmit}
-          style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', flex: 1 }}
+        <div
+          ref={formScrollRef}
+          className="news-form-scroll"
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            paddingRight: '0.5rem',
+            marginRight: '-0.5rem',
+          }}
         >
-          <section style={sectionStyle}>
+          <form
+            onSubmit={handleSubmit}
+            style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', paddingBottom: '1rem' }}
+          >
+            {showValidationAlert && Object.keys(errors).length > 0 && (
+              <div
+                style={{
+                  padding: '1rem 1.25rem',
+                  borderRadius: '0.85rem',
+                  background: '#FEF3C7',
+                  border: '1px solid #F59E0B',
+                  color: '#92400E',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.5rem',
+                }}
+              >
+                <strong style={{ fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  ⚠️ {language === 'ar' ? 'تعذر حفظ الخبر' : 'Cannot save news'}
+                </strong>
+                <span style={{ fontSize: '0.9rem' }}>
+                  {language === 'ar'
+                    ? 'يرجى تصحيح الأخطاء التالية:'
+                    : 'Please fix the following errors:'}
+                </span>
+                <ul style={{ margin: '0.25rem 0 0', paddingInlineStart: '1.5rem', fontSize: '0.85rem' }}>
+                  {Object.entries(errors).map(([field, error]) => (
+                    <li key={field}>{error}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {(submitting || isUploading || isAttachmentUploading) && (
+              <div
+                style={{
+                  padding: '1rem 1.25rem',
+                  borderRadius: '0.85rem',
+                  background: '#DBEAFE',
+                  border: '1px solid #3B82F6',
+                  color: '#1E40AF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  fontSize: '0.9rem',
+                }}
+              >
+                <span style={{ animation: 'spin 1s linear infinite', display: 'inline-block' }}>⟳</span>
+                <span>
+                  {submitting
+                    ? language === 'ar'
+                      ? 'جارٍ حفظ الخبر...'
+                      : 'Saving news...'
+                    : isUploading
+                      ? language === 'ar'
+                        ? 'جارٍ رفع الصورة... يرجى الانتظار'
+                        : 'Uploading image... Please wait'
+                      : language === 'ar'
+                        ? 'جارٍ رفع المرفقات... يرجى الانتظار'
+                        : 'Uploading attachments... Please wait'}
+                </span>
+              </div>
+            )}
+
+            <section style={sectionStyle}>
             <label style={labelStyle}>
               {tAdminNews('form.title', language)}
               <input
@@ -672,8 +777,10 @@ export function AdminNewsFormDrawer({
               </div>
             </section>
           )}
+          </form>
+        </div>
 
-          <footer style={footerStyle}>
+        <footer style={footerStyle}>
             {onDelete && (
               <button
                 type="button"
@@ -714,10 +821,10 @@ export function AdminNewsFormDrawer({
                 {submitting ? `${tAdminNews('form.save', language)}…` : tAdminNews('form.save', language)}
               </button>
             </div>
-          </footer>
-        </form>
+        </footer>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -880,12 +987,14 @@ const textareaStyle: React.CSSProperties = {
 };
 
 const footerStyle: React.CSSProperties = {
-  marginTop: 'auto',
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
   flexWrap: 'wrap',
   gap: '0.75rem',
+  paddingTop: '1.5rem',
+  borderTop: '1px solid var(--color-border-soft)',
+  marginTop: '0.5rem',
 };
 
 const primaryButtonStyle: React.CSSProperties = {
