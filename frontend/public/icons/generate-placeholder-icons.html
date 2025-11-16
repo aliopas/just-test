@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generate Placeholder PWA Icons</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1 { color: #2563eb; }
+    .instructions {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+    }
+    .icon-item {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    canvas {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      max-width: 100%;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    canvas:hover {
+      transform: scale(1.05);
+    }
+    .filename {
+      font-weight: bold;
+      margin-top: 10px;
+      color: #333;
+      font-size: 12px;
+    }
+    .size {
+      color: #666;
+      font-size: 11px;
+    }
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      margin: 5px;
+    }
+    button:hover {
+      background: #1d4ed8;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎨 Bakurah PWA Icon Generator</h1>
+  
+  <div class="instructions">
+    <h2>Instructions:</h2>
+    <ol>
+      <li>Click on any icon below to download it</li>
+      <li>Or click "Download All" to get a ZIP file</li>
+      <li>Place the downloaded icons in <code>/frontend/public/icons/</code></li>
+      <li>Delete this HTML file once you have real icons</li>
+    </ol>
+    <button onclick="downloadAll()">📦 Download All Icons as ZIP</button>
+  </div>
+
+  <div id="icon-container" class="icon-grid"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script>
+    const iconSizes = [
+      { size: 16, name: 'favicon-16x16.png' },
+      { size: 32, name: 'favicon-32x32.png' },
+      { size: 72, name: 'icon-72x72.png' },
+      { size: 96, name: 'icon-96x96.png' },
+      { size: 128, name: 'icon-128x128.png' },
+      { size: 144, name: 'icon-144x144.png' },
+      { size: 152, name: 'icon-152x152.png' },
+      { size: 180, name: 'apple-touch-icon.png' },
+      { size: 192, name: 'icon-192x192.png' },
+      { size: 384, name: 'icon-384x384.png' },
+      { size: 512, name: 'icon-512x512.png' },
+      { size: 192, name: 'icon-192x192-maskable.png', maskable: true },
+      { size: 512, name: 'icon-512x512-maskable.png', maskable: true }
+    ];
+
+    function createIcon(size, name, isMaskable = false) {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+
+      if (isMaskable) {
+        // Maskable icon with safe zone (80% center)
+        ctx.fillStyle = '#2563eb';
+        ctx.fillRect(0, 0, size, size);
+        
+        const safeSize = size * 0.6; // 60% of total size
+        const letterSize = safeSize * 0.8;
+        
+        ctx.fillStyle = 'white';
+        ctx.font = `bold ${letterSize}px system-ui`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('B', size / 2, size / 2);
+      } else {
+        // Regular icon
+        const borderRadius = size * 0.1;
+        
+        // Rounded rectangle background
+        ctx.fillStyle = '#2563eb';
+        ctx.beginPath();
+        ctx.roundRect(0, 0, size, size, borderRadius);
+        ctx.fill();
+        
+        // Letter
+        const letterSize = size * 0.6;
+        ctx.fillStyle = 'white';
+        ctx.font = `bold ${letterSize}px system-ui`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('B', size / 2, size / 2);
+      }
+
+      return canvas;
+    }
+
+    function downloadIcon(canvas, filename) {
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+    }
+
+    async function downloadAll() {
+      const zip = new JSZip();
+      const promises = [];
+
+      iconSizes.forEach(({ size, name, maskable }) => {
+        const canvas = createIcon(size, name, maskable);
+        const promise = new Promise((resolve) => {
+          canvas.toBlob((blob) => {
+            zip.file(name, blob);
+            resolve();
+          });
+        });
+        promises.push(promise);
+      });
+
+      await Promise.all(promises);
+      
+      const content = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(content);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'bakurah-pwa-icons.zip';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Generate and display all icons
+    const container = document.getElementById('icon-container');
+    iconSizes.forEach(({ size, name, maskable }) => {
+      const canvas = createIcon(size, name, maskable);
+      canvas.style.width = '150px';
+      canvas.style.height = '150px';
+      canvas.style.imageRendering = 'pixelated';
+      
+      const item = document.createElement('div');
+      item.className = 'icon-item';
+      
+      const filename = document.createElement('div');
+      filename.className = 'filename';
+      filename.textContent = name;
+      
+      const sizeInfo = document.createElement('div');
+      sizeInfo.className = 'size';
+      sizeInfo.textContent = `${size}x${size}${maskable ? ' (maskable)' : ''}`;
+      
+      canvas.onclick = () => downloadIcon(canvas, name);
+      canvas.title = 'Click to download';
+      
+      item.appendChild(canvas);
+      item.appendChild(filename);
+      item.appendChild(sizeInfo);
+      container.appendChild(item);
+    });
+  </script>
+</body>
+</html>
+
