@@ -304,12 +304,24 @@ export function AdminNewsFormDrawer({
 
   const handleAutoSlug = () => {
     if (!values.title.trim()) return;
-    const slug = values.title
+    
+    // في حالة التعديل، إذا كان الـ slug موجود بالفعل، لا نغيره إلا إذا كان فارغاً
+    if (mode === 'edit' && values.slug && values.slug.trim().length > 0) {
+      return;
+    }
+    
+    // توليد معرّف فريد من العنوان
+    const baseSlug = values.title
       .trim()
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
-    setValues(prev => ({ ...prev, slug }));
+    
+    // إضافة timestamp قصير لجعل الـ slug فريداً
+    const timestamp = Date.now().toString(36); // تحويل timestamp إلى base36 (أقصر)
+    const uniqueSlug = `${baseSlug}-${timestamp}`;
+    
+    setValues(prev => ({ ...prev, slug: uniqueSlug }));
   };
 
   return (
@@ -446,15 +458,33 @@ export function AdminNewsFormDrawer({
                   value={values.slug}
                   onChange={event => handleChange('slug', event.target.value)}
                   style={{ ...inputStyle, borderColor: errors.slug ? '#DC2626' : 'var(--color-brand-secondary-soft)' }}
+                  placeholder={language === 'ar' ? 'يتم التوليد تلقائياً' : 'Auto-generated'}
                 />
                 <button
                   type="button"
-                  onClick={handleAutoSlug}
-                  style={{ ...secondaryButtonStyle, padding: '0 1rem' }}
+                  onClick={() => {
+                    // إعادة توليد slug فريد جديد
+                    if (!values.title.trim()) return;
+                    const baseSlug = values.title
+                      .trim()
+                      .toLowerCase()
+                      .replace(/[^a-z0-9]+/g, '-')
+                      .replace(/^-+|-+$/g, '');
+                    const timestamp = Date.now().toString(36);
+                    const uniqueSlug = `${baseSlug}-${timestamp}`;
+                    setValues(prev => ({ ...prev, slug: uniqueSlug }));
+                  }}
+                  style={{ ...secondaryButtonStyle, padding: '0 1rem', whiteSpace: 'nowrap' }}
+                  title={language === 'ar' ? 'إعادة توليد معرّف فريد' : 'Regenerate unique slug'}
                 >
-                  {language === 'ar' ? 'توليد' : 'Generate'}
+                  {language === 'ar' ? '↻ توليد' : '↻ Generate'}
                 </button>
               </div>
+              <small style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
+                {language === 'ar' 
+                  ? 'يتم توليد معرّف فريد تلقائياً من العنوان. يمكنك تعديله يدوياً أو إعادة توليده.'
+                  : 'A unique identifier is auto-generated from the title. You can edit it manually or regenerate it.'}
+              </small>
               {errors.slug && <span style={errorStyle}>{errors.slug}</span>}
             </label>
 
