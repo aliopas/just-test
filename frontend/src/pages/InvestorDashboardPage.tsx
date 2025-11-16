@@ -102,48 +102,61 @@ function InvestorDashboardPageInner() {
       return [];
     }
     const { byStatus } = data.requestSummary;
-    return [
+    const allCards = [
       {
         label: tDashboard('summary.total', language),
         value: data.requestSummary.total,
+        isTotal: true,
       },
       {
         label: tDashboard('summary.submitted', language),
         value: byStatus.submitted ?? 0,
+        isTotal: false,
       },
       {
         label: tDashboard('summary.screening', language),
         value: byStatus.screening ?? 0,
+        isTotal: false,
       },
       {
         label: tDashboard('summary.pendingInfo', language),
         value: byStatus.pending_info ?? 0,
+        isTotal: false,
       },
       {
         label: tDashboard('summary.complianceReview', language),
         value: byStatus.compliance_review ?? 0,
+        isTotal: false,
       },
       {
         label: tDashboard('summary.approved', language),
         value: byStatus.approved ?? 0,
+        isTotal: false,
       },
       {
         label: tDashboard('summary.settling', language),
         value: byStatus.settling ?? 0,
+        isTotal: false,
       },
       {
         label: tDashboard('summary.completed', language),
         value: byStatus.completed ?? 0,
+        isTotal: false,
       },
       {
         label: tDashboard('summary.rejected', language),
         value: byStatus.rejected ?? 0,
+        isTotal: false,
       },
       {
         label: tDashboard('summary.draft', language),
         value: byStatus.draft ?? 0,
+        isTotal: false,
       },
     ];
+    
+    // إظهار بطاقة الإجمالي دائماً + البطاقات التي قيمتها أكبر من 0
+    return allCards.filter(card => card.isTotal || card.value > 0);
   }, [data, language]);
 
   const recentRequests = data?.recentRequests ?? [];
