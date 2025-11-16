@@ -1,0 +1,18 @@
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Disallow sensitive paths
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /profile
+Disallow: /requests
+Disallow: /notifications
+
+# Allow public pages
+Allow: /login
+Allow: /register
+
+# Sitemap (update with your actual domain)
+# Sitemap: https://your-domain.com/sitemap.xml
+
