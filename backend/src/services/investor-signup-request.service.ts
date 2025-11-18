@@ -53,7 +53,77 @@ function normaliseEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
+/**
+ * Mark a signup request as read by an admin user
+ */
+async function markSignupRequestAsRead(params: {
+  signupRequestId: string;
+  adminId: string;
+}): Promise<{ viewedAt: string }> {
+  const adminClient = requireSupabaseAdmin();
+  
+  const { data, error } = await adminClient
+    .from('admin_signup_request_views')
+    .upsert(
+      {
+        signup_request_id: params.signupRequestId,
+        admin_id: params.adminId,
+        viewed_at: new Date().toISOString(),
+      },
+      {
+        onConflict: 'signup_request_id,admin_id',
+      }
+    )
+    .select('viewed_at')
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to mark signup request as read: ${error.message}`);
+  }
+
+  return {
+    viewedAt: data.viewed_at as string,
+  };
+}
+
+/**
+ * Get count of unread signup requests for an admin
+ */
+async function getUnreadSignupRequestCount(adminId: string): Promise<number> {
+  const adminClient = requireSupabaseAdmin();
+  
+  // Get all pending signup requests
+  const { data: allPending, error: pendingError } = await adminClient
+    .from('investor_signup_requests')
+    .select('id')
+    .eq('status', 'pending');
+
+  if (pendingError || !allPending) {
+    return 0;
+  }
+
+  if (allPending.length === 0) {
+    return 0;
+  }
+
+  // Get read signup requests by this admin
+  const { data: readRequests, error: readError } = await adminClient
+    .from('admin_signup_request_views')
+    .select('signup_request_id')
+    .eq('admin_id', adminId)
+    .in('signup_request_id', allPending.map(r => r.id));
+
+  if (readError) {
+    return 0;
+  }
+
+  const readIds = new Set((readRequests ?? []).map(r => r.signup_request_id as string));
+  return allPending.filter(r => !readIds.has(r.id)).length;
+}
+
 export const investorSignupRequestService = {
+  getUnreadCount: getUnreadSignupRequestCount,
+  markAsRead: markSignupRequestAsRead,
   async createRequest(
     input: InvestorSignupRequestInput
   ): Promise<SignupRequestRow> {
@@ -111,7 +181,7 @@ export const investorSignupRequestService = {
     return data;
   },
 
-  async listRequests(params: ListParams) {
+  async listRequests(params: ListParams & { actorId?: string }) {
     const adminClient = requireSupabaseAdmin();
 
     const page = Math.max(1, params.page ?? 1);
@@ -163,7 +233,27 @@ export const investorSignupRequestService = {
       throw new Error(`Failed to list signup requests: ${error.message}`);
     }
 
-    const requests = ((data as SignupRequestRow[] | null) ?? []).map(row => ({
+    const rows = (data as SignupRequestRow[] | null) ?? [];
+
+    // Get read status for all requests by this admin
+    let readStatusMap: Record<string, boolean> = {};
+    if (params.actorId && rows.length > 0) {
+      const requestIds = rows.map(row => row.id);
+      const { data: readViews, error: readError } = await adminClient
+        .from('admin_signup_request_views')
+        .select('signup_request_id')
+        .eq('admin_id', params.actorId)
+        .in('signup_request_id', requestIds);
+
+      if (!readError && readViews) {
+        readStatusMap = readViews.reduce((acc, view) => {
+          acc[view.signup_request_id as string] = true;
+          return acc;
+        }, {} as Record<string, boolean>);
+      }
+    }
+
+    const requests = rows.map(row => ({
       id: row.id,
       email: row.email,
       fullName: row.full_name,
@@ -179,6 +269,7 @@ export const investorSignupRequestService = {
       decisionNote: row.decision_note,
       approvedUserId: row.approved_user_id,
       payload: row.payload ?? {},
+      isRead: readStatusMap[row.id] ?? false,
     }));
 
     const total = count ?? 0;

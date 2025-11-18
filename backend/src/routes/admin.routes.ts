@@ -223,6 +223,20 @@ adminRouter.get(
   investorSignupRequestController.list
 );
 
+adminRouter.get(
+  '/account-requests/unread-count',
+  authenticate,
+  requirePermission('admin.users.manage'),
+  investorSignupRequestController.getUnreadCount
+);
+
+adminRouter.post(
+  '/account-requests/:id/mark-read',
+  authenticate,
+  requirePermission('admin.users.manage'),
+  investorSignupRequestController.markAsRead
+);
+
 adminRouter.post(
   '/account-requests/:id/approve',
   authenticate,

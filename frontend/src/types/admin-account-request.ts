@@ -16,6 +16,7 @@ export type AdminSignupRequest = {
   decisionNote: string | null;
   approvedUserId: string | null;
   payload: Record<string, unknown>;
+  isRead: boolean;
 };
 
 export type AdminSignupRequestFilters = {

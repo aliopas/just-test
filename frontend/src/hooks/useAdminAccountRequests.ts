@@ -92,3 +92,33 @@ export function useRejectAccountRequestMutation() {
   });
 }
 
+export function useUnreadSignupRequestCount() {
+  const queryClient = useQueryClient();
+  return useQuery({
+    queryKey: [...ACCOUNT_REQUESTS_ROOT, 'unreadCount'] as const,
+    queryFn: () => apiClient<{ unreadCount: number }>('/admin/account-requests/unread-count'),
+    refetchInterval: 30000, // Refetch every 30 seconds
+    onSuccess: () => {
+      // Invalidate list queries to refresh isRead status
+      queryClient.invalidateQueries({ queryKey: [...ACCOUNT_REQUESTS_ROOT, 'list'] });
+    },
+  });
+}
+
+export function useMarkSignupRequestRead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (requestId: string) => {
+      return apiClient<{ requestId: string; viewedAt: string }>(
+        `/admin/account-requests/${requestId}/mark-read`,
+        {
+          method: 'POST',
+        }
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ACCOUNT_REQUESTS_ROOT });
+    },
+  });
+}
+

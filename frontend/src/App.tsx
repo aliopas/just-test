@@ -29,6 +29,7 @@ import { AdminSignupRequestsPage } from './pages/AdminSignupRequestsPage';
 import { InvestorInternalNewsPage } from './pages/InvestorInternalNewsPage';
 import { AdminProjectsPage } from './pages/AdminProjectsPage';
 import { useNotifications } from './hooks/useNotifications';
+import { useUnreadSignupRequestCount } from './hooks/useAdminAccountRequests';
 
 const navLinkStyle: React.CSSProperties = {
   borderRadius: '0.75rem',
@@ -271,7 +272,11 @@ function AdminSidebarNav() {
   
   // Get unread notifications count
   const { meta: notificationsMeta } = useNotifications({ status: 'all', page: 1 });
-  const unreadCount = notificationsMeta.unreadCount ?? 0;
+  const unreadNotificationsCount = notificationsMeta.unreadCount ?? 0;
+  
+  // Get unread signup requests count
+  const { data: signupRequestsData } = useUnreadSignupRequestCount();
+  const unreadSignupRequestsCount = (signupRequestsData as { unreadCount?: number } | undefined)?.unreadCount ?? 0;
 
   return (
     <aside
@@ -344,7 +349,16 @@ function AdminSidebarNav() {
         >
           {adminNavItems.map((item) => {
             const isRequestsItem = item.to === '/admin/requests';
-            const showBadge = isRequestsItem && unreadCount > 0;
+            const isSignupRequestsItem = item.to === '/admin/signup-requests';
+            
+            let badgeCount = 0;
+            if (isRequestsItem) {
+              badgeCount = unreadNotificationsCount;
+            } else if (isSignupRequestsItem) {
+              badgeCount = unreadSignupRequestsCount;
+            }
+            
+            const showBadge = badgeCount > 0;
             
             return (
               <NavLink
@@ -381,11 +395,11 @@ function AdminSidebarNav() {
                     }}
                     aria-label={
                       isArabic
-                        ? `${unreadCount} إشعار غير مقروء`
-                        : `${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}`
+                        ? `${badgeCount} ${isRequestsItem ? 'إشعار غير مقروء' : 'طلب غير مقروء'}`
+                        : `${badgeCount} unread ${isRequestsItem ? 'notification' : 'request'}${badgeCount > 1 ? 's' : ''}`
                     }
                   >
-                    {unreadCount > 99 ? '99+' : unreadCount}
+                    {badgeCount > 99 ? '99+' : badgeCount}
                   </span>
                 )}
               </NavLink>

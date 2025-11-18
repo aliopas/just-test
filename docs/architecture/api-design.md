@@ -32,8 +32,8 @@
 - `POST /api/v1/admin/users` - إنشاء مستخدم جديد
 - `PATCH /api/v1/admin/users/:id/status` - تغيير حالة المستخدم
 - `POST /api/v1/admin/users/:id/reset-password` - إعادة تعيين كلمة المرور
-- `GET /api/v1/admin/requests` - صندوق وارد الطلبات
-- `GET /api/v1/admin/requests/:id` - تفاصيل الطلب
+- `GET /api/v1/admin/requests` - صندوق وارد الطلبات (يعيد `isRead` لكل طلب)
+- `GET /api/v1/admin/requests/:id` - تفاصيل الطلب (يسجل القراءة تلقائياً)
 - `PATCH /api/v1/admin/requests/:id/approve` - قبول الطلب
 - `PATCH /api/v1/admin/requests/:id/reject` - رفض الطلب
 - `POST /api/v1/admin/requests/:id/request-info` - طلب معلومات إضافية

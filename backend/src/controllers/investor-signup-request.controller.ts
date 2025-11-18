@@ -72,6 +72,16 @@ export const investorSignupRequestController = {
 
   async list(req: AuthenticatedRequest, res: Response) {
     try {
+      const actorId = req.user?.id;
+      if (!actorId) {
+        return res.status(401).json({
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'User not authenticated',
+          },
+        });
+      }
+
       const statusParam = req.query.status;
       const status =
         typeof statusParam === 'string' && statusParam.length > 0
@@ -84,6 +94,7 @@ export const investorSignupRequestController = {
       const limit = toNumber(req.query.limit, 20);
 
       const result = await investorSignupRequestService.listRequests({
+        actorId,
         status,
         search,
         page,
@@ -99,6 +110,80 @@ export const investorSignupRequestController = {
             error instanceof Error
               ? error.message
               : 'Failed to load signup requests.',
+        },
+      });
+    }
+  },
+
+  async getUnreadCount(req: AuthenticatedRequest, res: Response) {
+    try {
+      const actorId = req.user?.id;
+      if (!actorId) {
+        return res.status(401).json({
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'User not authenticated',
+          },
+        });
+      }
+
+      const count = await investorSignupRequestService.getUnreadCount(actorId);
+
+      return res.status(200).json({
+        unreadCount: count,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Failed to get unread count.',
+        },
+      });
+    }
+  },
+
+  async markAsRead(req: AuthenticatedRequest, res: Response) {
+    try {
+      const actorId = req.user?.id;
+      if (!actorId) {
+        return res.status(401).json({
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'User not authenticated',
+          },
+        });
+      }
+
+      const requestId = req.params.id;
+      if (!requestId) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Request id is required',
+          },
+        });
+      }
+
+      const result = await investorSignupRequestService.markAsRead({
+        signupRequestId: requestId,
+        adminId: actorId,
+      });
+
+      return res.status(200).json({
+        requestId,
+        viewedAt: result.viewedAt,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Failed to mark request as read.',
         },
       });
     }

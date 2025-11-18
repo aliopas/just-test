@@ -254,6 +254,8 @@ PATCH /api/v1/admin/requests/:id/settle
 ```
 
 > Requires `admin.requests.review`.
+>
+> **Read Tracking:** The `GET /api/v1/admin/requests` endpoint returns an `isRead` boolean field for each request, indicating whether the current admin has viewed that request. The `GET /api/v1/admin/requests/:id` endpoint automatically marks the request as read when accessed. See [Admin Request Read Tracking Documentation](../docs/stories/ADMIN_REQUEST_READ_TRACKING.md) for details.
 
 ### Admin Dashboard
 

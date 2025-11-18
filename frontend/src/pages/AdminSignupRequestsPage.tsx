@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { useAdminAccountRequests, useApproveAccountRequestMutation, useRejectAccountRequestMutation } from '../hooks/useAdminAccountRequests';
+import { useMemo, useState, useEffect } from 'react';
+import { useAdminAccountRequests, useApproveAccountRequestMutation, useRejectAccountRequestMutation, useMarkSignupRequestRead } from '../hooks/useAdminAccountRequests';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
 import { tAdminSignupRequests } from '../locales/adminSignupRequests';
@@ -55,9 +55,24 @@ export function AdminSignupRequestsPage() {
   const { data, isLoading, isError, refetch } = useAdminAccountRequests(filters);
   const approveMutation = useApproveAccountRequestMutation();
   const rejectMutation = useRejectAccountRequestMutation();
+  const markReadMutation = useMarkSignupRequestRead();
 
   const requests = data?.requests ?? [];
   const meta = data?.meta;
+
+  // Mark all visible unread requests as read when page loads or requests change
+  useEffect(() => {
+    if (requests.length > 0 && !isLoading) {
+      const unreadRequests = requests.filter(r => !r.isRead && r.status === 'pending');
+      // Use a small delay to batch the requests
+      const timeoutId = setTimeout(() => {
+        unreadRequests.forEach(request => {
+          markReadMutation.mutate(request.id, { onError: () => {} });
+        });
+      }, 500);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [requests.map(r => r.id).join(','), isLoading, markReadMutation]); // Only run when request IDs change
 
   const statusOptions: Array<{ value: StatusFilter; label: string }> = useMemo(
     () => [

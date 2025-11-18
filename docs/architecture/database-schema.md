@@ -91,6 +91,24 @@ CREATE TABLE attachments (
 CREATE INDEX idx_attachments_request_id ON attachments(request_id);
 ```
 
+#### admin_request_views
+```sql
+CREATE TABLE admin_request_views (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  request_id UUID NOT NULL REFERENCES requests(id) ON DELETE CASCADE,
+  admin_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  viewed_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  UNIQUE(request_id, admin_id)
+);
+
+CREATE INDEX idx_admin_request_views_request_id ON admin_request_views(request_id);
+CREATE INDEX idx_admin_request_views_admin_id ON admin_request_views(admin_id);
+CREATE INDEX idx_admin_request_views_viewed_at ON admin_request_views(viewed_at DESC);
+```
+
+**Purpose:** Tracks which admin users have viewed which investment requests and when. Used to determine if a request has been read by an admin.
+
 #### roles
 ```sql
 CREATE TABLE roles (
