@@ -85,7 +85,7 @@ export function PublicLandingPage() {
 
   const heroTitle = isArabic
     ? 'منصة باكورة للتقنيات'
-    : 'Bakurah Technologies Platform';
+    : 'Bakura tec';
 
   const heroSubtitle = isArabic
     ? 'بوابة ذكية لربط المستثمرين بالفرص النوعية في التقنيات الناشئة.'
@@ -93,7 +93,7 @@ export function PublicLandingPage() {
 
   const ctaLabel = isArabic ? 'تسجيل الدخول إلى البوابة' : 'Sign in to the portal';
 
-  const featureTitle = isArabic ? 'لماذا باكورة؟' : 'Why Bakurah?';
+  const featureTitle = isArabic ? 'لماذا باكورة؟' : 'Why Bakura tec?';
 
   const features = isArabic
     ? [
@@ -254,7 +254,7 @@ export function PublicLandingPage() {
   const newsTitle = isArabic ? 'أحدث القصص الإخبارية' : 'Latest newsroom highlights';
   const newsEmptyMessage = isArabic
     ? 'لم يتم نشر أخبار جديدة بعد. تابع باكورة للتقنيات للاطلاع على آخر المستجدات.'
-    : 'No newsroom updates are available yet. Follow Bakurah Technologies for upcoming announcements.';
+    : 'No newsroom updates are available yet. Follow Bakura tec for upcoming announcements.';
   const newsErrorMessage = isArabic
     ? 'تعذر تحميل الأخبار حالياً. يرجى المحاولة مرة أخرى لاحقاً.'
     : 'We could not load the newsroom feed right now. Please try again soon.';
@@ -265,7 +265,7 @@ export function PublicLandingPage() {
   const heroHelper = isArabic
     ? 'بإشراف خبراء القطاعات وفرق التحليل المتخصصة'
     : 'Guided by sector experts and operator-grade analysts';
-  const journeyTitle = isArabic ? 'رحلة المستثمر داخل باكورة' : 'The Bakurah investor journey';
+  const journeyTitle = isArabic ? 'رحلة المستثمر داخل باكورة' : 'The Bakura tec investor journey';
   const journeySubtitle = isArabic
     ? 'أدوات متكاملة تغطي سلسلة القيمة من الاكتشاف وحتى المتابعة.'
     : 'Integrated workflows that span discovery, diligence, execution, and monitoring.';
@@ -397,7 +397,7 @@ export function PublicLandingPage() {
         item.excerpt ??
         (isArabic
           ? 'للاطلاع على تفاصيل هذا الخبر، الرجاء تسجيل الدخول إلى بوابة باكورة.'
-          : 'Sign in to the Bakurah portal to read the full story.');
+          : 'Sign in to the Bakura tec portal to read the full story.');
 
       return (
         <article
@@ -447,7 +447,7 @@ export function PublicLandingPage() {
                   zIndex: 1,
                 }}
               >
-                {isArabic ? 'خبر باكورة' : 'Bakurah News'}
+                {isArabic ? 'خبر باكورة' : 'Bakura tec News'}
               </div>
             </div>
           )}
@@ -1123,7 +1123,7 @@ export function PublicLandingPage() {
             >
               {isArabic
                 ? 'تابع آخر التحديثات والأخبار لمنصة باكورة للتقنيات'
-                : 'Stay updated with the latest news and updates from Bakurah Technologies'}
+                : 'Stay updated with the latest news and updates from Bakura tec'}
             </p>
           </div>
           {isNewsFetching && newsItems.length > 0 && !isNewsError && (
@@ -1226,7 +1226,7 @@ export function PublicLandingPage() {
             >
               {isArabic
                 ? 'منصة باكورة للتقنيات تربط المستثمرين بقادة الابتكار في المنطقة وتوفر أدوات تحليل عميقة لاتخاذ القرار.'
-                : 'Bakurah Technologies connects investors with emerging innovators through rich intelligence and guided workflows.'}
+                : 'Bakura tec connects investors with emerging innovators through rich intelligence and guided workflows.'}
             </p>
           </div>
           {footerColumns.map((column) => (
@@ -1290,7 +1290,7 @@ export function PublicLandingPage() {
           <div>
             {isArabic
               ? '© ' + new Date().getFullYear().toString() + ' باكورة للتقنيات. جميع الحقوق محفوظة.'
-              : `© ${new Date().toLocaleDateString(undefined, { year: 'numeric' })} Bakurah Technologies. All rights reserved.`}
+              : `© ${new Date().toLocaleDateString(undefined, { year: 'numeric' })} Bakura tec. All rights reserved.`}
           </div>
           <div style={{ fontSize: '0.9rem' }}>
             {isArabic ? 'تم التطوير بواسطة حاضنة باكروة التقنيات الرقمية' : 'Developed by Bacura Technologies Team'}
