@@ -133,14 +133,6 @@ export function PublicLandingPage() {
 
   const navLinks = [
     {
-      id: 'capabilities',
-      label: isArabic ? 'قدرات المنصة' : 'Platform capabilities',
-    },
-    {
-      id: 'journey',
-      label: isArabic ? 'رحلة المستثمر' : 'Investor journey',
-    },
-    {
       id: 'newsroom',
       label: isArabic ? 'الأخبار' : 'Newsroom',
     },
@@ -240,13 +232,6 @@ export function PublicLandingPage() {
   const footerColumns = isArabic
     ? [
         {
-          title: 'المنصة',
-          links: [
-            { label: 'عن باكورة', href: '#capabilities' },
-            { label: 'رحلة المستثمر', href: '#journey' },
-          ],
-        },
-        {
           title: 'الدعم',
           links: [
             { label: 'تواصل معنا', href: 'mailto:hello@bakurah.sa' },
@@ -256,13 +241,6 @@ export function PublicLandingPage() {
         },
       ]
     : [
-        {
-          title: 'Platform',
-          links: [
-            { label: 'Overview', href: '#capabilities' },
-            { label: 'Investor journey', href: '#journey' },
-          ],
-        },
         {
           title: 'Support',
           links: [
