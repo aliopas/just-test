@@ -63,16 +63,6 @@ const timelineCardStyle: React.CSSProperties = {
   gap: '0.5rem',
 };
 
-const testimonialCardStyle: React.CSSProperties = {
-  padding: '2rem',
-  borderRadius: '1.5rem',
-  border: `1px solid ${palette.neutralBorderSoft}`,
-  background: palette.backgroundSurface,
-  boxShadow: '0 10px 30px rgba(3, 20, 45, 0.08)',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '1rem',
-};
 
 
 export function PublicLandingPage() {
@@ -153,10 +143,6 @@ export function PublicLandingPage() {
     {
       id: 'newsroom',
       label: isArabic ? 'الأخبار' : 'Newsroom',
-    },
-    {
-      id: 'testimonials',
-      label: isArabic ? 'ثقة المجتمع' : 'Proof points',
     },
   ];
 
@@ -250,35 +236,6 @@ export function PublicLandingPage() {
         },
       ];
 
-  const testimonials = isArabic
-    ? [
-        {
-          quote:
-            'الشفافية في مسار الصفقات عبر باكورة خفضت الوقت المستغرق لاتخاذ القرار بنسبة 35٪ لدينا.',
-          name: 'نورة الحربي',
-          role: 'شريك إداري، صندوق نمو تقني',
-        },
-        {
-          quote:
-            'تغطية القطاعات المتخصصة في باكورة جعلتنا نكتشف فرصًا لم تكن ضمن الرادار التقليدي.',
-          name: 'عبدالله المقيطيب',
-          role: 'مستثمر ملائكي',
-        },
-      ]
-    : [
-        {
-          quote:
-            'Bakurah’s guided diligence reduced our decision cycle by almost forty percent.',
-          name: 'Nora Al-Harbi',
-          role: 'Managing Partner, Growth Tech Fund',
-        },
-        {
-          quote:
-            'Their analyst network surfaces off-radar founders we would have otherwise missed.',
-          name: 'Abdullah Al-Muqaitib',
-          role: 'Angel investor',
-        },
-      ];
 
   const footerColumns = isArabic
     ? [
@@ -287,7 +244,6 @@ export function PublicLandingPage() {
           links: [
             { label: 'عن باكورة', href: '#capabilities' },
             { label: 'رحلة المستثمر', href: '#journey' },
-            { label: 'الشهادات', href: '#testimonials' },
           ],
         },
         {
@@ -305,7 +261,6 @@ export function PublicLandingPage() {
           links: [
             { label: 'Overview', href: '#capabilities' },
             { label: 'Investor journey', href: '#journey' },
-            { label: 'Proof points', href: '#testimonials' },
           ],
         },
         {
@@ -336,16 +291,6 @@ export function PublicLandingPage() {
   const journeySubtitle = isArabic
     ? 'أدوات متكاملة تغطي سلسلة القيمة من الاكتشاف وحتى المتابعة.'
     : 'Integrated workflows that span discovery, diligence, execution, and monitoring.';
-  const testimonialTitle = isArabic ? 'الثقة تبدأ من الشركاء' : 'Trusted by industry peers';
-  const testimonialSubtitle = isArabic
-    ? 'مقتطفات من مستثمرين استخدموا باكورة لبناء محافظ عالية الأداء.'
-    : 'Voices from investors who rely on Bakurah to compound alpha.';
-  const ctaSectionTitle = isArabic
-    ? 'جاهز لاكتشاف فرصك القادمة؟'
-    : 'Ready to unlock your next investment edge?';
-  const ctaSectionSubtitle = isArabic
-    ? 'انضم إلى مجتمع باكورة وابدأ في تتبع الفرص المفلترة خلال دقائق.'
-    : 'Join Bakurah and start following curated opportunities in minutes.';
   const languageToggleLabel = isArabic ? 'English' : 'العربية';
   const languageToggleAriaLabel = isArabic
     ? 'التبديل إلى اللغة الإنجليزية'
@@ -1268,138 +1213,6 @@ export function PublicLandingPage() {
           </div>
         </section>
 
-        <section
-          id="testimonials"
-          style={{
-            ...sectionStyle,
-            padding: '4rem 2rem',
-          }}
-          dir={isArabic ? 'rtl' : 'ltr'}
-        >
-          <div
-            style={{
-              textAlign: 'center',
-              marginBottom: '2.5rem',
-            }}
-          >
-            <h2
-              style={{
-                margin: 0,
-                fontSize: '2rem',
-                fontWeight: 700,
-              }}
-            >
-              {testimonialTitle}
-            </h2>
-            <p
-              style={{
-                margin: '0.75rem auto 0',
-                maxWidth: '720px',
-                color: palette.textSecondary,
-                lineHeight: 1.7,
-              }}
-            >
-              {testimonialSubtitle}
-            </p>
-          </div>
-          <div
-            style={{
-              display: 'grid',
-              gap: '1.5rem',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            }}
-          >
-            {testimonials.map((item) => (
-              <article key={item.name} style={testimonialCardStyle}>
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: '1.05rem',
-                    lineHeight: 1.8,
-                  }}
-                >
-                  “{item.quote}”
-                </p>
-                <div>
-                  <strong>{item.name}</strong>
-                  <p
-                    style={{
-                      margin: '0.25rem 0 0',
-                      color: palette.textSecondary,
-                      fontSize: '0.9rem',
-                    }}
-                  >
-                    {item.role}
-                  </p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section
-          style={{
-            ...sectionStyle,
-            padding: '4rem 2rem',
-            textAlign: 'center',
-          }}
-          dir={isArabic ? 'rtl' : 'ltr'}
-        >
-          <h2
-            style={{
-              margin: 0,
-              fontSize: '2.25rem',
-              fontWeight: 800,
-            }}
-          >
-            {ctaSectionTitle}
-          </h2>
-          <p
-            style={{
-              margin: '1rem auto 2rem',
-              maxWidth: '600px',
-              color: palette.textSecondary,
-              lineHeight: 1.7,
-            }}
-          >
-            {ctaSectionSubtitle}
-          </p>
-          <div
-            style={{
-              display: 'flex',
-              gap: '1rem',
-              justifyContent: 'center',
-              flexWrap: 'wrap',
-            }}
-          >
-            <Link
-              to="/register"
-              style={{
-                padding: '0.95rem 1.9rem',
-                borderRadius: '999px',
-                background: palette.brandPrimaryStrong,
-                color: palette.textOnBrand,
-                fontWeight: 700,
-                textDecoration: 'none',
-              }}
-            >
-              {primaryCtaLabel}
-            </Link>
-            <Link
-              to="/login"
-              style={{
-                padding: '0.95rem 1.75rem',
-                borderRadius: '999px',
-                border: `1px solid ${palette.neutralBorderSoft}`,
-                color: palette.textPrimary,
-                fontWeight: 600,
-                textDecoration: 'none',
-              }}
-            >
-              {ctaLabel}
-            </Link>
-          </div>
-        </section>
       </main>
 
       <footer
