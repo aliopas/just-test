@@ -947,6 +947,14 @@ export function PublicLandingPage() {
                   project.coverKey,
                   PROJECT_IMAGES_BUCKET
                 );
+                const lastUpdated = new Date(project.updatedAt).toLocaleDateString(
+                  isArabic ? 'ar-SA' : 'en-GB',
+                  {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                  }
+                );
                 return (
                   <article
                     key={project.id}
@@ -1088,6 +1096,40 @@ export function PublicLandingPage() {
                         >
                           {benefitPerShare.toLocaleString()} {isArabic ? 'ريال' : 'SAR'}
                         </div>
+                      </div>
+                    </div>
+                    
+                    <div
+                      style={{
+                        marginTop: '1rem',
+                        paddingTop: '1rem',
+                        borderTop: `1px solid ${palette.neutralBorderSoft}`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '1rem',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          fontSize: '0.875rem',
+                          color: palette.textSecondary,
+                        }}
+                      >
+                        <span>
+                          {isArabic ? 'آخر تحديث:' : 'Last Updated:'}
+                        </span>
+                        <span
+                          style={{
+                            fontWeight: 600,
+                            color: palette.textPrimary,
+                          }}
+                        >
+                          {lastUpdated}
+                        </span>
                       </div>
                     </div>
                     
