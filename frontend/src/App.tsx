@@ -409,7 +409,7 @@ function AppFooter() {
         }}
       >
         <p style={{ margin: 0 }}>
-          {isArabic ? 'تم التطوير بواسطة فريق باكورة التقنيات' : 'Developed by Bacura Technologies Team'}
+          {isArabic ? 'تم التطوير بواسطة حاضنة باكروة التقنيات الرقمية' : 'Developed by Bacura Technologies Team'}
         </p>
       </div>
     </footer>
