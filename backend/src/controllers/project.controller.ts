@@ -4,6 +4,7 @@ import {
   createProjectSchema,
   updateProjectSchema,
   projectListQuerySchema,
+  projectImagePresignSchema,
 } from '../schemas/projects.schema';
 import {
   listProjects,
@@ -11,6 +12,7 @@ import {
   createProject,
   updateProject,
   deleteProject,
+  createProjectImageUploadUrl,
 } from '../services/project.service';
 
 export const projectController = {
@@ -149,6 +151,35 @@ export const projectController = {
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to delete project',
+        },
+      });
+    }
+  },
+
+  async presignImage(req: AuthenticatedRequest, res: Response) {
+    try {
+      const validation = projectImagePresignSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid image payload',
+            details: validation.error.issues.map(issue => ({
+              field: issue.path.join('.'),
+              message: issue.message,
+            })),
+          },
+        });
+      }
+
+      const uploadInfo = await createProjectImageUploadUrl(validation.data);
+      return res.status(201).json(uploadInfo);
+    } catch (error) {
+      console.error('Failed to create project image upload url:', error);
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to create image upload url',
         },
       });
     }

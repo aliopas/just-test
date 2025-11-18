@@ -12,6 +12,7 @@ export type Project = {
   nameAr: string | null;
   description: string | null;
   descriptionAr: string | null;
+  coverKey: string | null;
   operatingCosts: number;
   annualBenefits: number;
   totalShares: number;
@@ -50,11 +51,21 @@ export type CreateProjectInput = {
   nameAr?: string;
   description?: string;
   descriptionAr?: string;
+  coverKey?: string | null;
   operatingCosts: number;
   annualBenefits: number;
   totalShares: number;
   sharePrice?: number;
   status?: 'active' | 'inactive' | 'archived';
+};
+
+export type ProjectImagePresignResponse = {
+  bucket: string;
+  storageKey: string;
+  uploadUrl: string;
+  token: string | null;
+  headers: Record<string, string>;
+  path: string;
 };
 
 const PROJECTS_ROOT = ['adminProjects'] as const;
@@ -150,6 +161,16 @@ export function useDeleteProjectMutation() {
       queryClient.invalidateQueries({ queryKey: PROJECTS_ROOT });
       queryClient.removeQueries({ queryKey: projectKeys.detail(id) });
     },
+  });
+}
+
+export function useProjectImagePresignMutation() {
+  return useMutation({
+    mutationFn: (input: { fileName: string; fileType: string; fileSize: number }) =>
+      apiClient<ProjectImagePresignResponse>('/admin/projects/images/presign', {
+        method: 'POST',
+        body: JSON.stringify(input),
+      }),
   });
 }
 

@@ -3,6 +3,7 @@ import type {
   CreateProjectInput,
   UpdateProjectInput,
   ProjectListQuery,
+  ProjectImagePresignInput,
 } from '../schemas/projects.schema';
 
 export type Project = {
@@ -11,6 +12,7 @@ export type Project = {
   nameAr: string | null;
   description: string | null;
   descriptionAr: string | null;
+  coverKey: string | null;
   operatingCosts: number;
   annualBenefits: number;
   totalShares: number;
@@ -30,6 +32,7 @@ type ProjectRow = {
   name_ar: string | null;
   description: string | null;
   description_ar: string | null;
+  cover_key: string | null;
   operating_costs: number;
   annual_benefits: number;
   total_shares: number;
@@ -38,7 +41,11 @@ type ProjectRow = {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  cover_key: string | null;
 };
+
+const PROJECT_IMAGES_BUCKET =
+  process.env.PROJECT_IMAGES_BUCKET?.trim() || 'project-images';
 
 function mapProject(row: ProjectRow): Project {
   const operatingCostPerShare = row.total_shares > 0 
@@ -54,6 +61,7 @@ function mapProject(row: ProjectRow): Project {
     nameAr: row.name_ar,
     description: row.description,
     descriptionAr: row.description_ar,
+    coverKey: row.cover_key,
     operatingCosts: Number(row.operating_costs),
     annualBenefits: Number(row.annual_benefits),
     totalShares: row.total_shares,
@@ -79,13 +87,20 @@ export async function listProjects(query: ProjectListQuery): Promise<{
   };
 }> {
   const adminClient = requireSupabaseAdmin();
-  const { page = 1, limit = 25, status, search, sortBy = 'created_at', order = 'desc' } = query;
+  const {
+    page = 1,
+    limit = 25,
+    status,
+    search,
+    sortBy = 'created_at',
+    order = 'desc',
+  } = query;
 
   let queryBuilder = adminClient
     .from('projects')
     .select('*', { count: 'exact' });
 
-  if (status) {
+  if (status && status !== 'all') {
     queryBuilder = queryBuilder.eq('status', status);
   }
 
@@ -148,6 +163,7 @@ export async function createProject(
       name_ar: input.nameAr || null,
       description: input.description || null,
       description_ar: input.descriptionAr || null,
+      cover_key: input.coverKey || null,
       operating_costs: input.operatingCosts,
       annual_benefits: input.annualBenefits,
       total_shares: input.totalShares,
@@ -176,6 +192,7 @@ export async function updateProject(
   if (input.nameAr !== undefined) updateData.name_ar = input.nameAr;
   if (input.description !== undefined) updateData.description = input.description;
   if (input.descriptionAr !== undefined) updateData.description_ar = input.descriptionAr;
+  if (input.coverKey !== undefined) updateData.cover_key = input.coverKey;
   if (input.operatingCosts !== undefined) updateData.operating_costs = input.operatingCosts;
   if (input.annualBenefits !== undefined) updateData.annual_benefits = input.annualBenefits;
   if (input.totalShares !== undefined) updateData.total_shares = input.totalShares;
@@ -206,5 +223,46 @@ export async function deleteProject(id: string): Promise<void> {
   if (error) {
     throw new Error(`Failed to delete project: ${error.message}`);
   }
+}
+
+export async function createProjectImageUploadUrl(
+  input: ProjectImagePresignInput
+): Promise<{
+  bucket: string;
+  storageKey: string;
+  uploadUrl: string;
+  token: string | null;
+  headers: Record<string, string>;
+  path: string;
+}> {
+  const adminClient = requireSupabaseAdmin();
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const sanitizedName = input.fileName
+    .toLowerCase()
+    .replace(/[^a-z0-9.-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  const objectPath = `covers/${timestamp}-${sanitizedName}`;
+
+  const { data, error } = await adminClient.storage
+    .from(PROJECT_IMAGES_BUCKET)
+    .createSignedUploadUrl(objectPath);
+
+  if (error || !data) {
+    throw new Error(
+      `Failed to create signed upload url: ${error?.message ?? 'unknown error'}`
+    );
+  }
+
+  return {
+    bucket: PROJECT_IMAGES_BUCKET,
+    storageKey: objectPath,
+    uploadUrl: data.signedUrl,
+    token: data.token ?? null,
+    path: data.path ?? objectPath,
+    headers: {
+      'Content-Type': input.fileType,
+      'x-upsert': 'false',
+    },
+  };
 }
 

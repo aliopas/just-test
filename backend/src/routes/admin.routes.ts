@@ -259,6 +259,13 @@ adminRouter.post(
   projectController.create
 );
 
+adminRouter.post(
+  '/projects/images/presign',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  projectController.presignImage
+);
+
 adminRouter.patch(
   '/projects/:id',
   authenticate,

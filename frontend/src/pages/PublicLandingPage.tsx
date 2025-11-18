@@ -4,7 +4,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { Logo } from '../components/Logo';
 import { palette } from '../styles/theme';
 import { useInvestorNewsList } from '../hooks/useInvestorNews';
-import { resolveCoverUrl, NEWS_IMAGES_BUCKET } from '../utils/supabase-storage';
+import { resolveCoverUrl, NEWS_IMAGES_BUCKET, PROJECT_IMAGES_BUCKET } from '../utils/supabase-storage';
 import { OptimizedImage } from '../components/OptimizedImage';
 import { usePublicProjects } from '../hooks/usePublicProjects';
 
@@ -943,6 +943,10 @@ export function PublicLandingPage() {
               {projects.map((project) => {
                 const costPerShare = project.operatingCostPerShare;
                 const benefitPerShare = project.annualBenefitPerShare;
+                const projectCoverUrl = resolveCoverUrl(
+                  project.coverKey,
+                  PROJECT_IMAGES_BUCKET
+                );
                 return (
                   <article
                     key={project.id}
@@ -954,6 +958,22 @@ export function PublicLandingPage() {
                       gap: '1.5rem',
                     }}
                   >
+                    {projectCoverUrl && (
+                      <div
+                        style={{
+                          borderRadius: '0.9rem',
+                          overflow: 'hidden',
+                          border: `1px solid ${palette.neutralBorderSoft}`,
+                        }}
+                      >
+                        <OptimizedImage
+                          src={projectCoverUrl}
+                          alt={project.name}
+                          aspectRatio={16 / 9}
+                          objectFit="cover"
+                        />
+                      </div>
+                    )}
                     <div>
                       <h3
                         style={{

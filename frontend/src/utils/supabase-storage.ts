@@ -1,6 +1,7 @@
 import { getSupabaseBrowserClient } from './supabase-client';
 
 export const NEWS_IMAGES_BUCKET = 'news-images';
+export const PROJECT_IMAGES_BUCKET = 'project-images';
 
 function sanitizeBaseUrl(url: string): string {
   return url.replace(/\/+$/, '');

@@ -10,8 +10,10 @@ import {
   useDeleteProjectMutation,
   type Project,
   type ProjectListFilters,
+  useProjectImagePresignMutation,
 } from '../hooks/useAdminProjects';
 import { palette } from '../styles/theme';
+import { PROJECT_IMAGES_BUCKET, resolveCoverUrl } from '../utils/supabase-storage';
 
 const queryClient = new QueryClient();
 
@@ -22,6 +24,19 @@ const defaultFilters: ProjectListFilters = {
   search: '',
 };
 
+type FormState = {
+  name: string;
+  nameAr: string;
+  description: string;
+  descriptionAr: string;
+  coverKey: string | null;
+  operatingCosts: string;
+  annualBenefits: string;
+  totalShares: string;
+  sharePrice: string;
+  status: 'active' | 'inactive' | 'archived';
+};
+
 function AdminProjectsPageInner() {
   const { language, direction } = useLanguage();
   const { pushToast } = useToast();
@@ -29,22 +44,46 @@ function AdminProjectsPageInner() {
   const [filters, setFilters] = useState<ProjectListFilters>(defaultFilters);
   const [showForm, setShowForm] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormState>({
     name: '',
     nameAr: '',
     description: '',
     descriptionAr: '',
+    coverKey: null,
     operatingCosts: '',
     annualBenefits: '',
     totalShares: '',
     sharePrice: '50000',
-    status: 'active' as 'active' | 'inactive' | 'archived',
+    status: 'active',
   });
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [isUploadingImage, setUploadingImage] = useState(false);
 
   const { data, isLoading, isError, error, refetch } = useAdminProjectsList(filters);
   const createMutation = useCreateProjectMutation();
   const updateMutation = useUpdateProjectMutation();
   const deleteMutation = useDeleteProjectMutation();
+  const imagePresignMutation = useProjectImagePresignMutation();
+
+  const revokePreview = (preview: string | null) => {
+    if (preview && preview.startsWith('blob:')) {
+      URL.revokeObjectURL(preview);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      revokePreview(coverPreview);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coverPreview]);
+
+  const closeForm = () => {
+    revokePreview(coverPreview);
+    setCoverPreview(null);
+    setShowForm(false);
+    setEditingProject(null);
+  };
 
   useEffect(() => {
     if (isError) {
@@ -65,12 +104,15 @@ function AdminProjectsPageInner() {
       nameAr: '',
       description: '',
       descriptionAr: '',
+      coverKey: null,
       operatingCosts: '',
       annualBenefits: '',
       totalShares: '',
       sharePrice: '50000',
       status: 'active',
     });
+    revokePreview(coverPreview);
+    setCoverPreview(null);
     setShowForm(true);
   };
 
@@ -81,12 +123,19 @@ function AdminProjectsPageInner() {
       nameAr: project.nameAr || '',
       description: project.description || '',
       descriptionAr: project.descriptionAr || '',
+      coverKey: project.coverKey ?? null,
       operatingCosts: String(project.operatingCosts),
       annualBenefits: String(project.annualBenefits),
       totalShares: String(project.totalShares),
       sharePrice: String(project.sharePrice),
       status: project.status,
     });
+    const existingCover =
+      project.coverKey !== null
+        ? resolveCoverUrl(project.coverKey, PROJECT_IMAGES_BUCKET)
+        : null;
+    revokePreview(coverPreview);
+    setCoverPreview(existingCover);
     setShowForm(true);
   };
 
@@ -109,6 +158,55 @@ function AdminProjectsPageInner() {
     }
   };
 
+  const handleImageSelection = async (file: File | null) => {
+    if (!file) {
+      revokePreview(coverPreview);
+      setCoverPreview(null);
+      setFormData(prev => ({ ...prev, coverKey: null }));
+      return;
+    }
+
+    try {
+      setUploadingImage(true);
+      const presign = await imagePresignMutation.mutateAsync({
+        fileName: file.name,
+        fileType: file.type || 'application/octet-stream',
+        fileSize: file.size,
+      });
+
+      const headers = new Headers(presign.headers);
+      if (!headers.has('Content-Type')) {
+        headers.set('Content-Type', file.type || 'application/octet-stream');
+      }
+
+      const response = await fetch(presign.uploadUrl, {
+        method: 'PUT',
+        headers,
+        body: file,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upload failed with status ${response.status}`);
+      }
+
+      revokePreview(coverPreview);
+      setCoverPreview(URL.createObjectURL(file));
+      setFormData(prev => ({ ...prev, coverKey: presign.storageKey }));
+      pushToast({
+        message: isArabic ? 'تم رفع الصورة بنجاح' : 'Image uploaded successfully',
+        variant: 'success',
+      });
+    } catch (err) {
+      console.error(err);
+      pushToast({
+        message: err instanceof Error ? err.message : (isArabic ? 'فشل رفع الصورة' : 'Failed to upload image'),
+        variant: 'error',
+      });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -117,6 +215,7 @@ function AdminProjectsPageInner() {
         nameAr: formData.nameAr || undefined,
         description: formData.description || undefined,
         descriptionAr: formData.descriptionAr || undefined,
+        coverKey: formData.coverKey ?? undefined,
         operatingCosts: Number(formData.operatingCosts),
         annualBenefits: Number(formData.annualBenefits),
         totalShares: Number(formData.totalShares),
@@ -137,7 +236,7 @@ function AdminProjectsPageInner() {
           variant: 'success',
         });
       }
-      setShowForm(false);
+      closeForm();
       refetch();
     } catch (err) {
       pushToast({
@@ -195,7 +294,7 @@ function AdminProjectsPageInner() {
             justifyContent: 'center',
             zIndex: 1000,
           }}
-          onClick={() => setShowForm(false)}
+          onClick={closeForm}
         >
           <div
             style={{
@@ -257,6 +356,63 @@ function AdminProjectsPageInner() {
                   rows={3}
                   style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: `1px solid ${palette.neutralBorder}` }}
                 />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                  {isArabic ? 'صورة المشروع' : 'Project cover image'}
+                </label>
+                <div
+                  style={{
+                    border: `1px dashed ${palette.neutralBorder}`,
+                    borderRadius: '0.75rem',
+                    padding: '1rem',
+                    textAlign: 'center',
+                    background: palette.backgroundBase,
+                    marginBottom: '0.75rem',
+                  }}
+                >
+                  {coverPreview ? (
+                    <img
+                      src={coverPreview}
+                      alt={formData.name || 'Project cover'}
+                      style={{ width: '100%', maxHeight: '220px', objectFit: 'cover', borderRadius: '0.5rem' }}
+                    />
+                  ) : (
+                    <p style={{ margin: 0, color: palette.textSecondary, fontSize: '0.95rem' }}>
+                      {isArabic
+                        ? 'يمكنك رفع صورة توضيحية للمشروع (PNG، JPG، WebP)'
+                        : 'Upload a cover image for the project (PNG, JPG, WebP)'}
+                    </p>
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleImageSelection(e.target.files?.[0] ?? null)}
+                    disabled={isUploadingImage || imagePresignMutation.isPending}
+                  />
+                  {formData.coverKey && (
+                    <button
+                      type="button"
+                      onClick={() => handleImageSelection(null)}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        borderRadius: '0.5rem',
+                        border: `1px solid ${palette.neutralBorder}`,
+                        background: 'transparent',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {isArabic ? 'إزالة الصورة' : 'Remove image'}
+                    </button>
+                  )}
+                </div>
+                {(isUploadingImage || imagePresignMutation.isPending) && (
+                  <p style={{ marginTop: '0.5rem', color: palette.textSecondary, fontSize: '0.9rem' }}>
+                    {isArabic ? 'جارٍ رفع الصورة...' : 'Uploading image...'}
+                  </p>
+                )}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
@@ -333,7 +489,7 @@ function AdminProjectsPageInner() {
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
                 <button
                   type="button"
-                  onClick={() => setShowForm(false)}
+                  onClick={closeForm}
                   style={{
                     padding: '0.75rem 1.5rem',
                     borderRadius: '0.5rem',
@@ -410,6 +566,7 @@ function AdminProjectsPageInner() {
           {projects.map((project) => {
             const costPerShare = project.operatingCostPerShare;
             const benefitPerShare = project.annualBenefitPerShare;
+            const coverUrl = resolveCoverUrl(project.coverKey, PROJECT_IMAGES_BUCKET);
             return (
               <div
                 key={project.id}
@@ -420,6 +577,22 @@ function AdminProjectsPageInner() {
                   background: palette.backgroundSurface,
                 }}
               >
+                {coverUrl && (
+                  <div
+                    style={{
+                      marginBottom: '1rem',
+                      borderRadius: '0.75rem',
+                      overflow: 'hidden',
+                      border: `1px solid ${palette.neutralBorderSoft}`,
+                    }}
+                  >
+                    <img
+                      src={coverUrl}
+                      alt={project.name}
+                      style={{ width: '100%', height: '220px', objectFit: 'cover' }}
+                    />
+                  </div>
+                )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
                   <div>
                     <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>
