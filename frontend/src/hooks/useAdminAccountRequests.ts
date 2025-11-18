@@ -4,6 +4,7 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { apiClient } from '../utils/api-client';
 import type {
   AdminSignupRequestFilters,
@@ -94,15 +95,20 @@ export function useRejectAccountRequestMutation() {
 
 export function useUnreadSignupRequestCount() {
   const queryClient = useQueryClient();
-  return useQuery({
+  const query = useQuery({
     queryKey: [...ACCOUNT_REQUESTS_ROOT, 'unreadCount'] as const,
     queryFn: () => apiClient<{ unreadCount: number }>('/admin/account-requests/unread-count'),
     refetchInterval: 30000, // Refetch every 30 seconds
-    onSuccess: () => {
-      // Invalidate list queries to refresh isRead status
-      queryClient.invalidateQueries({ queryKey: [...ACCOUNT_REQUESTS_ROOT, 'list'] });
-    },
   });
+
+  // Invalidate list queries when unread count changes
+  useEffect(() => {
+    if (query.isSuccess) {
+      queryClient.invalidateQueries({ queryKey: [...ACCOUNT_REQUESTS_ROOT, 'list'] });
+    }
+  }, [query.isSuccess, query.data?.unreadCount, queryClient]);
+
+  return query;
 }
 
 export function useMarkSignupRequestRead() {
