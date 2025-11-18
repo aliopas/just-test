@@ -60,7 +60,7 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'summary.rejected': 'طلبات مرفوضة',
     'summary.settling': 'قيد التسوية',
     'summary.completed': 'طلبات مكتملة',
-    'summary.screening': 'تصفية أولية',
+    'summary.screening': 'تحت المراجعة',
     'summary.complianceReview': 'مراجعة التزام',
     'summary.submitted': 'طلبات مرسلة',
     'summary.draft': 'مسودات',

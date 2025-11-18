@@ -89,7 +89,7 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'filters.all': 'الكل',
     'filters.draft': 'مسودات',
     'filters.submitted': 'مرسلة',
-    'filters.screening': 'تصفية أولية',
+    'filters.screening': 'تحت المراجعة',
     'filters.pendingInfo': 'بانتظار معلومات',
     'filters.complianceReview': 'مراجعة التزام',
     'filters.approved': 'معتمدة',

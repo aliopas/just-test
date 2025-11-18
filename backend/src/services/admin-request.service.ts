@@ -45,12 +45,53 @@ export function escapeLikePattern(value: string): string {
 
 /**
  * Mark a request as read by an admin user
+ * If the request is in 'draft' status and hasn't been read by any admin before,
+ * automatically transition it to 'screening' status
  */
 export async function markRequestAsRead(params: {
   requestId: string;
   adminId: string;
 }): Promise<{ viewedAt: string }> {
   const adminClient = requireSupabaseAdmin();
+  
+  // Check if this is the first time any admin reads this request
+  const { data: existingViews, error: checkError } = await adminClient
+    .from('admin_request_views')
+    .select('id')
+    .eq('request_id', params.requestId)
+    .limit(1);
+
+  if (checkError) {
+    throw new Error(`Failed to check existing views: ${checkError.message}`);
+  }
+
+  const isFirstRead = existingViews === null || existingViews.length === 0;
+
+  // Get current request status
+  const { data: requestData, error: requestError } = await adminClient
+    .from('requests')
+    .select('status')
+    .eq('id', params.requestId)
+    .single<{ status: string }>();
+
+  if (requestError) {
+    throw new Error(`Failed to fetch request: ${requestError.message}`);
+  }
+
+  // If this is the first read and request is in 'draft' status, transition to 'screening'
+  if (isFirstRead && requestData.status === 'draft') {
+    try {
+      await transitionRequestStatus({
+        requestId: params.requestId,
+        actorId: params.adminId,
+        toStatus: 'screening',
+        note: 'Request opened by admin - moved to screening',
+      });
+    } catch (transitionError) {
+      // Log error but don't fail the read operation
+      console.error('Failed to transition request status:', transitionError);
+    }
+  }
   
   // Use upsert to handle both new views and updates
   const { data, error } = await adminClient

@@ -33,7 +33,7 @@ const STATUS_META: Record<RequestStatus, StatusMeta> = {
     progress: 25,
   },
   screening: {
-    label: { en: 'Screening', ar: 'تصفية أولية' },
+    label: { en: 'Screening', ar: 'تحت المراجعة' },
     color: 'var(--color-brand-primary-muted)',
     progress: 40,
   },
