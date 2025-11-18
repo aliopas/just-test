@@ -5,6 +5,7 @@ import { investorRouter } from './routes/investor.routes';
 import { adminRouter } from './routes/admin.routes';
 import { newsRouter } from './routes/news.routes';
 import { notificationRouter } from './routes/notification.routes';
+import { publicRouter } from './routes/public.routes';
 import { applySecurity, authLimiter } from './middleware/security';
 
 const app = express();
@@ -38,5 +39,6 @@ app.use('/api/v1/investor', investorRouter);
 app.use('/api/v1/admin', adminRouter);
 app.use('/api/v1/notifications', notificationRouter);
 app.use('/api/v1/news', newsRouter);
+app.use('/api/v1/public', publicRouter);
 
 export default app;

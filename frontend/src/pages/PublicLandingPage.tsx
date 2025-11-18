@@ -6,6 +6,7 @@ import { palette } from '../styles/theme';
 import { useInvestorNewsList } from '../hooks/useInvestorNews';
 import { resolveCoverUrl, NEWS_IMAGES_BUCKET } from '../utils/supabase-storage';
 import { OptimizedImage } from '../components/OptimizedImage';
+import { usePublicProjects } from '../hooks/usePublicProjects';
 
 const heroSectionStyle: React.CSSProperties = {
   padding: '4rem 2rem',
@@ -84,6 +85,13 @@ export function PublicLandingPage() {
     isFetching: isNewsFetching,
   } = useInvestorNewsList({ page: 1, limit: 3 });
   const newsItems = useMemo(() => newsResponse?.news ?? [], [newsResponse]);
+  
+  const {
+    data: projectsResponse,
+    isLoading: isProjectsLoading,
+    isError: isProjectsError,
+  } = usePublicProjects();
+  const projects = useMemo(() => projectsResponse?.projects ?? [], [projectsResponse]);
 
   const heroTitle = isArabic
     ? 'منصة باكورة للتقنيات'
@@ -881,71 +889,8 @@ export function PublicLandingPage() {
           </div>
         </section>
 
-        <section id="capabilities" style={sectionStyle} dir={isArabic ? 'rtl' : 'ltr'}>
-          <h2
-            style={{
-              margin: 0,
-              fontSize: '1.75rem',
-              fontWeight: 700,
-              textAlign: 'center',
-            }}
-          >
-            {featureTitle}
-          </h2>
-          <p
-            style={{
-              margin: 0,
-              textAlign: 'center',
-              color: palette.textSecondary,
-              fontSize: '1rem',
-              lineHeight: 1.6,
-            }}
-          >
-            {isArabic
-              ? 'حوّل قنوات البحث عن الفرص إلى عمليات تعتمد على البيانات، مع تبسيط العمل بين الفرق الداخلية والخارجية.'
-              : 'Turn opportunity sourcing into a data-driven, collaborative workflow across internal and external teams.'}
-          </p>
-          <div
-            style={{
-              display: 'grid',
-              gap: '1.5rem',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-            }}
-          >
-            {features.map((feature) => (
-              <article key={feature.title} style={featureCardStyle}>
-                <h3
-                  style={{
-                    marginTop: 0,
-                    marginBottom: '0.75rem',
-                    fontSize: '1.25rem',
-                  }}
-                >
-                  {feature.title}
-                </h3>
-                <p
-                  style={{
-                    margin: 0,
-                    color: palette.textSecondary,
-                    lineHeight: 1.6,
-                  }}
-                >
-                  {feature.description}
-                </p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section
-          id="journey"
-          style={{
-            ...sectionStyle,
-            padding: '4rem 2rem',
-            background: palette.backgroundSurface,
-          }}
-          dir={isArabic ? 'rtl' : 'ltr'}
-        >
+        {/* Projects Section - Replaces capabilities and journey sections */}
+        <section id="projects" style={sectionStyle} dir={isArabic ? 'rtl' : 'ltr'}>
           <div
             style={{
               textAlign: 'center',
@@ -959,7 +904,7 @@ export function PublicLandingPage() {
                 fontWeight: 700,
               }}
             >
-              {journeyTitle}
+              {isArabic ? 'المشاريع الاستثمارية المتاحة' : 'Available Investment Projects'}
             </h2>
             <p
               style={{
@@ -969,48 +914,191 @@ export function PublicLandingPage() {
                 lineHeight: 1.7,
               }}
             >
-              {journeySubtitle}
+              {isArabic
+                ? 'استكشف فرص الاستثمار المتاحة مع تفاصيل تكاليف التشغيل والفوائد السنوية لكل سهم'
+                : 'Explore available investment opportunities with operating costs and annual benefits per share'}
             </p>
           </div>
-          <div
-            style={{
-              display: 'grid',
-              gap: '1.5rem',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-            }}
-          >
-            {journeySteps.map((step) => (
-              <article key={step.phase} style={timelineCardStyle}>
-                <span
-                  style={{
-                    fontSize: '0.9rem',
-                    fontWeight: 700,
-                    color: palette.brandPrimaryStrong,
-                  }}
-                >
-                  {step.phase}
-                </span>
-                <h3
-                  style={{
-                    margin: 0,
-                    fontSize: '1.35rem',
-                    fontWeight: 700,
-                  }}
-                >
-                  {step.title}
-                </h3>
-                <p
-                  style={{
-                    margin: 0,
-                    color: palette.textSecondary,
-                    lineHeight: 1.6,
-                  }}
-                >
-                  {step.description}
-                </p>
-              </article>
-            ))}
-          </div>
+          
+          {isProjectsLoading ? (
+            <div style={{ textAlign: 'center', padding: '3rem', color: palette.textSecondary }}>
+              {isArabic ? 'جاري تحميل المشاريع...' : 'Loading projects...'}
+            </div>
+          ) : isProjectsError ? (
+            <div style={{ textAlign: 'center', padding: '3rem', color: palette.textSecondary }}>
+              {isArabic ? 'حدث خطأ في تحميل المشاريع' : 'Failed to load projects'}
+            </div>
+          ) : projects.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '3rem', color: palette.textSecondary }}>
+              {isArabic ? 'لا توجد مشاريع متاحة حالياً' : 'No projects available at the moment'}
+            </div>
+          ) : (
+            <div
+              style={{
+                display: 'grid',
+                gap: '2rem',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+              }}
+            >
+              {projects.map((project) => {
+                const costPerShare = project.operatingCostPerShare;
+                const benefitPerShare = project.annualBenefitPerShare;
+                return (
+                  <article
+                    key={project.id}
+                    style={{
+                      ...featureCardStyle,
+                      padding: '2rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '1.5rem',
+                    }}
+                  >
+                    <div>
+                      <h3
+                        style={{
+                          marginTop: 0,
+                          marginBottom: '0.5rem',
+                          fontSize: '1.5rem',
+                          fontWeight: 700,
+                        }}
+                      >
+                        {isArabic && project.nameAr ? project.nameAr : project.name}
+                      </h3>
+                      {project.description && (
+                        <p
+                          style={{
+                            margin: 0,
+                            color: palette.textSecondary,
+                            lineHeight: 1.6,
+                            fontSize: '0.95rem',
+                          }}
+                        >
+                          {isArabic && project.descriptionAr ? project.descriptionAr : project.description}
+                        </p>
+                      )}
+                    </div>
+                    
+                    <div
+                      style={{
+                        display: 'grid',
+                        gap: '1rem',
+                        gridTemplateColumns: '1fr 1fr',
+                        marginTop: 'auto',
+                        paddingTop: '1.5rem',
+                        borderTop: `1px solid ${palette.neutralBorderSoft}`,
+                      }}
+                    >
+                      <div>
+                        <div
+                          style={{
+                            fontSize: '0.875rem',
+                            color: palette.textSecondary,
+                            marginBottom: '0.25rem',
+                          }}
+                        >
+                          {isArabic ? 'سعر السهم' : 'Share Price'}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '1.5rem',
+                            fontWeight: 700,
+                            color: palette.textPrimary,
+                          }}
+                        >
+                          {project.sharePrice.toLocaleString()} {isArabic ? 'ريال' : 'SAR'}
+                        </div>
+                      </div>
+                      <div>
+                        <div
+                          style={{
+                            fontSize: '0.875rem',
+                            color: palette.textSecondary,
+                            marginBottom: '0.25rem',
+                          }}
+                        >
+                          {isArabic ? 'إجمالي الأسهم' : 'Total Shares'}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '1.5rem',
+                            fontWeight: 700,
+                            color: palette.textPrimary,
+                          }}
+                        >
+                          {project.totalShares.toLocaleString()}
+                        </div>
+                      </div>
+                      <div>
+                        <div
+                          style={{
+                            fontSize: '0.875rem',
+                            color: palette.textSecondary,
+                            marginBottom: '0.25rem',
+                          }}
+                        >
+                          {isArabic ? 'تكلفة التشغيل للسهم' : 'Operating Cost/Share'}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '1.25rem',
+                            fontWeight: 600,
+                            color: palette.textPrimary,
+                          }}
+                        >
+                          {costPerShare.toLocaleString()} {isArabic ? 'ريال' : 'SAR'}
+                        </div>
+                      </div>
+                      <div>
+                        <div
+                          style={{
+                            fontSize: '0.875rem',
+                            color: palette.textSecondary,
+                            marginBottom: '0.25rem',
+                          }}
+                        >
+                          {isArabic ? 'الفوائد السنوية للسهم' : 'Annual Benefit/Share'}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '1.25rem',
+                            fontWeight: 600,
+                            color: palette.brandPrimaryStrong,
+                          }}
+                        >
+                          {benefitPerShare.toLocaleString()} {isArabic ? 'ريال' : 'SAR'}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <Link
+                      to="/register"
+                      style={{
+                        marginTop: '1rem',
+                        padding: '0.85rem 1.5rem',
+                        borderRadius: '0.75rem',
+                        background: palette.brandPrimaryStrong,
+                        color: palette.textOnBrand,
+                        fontWeight: 600,
+                        textDecoration: 'none',
+                        textAlign: 'center',
+                        display: 'block',
+                        transition: 'background 0.2s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = palette.brandPrimary;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = palette.brandPrimaryStrong;
+                      }}
+                    >
+                      {isArabic ? 'سجل للاستثمار' : 'Register to Invest'}
+                    </Link>
+                  </article>
+                );
+              })}
+            </div>
+          )}
         </section>
 
         <section

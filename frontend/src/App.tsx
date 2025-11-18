@@ -27,6 +27,7 @@ import { InvestorDashboardPage } from './pages/InvestorDashboardPage';
 import { MyRequestsPage } from './pages/MyRequestsPage';
 import { AdminSignupRequestsPage } from './pages/AdminSignupRequestsPage';
 import { InvestorInternalNewsPage } from './pages/InvestorInternalNewsPage';
+import { AdminProjectsPage } from './pages/AdminProjectsPage';
 
 const navLinkStyle: React.CSSProperties = {
   borderRadius: '0.75rem',
@@ -55,6 +56,11 @@ const adminNavItems = [
     to: '/admin/news',
     labelAr: 'الأخبار والمحتوى',
     labelEn: 'News & content',
+  },
+  {
+    to: '/admin/projects',
+    labelAr: 'المشاريع الاستثمارية',
+    labelEn: 'Investment Projects',
   },
   {
     to: '/admin/signup-requests',
@@ -462,6 +468,7 @@ function AdminApp() {
             <Route path="/admin/requests" element={<AdminRequestsInboxPage />} />
             <Route path="/admin/requests/:id" element={<AdminRequestDetailPage />} />
             <Route path="/admin/news" element={<AdminNewsPage />} />
+            <Route path="/admin/projects" element={<AdminProjectsPage />} />
             <Route path="/admin/signup-requests" element={<AdminSignupRequestsPage />} />
             <Route path="/admin/investors" element={<AdminInvestorsPage />} />
             <Route path="/admin/reports" element={<AdminReportsPage />} />

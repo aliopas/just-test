@@ -7,6 +7,7 @@ import { adminAuditLogController } from '../controllers/admin-audit-log.controll
 import { adminReportsController } from '../controllers/admin-reports.controller';
 import { adminContentAnalyticsController } from '../controllers/admin-content-analytics.controller';
 import { investorSignupRequestController } from '../controllers/investor-signup-request.controller';
+import { projectController } from '../controllers/project.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { requirePermission } from '../middleware/rbac.middleware';
 
@@ -234,6 +235,42 @@ adminRouter.post(
   authenticate,
   requirePermission('admin.users.manage'),
   investorSignupRequestController.reject
+);
+
+// Projects routes
+adminRouter.get(
+  '/projects',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  projectController.list
+);
+
+adminRouter.get(
+  '/projects/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  projectController.getById
+);
+
+adminRouter.post(
+  '/projects',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  projectController.create
+);
+
+adminRouter.patch(
+  '/projects/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  projectController.update
+);
+
+adminRouter.delete(
+  '/projects/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  projectController.remove
 );
 
 export { adminRouter };
