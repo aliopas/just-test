@@ -50,6 +50,7 @@ export function useAdminAccountRequests(filters: AdminSignupRequestFilters) {
       return apiClient<AdminSignupRequestListResponse>(path);
     },
     placeholderData: keepPreviousData,
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 }
 

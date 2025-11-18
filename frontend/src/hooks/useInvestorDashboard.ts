@@ -12,6 +12,7 @@ export function useInvestorDashboard() {
     queryFn: fetchInvestorDashboard,
     staleTime: 30_000,
     refetchOnWindowFocus: true,
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 }
 

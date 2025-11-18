@@ -40,6 +40,7 @@ export function useInvestorRequests(filters: RequestListFilters) {
     queryKey,
     queryFn: () => fetchInvestorRequests(filters),
     placeholderData: keepPreviousData,
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   return {

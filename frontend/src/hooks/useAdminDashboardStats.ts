@@ -12,6 +12,7 @@ export function useAdminDashboardStats() {
     queryFn: fetchAdminDashboardStats,
     staleTime: 60_000,
     refetchOnWindowFocus: true,
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 }
 

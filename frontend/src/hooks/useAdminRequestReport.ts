@@ -37,6 +37,7 @@ export function useAdminRequestReport(filters: AdminRequestReportFilters) {
       return apiClient<AdminRequestReportResponse>(url);
     },
     staleTime: 60_000,
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 }
 
