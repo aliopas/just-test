@@ -41,7 +41,6 @@ type ProjectRow = {
   created_by: string | null;
   created_at: string;
   updated_at: string;
-  cover_key: string | null;
 };
 
 const PROJECT_IMAGES_BUCKET =
