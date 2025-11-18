@@ -28,6 +28,7 @@ import { MyRequestsPage } from './pages/MyRequestsPage';
 import { AdminSignupRequestsPage } from './pages/AdminSignupRequestsPage';
 import { InvestorInternalNewsPage } from './pages/InvestorInternalNewsPage';
 import { AdminProjectsPage } from './pages/AdminProjectsPage';
+import { useNotifications } from './hooks/useNotifications';
 
 const navLinkStyle: React.CSSProperties = {
   borderRadius: '0.75rem',
@@ -49,8 +50,8 @@ const adminNavItems = [
   },
   {
     to: '/admin/requests',
-    labelAr: 'طلبات الاستثمار',
-    labelEn: 'Requests inbox',
+    labelAr: 'طلبات الاستثمار الواردة',
+    labelEn: 'Incoming investment requests',
   },
   {
     to: '/admin/news',
@@ -267,6 +268,10 @@ function AdminSidebarNav() {
       ? 'إدارة الطلبات والأخبار والمحتوى التشغيلي لمنصة باكورة.'
       : 'Manage investor requests, news, and operational content for Bakurah.';
   const isArabic = language === 'ar';
+  
+  // Get unread notifications count
+  const { meta: notificationsMeta } = useNotifications({ status: 'all', page: 1 });
+  const unreadCount = notificationsMeta.unreadCount ?? 0;
 
   return (
     <aside
@@ -337,25 +342,55 @@ function AdminSidebarNav() {
             gap: '0.75rem',
           }}
         >
-          {adminNavItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.to === '/admin/dashboard'}
-              style={({ isActive }) => ({
-                ...adminSidebarLinkBase,
-                flexDirection: isArabic ? 'row-reverse' : 'row',
-                justifyContent: isArabic ? 'flex-end' : 'flex-start',
-                textAlign: isArabic ? 'right' : 'left',
-                background: isActive ? palette.brandSecondarySoft : 'transparent',
-                color: isActive ? palette.textPrimary : palette.textSecondary,
-                borderColor: isActive ? palette.brandSecondary : palette.neutralBorderSoft,
-                boxShadow: isActive ? '0 0 0 1px rgba(0,0,0,0.04)' : 'none',
-              })}
-            >
-              {language === 'ar' ? item.labelAr : item.labelEn}
-            </NavLink>
-          ))}
+          {adminNavItems.map((item) => {
+            const isRequestsItem = item.to === '/admin/requests';
+            const showBadge = isRequestsItem && unreadCount > 0;
+            
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.to === '/admin/dashboard'}
+                style={({ isActive }) => ({
+                  ...adminSidebarLinkBase,
+                  flexDirection: isArabic ? 'row-reverse' : 'row',
+                  justifyContent: showBadge ? 'space-between' : (isArabic ? 'flex-end' : 'flex-start'),
+                  textAlign: isArabic ? 'right' : 'left',
+                  background: isActive ? palette.brandSecondarySoft : 'transparent',
+                  color: isActive ? palette.textPrimary : palette.textSecondary,
+                  borderColor: isActive ? palette.brandSecondary : palette.neutralBorderSoft,
+                  boxShadow: isActive ? '0 0 0 1px rgba(0,0,0,0.04)' : 'none',
+                  position: 'relative',
+                })}
+              >
+                <span>{language === 'ar' ? item.labelAr : item.labelEn}</span>
+                {showBadge && (
+                  <span
+                    style={{
+                      minWidth: '1.5rem',
+                      height: '1.5rem',
+                      borderRadius: '999px',
+                      backgroundColor: palette.brandPrimaryStrong,
+                      color: palette.textOnBrand,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      flexShrink: 0,
+                    }}
+                    aria-label={
+                      isArabic
+                        ? `${unreadCount} إشعار غير مقروء`
+                        : `${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}`
+                    }
+                  >
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </NavLink>
+            );
+          })}
         </nav>
       </div>
       <button

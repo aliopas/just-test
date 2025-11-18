@@ -43,6 +43,63 @@ export function escapeLikePattern(value: string): string {
   return value.replace(/[%_]/g, ch => `\\${ch}`);
 }
 
+/**
+ * Mark a request as read by an admin user
+ */
+export async function markRequestAsRead(params: {
+  requestId: string;
+  adminId: string;
+}): Promise<{ viewedAt: string }> {
+  const adminClient = requireSupabaseAdmin();
+  
+  // Use upsert to handle both new views and updates
+  const { data, error } = await adminClient
+    .from('admin_request_views')
+    .upsert(
+      {
+        request_id: params.requestId,
+        admin_id: params.adminId,
+        viewed_at: new Date().toISOString(),
+      },
+      {
+        onConflict: 'request_id,admin_id',
+      }
+    )
+    .select('viewed_at')
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to mark request as read: ${error.message}`);
+  }
+
+  return {
+    viewedAt: data.viewed_at as string,
+  };
+}
+
+/**
+ * Check if a request has been read by an admin
+ */
+export async function isRequestReadByAdmin(params: {
+  requestId: string;
+  adminId: string;
+}): Promise<boolean> {
+  const adminClient = requireSupabaseAdmin();
+  
+  const { data, error } = await adminClient
+    .from('admin_request_views')
+    .select('id')
+    .eq('request_id', params.requestId)
+    .eq('admin_id', params.adminId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to check request read status: ${error.message}`);
+  }
+
+  return data !== null;
+}
+
 export async function listAdminRequests(params: {
   actorId: string;
   query: AdminRequestListQuery;
@@ -128,6 +185,25 @@ export async function listAdminRequests(params: {
     return Array.isArray(value) ? (value[0] ?? null) : value;
   };
 
+  // Get read status for all requests by this admin
+  const requestIds = rows.map(row => row.id);
+  let readStatusMap: Record<string, boolean> = {};
+  
+  if (requestIds.length > 0) {
+    const { data: readViews, error: readError } = await adminClient
+      .from('admin_request_views')
+      .select('request_id')
+      .eq('admin_id', params.actorId)
+      .in('request_id', requestIds);
+
+    if (!readError && readViews) {
+      readStatusMap = readViews.reduce((acc, view) => {
+        acc[view.request_id as string] = true;
+        return acc;
+      }, {} as Record<string, boolean>);
+    }
+  }
+
   const requests = rows.map(row => {
     const user = firstOrNull(row.users);
     const profile = user ? firstOrNull(user.profile) : null;
@@ -149,6 +225,7 @@ export async function listAdminRequests(params: {
       expiryAt: row.expiry_at,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
+      isRead: readStatusMap[row.id] ?? false,
       investor: {
         id: user?.id ?? null,
         email: user?.email ?? null,
@@ -263,6 +340,17 @@ export async function getAdminRequestDetail(params: {
   requestId: string;
 }) {
   const adminClient = requireSupabaseAdmin();
+  
+  // Mark request as read by this admin
+  try {
+    await markRequestAsRead({
+      requestId: params.requestId,
+      adminId: params.actorId,
+    });
+  } catch (error) {
+    // Log error but don't fail the request
+    console.error('Failed to mark request as read:', error);
+  }
 
   const { data: requestRow, error: requestError } = await adminClient
     .from('requests')

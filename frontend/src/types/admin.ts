@@ -28,6 +28,7 @@ export interface AdminRequest {
   expiryAt: string | null | undefined;
   createdAt: string;
   updatedAt: string;
+  isRead: boolean;
   investor: AdminRequestInvestor;
 }
 
