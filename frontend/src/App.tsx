@@ -185,17 +185,6 @@ function HeaderNav() {
           {language === 'ar' ? 'الرئيسية' : 'Home'}
         </NavLink>
         <NavLink
-          to="/dashboard"
-          style={({ isActive }) => ({
-            ...navLinkStyle,
-            background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
-            color: isActive ? palette.textPrimary : palette.textSecondary,
-          })}
-          end
-        >
-          {language === 'ar' ? 'لوحة المتابعة' : 'Dashboard'}
-        </NavLink>
-        <NavLink
           to="/requests"
           style={({ isActive }) => ({
             ...navLinkStyle,
