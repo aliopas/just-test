@@ -578,7 +578,6 @@ export function PublicLandingPage() {
             }}
           >
             <span style={{ fontWeight: 700, fontSize: '1.25rem' }}>{heroTitle}</span>
-            <span style={{ color: palette.textSecondary }}>{heroSubtitle}</span>
           </div>
         </div>
         <nav
