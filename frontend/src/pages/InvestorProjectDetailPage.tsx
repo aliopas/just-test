@@ -330,33 +330,6 @@ function InvestorProjectDetailPageInner() {
                 </div>
               </div>
             </section>
-
-            <div
-              style={{
-                marginTop: '2.5rem',
-                padding: '1.5rem',
-                borderRadius: '1rem',
-                background: palette.brandSecondarySoft,
-                border: `1px solid ${palette.brandSecondary}`,
-                textAlign: 'center',
-              }}
-            >
-              <Link
-                to="/requests/new"
-                style={{
-                  display: 'inline-block',
-                  padding: '0.85rem 2rem',
-                  background: palette.brandPrimaryStrong,
-                  color: palette.textOnBrand,
-                  borderRadius: '0.85rem',
-                  fontWeight: 600,
-                  textDecoration: 'none',
-                  fontSize: '1.05rem',
-                }}
-              >
-                {language === 'ar' ? 'تقديم طلب استثماري' : 'Submit Investment Request'}
-              </Link>
-            </div>
           </article>
         </>
       )}
