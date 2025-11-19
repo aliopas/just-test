@@ -742,7 +742,7 @@ function InvestorApp(): JSX.Element {
       <HeaderNav />
       <main id="main-content">
         <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/dashboard" element={<InvestorDashboardPage />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/requests" element={<MyRequestsPage />} />
@@ -751,7 +751,7 @@ function InvestorApp(): JSX.Element {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/news" element={<InvestorNewsListPage />} />
         <Route path="/news/:id" element={<InvestorNewsDetailPage />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
       </main>
       <AppFooter />
