@@ -101,6 +101,243 @@ const adminSidebarLinkBase: React.CSSProperties = {
   border: `1px solid ${palette.neutralBorderSoft}`,
 };
 
+function InvestorSidebarNav(): JSX.Element {
+  const { language, direction } = useLanguage();
+  const logout = useLogout();
+  const location = useLocation();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const portalName =
+    language === 'ar' ? 'بوابة باكورة للمستثمرين' : 'Bakurah Investors Portal';
+  const portalSubtitle =
+    language === 'ar'
+      ? 'تجربة موحدة لاستقبال المستثمرين.'
+      : 'Investor onboarding, profiling, and request submission experiences.';
+  const isArabic = language === 'ar';
+
+  const navItems = [
+    { to: '/home', labelAr: 'الرئيسية', labelEn: 'Home' },
+    { to: '/requests', labelAr: 'طلباتي', labelEn: 'My Requests' },
+    { to: '/requests/new', labelAr: 'طلب استثماري', labelEn: 'New Request' },
+    { to: '/internal-news', labelAr: 'الأخبار الداخلية', labelEn: 'Internal News' },
+    { to: '/profile', labelAr: 'الملف الاستثماري', labelEn: 'Investor Profile' },
+  ];
+
+  // Close sidebar on route change
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [location.pathname]);
+
+  // Close sidebar on escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isSidebarOpen) {
+        setIsSidebarOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [isSidebarOpen]);
+
+  return (
+    <>
+      {/* Mobile menu button */}
+      <button
+        type="button"
+        onClick={() => setIsSidebarOpen(true)}
+        className="mobile-menu-button"
+        aria-label={language === 'ar' ? 'فتح القائمة' : 'Open menu'}
+        aria-expanded={isSidebarOpen}
+        style={{
+          position: 'fixed',
+          top: '1rem',
+          left: direction === 'rtl' ? 'auto' : '1rem',
+          right: direction === 'rtl' ? '1rem' : 'auto',
+          zIndex: 1001,
+          display: 'none',
+          padding: '0.75rem',
+          borderRadius: '0.5rem',
+          border: `1px solid ${palette.neutralBorderSoft}`,
+          background: palette.backgroundSurface,
+          color: palette.textPrimary,
+          cursor: 'pointer',
+          minWidth: '44px',
+          minHeight: '44px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+        }}
+      >
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      {/* Sidebar overlay */}
+      {isSidebarOpen && (
+        <div
+          className="sidebar-overlay"
+          onClick={() => setIsSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside
+        dir={isArabic ? 'rtl' : 'ltr'}
+        className={isSidebarOpen ? 'open' : ''}
+        style={{
+          background: palette.backgroundSurface,
+          color: palette.textPrimary,
+          width: '280px',
+          minHeight: '100vh',
+          borderInlineEnd: `1px solid ${palette.neutralBorderSoft}`,
+          padding: '2rem 1.5rem',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '2rem',
+        }}
+      >
+        {/* Close button for mobile */}
+        <button
+          type="button"
+          onClick={() => setIsSidebarOpen(false)}
+          className="mobile-close-button"
+          aria-label={language === 'ar' ? 'إغلاق القائمة' : 'Close menu'}
+          style={{
+            display: 'none',
+            alignSelf: isArabic ? 'flex-start' : 'flex-end',
+            padding: '0.5rem',
+            borderRadius: '0.5rem',
+            border: `1px solid ${palette.neutralBorderSoft}`,
+            background: palette.backgroundSurface,
+            color: palette.textPrimary,
+            cursor: 'pointer',
+            minWidth: '44px',
+            minHeight: '44px',
+            marginBottom: '-1rem',
+          }}
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.5rem',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: isArabic ? 'row-reverse' : 'row',
+              alignItems: 'center',
+              gap: '1rem',
+            }}
+          >
+            <Logo size={48} showWordmark={false} aria-hidden />
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: isArabic ? 'flex-end' : 'flex-start',
+                gap: '0.35rem',
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '1.2rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.02em',
+                  color: palette.textPrimary,
+                }}
+              >
+                {portalName}
+              </span>
+              <span
+                style={{
+                  fontSize: '0.9rem',
+                  color: palette.textSecondary,
+                  lineHeight: 1.4,
+                }}
+              >
+                {portalSubtitle}
+              </span>
+            </div>
+          </div>
+          <nav
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.75rem',
+            }}
+          >
+            {navItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.to === '/home'}
+                style={({ isActive }) => ({
+                  ...adminSidebarLinkBase,
+                  flexDirection: isArabic ? 'row-reverse' : 'row',
+                  justifyContent: isArabic ? 'flex-end' : 'flex-start',
+                  textAlign: isArabic ? 'right' : 'left',
+                  background: isActive ? palette.brandSecondarySoft : 'transparent',
+                  color: isActive ? palette.textPrimary : palette.textSecondary,
+                  borderColor: isActive ? palette.brandSecondary : palette.neutralBorderSoft,
+                  boxShadow: isActive ? '0 0 0 1px rgba(0,0,0,0.04)' : 'none',
+                })}
+              >
+                <span>{language === 'ar' ? item.labelAr : item.labelEn}</span>
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+        <button
+          type="button"
+          onClick={() => logout.mutate()}
+          style={{
+            ...adminSidebarLinkBase,
+            marginTop: 'auto',
+            justifyContent: 'center',
+            borderColor: palette.brandPrimaryStrong,
+            background: palette.brandPrimaryStrong,
+            color: palette.textOnBrand,
+          }}
+          disabled={logout.isPending}
+        >
+          {logout.isPending
+            ? language === 'ar'
+              ? 'جارٍ تسجيل الخروج…'
+              : 'Signing out…'
+            : language === 'ar'
+              ? 'تسجيل الخروج'
+              : 'Sign out'}
+        </button>
+      </aside>
+    </>
+  );
+}
+
 function HeaderNav(): JSX.Element {
   const { language, direction } = useLanguage();
   const logout = useLogout();
@@ -716,7 +953,13 @@ function InvestorApp(): JSX.Element {
   const { language } = useLanguage();
   
   return (
-    <Fragment>
+    <div
+      style={{
+        display: 'flex',
+        minHeight: '100vh',
+        background: palette.backgroundBase,
+      }}
+    >
       <a
         href="#main-content"
         className="skip-to-main"
@@ -740,24 +983,40 @@ function InvestorApp(): JSX.Element {
       >
         {language === 'ar' ? 'انتقل إلى المحتوى الرئيسي' : 'Skip to main content'}
       </a>
-      <HeaderNav />
-      <main id="main-content">
-        <Routes>
-        <Route path="/" element={<Navigate to="/home" replace />} />
-        <Route path="/dashboard" element={<InvestorDashboardPage />} />
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/requests" element={<MyRequestsPage />} />
-        <Route path="/requests/new" element={<NewRequestPage />} />
-        <Route path="/internal-news" element={<InvestorInternalNewsPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/news" element={<InvestorNewsListPage />} />
-        <Route path="/news/:id" element={<InvestorNewsDetailPage />} />
-        <Route path="/projects/:id" element={<InvestorProjectDetailPage />} />
-        <Route path="*" element={<Navigate to="/home" replace />} />
-        </Routes>
-      </main>
-      <AppFooter />
-    </Fragment>
+      <InvestorSidebarNav />
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minWidth: 0,
+        }}
+      >
+        <main
+          id="main-content"
+          style={{
+            flex: 1,
+            padding: '2rem',
+            minWidth: 0,
+          }}
+        >
+          <Routes>
+            <Route path="/" element={<Navigate to="/home" replace />} />
+            <Route path="/dashboard" element={<InvestorDashboardPage />} />
+            <Route path="/home" element={<HomePage />} />
+            <Route path="/requests" element={<MyRequestsPage />} />
+            <Route path="/requests/new" element={<NewRequestPage />} />
+            <Route path="/internal-news" element={<InvestorInternalNewsPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/news" element={<InvestorNewsListPage />} />
+            <Route path="/news/:id" element={<InvestorNewsDetailPage />} />
+            <Route path="/projects/:id" element={<InvestorProjectDetailPage />} />
+            <Route path="*" element={<Navigate to="/home" replace />} />
+          </Routes>
+        </main>
+        <AppFooter />
+      </div>
+    </div>
   );
 }
 
