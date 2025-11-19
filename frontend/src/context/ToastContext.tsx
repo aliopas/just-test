@@ -9,11 +9,18 @@
 
 export type ToastVariant = 'success' | 'error' | 'info';
 
+export interface ToastAction {
+  label: string;
+  onClick: () => void;
+  dismissOnClick?: boolean;
+}
+
 export interface Toast {
   id: string;
   message: string;
   variant: ToastVariant;
   createdAt: number;
+  action?: ToastAction;
 }
 
 interface ToastContextValue {

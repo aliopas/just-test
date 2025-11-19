@@ -1,5 +1,5 @@
-﻿import { Fragment } from 'react';
-import { NavLink, Navigate, Route, Routes } from 'react-router-dom';
+﻿import { Fragment, useState, useEffect } from 'react';
+import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { HomePage } from './pages/HomePage';
 import { NewRequestPage } from './pages/NewRequestPage';
 import { ProfilePage } from './pages/ProfilePage';
@@ -7,6 +7,7 @@ import { useLanguage } from './context/LanguageContext';
 import { useLogout } from './hooks/useLogout';
 import { Logo } from './components/Logo';
 import './styles/global.css';
+import './styles/responsive.css';
 import { palette } from './styles/theme';
 import { LoginPage } from './pages/LoginPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
@@ -100,8 +101,10 @@ const adminSidebarLinkBase: React.CSSProperties = {
 };
 
 function HeaderNav() {
-  const { language } = useLanguage();
+  const { language, direction } = useLanguage();
   const logout = useLogout();
+  const location = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const portalName =
     language === 'ar' ? 'بوابة باكورة للمستثمرين' : 'Bakurah Investors Portal';
   const portalSubtitle =
@@ -109,61 +112,133 @@ function HeaderNav() {
             ? 'تجربة موحدة لاستقبال المستثمرين.'
       : 'Investor onboarding, profiling, and request submission experiences.';
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  // Close mobile menu on escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [isMobileMenuOpen]);
+
+  const navItems = [
+    { to: '/home', labelAr: 'الرئيسية', labelEn: 'Home' },
+    { to: '/requests', labelAr: 'طلباتي', labelEn: 'My Requests' },
+    { to: '/requests/new', labelAr: 'طلب استثماري', labelEn: 'New Request' },
+    { to: '/internal-news', labelAr: 'الأخبار الداخلية', labelEn: 'Internal News' },
+    { to: '/profile', labelAr: 'الملف الاستثماري', labelEn: 'Investor Profile' },
+  ];
+
   return (
-    <header
-      style={{
-        background: palette.backgroundSurface,
-        color: palette.textPrimary,
-        padding: '1rem 2rem',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        gap: '0.75rem',
-        flexWrap: 'wrap',
-        rowGap: '0.5rem',
-        borderBottom: `1px solid ${palette.neutralBorderSoft}`,
-      }}
-    >
+    <>
+      <header
+        style={{
+          background: palette.backgroundSurface,
+          color: palette.textPrimary,
+          padding: '1rem 2rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: '0.75rem',
+          flexWrap: 'wrap',
+          rowGap: '0.5rem',
+          borderBottom: `1px solid ${palette.neutralBorderSoft}`,
+          position: 'sticky',
+          top: 0,
+          zIndex: 100,
+        }}
+      >
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'flex-start',
+          justifyContent: 'space-between',
           gap: '0.85rem',
           flexWrap: 'wrap',
-          maxWidth: '100%',
+          width: '100%',
         }}
       >
-        <Logo size={56} showWordmark={false} aria-hidden />
         <div
           style={{
             display: 'flex',
-            flexDirection: language === 'ar' ? 'row-reverse' : 'row',
             alignItems: 'center',
+            justifyContent: 'flex-start',
             gap: '0.85rem',
             flexWrap: 'wrap',
+            maxWidth: '100%',
           }}
         >
-          <span
+          <Logo size={56} showWordmark={false} aria-hidden />
+          <div
             style={{
-              fontSize: '1.25rem',
-              fontWeight: 700,
-              letterSpacing: '0.02em',
-              color: palette.textPrimary,
-              whiteSpace: 'nowrap',
+              display: 'flex',
+              flexDirection: language === 'ar' ? 'row-reverse' : 'row',
+              alignItems: 'center',
+              gap: '0.85rem',
+              flexWrap: 'wrap',
             }}
           >
-            {portalName}
-          </span>
-          <span
-            style={{
-              fontSize: '0.95rem',
-              color: palette.textSecondary,
-            }}
-          >
-            {portalSubtitle}
-          </span>
+            <span
+              style={{
+                fontSize: '1.25rem',
+                fontWeight: 700,
+                letterSpacing: '0.02em',
+                color: palette.textPrimary,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {portalName}
+            </span>
+            <span
+              style={{
+                fontSize: '0.95rem',
+                color: palette.textSecondary,
+              }}
+            >
+              {portalSubtitle}
+            </span>
+          </div>
         </div>
+        <button
+          type="button"
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="mobile-menu-button"
+          aria-label={language === 'ar' ? 'فتح القائمة' : 'Open menu'}
+          aria-expanded={isMobileMenuOpen}
+          style={{
+            display: 'none',
+            padding: '0.75rem',
+            borderRadius: '0.5rem',
+            border: `1px solid ${palette.neutralBorderSoft}`,
+            background: palette.backgroundSurface,
+            color: palette.textPrimary,
+            cursor: 'pointer',
+            minWidth: '44px',
+            minHeight: '44px',
+          }}
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
       </div>
       <nav
         style={{
@@ -173,57 +248,22 @@ function HeaderNav() {
           alignItems: 'center',
         }}
       >
-        <NavLink
-          to="/home"
-          style={({ isActive }) => ({
-            ...navLinkStyle,
-            background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
-            color: isActive ? palette.textPrimary : palette.textSecondary,
-          })}
-          end
-        >
-          {language === 'ar' ? 'الرئيسية' : 'Home'}
-        </NavLink>
-        <NavLink
-          to="/requests"
-          style={({ isActive }) => ({
-            ...navLinkStyle,
-            background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
-            color: isActive ? palette.textPrimary : palette.textSecondary,
-          })}
-        >
-          {language === 'ar' ? 'طلباتي' : 'My Requests'}
-        </NavLink>
-        <NavLink
-          to="/requests/new"
-          style={({ isActive }) => ({
-            ...navLinkStyle,
-            background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
-            color: isActive ? palette.textPrimary : palette.textSecondary,
-          })}
-        >
-          {language === 'ar' ? 'طلب استثماري' : 'New Request'}
-        </NavLink>
-        <NavLink
-          to="/internal-news"
-          style={({ isActive }) => ({
-            ...navLinkStyle,
-            background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
-            color: isActive ? palette.textPrimary : palette.textSecondary,
-          })}
-        >
-          {language === 'ar' ? 'الأخبار الداخلية' : 'Internal News'}
-        </NavLink>
-        <NavLink
-          to="/profile"
-          style={({ isActive }) => ({
-            ...navLinkStyle,
-            background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
-            color: isActive ? palette.textPrimary : palette.textSecondary,
-          })}
-        >
-          {language === 'ar' ? 'الملف الاستثماري' : 'Investor Profile'}
-        </NavLink>
+        {navItems.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            style={({ isActive }) => ({
+              ...navLinkStyle,
+              background: isActive ? palette.brandSecondarySoft : palette.backgroundSurface,
+              color: isActive ? palette.textPrimary : palette.textSecondary,
+              minHeight: '44px',
+              minWidth: '44px',
+            })}
+            end={item.to === '/home'}
+          >
+            {language === 'ar' ? item.labelAr : item.labelEn}
+          </NavLink>
+        ))}
         <button
           type="button"
           onClick={() => logout.mutate()}
@@ -232,8 +272,11 @@ function HeaderNav() {
             borderColor: palette.brandPrimaryStrong,
             background: palette.brandPrimaryStrong,
             color: palette.textOnBrand,
+            minHeight: '44px',
+            minWidth: '44px',
           }}
           disabled={logout.isPending}
+          aria-label={language === 'ar' ? 'تسجيل الخروج' : 'Sign out'}
         >
           {logout.isPending
             ? language === 'ar'
@@ -244,13 +287,125 @@ function HeaderNav() {
               : 'Sign out'}
         </button>
       </nav>
-    </header>
+
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div
+          className="mobile-menu-overlay"
+          onClick={() => setIsMobileMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+      <nav
+        className={`mobile-menu ${isMobileMenuOpen ? 'open' : ''}`}
+        dir={direction}
+        aria-label={language === 'ar' ? 'القائمة الرئيسية' : 'Main navigation'}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '2rem',
+            paddingBottom: '1rem',
+            borderBottom: `1px solid ${palette.neutralBorderSoft}`,
+          }}
+        >
+          <Logo size={48} showWordmark={false} aria-hidden />
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen(false)}
+            aria-label={language === 'ar' ? 'إغلاق القائمة' : 'Close menu'}
+            style={{
+              padding: '0.5rem',
+              borderRadius: '0.5rem',
+              border: `1px solid ${palette.neutralBorderSoft}`,
+              background: palette.backgroundSurface,
+              color: palette.textPrimary,
+              cursor: 'pointer',
+              minWidth: '44px',
+              minHeight: '44px',
+            }}
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.75rem',
+          }}
+        >
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              onClick={() => setIsMobileMenuOpen(false)}
+              style={({ isActive }) => ({
+                ...navLinkStyle,
+                background: isActive ? palette.brandSecondarySoft : 'transparent',
+                color: isActive ? palette.textPrimary : palette.textSecondary,
+                padding: '1rem 1.25rem',
+                minHeight: '48px',
+                width: '100%',
+                textAlign: direction === 'rtl' ? 'right' : 'left',
+              })}
+              end={item.to === '/home'}
+            >
+              {language === 'ar' ? item.labelAr : item.labelEn}
+            </NavLink>
+          ))}
+          <button
+            type="button"
+            onClick={() => {
+              setIsMobileMenuOpen(false);
+              logout.mutate();
+            }}
+            style={{
+              ...navLinkStyle,
+              borderColor: palette.brandPrimaryStrong,
+              background: palette.brandPrimaryStrong,
+              color: palette.textOnBrand,
+              padding: '1rem 1.25rem',
+              minHeight: '48px',
+              width: '100%',
+              marginTop: '1rem',
+            }}
+            disabled={logout.isPending}
+            aria-label={language === 'ar' ? 'تسجيل الخروج' : 'Sign out'}
+          >
+            {logout.isPending
+              ? language === 'ar'
+                ? 'جارٍ تسجيل الخروج…'
+                : 'Signing out…'
+              : language === 'ar'
+                ? 'تسجيل الخروج'
+                : 'Sign out'}
+          </button>
+        </div>
+      </nav>
+    </>
   );
 }
 
 function AdminSidebarNav() {
-  const { language } = useLanguage();
+  const { language, direction } = useLanguage();
   const logout = useLogout();
+  const location = useLocation();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const portalName =
     language === 'ar' ? 'لوحة تحكم إدارة باكورة' : 'Bakurah Admin Console';
   const portalSubtitle =
@@ -267,30 +422,130 @@ function AdminSidebarNav() {
   const { data: signupRequestsData } = useUnreadSignupRequestCount();
   const unreadSignupRequestsCount = (signupRequestsData as { unreadCount?: number } | undefined)?.unreadCount ?? 0;
 
+  // Close sidebar on route change
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [location.pathname]);
+
+  // Close sidebar on escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isSidebarOpen) {
+        setIsSidebarOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [isSidebarOpen]);
+
   return (
-    <aside
-      dir={isArabic ? 'rtl' : 'ltr'}
-      style={{
-        background: palette.backgroundSurface,
-        color: palette.textPrimary,
-        width: '280px',
-        minHeight: '100vh',
-        borderInlineEnd: `1px solid ${palette.neutralBorderSoft}`,
-        padding: '2rem 1.5rem',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '2rem',
-        position: 'sticky',
-        top: 0,
-      }}
-    >
-      <div
+    <>
+      {/* Mobile menu button */}
+      <button
+        type="button"
+        onClick={() => setIsSidebarOpen(true)}
+        className="mobile-menu-button"
+        aria-label={language === 'ar' ? 'فتح القائمة' : 'Open menu'}
+        aria-expanded={isSidebarOpen}
         style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '1.5rem',
+          position: 'fixed',
+          top: '1rem',
+          left: direction === 'rtl' ? 'auto' : '1rem',
+          right: direction === 'rtl' ? '1rem' : 'auto',
+          zIndex: 1001,
+          display: 'none',
+          padding: '0.75rem',
+          borderRadius: '0.5rem',
+          border: `1px solid ${palette.neutralBorderSoft}`,
+          background: palette.backgroundSurface,
+          color: palette.textPrimary,
+          cursor: 'pointer',
+          minWidth: '44px',
+          minHeight: '44px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
         }}
       >
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      {/* Sidebar overlay */}
+      {isSidebarOpen && (
+        <div
+          className="sidebar-overlay"
+          onClick={() => setIsSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside
+        dir={isArabic ? 'rtl' : 'ltr'}
+        className={isSidebarOpen ? 'open' : ''}
+        style={{
+          background: palette.backgroundSurface,
+          color: palette.textPrimary,
+          width: '280px',
+          minHeight: '100vh',
+          borderInlineEnd: `1px solid ${palette.neutralBorderSoft}`,
+          padding: '2rem 1.5rem',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '2rem',
+        }}
+      >
+        {/* Close button for mobile */}
+        <button
+          type="button"
+          onClick={() => setIsSidebarOpen(false)}
+          className="mobile-close-button"
+          aria-label={language === 'ar' ? 'إغلاق القائمة' : 'Close menu'}
+          style={{
+            display: 'none',
+            alignSelf: isArabic ? 'flex-start' : 'flex-end',
+            padding: '0.5rem',
+            borderRadius: '0.5rem',
+            border: `1px solid ${palette.neutralBorderSoft}`,
+            background: palette.backgroundSurface,
+            color: palette.textPrimary,
+            cursor: 'pointer',
+            minWidth: '44px',
+            minHeight: '44px',
+            marginBottom: '-1rem',
+          }}
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.5rem',
+          }}
+        >
         <div
           style={{
             display: 'flex',
@@ -418,6 +673,7 @@ function AdminSidebarNav() {
             : 'Sign out'}
       </button>
     </aside>
+    </>
   );
 }
 
@@ -455,10 +711,36 @@ function AppFooter() {
 }
 
 function InvestorApp() {
+  const { language } = useLanguage();
+  
   return (
     <Fragment>
+      <a
+        href="#main-content"
+        className="skip-to-main"
+        style={{
+          position: 'absolute',
+          top: '-40px',
+          left: 0,
+          background: palette.brandPrimaryStrong,
+          color: palette.textOnBrand,
+          padding: '0.5rem 1rem',
+          textDecoration: 'none',
+          zIndex: 10000,
+          borderRadius: '0 0 0.5rem 0',
+        }}
+        onFocus={(e) => {
+          e.currentTarget.style.top = '0';
+        }}
+        onBlur={(e) => {
+          e.currentTarget.style.top = '-40px';
+        }}
+      >
+        {language === 'ar' ? 'انتقل إلى المحتوى الرئيسي' : 'Skip to main content'}
+      </a>
       <HeaderNav />
-      <Routes>
+      <main id="main-content">
+        <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<InvestorDashboardPage />} />
         <Route path="/home" element={<HomePage />} />
@@ -469,13 +751,16 @@ function InvestorApp() {
         <Route path="/news" element={<InvestorNewsListPage />} />
         <Route path="/news/:id" element={<InvestorNewsDetailPage />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
+        </Routes>
+      </main>
       <AppFooter />
     </Fragment>
   );
 }
 
 function AdminApp() {
+  const { language } = useLanguage();
+  
   return (
     <div
       style={{
@@ -484,6 +769,29 @@ function AdminApp() {
         background: palette.backgroundBase,
       }}
     >
+      <a
+        href="#main-content"
+        className="skip-to-main"
+        style={{
+          position: 'absolute',
+          top: '-40px',
+          left: 0,
+          background: palette.brandPrimaryStrong,
+          color: palette.textOnBrand,
+          padding: '0.5rem 1rem',
+          textDecoration: 'none',
+          zIndex: 10000,
+          borderRadius: '0 0 0.5rem 0',
+        }}
+        onFocus={(e) => {
+          e.currentTarget.style.top = '0';
+        }}
+        onBlur={(e) => {
+          e.currentTarget.style.top = '-40px';
+        }}
+      >
+        {language === 'ar' ? 'انتقل إلى المحتوى الرئيسي' : 'Skip to main content'}
+      </a>
       <AdminSidebarNav />
       <div
         style={{
@@ -493,7 +801,8 @@ function AdminApp() {
           minWidth: 0,
         }}
       >
-        <div
+        <main
+          id="main-content"
           style={{
             flex: 1,
             padding: '2rem',
@@ -513,7 +822,7 @@ function AdminApp() {
             <Route path="/admin/audit" element={<AdminAuditLogPage />} />
             <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
           </Routes>
-        </div>
+        </main>
       </div>
     </div>
   );
