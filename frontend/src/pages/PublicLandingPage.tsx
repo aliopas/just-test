@@ -84,7 +84,7 @@ export function PublicLandingPage() {
   const projects = useMemo(() => projectsResponse?.projects ?? [], [projectsResponse]);
 
   const heroTitle = isArabic
-    ? 'منصة باكورة للتقنيات'
+    ? 'باكورة للتقنيات'
     : 'Bakura tec';
 
   const heroSubtitle = isArabic
@@ -260,7 +260,7 @@ export function PublicLandingPage() {
     : 'We could not load the newsroom feed right now. Please try again soon.';
   const readMoreLabel = isArabic ? 'تعرّف على التفاصيل بعد تسجيل الدخول' : 'Sign in to read more';
   const publishedLabel = isArabic ? 'تاريخ النشر' : 'Published';
-  const primaryCtaLabel = isArabic ? 'اطلب دعوة للمنصة' : 'Request platform access';
+  const primaryCtaLabel = isArabic ? 'اطلب دعوة' : 'Request platform access';
   const secondaryCtaLabel = isArabic ? 'جرّب العرض التفاعلي' : 'Explore the interactive tour';
   const heroHelper = isArabic
     ? 'بإشراف خبراء القطاعات وفرق التحليل المتخصصة'
@@ -1121,7 +1121,7 @@ export function PublicLandingPage() {
               }}
             >
               {isArabic
-                ? 'تابع آخر التحديثات والأخبار لمنصة باكورة للتقنيات'
+                ? 'تابع آخر التحديثات والأخبار لباكورة للتقنيات'
                 : 'Stay updated with the latest news and updates from Bakura tec'}
             </p>
           </div>
@@ -1224,7 +1224,7 @@ export function PublicLandingPage() {
               }}
             >
               {isArabic
-                ? 'منصة باكورة للتقنيات تربط المستثمرين بقادة الابتكار في المنطقة وتوفر أدوات تحليل عميقة لاتخاذ القرار.'
+                ? 'باكورة للتقنيات تربط المستثمرين بقادة الابتكار في المنطقة وتوفر أدوات تحليل عميقة لاتخاذ القرار.'
                 : 'Bakura tec connects investors with emerging innovators through rich intelligence and guided workflows.'}
             </p>
           </div>
