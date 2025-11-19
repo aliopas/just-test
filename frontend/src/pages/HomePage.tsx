@@ -88,8 +88,8 @@ export function HomePage() {
                 }}
               >
                 {language === 'ar'
-                  ? 'مرحباً بك في باكورة للاستثمار'
-                  : 'Welcome to Bakurah Investors Portal'}
+                  ? 'مرحباً بك في شركاء باكورة التقنيات'
+                  : 'Welcome to Bacura Technologies Partners'}
               </h2>
               <p
                 style={{

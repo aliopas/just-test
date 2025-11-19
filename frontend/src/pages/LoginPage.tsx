@@ -42,7 +42,7 @@ export function LoginPage() {
 
   const copy = {
     ar: {
-      headline: 'بوابة المستثمرين',
+      headline: 'شركاء باكورة التقنيات',
       heroTitle: 'مرحباً بك في مركز أخبار باكورة',
       heroSubtitle:
         'تابع آخر المستجدات الاستثمارية، تقارير السوق، والمصادقة على الصفقات قبل الانضمام إلى منصتك.',
@@ -75,7 +75,7 @@ export function LoginPage() {
       invalidToken: 'الرابط غير صالح أو منتهي الصلاحية',
     },
     en: {
-      headline: 'Investors Portal',
+      headline: 'Bacura Technologies Partners',
       heroTitle: 'Your Investment Newsroom',
       heroSubtitle:
         'Track market sentiment, monitor Bakurah initiatives, and authenticate your access to the investor workspace.',

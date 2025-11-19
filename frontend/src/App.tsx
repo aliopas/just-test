@@ -107,7 +107,7 @@ function InvestorSidebarNav(): JSX.Element {
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const portalName =
-    language === 'ar' ? 'بوابة باكورة للمستثمرين' : 'Bakurah Investors Portal';
+    language === 'ar' ? 'شركاء باكورة التقنيات' : 'Bacura Technologies Partners';
   const portalSubtitle =
     language === 'ar'
       ? 'تجربة موحدة لاستقبال المستثمرين.'
@@ -344,7 +344,7 @@ function HeaderNav(): JSX.Element {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const portalName =
-    language === 'ar' ? 'بوابة باكورة للمستثمرين' : 'Bakurah Investors Portal';
+    language === 'ar' ? 'شركاء باكورة التقنيات' : 'Bacura Technologies Partners';
   const portalSubtitle =
     language === 'ar'
             ? 'تجربة موحدة لاستقبال المستثمرين.'
