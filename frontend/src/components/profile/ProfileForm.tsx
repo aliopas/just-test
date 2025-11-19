@@ -33,6 +33,8 @@ function mapProfileToFormValues(
 ): InvestorProfileFormValues {
   if (!profile) {
     return {
+      email: null,
+      phone: null,
       fullName: null,
       preferredName: null,
       language: 'ar',
@@ -54,6 +56,8 @@ function mapProfileToFormValues(
   }
 
   return {
+    email: profile.email,
+    phone: profile.phone,
     fullName: profile.fullName,
     preferredName: profile.preferredName,
     language: profile.language,
@@ -116,6 +120,8 @@ export function ProfileForm({
 
   const submitHandler = handleSubmit(async values => {
     const payload: InvestorProfileUpdateRequest = {
+      email: values.email ?? undefined,
+      phone: values.phone ?? undefined,
       fullName: values.fullName ?? undefined,
       preferredName: values.preferredName ?? undefined,
       language: values.language,
@@ -158,6 +164,26 @@ export function ProfileForm({
           gap: '1.25rem',
         }}
       >
+        <Field
+          label={language === 'ar' ? 'البريد الإلكتروني' : 'Email'}
+          error={errors.email?.message}
+        >
+          <input
+            type="email"
+            {...register('email')}
+            placeholder={language === 'ar' ? 'أدخل البريد الإلكتروني' : 'Enter email address'}
+          />
+        </Field>
+        <Field
+          label={language === 'ar' ? 'رقم الهاتف' : 'Phone'}
+          error={errors.phone?.message}
+        >
+          <input
+            type="tel"
+            {...register('phone')}
+            placeholder={language === 'ar' ? 'أدخل رقم الهاتف' : 'Enter phone number'}
+          />
+        </Field>
         <Field
           label={getMessage('fields.fullName', language)}
           error={errors.fullName?.message}

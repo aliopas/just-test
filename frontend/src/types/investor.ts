@@ -45,6 +45,8 @@ export interface InvestorProfileResponse {
 }
 
 export interface InvestorProfileUpdateRequest {
+  email?: string | null;
+  phone?: string | null;
   fullName?: string | null;
   preferredName?: string | null;
   idType?: InvestorIdType | null;

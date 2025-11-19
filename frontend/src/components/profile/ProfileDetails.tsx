@@ -69,6 +69,14 @@ export function ProfileDetails({ profile }: ProfileDetailsProps) {
       }}
     >
       <InfoPair
+        label={language === 'ar' ? 'البريد الإلكتروني' : 'Email'}
+        value={profile.email}
+      />
+      <InfoPair
+        label={language === 'ar' ? 'رقم الهاتف' : 'Phone'}
+        value={profile.phone}
+      />
+      <InfoPair
         label={getMessage('fields.fullName', language)}
         value={profile.fullName}
       />

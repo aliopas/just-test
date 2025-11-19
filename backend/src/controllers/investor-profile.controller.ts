@@ -9,6 +9,7 @@ import {
 import type { InvestorProfileUpdateInput } from '../schemas/investor-profile.schema';
 import { diffObjects } from '../utils/diff.util';
 import { detectLanguage, t } from '../utils/i18n.util';
+import { requireSupabaseAdmin } from '../lib/supabase';
 
 type CommunicationPreferences = Record<'email' | 'sms' | 'push', boolean>;
 
@@ -154,6 +155,49 @@ export const investorProfileController = {
         beforeRecord?.communication_preferences as CommunicationPreferences,
         payload.communicationPreferences ?? undefined
       );
+
+      // Update user email/phone if provided
+      if (payload.email !== undefined || payload.phone !== undefined) {
+        const adminClient = requireSupabaseAdmin();
+        const userUpdate: { email?: string; phone?: string | null } = {};
+        
+        if (payload.email !== undefined) {
+          userUpdate.email = payload.email ?? undefined;
+        }
+        if (payload.phone !== undefined) {
+          userUpdate.phone = payload.phone ?? null;
+        }
+
+        const { error: userUpdateError } = await adminClient
+          .from('users')
+          .update(userUpdate)
+          .eq('id', req.user.id);
+
+        if (userUpdateError) {
+          console.error('Failed to update user email/phone:', userUpdateError);
+          return res.status(500).json({
+            error: {
+              code: 'USER_UPDATE_ERROR',
+              message: 'Failed to update user email or phone',
+            },
+          });
+        }
+
+        // Also update in Supabase Auth if email changed
+        if (payload.email !== undefined && payload.email) {
+          try {
+            const { error: authUpdateError } = await adminClient.auth.admin.updateUserById(
+              req.user.id,
+              { email: payload.email }
+            );
+            if (authUpdateError) {
+              console.error('Failed to update auth email:', authUpdateError);
+            }
+          } catch (authError) {
+            console.error('Error updating auth email:', authError);
+          }
+        }
+      }
 
       const updatePayload: Parameters<
         typeof investorProfileService.upsertProfile

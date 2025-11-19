@@ -6,6 +6,17 @@ export const isoCountrySchema = z
   .transform(value => value.toUpperCase());
 
 export const investorProfileFormSchema = z.object({
+  email: z
+    .string()
+    .email('البريد الإلكتروني غير صحيح')
+    .optional()
+    .nullable(),
+  phone: z
+    .string()
+    .min(8, 'رقم الهاتف يجب أن يكون 8 أرقام على الأقل')
+    .max(20, 'رقم الهاتف يجب ألا يتجاوز 20 حرفاً')
+    .optional()
+    .nullable(),
   fullName: z
     .string()
     .min(3, 'يجب أن يكون الاسم 3 أحرف على الأقل')

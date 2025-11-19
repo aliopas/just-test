@@ -31,6 +31,17 @@ const nullableDateSchema = dateStringSchema.nullable().optional();
 
 export const investorProfileUpdateSchema = z
   .object({
+    email: z
+      .string()
+      .email('Email must be a valid email address')
+      .optional()
+      .nullable(),
+    phone: z
+      .string()
+      .min(8, 'Phone number must be at least 8 characters')
+      .max(20, 'Phone number must be less than 20 characters')
+      .optional()
+      .nullable(),
     fullName: z
       .string()
       .min(3, 'Full name must be at least 3 characters')
