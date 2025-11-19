@@ -210,7 +210,7 @@ export function PublicLandingPage() {
   const projects = useMemo(() => projectsResponse?.projects ?? [], [projectsResponse]);
 
   const heroTitle = isArabic
-    ? 'باكورة للتقنيات'
+    ? 'باكورة التقنيات'
     : 'Bakura tec';
 
   const heroSubtitle = isArabic
@@ -385,7 +385,7 @@ export function PublicLandingPage() {
 
   const newsTitle = isArabic ? 'أحدث القصص الإخبارية' : 'Latest newsroom highlights';
   const newsEmptyMessage = isArabic
-    ? 'لم يتم نشر أخبار جديدة بعد. تابع باكورة للتقنيات للاطلاع على آخر المستجدات.'
+    ? 'لم يتم نشر أخبار جديدة بعد. تابع باكورة التقنيات للاطلاع على آخر المستجدات.'
     : 'No newsroom updates are available yet. Follow Bakura tec for upcoming announcements.';
   const newsErrorMessage = isArabic
     ? 'تعذر تحميل الأخبار حالياً. يرجى المحاولة مرة أخرى لاحقاً.'
@@ -1352,7 +1352,7 @@ export function PublicLandingPage() {
               }}
             >
               {isArabic
-                ? 'تابع آخر التحديثات والأخبار لباكورة للتقنيات'
+                ? 'تابع آخر التحديثات والأخبار لباكورة التقنيات'
                 : 'Stay updated with the latest news and updates from Bakura tec'}
             </p>
           </div>
@@ -1455,7 +1455,7 @@ export function PublicLandingPage() {
               }}
             >
               {isArabic
-                ? 'باكورة للتقنيات تربط المستثمرين بقادة الابتكار في المنطقة وتوفر أدوات تحليل عميقة لاتخاذ القرار.'
+                ? 'باكورة التقنيات تربط المستثمرين بقادة الابتكار في المنطقة وتوفر أدوات تحليل عميقة لاتخاذ القرار.'
                 : 'Bakura tec connects investors with emerging innovators through rich intelligence and guided workflows.'}
             </p>
           </div>
@@ -1519,7 +1519,7 @@ export function PublicLandingPage() {
         >
           <div>
             {isArabic
-              ? '© ' + new Date().getFullYear().toString() + ' باكورة للتقنيات. جميع الحقوق محفوظة.'
+              ? '© ' + new Date().getFullYear().toString() + ' باكورة التقنيات. جميع الحقوق محفوظة.'
               : `© ${new Date().toLocaleDateString(undefined, { year: 'numeric' })} Bakura tec. All rights reserved.`}
           </div>
           <div style={{ fontSize: '0.9rem' }}>
