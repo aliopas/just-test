@@ -19,6 +19,7 @@ import { AdminRequestsInboxPage } from './pages/AdminRequestsInboxPage';
 import { AdminRequestDetailPage } from './pages/AdminRequestDetailPage';
 import { InvestorNewsListPage } from './pages/InvestorNewsListPage';
 import { InvestorNewsDetailPage } from './pages/InvestorNewsDetailPage';
+import { InvestorProjectDetailPage } from './pages/InvestorProjectDetailPage';
 import { AdminNewsPage } from './pages/AdminNewsPage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { AdminReportsPage } from './pages/AdminReportsPage';
@@ -751,6 +752,7 @@ function InvestorApp(): JSX.Element {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/news" element={<InvestorNewsListPage />} />
         <Route path="/news/:id" element={<InvestorNewsDetailPage />} />
+        <Route path="/projects/:id" element={<InvestorProjectDetailPage />} />
         <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
       </main>

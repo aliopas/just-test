@@ -15,3 +15,18 @@ export function usePublicProjects() {
   });
 }
 
+export function usePublicProjectDetail(projectId?: string | null) {
+  return useQuery<Project>({
+    queryKey: projectId ? [...PUBLIC_PROJECTS_ROOT, 'detail', projectId] : [...PUBLIC_PROJECTS_ROOT, 'detail', 'empty'],
+    queryFn: () => {
+      if (!projectId) {
+        throw new Error('projectId is required');
+      }
+      return apiClient<Project>(`/public/projects/${projectId}`, {
+        auth: false,
+      });
+    },
+    enabled: Boolean(projectId),
+  });
+}
+

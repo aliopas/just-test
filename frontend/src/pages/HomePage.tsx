@@ -498,27 +498,34 @@ export function HomePage() {
                           ? project.descriptionAr
                           : project.description;
                       return (
-                        <article
+                        <Link
                           key={project.id}
+                          to={`/projects/${project.id}`}
                           style={{
-                            border: `1px solid ${palette.neutralBorderSoft}`,
-                            borderRadius: '1rem',
-                            overflow: 'hidden',
-                            background: palette.backgroundAlt,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                            cursor: 'pointer',
-                          }}
-                          onMouseEnter={e => {
-                            e.currentTarget.style.transform = 'translateY(-2px)';
-                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
-                          }}
-                          onMouseLeave={e => {
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = 'none';
+                            textDecoration: 'none',
+                            color: 'inherit',
                           }}
                         >
+                          <article
+                            style={{
+                              border: `1px solid ${palette.neutralBorderSoft}`,
+                              borderRadius: '1rem',
+                              overflow: 'hidden',
+                              background: palette.backgroundAlt,
+                              display: 'flex',
+                              flexDirection: 'column',
+                              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                              cursor: 'pointer',
+                            }}
+                            onMouseEnter={e => {
+                              e.currentTarget.style.transform = 'translateY(-2px)';
+                              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+                            }}
+                            onMouseLeave={e => {
+                              e.currentTarget.style.transform = 'translateY(0)';
+                              e.currentTarget.style.boxShadow = 'none';
+                            }}
+                          >
                           {projectCoverUrl && (
                             <div
                               style={{
@@ -635,6 +642,7 @@ export function HomePage() {
                             </div>
                           </div>
                         </article>
+                        </Link>
                       );
                     })}
                 </div>
