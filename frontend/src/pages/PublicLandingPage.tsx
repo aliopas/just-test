@@ -1293,7 +1293,7 @@ export function PublicLandingPage() {
               : `© ${new Date().toLocaleDateString(undefined, { year: 'numeric' })} Bakura tec. All rights reserved.`}
           </div>
           <div style={{ fontSize: '0.9rem' }}>
-            {isArabic ? 'تم التطوير بواسطة حاضنة باكروة التقنيات الرقمية' : 'Developed by Bacura Technologies Team'}
+            {isArabic ? 'تم التطوير بواسطة حاضنة باكورة التقنيات الرقمية' : 'Developed by Bacura Technologies Team'}
           </div>
         </div>
       </footer>
