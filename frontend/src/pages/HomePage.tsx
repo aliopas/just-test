@@ -4,16 +4,35 @@ import { useLanguage } from '../context/LanguageContext';
 import { palette } from '../styles/theme';
 import { Logo } from '../components/Logo';
 import { useInvestorNewsList } from '../hooks/useInvestorNews';
-import { resolveCoverUrl, NEWS_IMAGES_BUCKET } from '../utils/supabase-storage';
+import { usePublicProjects } from '../hooks/usePublicProjects';
+import { resolveCoverUrl, NEWS_IMAGES_BUCKET, PROJECT_IMAGES_BUCKET } from '../utils/supabase-storage';
 import { OptimizedImage } from '../components/OptimizedImage';
 import type { InvestorNewsItem } from '../types/news';
+import type { Project } from '../hooks/useAdminProjects';
+import type { InvestorLanguage } from '../types/investor';
 
 const PAGE_LIMIT = 12;
+
+function formatCurrency(
+  amount: number,
+  currency: string,
+  language: InvestorLanguage
+) {
+  try {
+    return new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
+      style: 'currency',
+      currency,
+    }).format(amount);
+  } catch {
+    return `${amount.toFixed(2)} ${currency}`;
+  }
+}
 
 export function HomePage() {
   const { direction, language } = useLanguage();
   const [page, setPage] = useState(1);
   const [allNews, setAllNews] = useState<InvestorNewsItem[]>([]);
+  const [activeTab, setActiveTab] = useState<'news' | 'projects'>('news');
 
   const {
     data: newsResponse,
@@ -21,6 +40,18 @@ export function HomePage() {
     isError: isNewsError,
     isFetching: isNewsFetching,
   } = useInvestorNewsList({ page, limit: PAGE_LIMIT });
+
+  const {
+    data: projectsResponse,
+    isLoading: isProjectsLoading,
+    isError: isProjectsError,
+  } = usePublicProjects();
+
+  const {
+    data: dashboardNewsResponse,
+    isLoading: isDashboardNewsLoading,
+    isError: isDashboardNewsError,
+  } = useInvestorNewsList({ page: 1, limit: 6 });
 
   useEffect(() => {
     if (!newsResponse) {
@@ -296,6 +327,467 @@ export function HomePage() {
           gap: '2.5rem',
         }}
       >
+        {/* القسم الجديد: الأخبار العامة والمشاريع */}
+        <section
+          style={{
+            background: palette.backgroundSurface,
+            borderRadius: '1.25rem',
+            border: `1px solid ${palette.neutralBorder}`,
+            padding: '1.75rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.5rem',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              gap: '0.75rem',
+              borderBottom: `1px solid ${palette.neutralBorderSoft}`,
+              paddingBottom: '0.5rem',
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setActiveTab('news')}
+              style={{
+                border: 'none',
+                padding: '0.75rem 1.25rem',
+                borderRadius: '0.75rem',
+                fontSize: '1rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                color:
+                  activeTab === 'news'
+                    ? palette.brandAccentDeep
+                    : palette.textSecondary,
+                background:
+                  activeTab === 'news'
+                    ? palette.backgroundAlt
+                    : 'transparent',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              {language === 'ar' ? 'الأخبار العامة' : 'General News'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('projects')}
+              style={{
+                border: 'none',
+                padding: '0.75rem 1.25rem',
+                borderRadius: '0.75rem',
+                fontSize: '1rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                color:
+                  activeTab === 'projects'
+                    ? palette.brandAccentDeep
+                    : palette.textSecondary,
+                background:
+                  activeTab === 'projects'
+                    ? palette.backgroundAlt
+                    : 'transparent',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              {language === 'ar' ? 'المشاريع' : 'Projects'}
+            </button>
+          </div>
+
+          {activeTab === 'news' && (
+            <div>
+              {isDashboardNewsLoading ? (
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                    gap: '1.25rem',
+                  }}
+                >
+                  {Array.from({ length: 3 }).map((_, index) => (
+                    <div
+                      key={`news-skeleton-${index}`}
+                      style={{
+                        border: `1px solid ${palette.neutralBorder}`,
+                        borderRadius: '1rem',
+                        padding: '1.25rem',
+                        background: palette.backgroundAlt,
+                        animation: 'pulse 1.6s ease-in-out infinite',
+                        minHeight: '200px',
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : isDashboardNewsError ? (
+                <div
+                  style={{
+                    padding: '2rem',
+                    borderRadius: '1rem',
+                    background: palette.backgroundAlt,
+                    border: `1px dashed ${palette.brandSecondaryMuted}`,
+                    textAlign: 'center',
+                    color: palette.textSecondary,
+                    fontSize: '0.95rem',
+                  }}
+                >
+                  {language === 'ar'
+                    ? 'تعذر تحميل الأخبار'
+                    : 'Failed to load news'}
+                </div>
+              ) : !dashboardNewsResponse || dashboardNewsResponse.news.length === 0 ? (
+                <div
+                  style={{
+                    padding: '2rem',
+                    borderRadius: '1rem',
+                    background: palette.backgroundAlt,
+                    border: `1px dashed ${palette.brandSecondaryMuted}`,
+                    textAlign: 'center',
+                    color: palette.textSecondary,
+                    fontSize: '0.95rem',
+                  }}
+                >
+                  {language === 'ar'
+                    ? 'لا توجد أخبار متاحة حالياً'
+                    : 'No news available at the moment'}
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                    gap: '1.25rem',
+                  }}
+                >
+                  {dashboardNewsResponse.news.slice(0, 6).map((item: InvestorNewsItem) => {
+                    const coverUrl = resolveCoverUrl(item.coverKey, NEWS_IMAGES_BUCKET);
+                    const publishedDate = new Date(item.publishedAt).toLocaleDateString(
+                      language === 'ar' ? 'ar-SA' : 'en-US',
+                      { dateStyle: 'medium' }
+                    );
+                    return (
+                      <article
+                        key={item.id}
+                        style={{
+                          border: `1px solid ${palette.neutralBorderSoft}`,
+                          borderRadius: '1rem',
+                          overflow: 'hidden',
+                          background: palette.backgroundAlt,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                          cursor: 'pointer',
+                        }}
+                        onMouseEnter={e => {
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+                        }}
+                        onMouseLeave={e => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = 'none';
+                        }}
+                      >
+                        {coverUrl && (
+                          <div
+                            style={{
+                              width: '100%',
+                              height: '160px',
+                              overflow: 'hidden',
+                              background: palette.neutralBorderSoft,
+                            }}
+                          >
+                            <OptimizedImage
+                              src={coverUrl}
+                              alt={item.title}
+                              aspectRatio={16 / 9}
+                              objectFit="cover"
+                            />
+                          </div>
+                        )}
+                        <div
+                          style={{
+                            padding: '1.25rem',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '0.75rem',
+                            flex: 1,
+                          }}
+                        >
+                          <h3
+                            style={{
+                              margin: 0,
+                              fontSize: '1.1rem',
+                              fontWeight: 600,
+                              color: palette.textPrimary,
+                              lineHeight: 1.4,
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                            }}
+                          >
+                            {item.title}
+                          </h3>
+                          {item.excerpt && (
+                            <p
+                              style={{
+                                margin: 0,
+                                fontSize: '0.9rem',
+                                color: palette.textSecondary,
+                                lineHeight: 1.5,
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                              }}
+                            >
+                              {item.excerpt}
+                            </p>
+                          )}
+                          <span
+                            style={{
+                              fontSize: '0.85rem',
+                              color: palette.textSecondary,
+                              marginTop: 'auto',
+                            }}
+                          >
+                            {publishedDate}
+                          </span>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'projects' && (
+            <div>
+              {isProjectsLoading ? (
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                    gap: '1.25rem',
+                  }}
+                >
+                  {Array.from({ length: 3 }).map((_, index) => (
+                    <div
+                      key={`project-skeleton-${index}`}
+                      style={{
+                        border: `1px solid ${palette.neutralBorder}`,
+                        borderRadius: '1rem',
+                        padding: '1.25rem',
+                        background: palette.backgroundAlt,
+                        animation: 'pulse 1.6s ease-in-out infinite',
+                        minHeight: '300px',
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : isProjectsError ? (
+                <div
+                  style={{
+                    padding: '2rem',
+                    borderRadius: '1rem',
+                    background: palette.backgroundAlt,
+                    border: `1px dashed ${palette.brandSecondaryMuted}`,
+                    textAlign: 'center',
+                    color: palette.textSecondary,
+                    fontSize: '0.95rem',
+                  }}
+                >
+                  {language === 'ar'
+                    ? 'تعذر تحميل المشاريع'
+                    : 'Failed to load projects'}
+                </div>
+              ) : !projectsResponse || projectsResponse.projects.length === 0 ? (
+                <div
+                  style={{
+                    padding: '2rem',
+                    borderRadius: '1rem',
+                    background: palette.backgroundAlt,
+                    border: `1px dashed ${palette.brandSecondaryMuted}`,
+                    textAlign: 'center',
+                    color: palette.textSecondary,
+                    fontSize: '0.95rem',
+                  }}
+                >
+                  {language === 'ar'
+                    ? 'لا توجد مشاريع متاحة حالياً'
+                    : 'No projects available at the moment'}
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                    gap: '1.25rem',
+                  }}
+                >
+                  {projectsResponse.projects
+                    .filter((p: Project) => p.status === 'active')
+                    .slice(0, 6)
+                    .map((project: Project) => {
+                      const projectCoverUrl = resolveCoverUrl(
+                        project.coverKey,
+                        PROJECT_IMAGES_BUCKET
+                      );
+                      const projectName =
+                        language === 'ar' && project.nameAr
+                          ? project.nameAr
+                          : project.name;
+                      const projectDescription =
+                        language === 'ar' && project.descriptionAr
+                          ? project.descriptionAr
+                          : project.description;
+                      return (
+                        <article
+                          key={project.id}
+                          style={{
+                            border: `1px solid ${palette.neutralBorderSoft}`,
+                            borderRadius: '1rem',
+                            overflow: 'hidden',
+                            background: palette.backgroundAlt,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                            cursor: 'pointer',
+                          }}
+                          onMouseEnter={e => {
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+                          }}
+                          onMouseLeave={e => {
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = 'none';
+                          }}
+                        >
+                          {projectCoverUrl && (
+                            <div
+                              style={{
+                                width: '100%',
+                                height: '180px',
+                                overflow: 'hidden',
+                                background: palette.neutralBorderSoft,
+                              }}
+                            >
+                              <OptimizedImage
+                                src={projectCoverUrl}
+                                alt={projectName}
+                                aspectRatio={16 / 9}
+                                objectFit="cover"
+                              />
+                            </div>
+                          )}
+                          <div
+                            style={{
+                              padding: '1.25rem',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '0.75rem',
+                              flex: 1,
+                            }}
+                          >
+                            <h3
+                              style={{
+                                margin: 0,
+                                fontSize: '1.2rem',
+                                fontWeight: 700,
+                                color: palette.textPrimary,
+                                lineHeight: 1.4,
+                              }}
+                            >
+                              {projectName}
+                            </h3>
+                            {projectDescription && (
+                              <p
+                                style={{
+                                  margin: 0,
+                                  fontSize: '0.9rem',
+                                  color: palette.textSecondary,
+                                  lineHeight: 1.5,
+                                  display: '-webkit-box',
+                                  WebkitLineClamp: 3,
+                                  WebkitBoxOrient: 'vertical',
+                                  overflow: 'hidden',
+                                }}
+                              >
+                                {projectDescription}
+                              </p>
+                            )}
+                            <div
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                marginTop: 'auto',
+                                paddingTop: '0.75rem',
+                                borderTop: `1px solid ${palette.neutralBorderSoft}`,
+                              }}
+                            >
+                              <div>
+                                <div
+                                  style={{
+                                    fontSize: '0.8rem',
+                                    color: palette.textSecondary,
+                                    marginBottom: '0.25rem',
+                                  }}
+                                >
+                                  {language === 'ar' ? 'سعر السهم' : 'Share Price'}
+                                </div>
+                                <div
+                                  style={{
+                                    fontSize: '1.1rem',
+                                    fontWeight: 700,
+                                    color: palette.brandAccentDeep,
+                                  }}
+                                >
+                                  {formatCurrency(
+                                    project.sharePrice,
+                                    'SAR',
+                                    language
+                                  )}
+                                </div>
+                              </div>
+                              <div
+                                style={{
+                                  textAlign: direction === 'rtl' ? 'left' : 'right',
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    fontSize: '0.8rem',
+                                    color: palette.textSecondary,
+                                    marginBottom: '0.25rem',
+                                  }}
+                                >
+                                  {language === 'ar' ? 'إجمالي الأسهم' : 'Total Shares'}
+                                </div>
+                                <div
+                                  style={{
+                                    fontSize: '1.1rem',
+                                    fontWeight: 700,
+                                    color: palette.textPrimary,
+                                  }}
+                                >
+                                  {project.totalShares.toLocaleString(
+                                    language === 'ar' ? 'ar-SA' : 'en-US'
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </article>
+                      );
+                    })}
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+
         <header
           style={{
             display: 'grid',
