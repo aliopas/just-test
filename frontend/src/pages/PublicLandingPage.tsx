@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Logo } from '../components/Logo';
 import { palette } from '../styles/theme';
@@ -152,6 +152,82 @@ const sectionStyle: React.CSSProperties = {
   gap: '1.5rem',
 };
 
+// Mobile responsive styles
+const mobileStyles = `
+  @media (max-width: 640px) {
+    header {
+      padding: 1rem !important;
+      gap: 1rem !important;
+    }
+    
+    header .desktop-nav {
+      display: none !important;
+    }
+    
+    header .mobile-menu-button {
+      display: block !important;
+    }
+    
+    .hero-section {
+      padding: 2rem 1rem !important;
+    }
+    
+    .hero-section h1 {
+      font-size: 1.75rem !important;
+      line-height: 1.2 !important;
+    }
+    
+    .hero-section p {
+      font-size: 1rem !important;
+    }
+    
+    section {
+      padding: 2rem 1rem !important;
+    }
+    
+    .section-title {
+      font-size: 1.5rem !important;
+    }
+    
+    .feature-card,
+    .project-card,
+    .news-card {
+      padding: 1.5rem 1rem !important;
+    }
+    
+    .highlight-card {
+      padding: 1.25rem 1rem !important;
+    }
+    
+    .highlight-card strong {
+      font-size: 1.5rem !important;
+    }
+    
+    footer {
+      padding: 2rem 1rem !important;
+    }
+    
+    footer > div {
+      grid-template-columns: 1fr !important;
+      gap: 1.5rem !important;
+    }
+  }
+  
+  @media (min-width: 641px) and (max-width: 1024px) {
+    header {
+      padding: 1.25rem 1.5rem !important;
+    }
+    
+    .hero-section {
+      padding: 3rem 1.5rem !important;
+    }
+    
+    section {
+      padding: 2.5rem 1.5rem !important;
+    }
+  }
+`;
+
 const featureCardStyle: React.CSSProperties = {
   padding: '1.75rem',
   borderRadius: '1rem',
@@ -194,6 +270,7 @@ const timelineCardStyle: React.CSSProperties = {
 export function PublicLandingPage() {
   const { language, setLanguage } = useLanguage();
   const isArabic = language === 'ar';
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const {
     data: newsResponse,
     isLoading: isNewsLoading,
@@ -208,6 +285,17 @@ export function PublicLandingPage() {
     isError: isProjectsError,
   } = usePublicProjects();
   const projects = useMemo(() => projectsResponse?.projects ?? [], [projectsResponse]);
+
+  // Close mobile menu on escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [isMobileMenuOpen]);
 
   const heroTitle = isArabic
     ? 'باكورة التقنيات'
@@ -534,6 +622,7 @@ export function PublicLandingPage() {
       return (
         <article
           key={item.id}
+          className="news-card"
           style={{
             borderRadius: '1.25rem',
             border: `1px solid ${palette.neutralBorderSoft}`,
@@ -672,15 +761,17 @@ export function PublicLandingPage() {
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: palette.backgroundBase,
-        color: palette.textPrimary,
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
+    <>
+      <style>{mobileStyles}</style>
+      <div
+        style={{
+          minHeight: '100vh',
+          background: palette.backgroundBase,
+          color: palette.textPrimary,
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
       <header
         style={{
           display: 'flex',
@@ -689,6 +780,11 @@ export function PublicLandingPage() {
           gap: '1.5rem',
           padding: '1.5rem 2rem',
           flexWrap: 'wrap',
+          position: 'sticky',
+          top: 0,
+          zIndex: 100,
+          background: palette.backgroundBase,
+          borderBottom: `1px solid ${palette.neutralBorderSoft}`,
         }}
         dir={isArabic ? 'rtl' : 'ltr'}
       >
@@ -698,6 +794,7 @@ export function PublicLandingPage() {
             alignItems: 'center',
             gap: '1rem',
             flex: '1 1 220px',
+            minWidth: 0,
           }}
         >
           <Logo size={64} showWordmark={false} aria-hidden />
@@ -707,11 +804,45 @@ export function PublicLandingPage() {
               flexDirection: 'column',
               gap: '0.25rem',
               textAlign: isArabic ? 'right' : 'left',
+              minWidth: 0,
             }}
           >
-            <span style={{ fontWeight: 700, fontSize: '1.25rem' }}>{heroTitle}</span>
+            <span style={{ fontWeight: 700, fontSize: '1.25rem', whiteSpace: 'nowrap' }}>{heroTitle}</span>
           </div>
         </div>
+        <button
+          type="button"
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="mobile-menu-button"
+          aria-label={isArabic ? 'فتح القائمة' : 'Open menu'}
+          aria-expanded={isMobileMenuOpen}
+          style={{
+            display: 'none',
+            padding: '0.75rem',
+            borderRadius: '0.5rem',
+            border: `1px solid ${palette.neutralBorderSoft}`,
+            background: palette.backgroundSurface,
+            color: palette.textPrimary,
+            cursor: 'pointer',
+            minWidth: '44px',
+            minHeight: '44px',
+          }}
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
         <nav
           role="navigation"
           aria-label={isArabic ? 'روابط رئيسية' : 'Primary navigation'}
@@ -722,11 +853,19 @@ export function PublicLandingPage() {
             justifyContent: 'center',
             flex: '2 1 320px',
           }}
+          className="desktop-nav"
         >
           {navLinks.map((item) => (
             <a
               key={item.id}
               href={`#${item.id}`}
+              onClick={(e) => {
+                e.preventDefault();
+                const element = document.getElementById(item.id);
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
               style={{
                 ...navLinkStyle,
                 textAlign: 'center',
@@ -743,7 +882,9 @@ export function PublicLandingPage() {
             justifyContent: 'flex-end',
             gap: '0.75rem',
             flexWrap: 'wrap',
+            flex: '1 1 auto',
           }}
+          className="desktop-nav"
         >
           <button
             type="button"
@@ -757,6 +898,7 @@ export function PublicLandingPage() {
               color: palette.textSecondary,
               fontWeight: 600,
               cursor: 'pointer',
+              minHeight: '44px',
             }}
           >
             {languageToggleLabel}
@@ -771,6 +913,9 @@ export function PublicLandingPage() {
               background: `${palette.brandSecondarySoft}40`,
               fontWeight: 600,
               textDecoration: 'none',
+              minHeight: '44px',
+              display: 'inline-flex',
+              alignItems: 'center',
             }}
           >
             {primaryCtaLabel}
@@ -785,6 +930,9 @@ export function PublicLandingPage() {
               color: palette.textOnBrand,
               fontWeight: 600,
               textDecoration: 'none',
+              minHeight: '44px',
+              display: 'inline-flex',
+              alignItems: 'center',
             }}
           >
             {ctaLabel}
@@ -792,8 +940,142 @@ export function PublicLandingPage() {
         </div>
       </header>
 
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div
+          className="mobile-menu-overlay"
+          onClick={() => setIsMobileMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+      <nav
+        className={`mobile-menu ${isMobileMenuOpen ? 'open' : ''}`}
+        dir={isArabic ? 'rtl' : 'ltr'}
+        aria-label={isArabic ? 'القائمة الرئيسية' : 'Main navigation'}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '2rem',
+            paddingBottom: '1rem',
+            borderBottom: `1px solid ${palette.neutralBorderSoft}`,
+          }}
+        >
+          <Logo size={48} showWordmark={false} aria-hidden />
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen(false)}
+            aria-label={isArabic ? 'إغلاق القائمة' : 'Close menu'}
+            style={{
+              padding: '0.5rem',
+              borderRadius: '0.5rem',
+              border: `1px solid ${palette.neutralBorderSoft}`,
+              background: palette.backgroundSurface,
+              color: palette.textPrimary,
+              cursor: 'pointer',
+              minWidth: '44px',
+              minHeight: '44px',
+            }}
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.75rem',
+          }}
+        >
+          {navLinks.map((item) => (
+            <a
+              key={item.id}
+              href={`#${item.id}`}
+              onClick={(e) => {
+                e.preventDefault();
+                setIsMobileMenuOpen(false);
+                const element = document.getElementById(item.id);
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+              style={{
+                ...navLinkStyle,
+                padding: '1rem 1.25rem',
+                minHeight: '48px',
+                width: '100%',
+                textAlign: isArabic ? 'right' : 'left',
+              }}
+            >
+              {item.label}
+            </a>
+          ))}
+          <button
+            type="button"
+            onClick={() => setLanguage(isArabic ? 'en' : 'ar')}
+            aria-label={languageToggleAriaLabel}
+            style={{
+              ...navLinkStyle,
+              padding: '1rem 1.25rem',
+              minHeight: '48px',
+              width: '100%',
+              textAlign: isArabic ? 'right' : 'left',
+            }}
+          >
+            {languageToggleLabel}
+          </button>
+          <Link
+            to="/register"
+            onClick={() => setIsMobileMenuOpen(false)}
+            style={{
+              ...navLinkStyle,
+              padding: '1rem 1.25rem',
+              minHeight: '48px',
+              width: '100%',
+              textAlign: 'center',
+              borderColor: palette.brandSecondaryMuted,
+              color: palette.brandPrimaryStrong,
+              background: `${palette.brandSecondarySoft}40`,
+            }}
+          >
+            {primaryCtaLabel}
+          </Link>
+          <Link
+            to="/login"
+            onClick={() => setIsMobileMenuOpen(false)}
+            style={{
+              ...navLinkStyle,
+              padding: '1rem 1.25rem',
+              minHeight: '48px',
+              width: '100%',
+              textAlign: 'center',
+              borderColor: palette.brandPrimaryStrong,
+              background: palette.brandPrimaryStrong,
+              color: palette.textOnBrand,
+              marginTop: '0.5rem',
+            }}
+          >
+            {ctaLabel}
+          </Link>
+        </div>
+      </nav>
+
       <main style={{ flex: 1 }}>
-        <section style={heroSectionStyle} dir={isArabic ? 'rtl' : 'ltr'}>
+        <section style={heroSectionStyle} className="hero-section" dir={isArabic ? 'rtl' : 'ltr'}>
           <div
             style={{
               width: '100%',
@@ -819,6 +1101,7 @@ export function PublicLandingPage() {
                   fontWeight: 800,
                   lineHeight: 1.15,
                 }}
+                className="section-title"
               >
                 {heroTitle}
               </h1>
@@ -932,7 +1215,7 @@ export function PublicLandingPage() {
             }}
           >
             {heroHighlights.map((item) => (
-              <div key={item.label} style={highlightCardStyle}>
+              <div key={item.label} style={highlightCardStyle} className="highlight-card">
                 <strong style={{ fontSize: '2rem' }}>{item.value}</strong>
                 <span style={{ fontWeight: 600 }}>{item.label}</span>
                 <span style={{ color: palette.textSecondary, fontSize: '0.9rem' }}>
@@ -967,6 +1250,7 @@ export function PublicLandingPage() {
                 color: palette.textPrimary,
                 marginBottom: '0.75rem',
               }}
+              className="section-title"
             >
               {featureTitle}
             </h2>
@@ -983,6 +1267,7 @@ export function PublicLandingPage() {
               return (
                 <div
                   key={feature.title}
+                  className="feature-card"
                   style={{
                     ...featureCardStyle,
                     padding: '2rem',
@@ -1056,6 +1341,7 @@ export function PublicLandingPage() {
                 fontSize: '2rem',
                 fontWeight: 700,
               }}
+              className="section-title"
             >
               {isArabic ? 'المشاريع الاستثمارية المتاحة' : 'Available Investment Projects'}
             </h2>
@@ -1111,6 +1397,7 @@ export function PublicLandingPage() {
                 return (
                   <article
                     key={project.id}
+                    className="project-card"
                     style={{
                       ...featureCardStyle,
                       padding: '2rem',
@@ -1340,6 +1627,7 @@ export function PublicLandingPage() {
                 color: palette.textPrimary,
                 marginBottom: '0.75rem',
               }}
+              className="section-title"
             >
               {newsTitle}
             </h2>
@@ -1528,6 +1816,7 @@ export function PublicLandingPage() {
         </div>
       </footer>
     </div>
+    </>
   );
 }
 
