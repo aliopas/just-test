@@ -100,11 +100,11 @@ const adminSidebarLinkBase: React.CSSProperties = {
   border: `1px solid ${palette.neutralBorderSoft}`,
 };
 
-function HeaderNav() {
+function HeaderNav(): JSX.Element {
   const { language, direction } = useLanguage();
   const logout = useLogout();
   const location = useLocation();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const portalName =
     language === 'ar' ? 'بوابة باكورة للمستثمرين' : 'Bakurah Investors Portal';
   const portalSubtitle =
@@ -287,6 +287,7 @@ function HeaderNav() {
               : 'Sign out'}
         </button>
       </nav>
+      </header>
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
@@ -401,7 +402,7 @@ function HeaderNav() {
   );
 }
 
-function AdminSidebarNav() {
+function AdminSidebarNav(): JSX.Element {
   const { language, direction } = useLanguage();
   const logout = useLogout();
   const location = useLocation();
@@ -677,7 +678,7 @@ function AdminSidebarNav() {
   );
 }
 
-function AppFooter() {
+function AppFooter(): JSX.Element {
   const { language } = useLanguage();
   const isArabic = language === 'ar';
   
@@ -710,7 +711,7 @@ function AppFooter() {
   );
 }
 
-function InvestorApp() {
+function InvestorApp(): JSX.Element {
   const { language } = useLanguage();
   
   return (
@@ -758,7 +759,7 @@ function InvestorApp() {
   );
 }
 
-function AdminApp() {
+function AdminApp(): JSX.Element {
   const { language } = useLanguage();
   
   return (
