@@ -8,6 +8,132 @@ import { resolveCoverUrl, NEWS_IMAGES_BUCKET, PROJECT_IMAGES_BUCKET } from '../u
 import { OptimizedImage } from '../components/OptimizedImage';
 import { usePublicProjects } from '../hooks/usePublicProjects';
 
+// Animated Icon Components
+const NetworkIcon = () => (
+  <svg
+    width="64"
+    height="64"
+    viewBox="0 0 64 64"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    style={{
+      animation: 'float 3s ease-in-out infinite',
+    }}
+  >
+    <style>
+      {`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+        }
+      `}
+    </style>
+    <circle cx="32" cy="20" r="6" fill={palette.brandPrimaryStrong} opacity="0.9">
+      <animate attributeName="opacity" values="0.9;1;0.9" dur="2s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="16" cy="40" r="5" fill={palette.brandPrimaryStrong} opacity="0.8">
+      <animate attributeName="opacity" values="0.8;1;0.8" dur="2.5s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="48" cy="40" r="5" fill={palette.brandPrimaryStrong} opacity="0.8">
+      <animate attributeName="opacity" values="0.8;1;0.8" dur="2.3s" repeatCount="indefinite" />
+    </circle>
+    <line x1="32" y1="20" x2="16" y2="40" stroke={palette.brandPrimaryStrong} strokeWidth="2" opacity="0.4">
+      <animate attributeName="opacity" values="0.4;0.6;0.4" dur="2s" repeatCount="indefinite" />
+    </line>
+    <line x1="32" y1="20" x2="48" y2="40" stroke={palette.brandPrimaryStrong} strokeWidth="2" opacity="0.4">
+      <animate attributeName="opacity" values="0.4;0.6;0.4" dur="2.2s" repeatCount="indefinite" />
+    </line>
+    <line x1="16" y1="40" x2="48" y2="40" stroke={palette.brandPrimaryStrong} strokeWidth="2" opacity="0.4">
+      <animate attributeName="opacity" values="0.4;0.6;0.4" dur="2.4s" repeatCount="indefinite" />
+    </line>
+  </svg>
+);
+
+const AnalyticsIcon = () => (
+  <svg
+    width="64"
+    height="64"
+    viewBox="0 0 64 64"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    style={{
+      animation: 'pulse 2s ease-in-out infinite',
+    }}
+  >
+    <style>
+      {`
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+        }
+      `}
+    </style>
+    <rect x="12" y="40" width="8" height="16" fill={palette.brandPrimaryStrong} opacity="0.8">
+      <animate attributeName="height" values="16;24;16" dur="1.5s" repeatCount="indefinite" />
+      <animate attributeName="y" values="40;32;40" dur="1.5s" repeatCount="indefinite" />
+    </rect>
+    <rect x="24" y="32" width="8" height="24" fill={palette.brandPrimaryStrong} opacity="0.9">
+      <animate attributeName="height" values="24;32;24" dur="1.8s" repeatCount="indefinite" />
+      <animate attributeName="y" values="32;24;32" dur="1.8s" repeatCount="indefinite" />
+    </rect>
+    <rect x="36" y="20" width="8" height="36" fill={palette.brandPrimaryStrong}>
+      <animate attributeName="height" values="36;44;36" dur="2s" repeatCount="indefinite" />
+      <animate attributeName="y" values="20;12;20" dur="2s" repeatCount="indefinite" />
+    </rect>
+    <rect x="48" y="28" width="8" height="28" fill={palette.brandPrimaryStrong} opacity="0.85">
+      <animate attributeName="height" values="28;36;28" dur="1.7s" repeatCount="indefinite" />
+      <animate attributeName="y" values="28;20;28" dur="1.7s" repeatCount="indefinite" />
+    </rect>
+  </svg>
+);
+
+const JourneyIcon = () => (
+  <svg
+    width="64"
+    height="64"
+    viewBox="0 0 64 64"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    style={{
+      animation: 'rotate 4s linear infinite',
+    }}
+  >
+    <style>
+      {`
+        @keyframes rotate {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}
+    </style>
+    <circle cx="32" cy="32" r="20" stroke={palette.brandPrimaryStrong} strokeWidth="2" fill="none" opacity="0.3" />
+    <circle cx="32" cy="12" r="4" fill={palette.brandPrimaryStrong}>
+      <animateTransform
+        attributeName="transform"
+        type="rotate"
+        values="0 32 32;360 32 32"
+        dur="4s"
+        repeatCount="indefinite"
+      />
+    </circle>
+    <path
+      d="M 32 12 L 32 32 L 52 32"
+      stroke={palette.brandPrimaryStrong}
+      strokeWidth="2"
+      fill="none"
+      strokeLinecap="round"
+      opacity="0.6"
+    >
+      <animate
+        attributeName="stroke-dasharray"
+        values="0,100;50,50;100,0"
+        dur="2s"
+        repeatCount="indefinite"
+      />
+    </path>
+  </svg>
+);
+
 const heroSectionStyle: React.CSSProperties = {
   padding: '4rem 2rem',
   display: 'flex',
@@ -101,16 +227,19 @@ export function PublicLandingPage() {
           title: 'شبكة استثمارية موثوقة',
           description:
             'نربطك بقادة التقنيات الناشئة عبر شبكة من الخبراء والمستثمرين المعتمدين.',
+          icon: NetworkIcon,
         },
         {
           title: 'تحليلات وتقارير عميقة',
           description:
             'حزم معلوماتية دقيقة تساعدك على اتخاذ قرارات استثمارية أكثر ثقة.',
+          icon: AnalyticsIcon,
         },
         {
           title: 'رحلة استثمار متكاملة',
           description:
             'من التعرف على الفرص إلى إغلاق الصفقة، ندعمك بأدوات ذكية ومسار واضح.',
+          icon: JourneyIcon,
         },
       ]
     : [
@@ -118,16 +247,19 @@ export function PublicLandingPage() {
           title: 'Curated investment network',
           description:
             'Connect with vetted founders, sector experts, and co-investors aligned with your thesis.',
+          icon: NetworkIcon,
         },
         {
           title: 'Insight-rich analytics',
           description:
             'Get data-driven reports that help you evaluate opportunities with confidence.',
+          icon: AnalyticsIcon,
         },
         {
           title: 'End-to-end investor journey',
           description:
             'Streamlined workflows that guide you from discovery to deal completion.',
+          icon: JourneyIcon,
         },
       ];
 
@@ -808,6 +940,105 @@ export function PublicLandingPage() {
                 </span>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* Features Section with Animated Icons */}
+        <section
+          style={{
+            ...sectionStyle,
+            padding: '4rem 2rem',
+            maxWidth: '1200px',
+            background: palette.backgroundBase,
+          }}
+          dir={isArabic ? 'rtl' : 'ltr'}
+        >
+          <div
+            style={{
+              textAlign: 'center',
+              marginBottom: '3rem',
+            }}
+          >
+            <h2
+              style={{
+                margin: 0,
+                fontSize: '2rem',
+                fontWeight: 700,
+                color: palette.textPrimary,
+                marginBottom: '0.75rem',
+              }}
+            >
+              {featureTitle}
+            </h2>
+          </div>
+          <div
+            style={{
+              display: 'grid',
+              gap: '2rem',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            }}
+          >
+            {features.map((feature, index) => {
+              const IconComponent = feature.icon;
+              return (
+                <div
+                  key={feature.title}
+                  style={{
+                    ...featureCardStyle,
+                    padding: '2rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '1.25rem',
+                    alignItems: 'center',
+                    textAlign: 'center',
+                    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-8px)';
+                    e.currentTarget.style.boxShadow = '0 16px 32px rgba(15, 23, 42, 0.12)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 12px 24px rgba(15, 23, 42, 0.08)';
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '80px',
+                      height: '80px',
+                      borderRadius: '1rem',
+                      background: `${palette.brandSecondarySoft}40`,
+                      marginBottom: '0.5rem',
+                    }}
+                  >
+                    <IconComponent />
+                  </div>
+                  <h3
+                    style={{
+                      margin: 0,
+                      fontSize: '1.25rem',
+                      fontWeight: 700,
+                      color: palette.textPrimary,
+                    }}
+                  >
+                    {feature.title}
+                  </h3>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: '1rem',
+                      color: palette.textSecondary,
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {feature.description}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </section>
 
