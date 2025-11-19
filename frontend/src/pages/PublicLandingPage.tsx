@@ -235,7 +235,7 @@ export function PublicLandingPage() {
           title: 'الدعم',
           links: [
             { label: 'تواصل معنا', href: 'mailto:hello@bakurah.sa' },
-            { label: 'حجز جلسة تعريفية', href: '/register' },
+            { label: 'خليك مستثمر وطلب تسجيلك الان', href: '/register' },
             { label: 'المركز الإعلامي', href: '#newsroom' },
           ],
         },
