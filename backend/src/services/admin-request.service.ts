@@ -31,10 +31,27 @@ type AdminRequestRow = {
   users?: MaybeArray<{
     id: string;
     email: string | null;
+    phone: string | null;
+    phone_cc: string | null;
+    status: string | null;
+    created_at: string | null;
     profile?: MaybeArray<{
       full_name: string | null;
       preferred_name: string | null;
       language: string | null;
+      id_type: string | null;
+      id_number: string | null;
+      id_expiry: string | null;
+      nationality: string | null;
+      residency_country: string | null;
+      city: string | null;
+      kyc_status: string | null;
+      kyc_updated_at: string | null;
+      risk_profile: string | null;
+      communication_preferences: Record<string, boolean> | null;
+      kyc_documents: unknown;
+      created_at: string | null;
+      updated_at: string | null;
     }>;
   }>;
 };
@@ -165,10 +182,27 @@ export async function listAdminRequests(params: {
         users:users!requests_user_id_fkey (
           id,
           email,
+          phone,
+          phone_cc,
+          status,
+          created_at,
           profile:investor_profiles (
             full_name,
             preferred_name,
-            language
+            language,
+            id_type,
+            id_number,
+            id_expiry,
+            nationality,
+            residency_country,
+            city,
+            kyc_status,
+            kyc_updated_at,
+            risk_profile,
+            communication_preferences,
+            kyc_documents,
+            created_at,
+            updated_at
           )
         )
       `,
@@ -270,9 +304,26 @@ export async function listAdminRequests(params: {
       investor: {
         id: user?.id ?? null,
         email: user?.email ?? null,
+        phone: user?.phone ?? null,
+        phoneCc: user?.phone_cc ?? null,
         fullName: profile?.full_name ?? null,
         preferredName: profile?.preferred_name ?? null,
         language: profile?.language ?? null,
+        idType: profile?.id_type ?? null,
+        idNumber: profile?.id_number ?? null,
+        idExpiry: profile?.id_expiry ?? null,
+        nationality: profile?.nationality ?? null,
+        residencyCountry: profile?.residency_country ?? null,
+        city: profile?.city ?? null,
+        kycStatus: profile?.kyc_status ?? null,
+        kycUpdatedAt: profile?.kyc_updated_at ?? null,
+        riskProfile: profile?.risk_profile ?? null,
+        communicationPreferences: profile?.communication_preferences ?? null,
+        kycDocuments: profile?.kyc_documents ?? null,
+        profileCreatedAt: profile?.created_at ?? null,
+        profileUpdatedAt: profile?.updated_at ?? null,
+        userStatus: user?.status ?? null,
+        userCreatedAt: user?.created_at ?? null,
       },
     };
   });
@@ -314,6 +365,8 @@ type AdminRequestDetailRow = {
     email: string | null;
     phone: string | null;
     phone_cc: string | null;
+    status: string | null;
+    created_at: string | null;
     profile?: MaybeArray<{
       full_name: string | null;
       preferred_name: string | null;
@@ -325,6 +378,12 @@ type AdminRequestDetailRow = {
       residency_country: string | null;
       city: string | null;
       kyc_status: string | null;
+      kyc_updated_at: string | null;
+      risk_profile: string | null;
+      communication_preferences: Record<string, boolean> | null;
+      kyc_documents: unknown;
+      created_at: string | null;
+      updated_at: string | null;
     }>;
   }>;
 };
@@ -428,7 +487,13 @@ export async function getAdminRequestDetail(params: {
             nationality,
             residency_country,
             city,
-            kyc_status
+            kyc_status,
+            kyc_updated_at,
+            risk_profile,
+            communication_preferences,
+            kyc_documents,
+            created_at,
+            updated_at
           )
         )
       `
@@ -580,9 +645,26 @@ export async function getAdminRequestDetail(params: {
       investor: {
         id: user?.id ?? null,
         email: user?.email ?? null,
+        phone: user?.phone ?? null,
+        phoneCc: user?.phone_cc ?? null,
         fullName: profile?.full_name ?? null,
         preferredName: profile?.preferred_name ?? null,
         language: profile?.language ?? null,
+        idType: profile?.id_type ?? null,
+        idNumber: profile?.id_number ?? null,
+        idExpiry: profile?.id_expiry ?? null,
+        nationality: profile?.nationality ?? null,
+        residencyCountry: profile?.residency_country ?? null,
+        city: profile?.city ?? null,
+        kycStatus: profile?.kyc_status ?? null,
+        kycUpdatedAt: profile?.kyc_updated_at ?? null,
+        riskProfile: profile?.risk_profile ?? null,
+        communicationPreferences: profile?.communication_preferences ?? null,
+        kycDocuments: profile?.kyc_documents ?? null,
+        profileCreatedAt: profile?.created_at ?? null,
+        profileUpdatedAt: profile?.updated_at ?? null,
+        userStatus: user?.status ?? null,
+        userCreatedAt: user?.created_at ?? null,
       },
     },
     attachments,

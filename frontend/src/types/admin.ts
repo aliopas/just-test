@@ -15,6 +15,14 @@ export interface AdminRequestInvestor {
   residencyCountry: string | null;
   city: string | null;
   kycStatus: string | null;
+  kycUpdatedAt: string | null;
+  riskProfile: string | null;
+  communicationPreferences: Record<string, boolean> | null;
+  kycDocuments: unknown;
+  profileCreatedAt: string | null;
+  profileUpdatedAt: string | null;
+  userStatus: string | null;
+  userCreatedAt: string | null;
 }
 
 export interface AdminRequest {

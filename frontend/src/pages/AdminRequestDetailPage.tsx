@@ -324,6 +324,90 @@ function AdminRequestDetailPageInner() {
                     label: language === 'ar' ? 'اللغة' : 'Language',
                     value: request.investor?.language ?? '\u2014',
                   },
+                  {
+                    label: language === 'ar' ? 'ملف المخاطر' : 'Risk Profile',
+                    value: request.investor?.riskProfile
+                      ? language === 'ar'
+                        ? request.investor.riskProfile === 'conservative'
+                          ? 'حذر'
+                          : request.investor.riskProfile === 'balanced'
+                          ? 'متوازن'
+                          : 'مغامر'
+                        : request.investor.riskProfile === 'conservative'
+                        ? 'Conservative'
+                        : request.investor.riskProfile === 'balanced'
+                        ? 'Balanced'
+                        : 'Aggressive'
+                      : '\u2014',
+                  },
+                  {
+                    label: language === 'ar' ? 'تفضيلات التواصل' : 'Communication Preferences',
+                    value: request.investor?.communicationPreferences
+                      ? Object.entries(request.investor.communicationPreferences)
+                          .filter(([, enabled]) => enabled)
+                          .map(([key]) => {
+                            if (key === 'email') return language === 'ar' ? 'البريد الإلكتروني' : 'Email';
+                            if (key === 'sms') return language === 'ar' ? 'رسائل نصية' : 'SMS';
+                            if (key === 'push') return language === 'ar' ? 'إشعارات' : 'Push';
+                            return key;
+                          })
+                          .join(language === 'ar' ? '، ' : ', ') || '\u2014'
+                      : '\u2014',
+                  },
+                  {
+                    label: language === 'ar' ? 'مستندات KYC' : 'KYC Documents',
+                    value: request.investor?.kycDocuments
+                      ? Array.isArray(request.investor.kycDocuments)
+                        ? request.investor.kycDocuments.length > 0
+                          ? `${request.investor.kycDocuments.length} ${language === 'ar' ? 'مستند' : 'document'}${request.investor.kycDocuments.length > 1 ? (language === 'ar' ? 'ات' : 's') : ''}`
+                          : '\u2014'
+                        : typeof request.investor.kycDocuments === 'object' && request.investor.kycDocuments !== null
+                        ? Object.keys(request.investor.kycDocuments).length > 0
+                          ? `${Object.keys(request.investor.kycDocuments).length} ${language === 'ar' ? 'مستند' : 'document'}${Object.keys(request.investor.kycDocuments).length > 1 ? (language === 'ar' ? 'ات' : 's') : ''}`
+                          : '\u2014'
+                        : '\u2014'
+                      : '\u2014',
+                  },
+                  {
+                    label: language === 'ar' ? 'تاريخ تحديث KYC' : 'KYC Updated At',
+                    value: request.investor?.kycUpdatedAt
+                      ? new Date(request.investor.kycUpdatedAt).toLocaleString(
+                          language === 'ar' ? 'ar-SA' : 'en-US',
+                          { dateStyle: 'medium', timeStyle: 'short' }
+                        )
+                      : '\u2014',
+                  },
+                  {
+                    label: language === 'ar' ? 'حالة المستخدم' : 'User Status',
+                    value: request.investor?.userStatus ?? '\u2014',
+                  },
+                  {
+                    label: language === 'ar' ? 'تاريخ إنشاء الملف' : 'Profile Created At',
+                    value: request.investor?.profileCreatedAt
+                      ? new Date(request.investor.profileCreatedAt).toLocaleString(
+                          language === 'ar' ? 'ar-SA' : 'en-US',
+                          { dateStyle: 'medium', timeStyle: 'short' }
+                        )
+                      : '\u2014',
+                  },
+                  {
+                    label: language === 'ar' ? 'تاريخ تحديث الملف' : 'Profile Updated At',
+                    value: request.investor?.profileUpdatedAt
+                      ? new Date(request.investor.profileUpdatedAt).toLocaleString(
+                          language === 'ar' ? 'ar-SA' : 'en-US',
+                          { dateStyle: 'medium', timeStyle: 'short' }
+                        )
+                      : '\u2014',
+                  },
+                  {
+                    label: language === 'ar' ? 'تاريخ إنشاء الحساب' : 'User Created At',
+                    value: request.investor?.userCreatedAt
+                      ? new Date(request.investor.userCreatedAt).toLocaleString(
+                          language === 'ar' ? 'ar-SA' : 'en-US',
+                          { dateStyle: 'medium', timeStyle: 'short' }
+                        )
+                      : '\u2014',
+                  },
                 ]}
               />
             )}
