@@ -10,7 +10,7 @@ interface Statistic {
 
 const statisticsEn: Statistic[] = [
   {
-    value: '50+',
+    value: '5+',
     label: 'Active Projects',
     icon: (
       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -22,17 +22,7 @@ const statisticsEn: Statistic[] = [
     ),
   },
   {
-    value: '100M+',
-    label: 'Investment Value',
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <line x1="12" y1="1" x2="12" y2="23" />
-        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-      </svg>
-    ),
-  },
-  {
-    value: '200+',
+    value: '100+',
     label: 'Partners',
     icon: (
       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -57,7 +47,7 @@ const statisticsEn: Statistic[] = [
 
 const statisticsAr: Statistic[] = [
   {
-    value: '50+',
+    value: '5+',
     label: 'مشروع نشط',
     icon: (
       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -69,17 +59,7 @@ const statisticsAr: Statistic[] = [
     ),
   },
   {
-    value: '100M+',
-    label: 'قيمة الاستثمارات',
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <line x1="12" y1="1" x2="12" y2="23" />
-        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-      </svg>
-    ),
-  },
-  {
-    value: '200+',
+    value: '100+',
     label: 'شريك',
     icon: (
       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
