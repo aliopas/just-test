@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { Logo } from '../components/Logo';
@@ -9,6 +9,9 @@ import { resolveCoverUrl, NEWS_IMAGES_BUCKET, PROJECT_IMAGES_BUCKET } from '../u
 import { OptimizedImage } from '../components/OptimizedImage';
 import { usePublicProjects } from '../hooks/usePublicProjects';
 import { useHomepageSections, type HomepageSection } from '../hooks/useHomepageSections';
+import { ScrollToTopButton } from '../components/landing/ScrollToTopButton';
+import { StatisticsSection } from '../components/landing/StatisticsSection';
+import { SectionSkeleton } from '../components/landing/SectionSkeleton';
 
 // Animated Icon Components
 const NetworkIcon = () => (
@@ -1207,63 +1210,83 @@ export function PublicLandingPage() {
     };
   }, [openSection]);
 
-  const heroTitle = isArabic
-    ? 'شركاء باكورة'
-    : 'Bakura tec';
+  // Memoize text content to avoid recalculation
+  const heroTitle = useMemo(
+    () => (isArabic ? 'شركاء باكورة' : 'Bakura tec'),
+    [isArabic]
+  );
 
-  const partnershipBanner = isArabic
-    ? 'شركاء باكورة'
-    : 'Platform Exclusively for Bakura Partners - Advanced tools and exclusive investment opportunities';
+  const partnershipBanner = useMemo(
+    () =>
+      isArabic
+        ? 'شركاء باكورة'
+        : 'Platform Exclusively for Bakura Partners - Advanced tools and exclusive investment opportunities',
+    [isArabic]
+  );
 
-  const partnershipDescription = isArabic
-    ? 'نرحب بشركائنا في منصة شركاء باكورة، حيث نوفر بيئة متكاملة للاستثمار وإدارة المحافظ الاستثمارية مع أدوات تحليلية متقدمة وفرص استثمارية حصرية.'
-    : 'Welcome to Bakura tec platform, where we provide an integrated environment for investment and portfolio management with advanced analytical tools and exclusive investment opportunities.';
+  const partnershipDescription = useMemo(
+    () =>
+      isArabic
+        ? 'نرحب بشركائنا في منصة شركاء باكورة، حيث نوفر بيئة متكاملة للاستثمار وإدارة المحافظ الاستثمارية مع أدوات تحليلية متقدمة وفرص استثمارية حصرية.'
+        : 'Welcome to Bakura tec platform, where we provide an integrated environment for investment and portfolio management with advanced analytical tools and exclusive investment opportunities.',
+    [isArabic]
+  );
 
-  const ctaLabel = isArabic ? 'تسجيل الدخول إلى البوابة' : 'Sign in to the portal';
+  const ctaLabel = useMemo(
+    () => (isArabic ? 'تسجيل الدخول إلى البوابة' : 'Sign in to the portal'),
+    [isArabic]
+  );
 
-  const featureTitle = isArabic ? 'لماذا باكورة؟' : 'Why Bakura tec?';
+  const featureTitle = useMemo(
+    () => (isArabic ? 'لماذا باكورة؟' : 'Why Bakura tec?'),
+    [isArabic]
+  );
 
-  const features = isArabic
-    ? [
-        {
-          title: 'شبكة استثمارية موثوقة',
-          description:
-            'نربطك بقادة التقنيات الناشئة عبر شبكة من الخبراء والمستثمرين المعتمدين.',
-          icon: NetworkIcon,
-        },
-        {
-          title: 'تحليلات وتقارير عميقة',
-          description:
-            'حزم معلوماتية دقيقة تساعدك على اتخاذ قرارات استثمارية أكثر ثقة.',
-          icon: AnalyticsIcon,
-        },
-        {
-          title: 'رحلة استثمار متكاملة',
-          description:
-            'من التعرف على الفرص إلى إغلاق الصفقة، ندعمك بأدوات ذكية ومسار واضح.',
-          icon: JourneyIcon,
-        },
-      ]
-    : [
-        {
-          title: 'Curated investment network',
-          description:
-            'Connect with vetted founders, sector experts, and co-investors aligned with your thesis.',
-          icon: NetworkIcon,
-        },
-        {
-          title: 'Insight-rich analytics',
-          description:
-            'Get data-driven reports that help you evaluate opportunities with confidence.',
-          icon: AnalyticsIcon,
-        },
-        {
-          title: 'End-to-end investor journey',
-          description:
-            'Streamlined workflows that guide you from discovery to deal completion.',
-          icon: JourneyIcon,
-        },
-      ];
+  const features = useMemo(
+    () =>
+      isArabic
+        ? [
+            {
+              title: 'شبكة استثمارية موثوقة',
+              description:
+                'نربطك بقادة التقنيات الناشئة عبر شبكة من الخبراء والمستثمرين المعتمدين.',
+              icon: NetworkIcon,
+            },
+            {
+              title: 'تحليلات وتقارير عميقة',
+              description:
+                'حزم معلوماتية دقيقة تساعدك على اتخاذ قرارات استثمارية أكثر ثقة.',
+              icon: AnalyticsIcon,
+            },
+            {
+              title: 'رحلة استثمار متكاملة',
+              description:
+                'من التعرف على الفرص إلى إغلاق الصفقة، ندعمك بأدوات ذكية ومسار واضح.',
+              icon: JourneyIcon,
+            },
+          ]
+        : [
+            {
+              title: 'Curated investment network',
+              description:
+                'Connect with vetted founders, sector experts, and co-investors aligned with your thesis.',
+              icon: NetworkIcon,
+            },
+            {
+              title: 'Insight-rich analytics',
+              description:
+                'Get data-driven reports that help you evaluate opportunities with confidence.',
+              icon: AnalyticsIcon,
+            },
+            {
+              title: 'End-to-end investor journey',
+              description:
+                'Streamlined workflows that guide you from discovery to deal completion.',
+              icon: JourneyIcon,
+            },
+          ],
+    [isArabic]
+  );
 
   const navLinks = [
     {
@@ -2138,6 +2161,7 @@ export function PublicLandingPage() {
           </div>
 
           {/* Homepage Sections with Icons */}
+          {isSectionsLoading && <SectionSkeleton />}
           {!isSectionsLoading && !isSectionsError && homepageSections.length > 0 && (
             <div
               style={{
@@ -2393,6 +2417,9 @@ export function PublicLandingPage() {
             })}
           </div>
         </section>
+
+        {/* Statistics Section */}
+        <StatisticsSection />
 
         {/* Projects Section - Replaces capabilities and journey sections */}
         <section id="projects" style={sectionStyle} dir={isArabic ? 'rtl' : 'ltr'}>
@@ -2922,6 +2949,7 @@ export function PublicLandingPage() {
           </div>
         </div>
       </footer>
+      <ScrollToTopButton />
     </div>
     </>
   );
