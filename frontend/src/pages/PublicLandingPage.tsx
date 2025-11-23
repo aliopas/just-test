@@ -1729,15 +1729,15 @@ export function PublicLandingPage() {
                       className="homepage-section-card"
                       style={{
                         ...featureCardStyle,
-                        padding: '1.5rem',
+                        padding: '2rem 1.5rem',
                         display: 'flex',
-                        flexDirection: 'row',
-                        gap: '1rem',
+                        flexDirection: 'column',
+                        gap: '1.25rem',
                         alignItems: 'center',
-                        textAlign: isArabic ? 'right' : 'left',
+                        textAlign: 'center',
                         cursor: 'pointer',
                         transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                        minHeight: 'auto',
+                        minHeight: '200px',
                         border: `1.5px solid ${palette.neutralBorderSoft}`,
                       }}
                       onMouseEnter={(e) => {
@@ -1762,12 +1762,11 @@ export function PublicLandingPage() {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          width: '64px',
-                          height: '64px',
-                          borderRadius: '1rem',
+                          width: '88px',
+                          height: '88px',
+                          borderRadius: '1.5rem',
                           background: `linear-gradient(135deg, ${palette.brandSecondarySoft}50, ${palette.brandPrimaryStrong}20)`,
-                          marginBottom: 0,
-                          flexShrink: 0,
+                          marginBottom: '0.75rem',
                           transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                           boxShadow: '0 4px 12px rgba(15, 23, 42, 0.08)',
                         }}
@@ -1790,11 +1789,10 @@ export function PublicLandingPage() {
                           fontWeight: 600,
                           color: palette.textPrimary,
                           lineHeight: 1.5,
-                          minHeight: 'auto',
+                          minHeight: '2.5rem',
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: isArabic ? 'flex-end' : 'flex-start',
-                          flex: 1,
+                          justifyContent: 'center',
                         }}
                       >
                         {title}
