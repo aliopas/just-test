@@ -196,14 +196,6 @@ const mobileStyles = `
       padding: 1.5rem 1rem !important;
     }
     
-    .highlight-card {
-      padding: 1.25rem 1rem !important;
-    }
-    
-    .highlight-card strong {
-      font-size: 1.5rem !important;
-    }
-    
     footer {
       padding: 2rem 1rem !important;
     }
@@ -245,16 +237,6 @@ const navLinkStyle: React.CSSProperties = {
   transition: 'color 0.2s ease',
 };
 
-const highlightCardStyle: React.CSSProperties = {
-  padding: '1.5rem',
-  borderRadius: '1.25rem',
-  background: palette.backgroundSurface,
-  border: `1px solid ${palette.neutralBorderSoft}`,
-  boxShadow: '0 8px 20px rgba(4, 44, 84, 0.08)',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '0.5rem',
-};
 
 const timelineCardStyle: React.CSSProperties = {
   padding: '1.5rem',
@@ -423,41 +405,6 @@ export function PublicLandingPage() {
     },
   ];
 
-  const heroHighlights = isArabic
-    ? [
-        {
-          value: '220+',
-          label: 'فرص تم تمحيصها',
-          helper: 'تم اختيارها خلال الـ 12 شهر الماضية',
-        },
-        {
-          value: '48 ساعة',
-          label: 'لإطلاق التقييم',
-          helper: 'متوسط زمن تجهيز تقارير الفرص',
-        },
-        {
-          value: '92%',
-          label: 'رضا المستثمرين',
-          helper: 'بناءً على استطلاعات مستخدمين ربعيّة',
-        },
-      ]
-    : [
-        {
-          value: '220+',
-          label: 'screened opportunities',
-          helper: 'curated over the past 12 months',
-        },
-        {
-          value: '48 hrs',
-          label: 'to launch diligence',
-          helper: 'average time to ship analyst briefs',
-        },
-        {
-          value: '92%',
-          label: 'investor satisfaction',
-          helper: 'measured via quarterly NPS survey',
-        },
-      ];
 
   const journeySteps = isArabic
     ? [
@@ -1145,10 +1092,10 @@ export function PublicLandingPage() {
             style={{
               width: '100%',
               maxWidth: '1200px',
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: '2rem',
+              display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
+              textAlign: 'center',
             }}
           >
             <div
@@ -1157,6 +1104,7 @@ export function PublicLandingPage() {
                 flexDirection: 'column',
                 gap: '1.25rem',
                 textAlign: isArabic ? 'right' : 'left',
+                maxWidth: '800px',
               }}
             >
               <h1
@@ -1195,6 +1143,7 @@ export function PublicLandingPage() {
                   display: 'flex',
                   flexWrap: 'wrap',
                   gap: '0.75rem',
+                  justifyContent: isArabic ? 'flex-end' : 'flex-start',
                 }}
               >
                 <Link
@@ -1227,67 +1176,6 @@ export function PublicLandingPage() {
                 </Link>
               </div>
             </div>
-            <div
-              aria-hidden
-              style={{
-                borderRadius: '2rem',
-                border: `1px solid ${palette.brandSecondaryMuted}`,
-                background: `linear-gradient(145deg, ${palette.brandPrimaryStrong}, ${palette.brandSecondarySoft})`,
-                padding: '2rem',
-                minHeight: '260px',
-                color: palette.textOnBrand,
-                boxShadow: '0 20px 50px rgba(3, 12, 37, 0.25)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1rem',
-              }}
-            >
-              <span style={{ fontSize: '0.9rem', letterSpacing: '0.08em' }}>
-                {isArabic ? 'لوحة نشاط السوق' : 'Live market intelligence'}
-              </span>
-              <strong style={{ fontSize: '2.5rem', lineHeight: 1 }}>
-                {isArabic ? '12' : '12'}
-              </strong>
-              <span style={{ fontSize: '1rem', opacity: 0.9 }}>
-                {isArabic
-                  ? 'فرص قيد المراجعة حالياً ضمن القطاعات السحابية والطبية.'
-                  : 'Opportunities currently under review across cloud and health tech verticals.'}
-              </span>
-              <div
-                style={{
-                  marginTop: 'auto',
-                  fontSize: '0.85rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.25rem',
-                }}
-              >
-                <span>{isArabic ? 'آخر تحديث منذ 6 دقائق' : 'Refreshed 6 minutes ago'}</span>
-                <span style={{ opacity: 0.8 }}>
-                  {isArabic ? 'اطلب الوصول لرؤية لوحة المتابعة الكاملة.' : 'Request access to see the full tracker.'}
-                </span>
-              </div>
-            </div>
-          </div>
-          <div
-            style={{
-              width: '100%',
-              maxWidth: '1200px',
-              marginTop: '3rem',
-              display: 'grid',
-              gap: '1rem',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            }}
-          >
-            {heroHighlights.map((item) => (
-              <div key={item.label} style={highlightCardStyle} className="highlight-card">
-                <strong style={{ fontSize: '2rem' }}>{item.value}</strong>
-                <span style={{ fontWeight: 600 }}>{item.label}</span>
-                <span style={{ color: palette.textSecondary, fontSize: '0.9rem' }}>
-                  {item.helper}
-                </span>
-              </div>
-            ))}
           </div>
 
           {/* Homepage Sections with Icons */}
