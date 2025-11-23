@@ -183,8 +183,26 @@ const mobileStyles = `
       font-size: 1.5rem !important;
     }
     
+    .hero-section h1 {
+      font-size: 1.5rem !important;
+      line-height: 1.4 !important;
+    }
+    
     .hero-section p {
       font-size: 1rem !important;
+    }
+    
+    .partnership-banner {
+      padding: 1.5rem 1.25rem !important;
+      margin-bottom: 2rem !important;
+    }
+    
+    .partnership-banner h1 {
+      font-size: 1.25rem !important;
+    }
+    
+    .partnership-banner p {
+      font-size: 0.95rem !important;
     }
     
     section {
@@ -721,6 +739,14 @@ export function PublicLandingPage() {
   const heroTitle = isArabic
     ? 'باكورة التقنيات'
     : 'Bakura tec';
+
+  const partnershipBanner = isArabic
+    ? 'منصة مخصصة لشركاء باكورة - نوفر لك أدوات متقدمة وفرص استثمارية حصرية'
+    : 'Platform Exclusively for Bakura Partners - Advanced tools and exclusive investment opportunities';
+
+  const partnershipDescription = isArabic
+    ? 'نرحب بشركائنا في منصة باكورة التقنيات، حيث نوفر بيئة متكاملة للاستثمار وإدارة المحافظ الاستثمارية مع أدوات تحليلية متقدمة وفرص استثمارية حصرية.'
+    : 'Welcome to Bakura tec platform, where we provide an integrated environment for investment and portfolio management with advanced analytical tools and exclusive investment opportunities.';
 
   const ctaLabel = isArabic ? 'تسجيل الدخول إلى البوابة' : 'Sign in to the portal';
 
@@ -1471,6 +1497,140 @@ export function PublicLandingPage() {
               textAlign: 'center',
             }}
           >
+            {/* Partnership Banner */}
+            <div
+              className="partnership-banner"
+              style={{
+                width: '100%',
+                padding: '2.5rem 2rem',
+                borderRadius: '1.5rem',
+                background: `linear-gradient(135deg, ${palette.brandPrimaryStrong}15, ${palette.brandSecondarySoft}25)`,
+                border: `2px solid ${palette.brandPrimaryStrong}30`,
+                marginBottom: '3rem',
+                boxShadow: '0 8px 24px rgba(15, 23, 42, 0.1)',
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+            >
+              {/* Decorative background elements */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '-50%',
+                  right: '-10%',
+                  width: '200px',
+                  height: '200px',
+                  borderRadius: '50%',
+                  background: `${palette.brandPrimaryStrong}10`,
+                  filter: 'blur(40px)',
+                  zIndex: 0,
+                }}
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '-50%',
+                  left: '-10%',
+                  width: '200px',
+                  height: '200px',
+                  borderRadius: '50%',
+                  background: `${palette.brandSecondarySoft}15`,
+                  filter: 'blur(40px)',
+                  zIndex: 0,
+                }}
+              />
+              <div
+                style={{
+                  position: 'relative',
+                  zIndex: 1,
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.75rem',
+                    marginBottom: '1.25rem',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  <svg
+                    width="36"
+                    height="36"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    style={{
+                      color: palette.brandPrimaryStrong,
+                      flexShrink: 0,
+                      animation: 'pulse 2s ease-in-out infinite',
+                    }}
+                  >
+                    <style>
+                      {`
+                        @keyframes pulse {
+                          0%, 100% { opacity: 1; transform: scale(1); }
+                          50% { opacity: 0.8; transform: scale(1.05); }
+                        }
+                      `}
+                    </style>
+                    <path
+                      d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <h1
+                    style={{
+                      margin: 0,
+                      fontSize: '2rem',
+                      fontWeight: 700,
+                      color: palette.brandPrimaryStrong,
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {partnershipBanner}
+                  </h1>
+                </div>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: '1.1rem',
+                    color: palette.textSecondary,
+                    lineHeight: 1.7,
+                    maxWidth: '800px',
+                    marginLeft: 'auto',
+                    marginRight: 'auto',
+                  }}
+                >
+                  {partnershipDescription}
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Homepage Sections with Icons */}
