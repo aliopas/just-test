@@ -1300,64 +1300,6 @@ export function PublicLandingPage() {
               textAlign: 'center',
             }}
           >
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1.25rem',
-                textAlign: isArabic ? 'right' : 'left',
-                maxWidth: '800px',
-              }}
-            >
-              <h1
-                style={{
-                  margin: 0,
-                  fontSize: '2.75rem',
-                  fontWeight: 800,
-                  lineHeight: 1.15,
-                }}
-                className="section-title"
-              >
-                {heroTitle}
-              </h1>
-              <div
-                style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: '0.75rem',
-                  justifyContent: isArabic ? 'flex-end' : 'flex-start',
-                }}
-              >
-                <Link
-                  to="/register"
-                  style={{
-                    padding: '0.85rem 1.75rem',
-                    borderRadius: '1rem',
-                    background: palette.brandPrimaryStrong,
-                    color: palette.textOnBrand,
-                    fontWeight: 700,
-                    textDecoration: 'none',
-                    fontSize: '1rem',
-                  }}
-                >
-                  {primaryCtaLabel}
-                </Link>
-                <Link
-                  to="/login"
-                  style={{
-                    padding: '0.85rem 1.5rem',
-                    borderRadius: '1rem',
-                    border: `1px solid ${palette.neutralBorderSoft}`,
-                    color: palette.textPrimary,
-                    fontWeight: 600,
-                    textDecoration: 'none',
-                    background: palette.backgroundSurface,
-                  }}
-                >
-                  {secondaryCtaLabel}
-                </Link>
-              </div>
-            </div>
           </div>
 
           {/* Homepage Sections with Icons */}
