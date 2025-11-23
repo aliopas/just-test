@@ -1359,6 +1359,111 @@ export function PublicLandingPage() {
               </div>
             </div>
           </div>
+
+          {/* Homepage Sections with Icons */}
+          {!isSectionsLoading && !isSectionsError && homepageSections.length > 0 && (
+            <div
+              style={{
+                width: '100%',
+                maxWidth: '1200px',
+                marginTop: '4rem',
+                paddingTop: '3rem',
+                borderTop: `1px solid ${palette.neutralBorderSoft}`,
+              }}
+            >
+              <h2
+                style={{
+                  margin: 0,
+                  marginBottom: '2rem',
+                  fontSize: '2rem',
+                  fontWeight: 700,
+                  color: palette.textPrimary,
+                  textAlign: 'center',
+                }}
+                className="section-title"
+              >
+                {isArabic ? 'معلومات عن الشركة' : 'Company Information'}
+              </h2>
+              <div
+                style={{
+                  display: 'grid',
+                  gap: '1.5rem',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+                }}
+              >
+                {homepageSections.map((section) => {
+                  const title = isArabic ? section.titleAr : section.titleEn;
+                  const IconComponent = section.iconSvg ? (
+                    <div
+                      dangerouslySetInnerHTML={{ __html: section.iconSvg }}
+                      style={{
+                        width: '48px',
+                        height: '48px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    />
+                  ) : (
+                    <DefaultSectionIcon type={section.type} />
+                  );
+
+                  return (
+                    <div
+                      key={section.id}
+                      style={{
+                        ...featureCardStyle,
+                        padding: '1.5rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.75rem',
+                        alignItems: 'center',
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-4px)';
+                        e.currentTarget.style.boxShadow = '0 12px 24px rgba(15, 23, 42, 0.12)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 12px 24px rgba(15, 23, 42, 0.08)';
+                      }}
+                      onClick={() => {
+                        setOpenSection(section);
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: '64px',
+                          height: '64px',
+                          borderRadius: '1rem',
+                          background: `${palette.brandSecondarySoft}40`,
+                          marginBottom: '0.5rem',
+                        }}
+                      >
+                        {IconComponent}
+                      </div>
+                      <span
+                        style={{
+                          fontSize: '0.95rem',
+                          fontWeight: 600,
+                          color: palette.textPrimary,
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        {title}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </section>
 
         {/* Features Section with Animated Icons */}
