@@ -1,7 +1,7 @@
 {
-  "name": "Bakurah Investors Portal",
-  "short_name": "Bakurah",
-  "description": "Secure platform for managing investment requests, tracking portfolio performance, and staying updated with market news and insights.",
+  "name": "شركاء باكورة ",
+  "short_name": "شركاء باكورة",
+  "description": "شركاء باكورة - منصة آمنة لإدارة طلبات الاستثمار ومتابعة أداء المحفظة والاطلاع على آخر الأخبار والرؤى السوقية.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
