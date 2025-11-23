@@ -5,8 +5,8 @@ import { palette } from '../styles/theme';
 import {
   useAdminHomepageSections,
   useUpdateHomepageSectionMutation,
-  type HomepageSection,
 } from '../hooks/useAdminHomepageSections';
+import type { HomepageSection } from '../hooks/useHomepageSections';
 
 export function AdminHomepageSectionsPage() {
   const { language, direction } = useLanguage();
