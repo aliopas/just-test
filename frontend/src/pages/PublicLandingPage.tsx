@@ -137,7 +137,7 @@ const JourneyIcon = () => (
 );
 
 const heroSectionStyle: React.CSSProperties = {
-  padding: '5rem 2rem',
+  padding: '3rem 2rem',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
@@ -2005,11 +2005,11 @@ export function PublicLandingPage() {
               className="partnership-banner"
               style={{
                 width: '100%',
-                padding: '3rem 2.5rem',
+                padding: '2rem 2rem',
                 borderRadius: '1.75rem',
                 background: `linear-gradient(135deg, ${palette.brandPrimaryStrong}12, ${palette.brandSecondarySoft}20, ${palette.brandPrimaryStrong}08)`,
                 border: `2px solid ${palette.brandPrimaryStrong}25`,
-                marginBottom: '4rem',
+                marginBottom: '2.5rem',
                 boxShadow: '0 12px 40px rgba(15, 23, 42, 0.08), 0 4px 16px rgba(15, 23, 42, 0.04)',
                 position: 'relative',
                 overflow: 'hidden',
@@ -2143,8 +2143,8 @@ export function PublicLandingPage() {
               style={{
                 width: '100%',
                 maxWidth: '1200px',
-                marginTop: '4rem',
-                paddingTop: '3rem',
+                marginTop: '2.5rem',
+                paddingTop: '2rem',
                 borderTop: `1px solid ${palette.neutralBorderSoft}`,
               }}
             >
