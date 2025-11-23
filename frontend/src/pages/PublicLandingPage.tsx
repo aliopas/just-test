@@ -137,21 +137,23 @@ const JourneyIcon = () => (
 );
 
 const heroSectionStyle: React.CSSProperties = {
-  padding: '4rem 2rem',
+  padding: '5rem 2rem',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
   gap: '2rem',
   textAlign: 'center',
-  background: `linear-gradient(135deg, ${palette.brandSecondarySoft}, ${palette.backgroundSurface})`,
+  background: `linear-gradient(180deg, ${palette.brandSecondarySoft}08 0%, ${palette.backgroundSurface} 50%, ${palette.backgroundBase} 100%)`,
+  position: 'relative',
+  overflow: 'hidden',
 };
 
 const sectionStyle: React.CSSProperties = {
-  padding: '3rem 2rem',
-  maxWidth: '960px',
+  padding: '4rem 2rem',
+  maxWidth: '1200px',
   margin: '0 auto',
   display: 'grid',
-  gap: '1.5rem',
+  gap: '2rem',
 };
 
 // Mobile responsive styles
@@ -274,10 +276,11 @@ const mobileStyles = `
 
 const featureCardStyle: React.CSSProperties = {
   padding: '1.75rem',
-  borderRadius: '1rem',
+  borderRadius: '1.25rem',
   border: `1px solid ${palette.neutralBorderSoft}`,
   background: palette.backgroundSurface,
-  boxShadow: '0 12px 24px rgba(15, 23, 42, 0.08)',
+  boxShadow: '0 4px 16px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(15, 23, 42, 0.04)',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
 };
 
 const navLinkStyle: React.CSSProperties = {
@@ -1029,23 +1032,25 @@ export function PublicLandingPage() {
           key={item.id}
           className="news-card"
           style={{
-            borderRadius: '1.25rem',
-            border: `1px solid ${palette.neutralBorderSoft}`,
+            borderRadius: '1.5rem',
+            border: `1.5px solid ${palette.neutralBorderSoft}`,
             background: palette.backgroundSurface,
             overflow: 'hidden',
-            boxShadow: '0 4px 20px rgba(4, 44, 84, 0.08)',
+            boxShadow: '0 4px 16px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(15, 23, 42, 0.04)',
             display: 'flex',
             flexDirection: 'column',
-            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
             cursor: 'pointer',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-4px)';
-            e.currentTarget.style.boxShadow = '0 8px 32px rgba(4, 44, 84, 0.15)';
+            e.currentTarget.style.transform = 'translateY(-8px) scale(1.02)';
+            e.currentTarget.style.boxShadow = '0 24px 48px rgba(15, 23, 42, 0.12), 0 8px 16px rgba(15, 23, 42, 0.08)';
+            e.currentTarget.style.borderColor = `${palette.brandPrimaryStrong}30`;
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 4px 20px rgba(4, 44, 84, 0.08)';
+            e.currentTarget.style.transform = 'translateY(0) scale(1)';
+            e.currentTarget.style.boxShadow = '0 4px 16px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(15, 23, 42, 0.04)';
+            e.currentTarget.style.borderColor = palette.neutralBorderSoft;
           }}
           onClick={() => window.location.href = '/login'}
         >
@@ -1131,20 +1136,25 @@ export function PublicLandingPage() {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '0.5rem',
-                  padding: '0.65rem 1.25rem',
-                  borderRadius: '0.75rem',
-                  background: palette.brandPrimaryStrong,
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '0.875rem',
+                  background: `linear-gradient(135deg, ${palette.brandPrimaryStrong}, ${palette.brandPrimary})`,
                   color: palette.textOnBrand,
                   fontWeight: 600,
                   textDecoration: 'none',
-                  fontSize: '0.9rem',
-                  transition: 'background 0.2s ease',
+                  fontSize: '0.95rem',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = palette.brandPrimary;
+                  e.currentTarget.style.background = `linear-gradient(135deg, ${palette.brandPrimary}, ${palette.brandPrimaryStrong})`;
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 8px 20px rgba(15, 23, 42, 0.2)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = palette.brandPrimaryStrong;
+                  e.currentTarget.style.background = `linear-gradient(135deg, ${palette.brandPrimaryStrong}, ${palette.brandPrimary})`;
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(15, 23, 42, 0.15)';
                 }}
               >
                 {readMoreLabel}
@@ -1194,8 +1204,10 @@ export function PublicLandingPage() {
           position: 'sticky',
           top: 0,
           zIndex: 100,
-          background: palette.backgroundBase,
-          borderBottom: `1px solid ${palette.neutralBorderSoft}`,
+          background: `${palette.backgroundBase}E6`,
+          backdropFilter: 'blur(12px)',
+          borderBottom: `1.5px solid ${palette.neutralBorderSoft}`,
+          boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
         }}
         dir={isArabic ? 'rtl' : 'ltr'}
       >
@@ -1317,16 +1329,27 @@ export function PublicLandingPage() {
           <Link
             to="/register"
             style={{
-              padding: '0.65rem 1.25rem',
-              borderRadius: '999px',
-              border: `1px solid ${palette.brandSecondaryMuted}`,
+              padding: '0.75rem 1.5rem',
+              borderRadius: '0.875rem',
+              border: `1.5px solid ${palette.brandSecondaryMuted}`,
               color: palette.brandPrimaryStrong,
-              background: `${palette.brandSecondarySoft}40`,
+              background: `${palette.brandSecondarySoft}30`,
               fontWeight: 600,
               textDecoration: 'none',
               minHeight: '44px',
               display: 'inline-flex',
               alignItems: 'center',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = `${palette.brandSecondarySoft}50`;
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(15, 23, 42, 0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = `${palette.brandSecondarySoft}30`;
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'none';
             }}
           >
             {primaryCtaLabel}
@@ -1335,15 +1358,27 @@ export function PublicLandingPage() {
             to="/login"
             style={{
               padding: '0.75rem 1.5rem',
-              borderRadius: '999px',
-              border: `1px solid ${palette.brandPrimaryStrong}`,
-              background: palette.brandPrimaryStrong,
+              borderRadius: '0.875rem',
+              border: `1.5px solid ${palette.brandPrimaryStrong}`,
+              background: `linear-gradient(135deg, ${palette.brandPrimaryStrong}, ${palette.brandPrimary})`,
               color: palette.textOnBrand,
               fontWeight: 600,
               textDecoration: 'none',
               minHeight: '44px',
               display: 'inline-flex',
               alignItems: 'center',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = `linear-gradient(135deg, ${palette.brandPrimary}, ${palette.brandPrimaryStrong})`;
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 8px 20px rgba(15, 23, 42, 0.2)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = `linear-gradient(135deg, ${palette.brandPrimaryStrong}, ${palette.brandPrimary})`;
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(15, 23, 42, 0.15)';
             }}
           >
             {ctaLabel}
@@ -1502,14 +1537,15 @@ export function PublicLandingPage() {
               className="partnership-banner"
               style={{
                 width: '100%',
-                padding: '2.5rem 2rem',
-                borderRadius: '1.5rem',
-                background: `linear-gradient(135deg, ${palette.brandPrimaryStrong}15, ${palette.brandSecondarySoft}25)`,
-                border: `2px solid ${palette.brandPrimaryStrong}30`,
-                marginBottom: '3rem',
-                boxShadow: '0 8px 24px rgba(15, 23, 42, 0.1)',
+                padding: '3rem 2.5rem',
+                borderRadius: '1.75rem',
+                background: `linear-gradient(135deg, ${palette.brandPrimaryStrong}12, ${palette.brandSecondarySoft}20, ${palette.brandPrimaryStrong}08)`,
+                border: `2px solid ${palette.brandPrimaryStrong}25`,
+                marginBottom: '4rem',
+                boxShadow: '0 12px 40px rgba(15, 23, 42, 0.08), 0 4px 16px rgba(15, 23, 42, 0.04)',
                 position: 'relative',
                 overflow: 'hidden',
+                backdropFilter: 'blur(10px)',
               }}
             >
               {/* Decorative background elements */}
@@ -1647,11 +1683,16 @@ export function PublicLandingPage() {
               <h2
                 style={{
                   margin: 0,
-                  marginBottom: '2rem',
-                  fontSize: '2rem',
+                  marginBottom: '3rem',
+                  fontSize: '2.25rem',
                   fontWeight: 700,
                   color: palette.textPrimary,
                   textAlign: 'center',
+                  background: `linear-gradient(135deg, ${palette.brandPrimaryStrong}, ${palette.brandSecondaryMuted})`,
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  letterSpacing: '-0.02em',
                 }}
                 className="section-title"
               >
@@ -1688,25 +1729,28 @@ export function PublicLandingPage() {
                       className="homepage-section-card"
                       style={{
                         ...featureCardStyle,
-                        padding: '1.75rem 1.5rem',
+                        padding: '2rem 1.5rem',
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '1rem',
+                        gap: '1.25rem',
                         alignItems: 'center',
                         textAlign: 'center',
                         cursor: 'pointer',
-                        transition: 'transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease',
-                        minHeight: '180px',
+                        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                        minHeight: '200px',
+                        border: `1.5px solid ${palette.neutralBorderSoft}`,
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-6px)';
-                        e.currentTarget.style.boxShadow = '0 16px 32px rgba(15, 23, 42, 0.15)';
-                        e.currentTarget.style.background = `${palette.brandSecondarySoft}20`;
+                        e.currentTarget.style.transform = 'translateY(-8px) scale(1.02)';
+                        e.currentTarget.style.boxShadow = '0 20px 48px rgba(15, 23, 42, 0.12), 0 8px 16px rgba(15, 23, 42, 0.08)';
+                        e.currentTarget.style.background = `${palette.brandSecondarySoft}15`;
+                        e.currentTarget.style.borderColor = `${palette.brandPrimaryStrong}30`;
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 12px 24px rgba(15, 23, 42, 0.08)';
+                        e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                        e.currentTarget.style.boxShadow = '0 4px 16px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(15, 23, 42, 0.04)';
                         e.currentTarget.style.background = palette.backgroundSurface;
+                        e.currentTarget.style.borderColor = palette.neutralBorderSoft;
                       }}
                       onClick={() => {
                         setOpenSection(section);
@@ -1718,20 +1762,23 @@ export function PublicLandingPage() {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          width: '80px',
-                          height: '80px',
-                          borderRadius: '1.25rem',
-                          background: `${palette.brandSecondarySoft}40`,
-                          marginBottom: '0.5rem',
-                          transition: 'transform 0.3s ease, background 0.3s ease',
+                          width: '88px',
+                          height: '88px',
+                          borderRadius: '1.5rem',
+                          background: `linear-gradient(135deg, ${palette.brandSecondarySoft}50, ${palette.brandPrimaryStrong}20)`,
+                          marginBottom: '0.75rem',
+                          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                          boxShadow: '0 4px 12px rgba(15, 23, 42, 0.08)',
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = 'scale(1.1)';
-                          e.currentTarget.style.background = `${palette.brandSecondarySoft}60`;
+                          e.currentTarget.style.transform = 'scale(1.15) rotate(5deg)';
+                          e.currentTarget.style.background = `linear-gradient(135deg, ${palette.brandSecondarySoft}70, ${palette.brandPrimaryStrong}30)`;
+                          e.currentTarget.style.boxShadow = '0 8px 20px rgba(15, 23, 42, 0.15)';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'scale(1)';
-                          e.currentTarget.style.background = `${palette.brandSecondarySoft}40`;
+                          e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
+                          e.currentTarget.style.background = `linear-gradient(135deg, ${palette.brandSecondarySoft}50, ${palette.brandPrimaryStrong}20)`;
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(15, 23, 42, 0.08)';
                         }}
                       >
                         {IconComponent}
@@ -1777,10 +1824,15 @@ export function PublicLandingPage() {
             <h2
               style={{
                 margin: 0,
-                fontSize: '2rem',
+                fontSize: '2.25rem',
                 fontWeight: 700,
                 color: palette.textPrimary,
-                marginBottom: '0.75rem',
+                marginBottom: '1rem',
+                background: `linear-gradient(135deg, ${palette.brandPrimaryStrong}, ${palette.brandSecondaryMuted})`,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                letterSpacing: '-0.02em',
               }}
               className="section-title"
             >
@@ -1802,21 +1854,26 @@ export function PublicLandingPage() {
                   className="feature-card"
                   style={{
                     ...featureCardStyle,
-                    padding: '2rem',
+                    padding: '2.5rem 2rem',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '1.25rem',
+                    gap: '1.5rem',
                     alignItems: 'center',
                     textAlign: 'center',
-                    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                    border: `1.5px solid ${palette.neutralBorderSoft}`,
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-8px)';
-                    e.currentTarget.style.boxShadow = '0 16px 32px rgba(15, 23, 42, 0.12)';
+                    e.currentTarget.style.transform = 'translateY(-10px) scale(1.02)';
+                    e.currentTarget.style.boxShadow = '0 24px 48px rgba(15, 23, 42, 0.12), 0 8px 16px rgba(15, 23, 42, 0.08)';
+                    e.currentTarget.style.borderColor = `${palette.brandPrimaryStrong}30`;
+                    e.currentTarget.style.background = `${palette.brandSecondarySoft}08`;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 12px 24px rgba(15, 23, 42, 0.08)';
+                    e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                    e.currentTarget.style.boxShadow = '0 4px 16px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(15, 23, 42, 0.04)';
+                    e.currentTarget.style.borderColor = palette.neutralBorderSoft;
+                    e.currentTarget.style.background = palette.backgroundSurface;
                   }}
                 >
                   <div
@@ -1824,11 +1881,21 @@ export function PublicLandingPage() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      width: '80px',
-                      height: '80px',
-                      borderRadius: '1rem',
-                      background: `${palette.brandSecondarySoft}40`,
-                      marginBottom: '0.5rem',
+                      width: '96px',
+                      height: '96px',
+                      borderRadius: '1.5rem',
+                      background: `linear-gradient(135deg, ${palette.brandSecondarySoft}50, ${palette.brandPrimaryStrong}20)`,
+                      marginBottom: '0.75rem',
+                      boxShadow: '0 4px 12px rgba(15, 23, 42, 0.08)',
+                      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'scale(1.1) rotate(5deg)';
+                      e.currentTarget.style.boxShadow = '0 8px 20px rgba(15, 23, 42, 0.15)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(15, 23, 42, 0.08)';
                     }}
                   >
                     <IconComponent />
@@ -1870,8 +1937,13 @@ export function PublicLandingPage() {
             <h2
               style={{
                 margin: 0,
-                fontSize: '2rem',
+                fontSize: '2.25rem',
                 fontWeight: 700,
+                background: `linear-gradient(135deg, ${palette.brandPrimaryStrong}, ${palette.brandSecondaryMuted})`,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                letterSpacing: '-0.02em',
               }}
               className="section-title"
             >
@@ -1936,6 +2008,18 @@ export function PublicLandingPage() {
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '1.5rem',
+                      border: `1.5px solid ${palette.neutralBorderSoft}`,
+                      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-8px) scale(1.02)';
+                      e.currentTarget.style.boxShadow = '0 24px 48px rgba(15, 23, 42, 0.12), 0 8px 16px rgba(15, 23, 42, 0.08)';
+                      e.currentTarget.style.borderColor = `${palette.brandPrimaryStrong}30`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                      e.currentTarget.style.boxShadow = '0 4px 16px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(15, 23, 42, 0.04)';
+                      e.currentTarget.style.borderColor = palette.neutralBorderSoft;
                     }}
                   >
                     {projectCoverUrl && (
@@ -2109,21 +2193,26 @@ export function PublicLandingPage() {
                       to="/register"
                       style={{
                         marginTop: '1rem',
-                        padding: '0.85rem 1.5rem',
-                        borderRadius: '0.75rem',
-                        background: palette.brandPrimaryStrong,
+                        padding: '1rem 1.75rem',
+                        borderRadius: '0.875rem',
+                        background: `linear-gradient(135deg, ${palette.brandPrimaryStrong}, ${palette.brandPrimary})`,
                         color: palette.textOnBrand,
                         fontWeight: 600,
                         textDecoration: 'none',
                         textAlign: 'center',
                         display: 'block',
-                        transition: 'background 0.2s ease',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)',
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = palette.brandPrimary;
+                        e.currentTarget.style.background = `linear-gradient(135deg, ${palette.brandPrimary}, ${palette.brandPrimaryStrong})`;
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 8px 20px rgba(15, 23, 42, 0.2)';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.background = palette.brandPrimaryStrong;
+                        e.currentTarget.style.background = `linear-gradient(135deg, ${palette.brandPrimaryStrong}, ${palette.brandPrimary})`;
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(15, 23, 42, 0.15)';
                       }}
                     >
                       {isArabic ? 'سجل للاستثمار' : 'Register to Invest'}
@@ -2154,10 +2243,15 @@ export function PublicLandingPage() {
             <h2
               style={{
                 margin: 0,
-                fontSize: '2rem',
+                fontSize: '2.25rem',
                 fontWeight: 700,
                 color: palette.textPrimary,
-                marginBottom: '0.75rem',
+                marginBottom: '1rem',
+                background: `linear-gradient(135deg, ${palette.brandPrimaryStrong}, ${palette.brandSecondaryMuted})`,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                letterSpacing: '-0.02em',
               }}
               className="section-title"
             >
@@ -2206,10 +2300,11 @@ export function PublicLandingPage() {
             style={{
               marginTop: '3rem',
               textAlign: 'center',
-              borderRadius: '1.5rem',
-              border: `1px solid ${palette.neutralBorderSoft}`,
-              padding: '2rem',
-              background: palette.backgroundSurface,
+              borderRadius: '1.75rem',
+              border: `1.5px solid ${palette.neutralBorderSoft}`,
+              padding: '2.5rem 2rem',
+              background: `linear-gradient(135deg, ${palette.backgroundSurface}, ${palette.brandSecondarySoft}05)`,
+              boxShadow: '0 4px 16px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(15, 23, 42, 0.04)',
             }}
           >
             <p
@@ -2227,13 +2322,25 @@ export function PublicLandingPage() {
               to="/register"
               style={{
                 display: 'inline-flex',
-                marginTop: '1rem',
-                padding: '0.85rem 1.5rem',
-                borderRadius: '999px',
-                background: palette.brandPrimaryStrong,
+                marginTop: '1.25rem',
+                padding: '1rem 1.75rem',
+                borderRadius: '0.875rem',
+                background: `linear-gradient(135deg, ${palette.brandPrimaryStrong}, ${palette.brandPrimary})`,
                 color: palette.textOnBrand,
                 fontWeight: 600,
                 textDecoration: 'none',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = `linear-gradient(135deg, ${palette.brandPrimary}, ${palette.brandPrimaryStrong})`;
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 8px 20px rgba(15, 23, 42, 0.2)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = `linear-gradient(135deg, ${palette.brandPrimaryStrong}, ${palette.brandPrimary})`;
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(15, 23, 42, 0.15)';
               }}
             >
               {newsroomCtaLabel}
