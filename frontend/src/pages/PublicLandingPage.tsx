@@ -495,6 +495,76 @@ function DefaultSectionIcon({ type }: { type: HomepageSection['type'] }) {
   return icons[type] || icons.company_profile;
 }
 
+// Animated Icon Components for Modal
+const AnimatedSparkleIcon = ({ delay = 0 }: { delay?: number }) => (
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 64 64"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    style={{
+      animation: `scale 2s ease-in-out infinite`,
+      animationDelay: `${delay}s`,
+      opacity: 0.3,
+    }}
+  >
+    <circle cx="32" cy="32" r="8" fill={palette.brandPrimaryStrong}>
+      <animate attributeName="opacity" values="0.3;0.8;0.3" dur="2s" repeatCount="indefinite" />
+    </circle>
+    <path d="M32 16L36 28L48 28L38 36L42 48L32 40L22 48L26 36L16 28L28 28L32 16Z" fill={palette.brandSecondaryMuted} opacity="0.5">
+      <animateTransform
+        attributeName="transform"
+        type="rotate"
+        values="0 32 32;360 32 32"
+        dur="8s"
+        repeatCount="indefinite"
+      />
+    </path>
+  </svg>
+);
+
+const AnimatedCircleIcon = ({ delay = 0, size = 16 }: { delay?: number; size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 64 64"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    style={{
+      animation: `pulse 2.5s ease-in-out infinite`,
+      animationDelay: `${delay}s`,
+      opacity: 0.25,
+    }}
+  >
+    <circle cx="32" cy="32" r="12" stroke={palette.brandPrimaryStrong} strokeWidth="2">
+      <animate attributeName="r" values="12;16;12" dur="2.5s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="32" cy="32" r="6" fill={palette.brandSecondaryMuted}>
+      <animate attributeName="opacity" values="0.5;1;0.5" dur="2.5s" repeatCount="indefinite" />
+    </circle>
+  </svg>
+);
+
+const AnimatedDiamondIcon = ({ delay = 0 }: { delay?: number }) => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 64 64"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    style={{
+      animation: `rotate 6s linear infinite`,
+      animationDelay: `${delay}s`,
+      opacity: 0.2,
+    }}
+  >
+    <rect x="20" y="20" width="24" height="24" transform="rotate(45 32 32)" fill={palette.brandPrimaryStrong}>
+      <animate attributeName="opacity" values="0.2;0.5;0.2" dur="3s" repeatCount="indefinite" />
+    </rect>
+  </svg>
+);
+
 // Section Modal Component
 interface SectionModalProps {
   section: HomepageSection | null;
@@ -595,6 +665,43 @@ function SectionModal({ section, isOpen, onClose, isArabic }: SectionModalProps)
               opacity: 0.7;
             }
           }
+          @keyframes rotate {
+            from {
+              transform: rotate(0deg);
+            }
+            to {
+              transform: rotate(360deg);
+            }
+          }
+          @keyframes bounce {
+            0%, 100% {
+              transform: translateY(0);
+            }
+            50% {
+              transform: translateY(-15px);
+            }
+          }
+          @keyframes scale {
+            0%, 100% {
+              transform: scale(1);
+            }
+            50% {
+              transform: scale(1.2);
+            }
+          }
+          @keyframes slide {
+            0% {
+              transform: translateX(-20px);
+              opacity: 0;
+            }
+            50% {
+              opacity: 1;
+            }
+            100% {
+              transform: translateX(20px);
+              opacity: 0;
+            }
+          }
         `}
       </style>
       <div
@@ -667,8 +774,35 @@ function SectionModal({ section, isOpen, onClose, isArabic }: SectionModalProps)
             zIndex: 1,
             background: `linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%)`,
             borderBottom: `1px solid ${palette.neutralBorderSoft}30`,
+            overflow: 'hidden',
           }}
         >
+          {/* Animated Icons in Header */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '1rem',
+              [isArabic ? 'left' : 'right']: '1rem',
+              opacity: 0.1,
+              zIndex: 0,
+              animation: 'float 4s ease-in-out infinite',
+            }}
+          >
+            <AnimatedSparkleIcon delay={0} />
+          </div>
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '1rem',
+              [isArabic ? 'right' : 'left']: '1rem',
+              opacity: 0.08,
+              zIndex: 0,
+              animation: 'float 3.5s ease-in-out infinite',
+              animationDelay: '1s',
+            }}
+          >
+            <AnimatedCircleIcon delay={0.5} size={20} />
+          </div>
           <div
             style={{
               display: 'flex',
@@ -826,8 +960,135 @@ function SectionModal({ section, isOpen, onClose, isArabic }: SectionModalProps)
             position: 'relative',
             zIndex: 1,
             background: `linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.02) 100%)`,
+            overflow: 'hidden',
           }}
         >
+          {/* Animated Decorative Icons */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '2rem',
+              [isArabic ? 'left' : 'right']: '2rem',
+              width: '60px',
+              height: '60px',
+              opacity: 0.15,
+              zIndex: 0,
+              animation: 'rotate 20s linear infinite',
+            }}
+          >
+            <svg width="60" height="60" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="32" cy="32" r="28" stroke={palette.brandPrimaryStrong} strokeWidth="2" strokeDasharray="4 4" />
+              <circle cx="32" cy="32" r="20" stroke={palette.brandSecondaryMuted} strokeWidth="1.5" strokeDasharray="3 3" />
+              <circle cx="32" cy="32" r="12" stroke={palette.brandPrimaryStrong} strokeWidth="1" />
+            </svg>
+          </div>
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '3rem',
+              [isArabic ? 'right' : 'left']: '3rem',
+              width: '48px',
+              height: '48px',
+              opacity: 0.12,
+              zIndex: 0,
+              animation: 'bounce 3s ease-in-out infinite',
+            }}
+          >
+            <svg width="48" height="48" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M32 8L40 24L56 24L44 36L48 52L32 44L16 52L20 36L8 24L24 24L32 8Z" fill={palette.brandPrimaryStrong} />
+            </svg>
+          </div>
+          <div
+            style={{
+              position: 'absolute',
+              top: '50%',
+              [isArabic ? 'right' : 'left']: '1rem',
+              transform: 'translateY(-50%)',
+              width: '40px',
+              height: '40px',
+              opacity: 0.1,
+              zIndex: 0,
+              animation: 'scale 2s ease-in-out infinite',
+            }}
+          >
+            <svg width="40" height="40" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="16" y="16" width="32" height="32" rx="4" stroke={palette.brandSecondaryMuted} strokeWidth="2" />
+              <rect x="24" y="24" width="16" height="16" rx="2" fill={palette.brandPrimaryStrong} />
+            </svg>
+          </div>
+          <div
+            style={{
+              position: 'absolute',
+              top: '1rem',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '36px',
+              height: '36px',
+              opacity: 0.08,
+              zIndex: 0,
+              animation: 'slide 4s ease-in-out infinite',
+            }}
+          >
+            <svg width="36" height="36" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M32 12L44 20V32L32 40L20 32V20L32 12Z" fill={palette.brandPrimaryStrong} />
+              <path d="M32 24L38 28V36L32 40L26 36V28L32 24Z" fill={palette.brandSecondaryMuted} />
+            </svg>
+          </div>
+
+          {/* Floating Icons */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '4rem',
+              [isArabic ? 'right' : 'left']: '4rem',
+              width: '32px',
+              height: '32px',
+              opacity: 0.2,
+              zIndex: 0,
+              animation: 'float 4s ease-in-out infinite',
+              animationDelay: '0.5s',
+            }}
+          >
+            <svg width="32" height="32" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="32" cy="32" r="12" fill={palette.brandPrimaryStrong} />
+              <circle cx="32" cy="32" r="6" fill={palette.backgroundSurface} />
+            </svg>
+          </div>
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '5rem',
+              [isArabic ? 'left' : 'right']: '5rem',
+              width: '28px',
+              height: '28px',
+              opacity: 0.18,
+              zIndex: 0,
+              animation: 'float 3.5s ease-in-out infinite',
+              animationDelay: '1s',
+            }}
+          >
+            <svg width="28" height="28" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M32 8L36 24L52 24L40 32L44 48L32 40L20 48L24 32L12 24L28 24L32 8Z" fill={palette.brandSecondaryMuted} />
+            </svg>
+          </div>
+          <div
+            style={{
+              position: 'absolute',
+              top: '6rem',
+              [isArabic ? 'left' : 'right']: '6rem',
+              width: '24px',
+              height: '24px',
+              opacity: 0.15,
+              zIndex: 0,
+              animation: 'rotate 15s linear infinite',
+            }}
+          >
+            <svg width="24" height="24" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="20" y="20" width="24" height="24" rx="2" stroke={palette.brandPrimaryStrong} strokeWidth="2" />
+              <rect x="28" y="28" width="8" height="8" rx="1" fill={palette.brandSecondaryMuted} />
+            </svg>
+          </div>
+
           <div
             style={{
               position: 'relative',
@@ -835,8 +1096,51 @@ function SectionModal({ section, isOpen, onClose, isArabic }: SectionModalProps)
               paddingRight: isArabic ? '1.5rem' : 0,
               borderLeft: isArabic ? 'none' : `3px solid ${palette.brandPrimaryStrong}30`,
               borderRight: isArabic ? `3px solid ${palette.brandPrimaryStrong}30` : 'none',
+              zIndex: 1,
             }}
           >
+            {/* Inline Animated Icons */}
+            <div
+              style={{
+                position: 'absolute',
+                top: '-0.5rem',
+                [isArabic ? 'right' : 'left']: '-2rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem',
+                zIndex: 0,
+              }}
+            >
+              <AnimatedSparkleIcon delay={0} />
+              <AnimatedCircleIcon delay={0.3} size={14} />
+              <AnimatedDiamondIcon delay={0.6} />
+            </div>
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '-0.5rem',
+                [isArabic ? 'left' : 'right']: '-2rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem',
+                zIndex: 0,
+              }}
+            >
+              <AnimatedCircleIcon delay={0.2} size={12} />
+              <AnimatedSparkleIcon delay={0.5} />
+              <AnimatedDiamondIcon delay={0.8} />
+            </div>
+            <div
+              style={{
+                position: 'absolute',
+                top: '50%',
+                [isArabic ? 'left' : 'right']: '-1.5rem',
+                transform: 'translateY(-50%)',
+                zIndex: 0,
+              }}
+            >
+              <AnimatedCircleIcon delay={0.4} size={16} />
+            </div>
             {content}
           </div>
         </div>
