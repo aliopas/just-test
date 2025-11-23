@@ -740,7 +740,7 @@ export function PublicLandingPage() {
   }, [openSection]);
 
   const heroTitle = isArabic
-    ? 'باكورة التقنيات'
+    ? 'شركاء باكورة'
     : 'Bakura tec';
 
   const partnershipBanner = isArabic
@@ -748,7 +748,7 @@ export function PublicLandingPage() {
     : 'Platform Exclusively for Bakura Partners - Advanced tools and exclusive investment opportunities';
 
   const partnershipDescription = isArabic
-    ? 'نرحب بشركائنا في منصة باكورة التقنيات، حيث نوفر بيئة متكاملة للاستثمار وإدارة المحافظ الاستثمارية مع أدوات تحليلية متقدمة وفرص استثمارية حصرية.'
+    ? 'نرحب بشركائنا في منصة شركاء باكورة، حيث نوفر بيئة متكاملة للاستثمار وإدارة المحافظ الاستثمارية مع أدوات تحليلية متقدمة وفرص استثمارية حصرية.'
     : 'Welcome to Bakura tec platform, where we provide an integrated environment for investment and portfolio management with advanced analytical tools and exclusive investment opportunities.';
 
   const ctaLabel = isArabic ? 'تسجيل الدخول إلى البوابة' : 'Sign in to the portal';
@@ -884,7 +884,7 @@ export function PublicLandingPage() {
 
   const newsTitle = isArabic ? 'أحدث القصص الإخبارية' : 'Latest newsroom highlights';
   const newsEmptyMessage = isArabic
-    ? 'لم يتم نشر أخبار جديدة بعد. تابع باكورة التقنيات للاطلاع على آخر المستجدات.'
+    ? 'لم يتم نشر أخبار جديدة بعد. تابع شركاء باكورة للاطلاع على آخر المستجدات.'
     : 'No newsroom updates are available yet. Follow Bakura tec for upcoming announcements.';
   const newsErrorMessage = isArabic
     ? 'تعذر تحميل الأخبار حالياً. يرجى المحاولة مرة أخرى لاحقاً.'
@@ -2266,7 +2266,7 @@ export function PublicLandingPage() {
               }}
             >
               {isArabic
-                ? 'تابع آخر التحديثات والأخبار لباكورة التقنيات'
+                ? 'تابع آخر التحديثات والأخبار لشركاء باكورة'
                 : 'Stay updated with the latest news and updates from Bakura tec'}
             </p>
           </div>
@@ -2382,7 +2382,7 @@ export function PublicLandingPage() {
               }}
             >
               {isArabic
-                ? 'باكورة التقنيات تربط المستثمرين بقادة الابتكار في المنطقة وتوفر أدوات تحليل عميقة لاتخاذ القرار.'
+                ? 'شركاء باكورة تربط المستثمرين بقادة الابتكار في المنطقة وتوفر أدوات تحليل عميقة لاتخاذ القرار.'
                 : 'Bakura tec connects investors with emerging innovators through rich intelligence and guided workflows.'}
             </p>
           </div>
@@ -2446,7 +2446,7 @@ export function PublicLandingPage() {
         >
           <div>
             {isArabic
-              ? '© ' + new Date().getFullYear().toString() + ' باكورة التقنيات. جميع الحقوق محفوظة.'
+              ? '© ' + new Date().getFullYear().toString() + ' شركاء باكورة. جميع الحقوق محفوظة.'
               : `© ${new Date().toLocaleDateString(undefined, { year: 'numeric' })} Bakura tec. All rights reserved.`}
           </div>
           <div style={{ fontSize: '0.9rem' }}>
