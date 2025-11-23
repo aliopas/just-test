@@ -179,6 +179,10 @@ const mobileStyles = `
       line-height: 1.2 !important;
     }
     
+    .hero-section h2 {
+      font-size: 1.5rem !important;
+    }
+    
     .hero-section p {
       font-size: 1rem !important;
     }
@@ -205,6 +209,22 @@ const mobileStyles = `
       grid-template-columns: 1fr !important;
       gap: 1.5rem !important;
     }
+    
+    /* Homepage sections grid responsive */
+    .homepage-sections-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 1rem !important;
+    }
+    
+    .homepage-section-card {
+      min-height: 160px !important;
+      padding: 1.25rem 1rem !important;
+    }
+    
+    .homepage-section-icon {
+      width: 64px !important;
+      height: 64px !important;
+    }
   }
   
   @media (min-width: 641px) and (max-width: 1024px) {
@@ -218,6 +238,18 @@ const mobileStyles = `
     
     section {
       padding: 2.5rem 1.5rem !important;
+    }
+    
+    /* Homepage sections grid for tablets */
+    .homepage-sections-grid {
+      grid-template-columns: repeat(3, 1fr) !important;
+    }
+  }
+  
+  @media (min-width: 1025px) {
+    /* Homepage sections grid for desktop */
+    .homepage-sections-grid {
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
     }
   }
 `;
@@ -249,53 +281,192 @@ const timelineCardStyle: React.CSSProperties = {
   gap: '0.5rem',
 };
 
-// Default icons for sections
+// Default icons for sections with enhanced animations
 function DefaultSectionIcon({ type }: { type: HomepageSection['type'] }) {
-  const iconSize = 32;
+  const iconSize = 48;
   const iconColor = palette.brandPrimaryStrong;
+  const iconStyle: React.CSSProperties = {
+    width: iconSize,
+    height: iconSize,
+    animation: 'float 3s ease-in-out infinite',
+  };
 
   const icons: Record<HomepageSection['type'], JSX.Element> = {
     company_profile: (
-      <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M20.59 22C20.59 18.13 16.74 15 12 15C7.26 15 3.41 18.13 3.41 22" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <svg width={iconSize} height={iconSize} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style={iconStyle}>
+        <style>
+          {`
+            @keyframes float {
+              0%, 100% { transform: translateY(0px); }
+              50% { transform: translateY(-8px); }
+            }
+          `}
+        </style>
+        <circle cx="32" cy="24" r="10" fill={iconColor} opacity="0.9">
+          <animate attributeName="opacity" values="0.9;1;0.9" dur="2s" repeatCount="indefinite" />
+        </circle>
+        <path d="M16 48C16 40 22 36 32 36C42 36 48 40 48 48" stroke={iconColor} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" opacity="0.8">
+          <animate attributeName="opacity" values="0.8;1;0.8" dur="2.5s" repeatCount="indefinite" />
+        </path>
+        <circle cx="20" cy="20" r="3" fill={iconColor} opacity="0.6">
+          <animate attributeName="r" values="3;4;3" dur="2s" repeatCount="indefinite" />
+        </circle>
+        <circle cx="44" cy="20" r="3" fill={iconColor} opacity="0.6">
+          <animate attributeName="r" values="3;4;3" dur="2.3s" repeatCount="indefinite" />
+        </circle>
       </svg>
     ),
     business_model: (
-      <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M9 22V12H15V22" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <svg width={iconSize} height={iconSize} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style={iconStyle}>
+        <style>
+          {`
+            @keyframes float {
+              0%, 100% { transform: translateY(0px); }
+              50% { transform: translateY(-8px); }
+            }
+          `}
+        </style>
+        <path d="M8 24L32 8L56 24V48C56 50.1217 55.1571 52.1566 53.6569 53.6569C52.1566 55.1571 50.1217 56 48 56H16C13.8783 56 11.8434 55.1571 10.3431 53.6569C8.84285 52.1566 8 50.1217 8 48V24Z" stroke={iconColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none">
+          <animate attributeName="stroke-width" values="2.5;3;2.5" dur="2s" repeatCount="indefinite" />
+        </path>
+        <path d="M24 56V32H40V56" stroke={iconColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <animate attributeName="stroke-width" values="2.5;3;2.5" dur="2s" repeatCount="indefinite" />
+        </path>
+        <circle cx="32" cy="20" r="2" fill={iconColor} opacity="0.8">
+          <animate attributeName="opacity" values="0.8;1;0.8" dur="1.5s" repeatCount="indefinite" />
+        </circle>
       </svg>
     ),
     financial_resources: (
-      <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 2V22M17 5H9.5C8.57174 5 7.6815 5.36875 7.02513 6.02513C6.36875 6.6815 6 7.57174 6 8.5C6 9.42826 6.36875 10.3185 7.02513 10.9749C7.6815 11.6313 8.57174 12 9.5 12H14.5C15.4283 12 16.3185 12.3687 16.9749 13.0251C17.6313 13.6815 18 14.5717 18 15.5C18 16.4283 17.6313 17.3185 16.9749 17.9749C16.3185 18.6313 15.4283 19 14.5 19H6" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <svg width={iconSize} height={iconSize} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style={iconStyle}>
+        <style>
+          {`
+            @keyframes float {
+              0%, 100% { transform: translateY(0px); }
+              50% { transform: translateY(-8px); }
+            }
+          `}
+        </style>
+        <path d="M32 8V56M44 16H26C24.3431 16 22.7531 16.5268 21.4645 17.4645C20.1758 18.4021 19.2594 19.6954 18.8425 21.1547C18.4256 22.614 18.5289 24.1538 19.1371 25.5557C19.7453 26.9576 20.8273 28.1381 22.2143 28.9046C23.6013 29.671 25.2159 30 26.8571 30H37.1429C38.7841 30 40.3987 30.329 41.7857 31.0954C43.1727 31.8619 44.2547 33.0424 44.8629 34.4443C45.4711 35.8462 45.5744 37.386 45.1575 38.8453C44.7406 40.3046 43.8242 41.5979 42.5355 42.5355C41.2469 43.4732 39.6569 44 38 44H20" stroke={iconColor} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+          <animate attributeName="stroke-dasharray" values="0,100;50,50;100,0" dur="3s" repeatCount="indefinite" />
+        </path>
+        <circle cx="32" cy="8" r="3" fill={iconColor} opacity="0.9">
+          <animate attributeName="r" values="3;4;3" dur="2s" repeatCount="indefinite" />
+        </circle>
+        <circle cx="32" cy="56" r="3" fill={iconColor} opacity="0.9">
+          <animate attributeName="r" values="3;4;3" dur="2s" repeatCount="indefinite" />
+        </circle>
       </svg>
     ),
     company_strengths: (
-      <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <svg width={iconSize} height={iconSize} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style={iconStyle}>
+        <style>
+          {`
+            @keyframes float {
+              0%, 100% { transform: translateY(0px) rotate(0deg); }
+              50% { transform: translateY(-8px) rotate(5deg); }
+            }
+          `}
+        </style>
+        <path d="M32 8L38.18 22.52L54 25.08L42 36.28L44.36 52L32 45.54L19.64 52L22 36.28L10 25.08L25.82 22.52L32 8Z" stroke={iconColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill={iconColor} fillOpacity="0.1">
+          <animate attributeName="fill-opacity" values="0.1;0.2;0.1" dur="2s" repeatCount="indefinite" />
+        </path>
+        <circle cx="32" cy="32" r="2" fill={iconColor} opacity="0.9">
+          <animate attributeName="opacity" values="0.9;1;0.9" dur="1.5s" repeatCount="indefinite" />
+        </circle>
       </svg>
     ),
     become_partner: (
-      <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <svg width={iconSize} height={iconSize} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style={iconStyle}>
+        <style>
+          {`
+            @keyframes float {
+              0%, 100% { transform: translateY(0px); }
+              50% { transform: translateY(-8px); }
+            }
+          `}
+        </style>
+        <path d="M44 56V52C44 49.8783 43.1571 47.8434 41.6569 46.3431C40.1566 44.8429 38.1217 44 36 44H12C9.87827 44 7.84344 44.8429 6.34315 46.3431C4.84285 47.8434 4 49.8783 4 52V56" stroke={iconColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <animate attributeName="stroke-width" values="2.5;3;2.5" dur="2s" repeatCount="indefinite" />
+        </path>
+        <circle cx="24" cy="28" r="8" stroke={iconColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none">
+          <animate attributeName="r" values="8;9;8" dur="2.5s" repeatCount="indefinite" />
+        </circle>
+        <path d="M60 56V52C59.9986 50.2274 59.4088 48.5017 58.3228 47.1046C57.2368 45.7074 55.7202 44.7031 54 44.26" stroke={iconColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <animate attributeName="stroke-width" values="2.5;3;2.5" dur="2s" repeatCount="indefinite" />
+        </path>
+        <path d="M48 8.26C49.7208 8.70062 51.2374 9.70492 52.3234 11.1021C53.4094 12.4993 53.9992 14.225 54 16C54 18.1217 53.1571 20.1566 51.6569 21.6569C50.1566 23.1571 48.1217 24 46 24" stroke={iconColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <animate attributeName="stroke-width" values="2.5;3;2.5" dur="2s" repeatCount="indefinite" />
+        </path>
+        <circle cx="24" cy="28" r="3" fill={iconColor} opacity="0.8">
+          <animate attributeName="opacity" values="0.8;1;0.8" dur="1.5s" repeatCount="indefinite" />
+        </circle>
       </svg>
     ),
     market_value: (
-      <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M2 17L12 22L22 17" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M2 12L12 17L22 12" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <svg width={iconSize} height={iconSize} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style={iconStyle}>
+        <style>
+          {`
+            @keyframes float {
+              0%, 100% { transform: translateY(0px); }
+              50% { transform: translateY(-8px); }
+            }
+          `}
+        </style>
+        <path d="M32 8L12 20L32 32L52 20L32 8Z" stroke={iconColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill={iconColor} fillOpacity="0.1">
+          <animate attributeName="fill-opacity" values="0.1;0.2;0.1" dur="2s" repeatCount="indefinite" />
+        </path>
+        <path d="M12 48L32 56L52 48" stroke={iconColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <animate attributeName="stroke-width" values="2.5;3;2.5" dur="2s" repeatCount="indefinite" />
+        </path>
+        <path d="M12 32L32 40L52 32" stroke={iconColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <animate attributeName="stroke-width" values="2.5;3;2.5" dur="2.2s" repeatCount="indefinite" />
+        </path>
+        <circle cx="32" cy="20" r="2" fill={iconColor} opacity="0.9">
+          <animate attributeName="opacity" values="0.9;1;0.9" dur="1.5s" repeatCount="indefinite" />
+        </circle>
+        <circle cx="32" cy="36" r="2" fill={iconColor} opacity="0.8">
+          <animate attributeName="opacity" values="0.8;1;0.8" dur="1.7s" repeatCount="indefinite" />
+        </circle>
+        <circle cx="32" cy="52" r="2" fill={iconColor} opacity="0.9">
+          <animate attributeName="opacity" values="0.9;1;0.9" dur="1.6s" repeatCount="indefinite" />
+        </circle>
       </svg>
     ),
     company_goals: (
-      <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="12" cy="12" r="10" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M12 6V12L16 14" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <svg width={iconSize} height={iconSize} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style={iconStyle}>
+        <style>
+          {`
+            @keyframes float {
+              0%, 100% { transform: translateY(0px) rotate(0deg); }
+              50% { transform: translateY(-8px) rotate(5deg); }
+            }
+            @keyframes rotate {
+              from { transform: rotate(0deg); }
+              to { transform: rotate(360deg); }
+            }
+          `}
+        </style>
+        <circle cx="32" cy="32" r="24" stroke={iconColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none">
+          <animate attributeName="stroke-width" values="2.5;3;2.5" dur="2s" repeatCount="indefinite" />
+        </circle>
+        <path d="M32 20V32L40 38" stroke={iconColor} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+          <animate attributeName="stroke-width" values="3;3.5;3" dur="2s" repeatCount="indefinite" />
+        </path>
+        <circle cx="32" cy="32" r="3" fill={iconColor} opacity="0.9">
+          <animate attributeName="opacity" values="0.9;1;0.9" dur="1.5s" repeatCount="indefinite" />
+        </circle>
+        <circle cx="32" cy="32" r="2" fill={iconColor} opacity="0.6">
+          <animateTransform
+            attributeName="transform"
+            type="rotate"
+            values="0 32 32;360 32 32"
+            dur="8s"
+            repeatCount="indefinite"
+          />
+          <animate attributeName="cx" values="32;36;32;28;32" dur="4s" repeatCount="indefinite" />
+          <animate attributeName="cy" values="32;28;32;36;32" dur="4s" repeatCount="indefinite" />
+        </circle>
       </svg>
     ),
   };
@@ -1327,10 +1498,11 @@ export function PublicLandingPage() {
                 {isArabic ? 'معلومات عن الشركة' : 'Company Information'}
               </h2>
               <div
+                className="homepage-sections-grid"
                 style={{
                   display: 'grid',
                   gap: '1.5rem',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
                 }}
               >
                 {homepageSections.map((section) => {
@@ -1353,49 +1525,67 @@ export function PublicLandingPage() {
                   return (
                     <div
                       key={section.id}
+                      className="homepage-section-card"
                       style={{
                         ...featureCardStyle,
-                        padding: '1.5rem',
+                        padding: '1.75rem 1.5rem',
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '0.75rem',
+                        gap: '1rem',
                         alignItems: 'center',
                         textAlign: 'center',
                         cursor: 'pointer',
-                        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                        transition: 'transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease',
+                        minHeight: '180px',
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-4px)';
-                        e.currentTarget.style.boxShadow = '0 12px 24px rgba(15, 23, 42, 0.12)';
+                        e.currentTarget.style.transform = 'translateY(-6px)';
+                        e.currentTarget.style.boxShadow = '0 16px 32px rgba(15, 23, 42, 0.15)';
+                        e.currentTarget.style.background = `${palette.brandSecondarySoft}20`;
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.transform = 'translateY(0)';
                         e.currentTarget.style.boxShadow = '0 12px 24px rgba(15, 23, 42, 0.08)';
+                        e.currentTarget.style.background = palette.backgroundSurface;
                       }}
                       onClick={() => {
                         setOpenSection(section);
                       }}
                     >
                       <div
+                        className="homepage-section-icon"
                         style={{
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          width: '64px',
-                          height: '64px',
-                          borderRadius: '1rem',
+                          width: '80px',
+                          height: '80px',
+                          borderRadius: '1.25rem',
                           background: `${palette.brandSecondarySoft}40`,
                           marginBottom: '0.5rem',
+                          transition: 'transform 0.3s ease, background 0.3s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'scale(1.1)';
+                          e.currentTarget.style.background = `${palette.brandSecondarySoft}60`;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'scale(1)';
+                          e.currentTarget.style.background = `${palette.brandSecondarySoft}40`;
                         }}
                       >
                         {IconComponent}
                       </div>
                       <span
                         style={{
-                          fontSize: '0.95rem',
+                          fontSize: '1rem',
                           fontWeight: 600,
                           color: palette.textPrimary,
-                          lineHeight: 1.4,
+                          lineHeight: 1.5,
+                          minHeight: '2.5rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                         }}
                       >
                         {title}
