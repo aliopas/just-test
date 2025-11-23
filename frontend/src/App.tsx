@@ -22,6 +22,7 @@ import { InvestorNewsDetailPage } from './pages/InvestorNewsDetailPage';
 import { InvestorProjectDetailPage } from './pages/InvestorProjectDetailPage';
 import { AdminNewsPage } from './pages/AdminNewsPage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
+import { AdminHomepageSectionsPage } from './pages/AdminHomepageSectionsPage';
 import { AdminReportsPage } from './pages/AdminReportsPage';
 import { AdminAuditLogPage } from './pages/AdminAuditLogPage';
 import { AdminInvestorsPage } from './pages/AdminInvestorsPage';
@@ -65,6 +66,11 @@ const adminNavItems = [
     to: '/admin/projects',
     labelAr: 'المشاريع الاستثمارية',
     labelEn: 'Investment Projects',
+  },
+  {
+    to: '/admin/homepage-sections',
+    labelAr: 'أقسام الصفحة الرئيسية',
+    labelEn: 'Homepage Sections',
   },
   {
     to: '/admin/signup-requests',
@@ -1078,6 +1084,7 @@ function AdminApp(): JSX.Element {
             <Route path="/admin/requests/:id" element={<AdminRequestDetailPage />} />
             <Route path="/admin/news" element={<AdminNewsPage />} />
             <Route path="/admin/projects" element={<AdminProjectsPage />} />
+            <Route path="/admin/homepage-sections" element={<AdminHomepageSectionsPage />} />
             <Route path="/admin/signup-requests" element={<AdminSignupRequestsPage />} />
             <Route path="/admin/investors" element={<AdminInvestorsPage />} />
             <Route path="/admin/reports" element={<AdminReportsPage />} />

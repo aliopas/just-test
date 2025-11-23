@@ -8,6 +8,7 @@ import { adminReportsController } from '../controllers/admin-reports.controller'
 import { adminContentAnalyticsController } from '../controllers/admin-content-analytics.controller';
 import { investorSignupRequestController } from '../controllers/investor-signup-request.controller';
 import { projectController } from '../controllers/project.controller';
+import { homepageSectionsController } from '../controllers/homepage-sections.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { requirePermission } from '../middleware/rbac.middleware';
 
@@ -292,6 +293,42 @@ adminRouter.delete(
   authenticate,
   requirePermission('admin.content.manage'),
   projectController.remove
+);
+
+// Homepage sections routes
+adminRouter.get(
+  '/homepage-sections',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  homepageSectionsController.list
+);
+
+adminRouter.get(
+  '/homepage-sections/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  homepageSectionsController.getById
+);
+
+adminRouter.post(
+  '/homepage-sections',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  homepageSectionsController.create
+);
+
+adminRouter.patch(
+  '/homepage-sections/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  homepageSectionsController.update
+);
+
+adminRouter.delete(
+  '/homepage-sections/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  homepageSectionsController.remove
 );
 
 export { adminRouter };
