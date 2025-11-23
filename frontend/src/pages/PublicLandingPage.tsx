@@ -1392,9 +1392,6 @@ export function PublicLandingPage() {
   const languageToggleAriaLabel = isArabic
     ? 'التبديل إلى اللغة الإنجليزية'
     : 'Switch interface to Arabic';
-  const newsroomCtaLabel = isArabic
-    ? 'اطلب الوصول الكامل للنشرة'
-    : 'Get full newsroom access';
 
   const renderNewsContent = () => {
     if (isNewsLoading && newsItems.length === 0) {
@@ -2790,56 +2787,6 @@ export function PublicLandingPage() {
             }}
           >
             {renderNewsContent()}
-          </div>
-          <div
-            style={{
-              marginTop: '3rem',
-              textAlign: 'center',
-              borderRadius: '1.75rem',
-              border: `1.5px solid ${palette.neutralBorderSoft}`,
-              padding: '2.5rem 2rem',
-              background: `linear-gradient(135deg, ${palette.backgroundSurface}, ${palette.brandSecondarySoft}05)`,
-              boxShadow: '0 4px 16px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(15, 23, 42, 0.04)',
-            }}
-          >
-            <p
-              style={{
-                margin: 0,
-                color: palette.textSecondary,
-                lineHeight: 1.6,
-              }}
-            >
-              {isArabic
-                ? 'النشرة الكاملة تحتوي على تقارير داخلية وإشعارات لحظية حول القطاعات المفضلة لديك.'
-                : 'Access the full newsroom for insider reports and instant alerts on your focus sectors.'}
-            </p>
-            <Link
-              to="/register"
-              style={{
-                display: 'inline-flex',
-                marginTop: '1.25rem',
-                padding: '1rem 1.75rem',
-                borderRadius: '0.875rem',
-                background: `linear-gradient(135deg, ${palette.brandPrimaryStrong}, ${palette.brandPrimary})`,
-                color: palette.textOnBrand,
-                fontWeight: 600,
-                textDecoration: 'none',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = `linear-gradient(135deg, ${palette.brandPrimary}, ${palette.brandPrimaryStrong})`;
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 8px 20px rgba(15, 23, 42, 0.2)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = `linear-gradient(135deg, ${palette.brandPrimaryStrong}, ${palette.brandPrimary})`;
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(15, 23, 42, 0.15)';
-              }}
-            >
-              {newsroomCtaLabel}
-            </Link>
           </div>
         </section>
 
