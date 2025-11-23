@@ -1233,7 +1233,7 @@ export function PublicLandingPage() {
   );
 
   const ctaLabel = useMemo(
-    () => (isArabic ? 'تسجيل الدخول إلى البوابة' : 'Sign in to the portal'),
+    () => (isArabic ? 'تسجيل الدخول' : 'Sign in'),
     [isArabic]
   );
 
@@ -1382,7 +1382,7 @@ export function PublicLandingPage() {
     : 'We could not load the newsroom feed right now. Please try again soon.';
   const readMoreLabel = isArabic ? 'تعرّف على التفاصيل بعد تسجيل الدخول' : 'Sign in to read more';
   const publishedLabel = isArabic ? 'تاريخ النشر' : 'Published';
-  const primaryCtaLabel = isArabic ? 'اطلب دعوة' : 'Request platform access';
+  const primaryCtaLabel = isArabic ? 'كن شريك باكورة' : 'Become a Bakurah Partner';
   const secondaryCtaLabel = isArabic ? 'جرّب العرض التفاعلي' : 'Explore the interactive tour';
   const journeyTitle = isArabic ? 'رحلة المستثمر داخل باكورة' : 'The Bakura tec investor journey';
   const journeySubtitle = isArabic
