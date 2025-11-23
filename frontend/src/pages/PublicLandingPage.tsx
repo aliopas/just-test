@@ -551,10 +551,6 @@ export function PublicLandingPage() {
     ? 'باكورة التقنيات'
     : 'Bakura tec';
 
-  const heroSubtitle = isArabic
-    ? 'بوابة ذكية لربط المستثمرين بالفرص النوعية في التقنيات الناشئة.'
-    : 'A smart gateway connecting investors with high-potential technology ventures.';
-
   const ctaLabel = isArabic ? 'تسجيل الدخول إلى البوابة' : 'Sign in to the portal';
 
   const featureTitle = isArabic ? 'لماذا باكورة؟' : 'Why Bakura tec?';
@@ -697,9 +693,6 @@ export function PublicLandingPage() {
   const publishedLabel = isArabic ? 'تاريخ النشر' : 'Published';
   const primaryCtaLabel = isArabic ? 'اطلب دعوة' : 'Request platform access';
   const secondaryCtaLabel = isArabic ? 'جرّب العرض التفاعلي' : 'Explore the interactive tour';
-  const heroHelper = isArabic
-    ? 'بإشراف خبراء القطاعات وفرق التحليل المتخصصة'
-    : 'Guided by sector experts and operator-grade analysts';
   const journeyTitle = isArabic ? 'رحلة المستثمر داخل باكورة' : 'The Bakura tec investor journey';
   const journeySubtitle = isArabic
     ? 'أدوات متكاملة تغطي سلسلة القيمة من الاكتشاف وحتى المتابعة.'
@@ -1327,26 +1320,6 @@ export function PublicLandingPage() {
               >
                 {heroTitle}
               </h1>
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: '1.15rem',
-                  color: palette.textSecondary,
-                  lineHeight: 1.7,
-                }}
-              >
-                {heroSubtitle}
-              </p>
-              <span
-                style={{
-                  fontSize: '0.95rem',
-                  color: palette.brandPrimaryStrong,
-                  letterSpacing: '0.05em',
-                  textTransform: 'uppercase',
-                }}
-              >
-                {heroHelper}
-              </span>
               <div
                 style={{
                   display: 'flex',
