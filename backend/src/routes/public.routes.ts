@@ -9,7 +9,7 @@ publicRouter.get('/projects', publicProjectController.list);
 publicRouter.get('/projects/:id', publicProjectController.detail);
 
 // Public homepage sections route (no authentication required)
-publicRouter.get('/homepage-sections', async (req, res) => {
+publicRouter.get('/homepage-sections', async (_req, res) => {
   try {
     const sections = await listHomepageSections(false);
     return res.status(200).json({ sections });
