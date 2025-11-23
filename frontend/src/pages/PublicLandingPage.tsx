@@ -539,142 +539,306 @@ function SectionModal({ section, isOpen, onClose, isArabic }: SectionModalProps)
         left: 0,
         width: '100vw',
         height: '100vh',
-        background: 'rgba(15, 23, 42, 0.5)',
-        backdropFilter: 'blur(4px)',
+        background: 'rgba(15, 23, 42, 0.65)',
+        backdropFilter: 'blur(8px)',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 1000,
         padding: '1rem',
         direction,
+        animation: 'fadeInOverlay 0.3s ease-out',
       }}
       onClick={onClose}
     >
+      <style>
+        {`
+          @keyframes fadeInOverlay {
+            from {
+              opacity: 0;
+            }
+            to {
+              opacity: 1;
+            }
+          }
+          @keyframes slideUp {
+            from {
+              opacity: 0;
+              transform: translateY(30px) scale(0.95);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0) scale(1);
+            }
+          }
+          @keyframes float {
+            0%, 100% {
+              transform: translateY(0px);
+            }
+            50% {
+              transform: translateY(-10px);
+            }
+          }
+          @keyframes shimmer {
+            0% {
+              background-position: -1000px 0;
+            }
+            100% {
+              background-position: 1000px 0;
+            }
+          }
+          @keyframes pulse {
+            0%, 100% {
+              opacity: 1;
+            }
+            50% {
+              opacity: 0.7;
+            }
+          }
+        `}
+      </style>
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: palette.backgroundSurface,
-          borderRadius: '1.5rem',
-          maxWidth: '800px',
+          background: `linear-gradient(135deg, ${palette.backgroundSurface} 0%, ${palette.backgroundAlt} 100%)`,
+          borderRadius: '2rem',
+          maxWidth: '900px',
           width: '100%',
           maxHeight: '90vh',
-          overflow: 'auto',
-          boxShadow: '0 20px 60px rgba(15, 23, 42, 0.3)',
+          overflow: 'hidden',
+          boxShadow: `
+            0 25px 80px rgba(15, 23, 42, 0.4),
+            0 0 0 1px ${palette.neutralBorderSoft}40,
+            inset 0 1px 0 rgba(255, 255, 255, 0.1)
+          `,
           display: 'flex',
           flexDirection: 'column',
-          animation: 'fadeIn 0.2s ease-out',
+          animation: 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+          position: 'relative',
         }}
       >
-        <style>
-          {`
-            @keyframes fadeIn {
-              from {
-                opacity: 0;
-                transform: scale(0.95);
-              }
-              to {
-                opacity: 1;
-                transform: scale(1);
-              }
-            }
-          `}
-        </style>
+        {/* Decorative Background Elements */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '200px',
+            background: `linear-gradient(135deg, ${palette.brandPrimaryStrong}15 0%, ${palette.brandSecondarySoft}10 50%, transparent 100%)`,
+            pointerEvents: 'none',
+            zIndex: 0,
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            top: '-50%',
+            right: '-10%',
+            width: '400px',
+            height: '400px',
+            borderRadius: '50%',
+            background: `radial-gradient(circle, ${palette.brandSecondarySoft}20 0%, transparent 70%)`,
+            pointerEvents: 'none',
+            zIndex: 0,
+            animation: 'pulse 4s ease-in-out infinite',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '-30%',
+            left: '-15%',
+            width: '300px',
+            height: '300px',
+            borderRadius: '50%',
+            background: `radial-gradient(circle, ${palette.brandPrimaryStrong}15 0%, transparent 70%)`,
+            pointerEvents: 'none',
+            zIndex: 0,
+            animation: 'pulse 5s ease-in-out infinite',
+          }}
+        />
+
         {/* Header */}
         <div
           style={{
-            padding: '2rem',
-            borderBottom: `1px solid ${palette.neutralBorderSoft}`,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: '1.5rem',
+            padding: '2.5rem',
+            position: 'relative',
+            zIndex: 1,
+            background: `linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%)`,
+            borderBottom: `1px solid ${palette.neutralBorderSoft}30`,
           }}
         >
           <div
             style={{
               display: 'flex',
-              alignItems: 'center',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
               gap: '1.5rem',
-              flex: 1,
             }}
           >
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                width: '80px',
-                height: '80px',
+                gap: '1.5rem',
+                flex: 1,
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '96px',
+                  height: '96px',
+                  borderRadius: '1.5rem',
+                  background: `linear-gradient(135deg, ${palette.brandSecondarySoft}40, ${palette.brandPrimaryStrong}20)`,
+                  flexShrink: 0,
+                  boxShadow: `
+                    0 8px 24px rgba(15, 23, 42, 0.12),
+                    0 0 0 1px ${palette.brandPrimaryStrong}20,
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2)
+                  `,
+                  position: 'relative',
+                  overflow: 'hidden',
+                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                  animation: 'float 3s ease-in-out infinite',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.1) rotate(5deg)';
+                  e.currentTarget.style.boxShadow = `
+                    0 12px 32px rgba(15, 23, 42, 0.2),
+                    0 0 0 1px ${palette.brandPrimaryStrong}40,
+                    inset 0 1px 0 rgba(255, 255, 255, 0.3)
+                  `;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
+                  e.currentTarget.style.boxShadow = `
+                    0 8px 24px rgba(15, 23, 42, 0.12),
+                    0 0 0 1px ${palette.brandPrimaryStrong}20,
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2)
+                  `;
+                }}
+              >
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '-50%',
+                    left: '-50%',
+                    width: '200%',
+                    height: '200%',
+                    background: `linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%)`,
+                    animation: 'shimmer 3s infinite',
+                  }}
+                />
+                <div style={{ position: 'relative', zIndex: 1 }}>
+                  {IconComponent}
+                </div>
+              </div>
+              <div style={{ flex: 1 }}>
+                <h2
+                  id="section-modal-title"
+                  style={{
+                    margin: 0,
+                    marginBottom: '0.5rem',
+                    fontSize: '2rem',
+                    fontWeight: 700,
+                    background: `linear-gradient(135deg, ${palette.brandPrimaryStrong}, ${palette.brandSecondaryMuted})`,
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    lineHeight: 1.3,
+                    letterSpacing: '-0.02em',
+                  }}
+                >
+                  {title}
+                </h2>
+                <div
+                  style={{
+                    width: '60px',
+                    height: '4px',
+                    borderRadius: '2px',
+                    background: `linear-gradient(90deg, ${palette.brandPrimaryStrong}, ${palette.brandSecondaryMuted})`,
+                    marginTop: '0.75rem',
+                  }}
+                />
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label={isArabic ? 'إغلاق' : 'Close'}
+              style={{
+                padding: '0.75rem',
                 borderRadius: '1rem',
-                background: `${palette.brandSecondarySoft}40`,
+                border: `1.5px solid ${palette.neutralBorderSoft}`,
+                background: `linear-gradient(135deg, ${palette.backgroundSurface}, ${palette.backgroundAlt})`,
+                color: palette.textPrimary,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: '44px',
+                minHeight: '44px',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                boxShadow: '0 2px 8px rgba(15, 23, 42, 0.08)',
                 flexShrink: 0,
               }}
-            >
-              {IconComponent}
-            </div>
-            <h2
-              id="section-modal-title"
-              style={{
-                margin: 0,
-                fontSize: '1.75rem',
-                fontWeight: 700,
-                color: palette.textPrimary,
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = `linear-gradient(135deg, ${palette.brandSecondarySoft}20, ${palette.brandPrimaryStrong}10)`;
+                e.currentTarget.style.borderColor = `${palette.brandPrimaryStrong}40`;
+                e.currentTarget.style.transform = 'scale(1.1) rotate(90deg)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(15, 23, 42, 0.15)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = `linear-gradient(135deg, ${palette.backgroundSurface}, ${palette.backgroundAlt})`;
+                e.currentTarget.style.borderColor = palette.neutralBorderSoft;
+                e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(15, 23, 42, 0.08)';
               }}
             >
-              {title}
-            </h2>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label={isArabic ? 'إغلاق' : 'Close'}
-            style={{
-              padding: '0.5rem',
-              borderRadius: '0.5rem',
-              border: `1px solid ${palette.neutralBorderSoft}`,
-              background: palette.backgroundSurface,
-              color: palette.textPrimary,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minWidth: '40px',
-              minHeight: '40px',
-              transition: 'background 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = palette.backgroundAlt;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = palette.backgroundSurface;
-            }}
-          >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
         </div>
         {/* Content */}
         <div
           style={{
-            padding: '2.5rem',
+            padding: '3rem 2.5rem',
             color: palette.textSecondary,
-            lineHeight: 1.8,
-            fontSize: '1rem',
+            lineHeight: 1.9,
+            fontSize: '1.05rem',
             whiteSpace: 'pre-wrap',
+            position: 'relative',
+            zIndex: 1,
+            background: `linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.02) 100%)`,
           }}
         >
-          {content}
+          <div
+            style={{
+              position: 'relative',
+              paddingLeft: isArabic ? 0 : '1.5rem',
+              paddingRight: isArabic ? '1.5rem' : 0,
+              borderLeft: isArabic ? 'none' : `3px solid ${palette.brandPrimaryStrong}30`,
+              borderRight: isArabic ? `3px solid ${palette.brandPrimaryStrong}30` : 'none',
+            }}
+          >
+            {content}
+          </div>
         </div>
       </div>
     </div>,
