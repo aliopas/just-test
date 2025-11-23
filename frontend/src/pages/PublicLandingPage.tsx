@@ -744,7 +744,7 @@ export function PublicLandingPage() {
     : 'Bakura tec';
 
   const partnershipBanner = isArabic
-    ? 'منصة مخصصة لشركاء باكورة - نوفر لك أدوات متقدمة وفرص استثمارية حصرية'
+    ? 'شركاء باكورة'
     : 'Platform Exclusively for Bakura Partners - Advanced tools and exclusive investment opportunities';
 
   const partnershipDescription = isArabic
