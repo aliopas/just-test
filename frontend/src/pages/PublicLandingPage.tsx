@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useMemo, useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { Logo } from '../components/Logo';
 import { palette } from '../styles/theme';
@@ -302,12 +303,198 @@ function DefaultSectionIcon({ type }: { type: HomepageSection['type'] }) {
   return icons[type] || icons.company_profile;
 }
 
+// Section Modal Component
+interface SectionModalProps {
+  section: HomepageSection | null;
+  isOpen: boolean;
+  onClose: () => void;
+  isArabic: boolean;
+}
 
+function SectionModal({ section, isOpen, onClose, isArabic }: SectionModalProps) {
+  const { direction } = useLanguage();
+  const container = document.getElementById('drawer-root') ?? document.body;
+
+  if (!isOpen || !section) {
+    return null;
+  }
+
+  const title = isArabic ? section.titleAr : section.titleEn;
+  const content = isArabic ? section.contentAr : section.contentEn;
+  const IconComponent = section.iconSvg ? (
+    <div
+      dangerouslySetInnerHTML={{ __html: section.iconSvg }}
+      style={{
+        width: '64px',
+        height: '64px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    />
+  ) : (
+    <DefaultSectionIcon type={section.type} />
+  );
+
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="section-modal-title"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        background: 'rgba(15, 23, 42, 0.5)',
+        backdropFilter: 'blur(4px)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1000,
+        padding: '1rem',
+        direction,
+      }}
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: palette.backgroundSurface,
+          borderRadius: '1.5rem',
+          maxWidth: '800px',
+          width: '100%',
+          maxHeight: '90vh',
+          overflow: 'auto',
+          boxShadow: '0 20px 60px rgba(15, 23, 42, 0.3)',
+          display: 'flex',
+          flexDirection: 'column',
+          animation: 'fadeIn 0.2s ease-out',
+        }}
+      >
+        <style>
+          {`
+            @keyframes fadeIn {
+              from {
+                opacity: 0;
+                transform: scale(0.95);
+              }
+              to {
+                opacity: 1;
+                transform: scale(1);
+              }
+            }
+          `}
+        </style>
+        {/* Header */}
+        <div
+          style={{
+            padding: '2rem',
+            borderBottom: `1px solid ${palette.neutralBorderSoft}`,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: '1.5rem',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1.5rem',
+              flex: 1,
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '80px',
+                height: '80px',
+                borderRadius: '1rem',
+                background: `${palette.brandSecondarySoft}40`,
+                flexShrink: 0,
+              }}
+            >
+              {IconComponent}
+            </div>
+            <h2
+              id="section-modal-title"
+              style={{
+                margin: 0,
+                fontSize: '1.75rem',
+                fontWeight: 700,
+                color: palette.textPrimary,
+              }}
+            >
+              {title}
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={isArabic ? 'إغلاق' : 'Close'}
+            style={{
+              padding: '0.5rem',
+              borderRadius: '0.5rem',
+              border: `1px solid ${palette.neutralBorderSoft}`,
+              background: palette.backgroundSurface,
+              color: palette.textPrimary,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minWidth: '40px',
+              minHeight: '40px',
+              transition: 'background 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = palette.backgroundAlt;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = palette.backgroundSurface;
+            }}
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        {/* Content */}
+        <div
+          style={{
+            padding: '2.5rem',
+            color: palette.textSecondary,
+            lineHeight: 1.8,
+            fontSize: '1rem',
+            whiteSpace: 'pre-wrap',
+          }}
+        >
+          {content}
+        </div>
+      </div>
+    </div>,
+    container
+  );
+}
 
 export function PublicLandingPage() {
   const { language, setLanguage } = useLanguage();
   const isArabic = language === 'ar';
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [openSection, setOpenSection] = useState<HomepageSection | null>(null);
   const {
     data: newsResponse,
     isLoading: isNewsLoading,
@@ -333,16 +520,32 @@ export function PublicLandingPage() {
     [homepageSectionsResponse]
   );
 
-  // Close mobile menu on escape key
+  // Close mobile menu or modal on escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isMobileMenuOpen) {
-        setIsMobileMenuOpen(false);
+      if (e.key === 'Escape') {
+        if (openSection) {
+          setOpenSection(null);
+        } else if (isMobileMenuOpen) {
+          setIsMobileMenuOpen(false);
+        }
       }
     };
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
-  }, [isMobileMenuOpen]);
+  }, [isMobileMenuOpen, openSection]);
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (openSection) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [openSection]);
 
   const heroTitle = isArabic
     ? 'باكورة التقنيات'
@@ -775,6 +978,12 @@ export function PublicLandingPage() {
   return (
     <>
       <style>{mobileStyles}</style>
+      <SectionModal
+        section={openSection}
+        isOpen={openSection !== null}
+        onClose={() => setOpenSection(null)}
+        isArabic={isArabic}
+      />
       <div
         style={{
           minHeight: '100vh',
@@ -1249,10 +1458,7 @@ export function PublicLandingPage() {
                         e.currentTarget.style.boxShadow = '0 12px 24px rgba(15, 23, 42, 0.08)';
                       }}
                       onClick={() => {
-                        const element = document.getElementById(`section-${section.id}`);
-                        if (element) {
-                          element.scrollIntoView({ behavior: 'smooth' });
-                        }
+                        setOpenSection(section);
                       }}
                     >
                       <div
@@ -1286,97 +1492,6 @@ export function PublicLandingPage() {
             </div>
           )}
         </section>
-
-        {/* Homepage Sections Content */}
-        {!isSectionsLoading && !isSectionsError && homepageSections.length > 0 && (
-          <section
-            style={{
-              ...sectionStyle,
-              padding: '4rem 2rem',
-              maxWidth: '1200px',
-              background: palette.backgroundBase,
-            }}
-            dir={isArabic ? 'rtl' : 'ltr'}
-          >
-            {homepageSections.map((section) => {
-              const title = isArabic ? section.titleAr : section.titleEn;
-              const content = isArabic ? section.contentAr : section.contentEn;
-              const IconComponent = section.iconSvg ? (
-                <div
-                  dangerouslySetInnerHTML={{ __html: section.iconSvg }}
-                  style={{
-                    width: '64px',
-                    height: '64px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                />
-              ) : (
-                <DefaultSectionIcon type={section.type} />
-              );
-
-              return (
-                <div
-                  key={section.id}
-                  id={`section-${section.id}`}
-                  style={{
-                    ...featureCardStyle,
-                    padding: '2.5rem',
-                    marginBottom: '2rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '1.5rem',
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '1.5rem',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: '80px',
-                        height: '80px',
-                        borderRadius: '1rem',
-                        background: `${palette.brandSecondarySoft}40`,
-                        flexShrink: 0,
-                      }}
-                    >
-                      {IconComponent}
-                    </div>
-                    <h3
-                      style={{
-                        margin: 0,
-                        fontSize: '1.75rem',
-                        fontWeight: 700,
-                        color: palette.textPrimary,
-                      }}
-                    >
-                      {title}
-                    </h3>
-                  </div>
-                  <div
-                    style={{
-                      color: palette.textSecondary,
-                      lineHeight: 1.8,
-                      fontSize: '1rem',
-                      whiteSpace: 'pre-wrap',
-                    }}
-                  >
-                    {content}
-                  </div>
-                </div>
-              );
-            })}
-          </section>
-        )}
 
         {/* Features Section with Animated Icons */}
         <section
