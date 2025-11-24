@@ -129,7 +129,7 @@ export async function getAdminRequestReport(
         updated_at,
         investor:users!requests_user_id_fkey (
           email,
-          profile:investor_profiles (
+          profile:investor_profiles!investor_profiles_user_id_fkey (
             full_name,
             preferred_name
           )

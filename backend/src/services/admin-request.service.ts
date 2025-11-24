@@ -198,7 +198,7 @@ export async function listAdminRequests(params: {
           phone_cc,
           status,
           created_at,
-          profile:investor_profiles (
+          profile:investor_profiles!investor_profiles_user_id_fkey (
             full_name,
             preferred_name,
             language,
@@ -510,7 +510,7 @@ export async function getAdminRequestDetail(params: {
           email,
           phone,
           phone_cc,
-          profile:investor_profiles (
+          profile:investor_profiles!investor_profiles_user_id_fkey (
             full_name,
             preferred_name,
             language,
@@ -580,7 +580,7 @@ export async function getAdminRequestDetail(params: {
           actor:users!request_comments_actor_id_fkey (
             id,
             email,
-            profile:investor_profiles (
+            profile:investor_profiles!investor_profiles_user_id_fkey (
               full_name,
               preferred_name,
               language
