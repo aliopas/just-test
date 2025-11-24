@@ -247,6 +247,11 @@ export async function listAdminRequests(params: {
   }
 
   const rows = (data as AdminRequestRow[] | null) ?? [];
+  
+  // Log for debugging if no data
+  if (rows.length === 0) {
+    console.log('No requests found with query:', params.query);
+  }
 
   const firstOrNull = <T>(value: MaybeArray<T>): T | null => {
     if (!value) {
@@ -278,9 +283,10 @@ export async function listAdminRequests(params: {
   const userIds = rows
     .map(row => {
       const user = firstOrNull(row.users);
-      return user?.id;
+      // Fallback to user_id if users relation is not available
+      return user?.id ?? row.user_id;
     })
-    .filter((id): id is string => id !== null && id !== undefined);
+    .filter((id): id is string => id !== null && id !== undefined && id !== '');
 
   let profilesMap: Record<string, {
     full_name: string | null;
@@ -333,7 +339,9 @@ export async function listAdminRequests(params: {
 
   const requests = rows.map(row => {
     const user = firstOrNull(row.users);
-    const profile = user?.id ? profilesMap[user.id] ?? null : null;
+    // Use user_id as fallback if users relation is not available
+    const userId = user?.id ?? row.user_id;
+    const profile = userId ? profilesMap[userId] ?? null : null;
 
     return {
       id: row.id,
@@ -357,7 +365,7 @@ export async function listAdminRequests(params: {
       updatedAt: row.updated_at,
       isRead: readStatusMap[row.id] ?? false,
       investor: {
-        id: user?.id ?? null,
+        id: userId ?? null,
         email: user?.email ?? null,
         phone: user?.phone ?? null,
         phoneCc: user?.phone_cc ?? null,
