@@ -178,6 +178,7 @@ export async function listAdminRequests(params: {
     ? sortField
     : 'created_at';
 
+  // First, get the requests with basic user info
   let queryBuilder = adminClient.from('requests').select(
     `
         id,
@@ -191,31 +192,14 @@ export async function listAdminRequests(params: {
         metadata,
         created_at,
         updated_at,
+        user_id,
         users:users!requests_user_id_fkey (
           id,
           email,
           phone,
           phone_cc,
           status,
-          created_at,
-          profile:investor_profiles!investor_profiles_user_id_fkey (
-            full_name,
-            preferred_name,
-            language,
-            id_type,
-            id_number,
-            id_expiry,
-            nationality,
-            residency_country,
-            city,
-            kyc_status,
-            kyc_updated_at,
-            risk_profile,
-            communication_preferences,
-            kyc_documents,
-            created_at,
-            updated_at
-          )
+          created_at
         )
       `,
     { count: 'exact' }
@@ -307,9 +291,66 @@ export async function listAdminRequests(params: {
     }
   }
 
+  // Get investor profiles for all users in one query
+  const userIds = rows
+    .map(row => {
+      const user = firstOrNull(row.users);
+      return user?.id;
+    })
+    .filter((id): id is string => id !== null && id !== undefined);
+
+  let profilesMap: Record<string, {
+    full_name: string | null;
+    preferred_name: string | null;
+    language: string | null;
+    id_type: string | null;
+    id_number: string | null;
+    id_expiry: string | null;
+    nationality: string | null;
+    residency_country: string | null;
+    city: string | null;
+    kyc_status: string | null;
+    kyc_updated_at: string | null;
+    risk_profile: string | null;
+    communication_preferences: Record<string, boolean> | null;
+    kyc_documents: unknown;
+    created_at: string | null;
+    updated_at: string | null;
+  }> = {};
+
+  if (userIds.length > 0) {
+    const { data: profiles, error: profilesError } = await adminClient
+      .from('investor_profiles')
+      .select('*')
+      .in('user_id', userIds);
+
+    if (!profilesError && profiles) {
+      profiles.forEach(profile => {
+        profilesMap[profile.user_id as string] = {
+          full_name: profile.full_name ?? null,
+          preferred_name: profile.preferred_name ?? null,
+          language: profile.language ?? null,
+          id_type: profile.id_type ?? null,
+          id_number: profile.id_number ?? null,
+          id_expiry: profile.id_expiry ?? null,
+          nationality: profile.nationality ?? null,
+          residency_country: profile.residency_country ?? null,
+          city: profile.city ?? null,
+          kyc_status: profile.kyc_status ?? null,
+          kyc_updated_at: profile.kyc_updated_at ?? null,
+          risk_profile: profile.risk_profile ?? null,
+          communication_preferences: profile.communication_preferences as Record<string, boolean> | null,
+          kyc_documents: profile.kyc_documents ?? null,
+          created_at: profile.created_at ?? null,
+          updated_at: profile.updated_at ?? null,
+        };
+      });
+    }
+  }
+
   const requests = rows.map(row => {
     const user = firstOrNull(row.users);
-    const profile = user ? firstOrNull(user.profile) : null;
+    const profile = user?.id ? profilesMap[user.id] ?? null : null;
 
     return {
       id: row.id,
