@@ -241,6 +241,7 @@ export async function listAdminRequests(params: {
     queryBuilder = queryBuilder.lte('created_at', params.query.createdTo);
   }
 
+  // Apply search filter if provided
   if (params.query.search) {
     const pattern = `%${escapeLikePattern(params.query.search)}%`;
     queryBuilder = queryBuilder.or(
@@ -248,14 +249,32 @@ export async function listAdminRequests(params: {
     );
   }
 
+  // Determine sort field and order
   const sortField = params.query.sortBy ?? 'created_at';
   const order = (params.query.order ?? 'desc') === 'asc' ? true : false;
 
+  // Validate sortField is one of the allowed fields (must be on the main requests table)
+  const allowedSortFields = ['created_at', 'amount', 'status'] as const;
+  const validSortField = allowedSortFields.includes(sortField as typeof allowedSortFields[number])
+    ? sortField
+    : 'created_at';
+
+  // Apply ordering and pagination
+  // Note: Order must be applied to fields on the main table when using nested selects
   const { data, count, error } = await queryBuilder
-    .order(sortField, { ascending: order })
+    .order(validSortField, { ascending: order })
     .range(offset, offset + limit - 1);
 
   if (error) {
+    console.error('Failed to list admin requests - Supabase error:', {
+      error: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+      sortField: validSortField,
+      order,
+      query: params.query,
+    });
     throw new Error(`Failed to list admin requests: ${error.message}`);
   }
 

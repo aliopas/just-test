@@ -51,10 +51,14 @@ export const adminRequestController = {
       return res.status(200).json(result);
     } catch (error) {
       console.error('Failed to list admin requests:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      console.error('Error details:', { errorMessage, errorStack, query: req.query });
       return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to list admin requests',
+          details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
         },
       });
     }
