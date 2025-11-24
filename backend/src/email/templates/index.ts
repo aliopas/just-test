@@ -756,7 +756,6 @@ const templateRenderers: {
           ? 'هذا الرمز سينتهي خلال فترة قصيرة من الزمن. لا تشارك هذا الرمز مع أي شخص.'
           : 'This code will expire shortly. Do not share this code with anyone.',
       ],
-      cta: null,
       footerLines: [
         language === 'ar'
           ? `إذا لم تطلب هذا الرمز، يرجى تجاهل هذا البريد أو الاتصال بنا عبر ${supportEmail}`

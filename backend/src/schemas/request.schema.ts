@@ -133,17 +133,13 @@ export const createFeedbackRequestSchema = z.object({
     .trim()
     .min(5, 'Subject must be at least 5 characters')
     .max(200, 'Subject must be 200 characters or fewer'),
-  category: z.enum(['suggestion', 'complaint', 'question', 'other'], {
-    errorMap: () => ({ message: 'Category must be suggestion, complaint, question, or other' }),
-  }),
+  category: z.enum(['suggestion', 'complaint', 'question', 'other']),
   description: z
     .string()
     .trim()
     .min(50, 'Description must be at least 50 characters')
     .max(5000, 'Description must be 5000 characters or fewer'),
-  priority: z.enum(['low', 'medium', 'high'], {
-    errorMap: () => ({ message: 'Priority must be low, medium, or high' }),
-  }),
+  priority: z.enum(['low', 'medium', 'high']),
   notes: z
     .string()
     .max(1000, 'Notes must be 1000 characters or fewer')
