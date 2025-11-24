@@ -161,7 +161,7 @@ export async function listAdminRequests(params: {
     ? sortField
     : 'created_at';
 
-  // First, get the requests with basic user info
+  // Get requests without relations first to avoid Supabase query issues
   let queryBuilder = adminClient.from('requests').select(
     `
         id,
@@ -175,15 +175,7 @@ export async function listAdminRequests(params: {
         metadata,
         created_at,
         updated_at,
-        user_id,
-        users:users!requests_user_id_fkey (
-          id,
-          email,
-          phone,
-          phone_cc,
-          status,
-          created_at
-        )
+        user_id
       `,
     { count: 'exact' }
   );
@@ -253,13 +245,6 @@ export async function listAdminRequests(params: {
     console.log('No requests found with query:', params.query);
   }
 
-  const firstOrNull = <T>(value: MaybeArray<T>): T | null => {
-    if (!value) {
-      return null;
-    }
-    return Array.isArray(value) ? (value[0] ?? null) : value;
-  };
-
   // Get read status for all requests by this admin
   const requestIds = rows.map(row => row.id);
   let readStatusMap: Record<string, boolean> = {};
@@ -279,14 +264,42 @@ export async function listAdminRequests(params: {
     }
   }
 
-  // Get investor profiles for all users in one query
+  // Get all user IDs from requests
   const userIds = rows
-    .map(row => {
-      const user = firstOrNull(row.users);
-      // Fallback to user_id if users relation is not available
-      return user?.id ?? row.user_id;
-    })
+    .map(row => row.user_id)
     .filter((id): id is string => id !== null && id !== undefined && id !== '');
+
+  // Get users data in one query
+  let usersMap: Record<string, {
+    id: string;
+    email: string | null;
+    phone: string | null;
+    phone_cc: string | null;
+    status: string | null;
+    created_at: string | null;
+  }> = {};
+
+  if (userIds.length > 0) {
+    const { data: users, error: usersError } = await adminClient
+      .from('users')
+      .select('id, email, phone, phone_cc, status, created_at')
+      .in('id', userIds);
+
+    if (!usersError && users) {
+      users.forEach(user => {
+        usersMap[user.id] = {
+          id: user.id,
+          email: user.email ?? null,
+          phone: user.phone ?? null,
+          phone_cc: user.phone_cc ?? null,
+          status: user.status ?? null,
+          created_at: user.created_at ?? null,
+        };
+      });
+    } else if (usersError) {
+      console.error('Failed to fetch users:', usersError);
+    }
+  }
 
   let profilesMap: Record<string, {
     full_name: string | null;
@@ -338,9 +351,8 @@ export async function listAdminRequests(params: {
   }
 
   const requests = rows.map(row => {
-    const user = firstOrNull(row.users);
-    // Use user_id as fallback if users relation is not available
-    const userId = user?.id ?? row.user_id;
+    const userId = row.user_id;
+    const user = userId ? usersMap[userId] ?? null : null;
     const profile = userId ? profilesMap[userId] ?? null : null;
 
     return {
