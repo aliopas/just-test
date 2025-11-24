@@ -59,6 +59,27 @@ investorRouter.post(
 );
 
 investorRouter.post(
+  '/requests/partnership',
+  authenticate,
+  requirePermission('investor.requests.create'),
+  requestController.createPartnership
+);
+
+investorRouter.post(
+  '/requests/board-nomination',
+  authenticate,
+  requirePermission('investor.requests.create'),
+  requestController.createBoardNomination
+);
+
+investorRouter.post(
+  '/requests/feedback',
+  authenticate,
+  requirePermission('investor.requests.create'),
+  requestController.createFeedback
+);
+
+investorRouter.post(
   '/requests/:id/submit',
   authenticate,
   requirePermission('investor.requests.submit'),
@@ -77,6 +98,13 @@ investorRouter.get(
   authenticate,
   requirePermission(['investor.requests.read', 'admin.requests.review']),
   requestController.timeline
+);
+
+investorRouter.post(
+  '/requests/:id/files/presign',
+  authenticate,
+  requirePermission('investor.requests.create'),
+  requestController.presignAttachment
 );
 
 investorRouter.get(

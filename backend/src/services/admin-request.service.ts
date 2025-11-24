@@ -21,8 +21,8 @@ type AdminRequestRow = {
   id: string;
   request_number: string;
   status: string;
-  type: 'buy' | 'sell';
-  amount: number | string;
+  type: 'buy' | 'sell' | 'partnership' | 'board_nomination' | 'feedback';
+  amount: number | string | null;
   currency: string;
   target_price: number | string | null;
   expiry_at: string | null;
@@ -213,8 +213,14 @@ export async function listAdminRequests(params: {
     queryBuilder = queryBuilder.eq('status', params.query.status);
   }
 
+  // Filter by type(s) - support multiple types
   if (params.query.type) {
-    queryBuilder = queryBuilder.eq('type', params.query.type);
+    const types = Array.isArray(params.query.type) ? params.query.type : [params.query.type];
+    if (types.length === 1) {
+      queryBuilder = queryBuilder.eq('type', types[0]);
+    } else if (types.length > 1) {
+      queryBuilder = queryBuilder.in('type', types);
+    }
   }
 
   if (params.query.minAmount !== undefined) {
@@ -348,9 +354,9 @@ type AdminRequestDetailRow = {
   request_number: string;
   user_id: string;
   status: RequestStatus;
-  type: 'buy' | 'sell';
-  amount: number | string;
-  currency: string;
+  type: 'buy' | 'sell' | 'partnership' | 'board_nomination' | 'feedback';
+  amount: number | string | null;
+  currency: string | null;
   target_price: number | string | null;
   expiry_at: string | null;
   notes: string | null;
@@ -629,8 +635,8 @@ export async function getAdminRequestDetail(params: {
       userId: requestRow.user_id,
       status: requestRow.status,
       type: requestRow.type,
-      amount: normalizeNumber(requestRow.amount) ?? 0,
-      currency: requestRow.currency,
+      amount: normalizeNumber(requestRow.amount),
+      currency: requestRow.currency ?? null,
       targetPrice: normalizeNumber(requestRow.target_price),
       expiryAt: requestRow.expiry_at,
       notes: requestRow.notes,

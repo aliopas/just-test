@@ -11,7 +11,7 @@ const statusEnum = z.enum([...REQUEST_STATUSES] as [
 
 const sortFields = ['created_at', 'amount', 'status'] as const;
 const orderDirections = ['asc', 'desc'] as const;
-const requestTypes = ['buy', 'sell'] as const;
+const requestTypes = ['buy', 'sell', 'partnership', 'board_nomination', 'feedback'] as const;
 
 const toNumber = (value: unknown) => {
   if (value === undefined || value === null || value === '') {
@@ -45,7 +45,28 @@ export const adminRequestListQuerySchema = z.object({
     )
     .default(25),
   status: statusEnum.optional(),
-  type: z.enum(requestTypes).optional(),
+  type: z.preprocess(
+    value => {
+      if (value === undefined || value === null || value === '') {
+        return undefined;
+      }
+      // Support both single type and comma-separated types for multi-filter
+      if (typeof value === 'string') {
+        const types = value.split(',').map(t => t.trim()).filter(t => t.length > 0);
+        return types.length > 0 ? types : undefined;
+      }
+      if (Array.isArray(value)) {
+        return value.map(v => String(v).trim()).filter(v => v.length > 0);
+      }
+      return [String(value).trim()];
+    },
+    z
+      .union([
+        z.enum(requestTypes),
+        z.array(z.enum(requestTypes)).min(1).max(5),
+      ])
+      .optional()
+  ),
   minAmount: z
     .preprocess(toNumber, z.number().nonnegative().optional())
     .optional(),

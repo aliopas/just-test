@@ -1,5 +1,13 @@
+import { randomUUID } from 'crypto';
+import path from 'path';
 import { requireSupabaseAdmin } from '../lib/supabase';
-import type { CreateRequestInput } from '../schemas/request.schema';
+import type {
+  CreateRequestInput,
+  RequestAttachmentPresignInput,
+  CreatePartnershipRequestInput,
+  CreateBoardNominationRequestInput,
+  CreateFeedbackRequestInput,
+} from '../schemas/request.schema';
 import { generateRequestNumber } from './request-number.service';
 import {
   transitionRequestStatus,
@@ -55,6 +63,205 @@ export async function createInvestorRequest(params: {
       `Failed to log initial request event: ${eventError.message}`
     );
   }
+
+  return {
+    id: data.id,
+    requestNumber,
+  };
+}
+
+export async function createPartnershipRequest(params: {
+  userId: string;
+  payload: CreatePartnershipRequestInput;
+}): Promise<{ id: string; requestNumber: string }> {
+  const adminClient = requireSupabaseAdmin();
+  const requestNumber = await generateRequestNumber();
+
+  // Verify project exists if projectId is provided
+  if (params.payload.projectId) {
+    const { data: project, error: projectError } = await adminClient
+      .from('projects')
+      .select('id')
+      .eq('id', params.payload.projectId)
+      .single();
+
+    if (projectError || !project) {
+      throw new Error('PROJECT_NOT_FOUND');
+    }
+  }
+
+  // Build metadata object
+  const metadata = {
+    projectId: params.payload.projectId ?? null,
+    proposedAmount: params.payload.proposedAmount ?? null,
+    partnershipPlan: params.payload.partnershipPlan,
+  };
+
+  const requestPayload = {
+    user_id: params.userId,
+    request_number: requestNumber,
+    type: 'partnership' as const,
+    amount: params.payload.proposedAmount ?? null,
+    currency: 'SAR', // Default currency for partnership requests
+    target_price: null,
+    expiry_at: null,
+    status: 'draft',
+    notes: params.payload.notes ?? null,
+    metadata,
+  };
+
+  const { data, error } = await adminClient
+    .from('requests')
+    .insert(requestPayload)
+    .select('id')
+    .single<{ id: string }>();
+
+  if (error || !data) {
+    throw new Error(`Failed to create partnership request: ${error?.message ?? 'unknown'}`);
+  }
+
+  const { error: eventError } = await adminClient
+    .from('request_events')
+    .insert({
+      request_id: data.id,
+      from_status: null,
+      to_status: 'draft',
+      actor_id: params.userId,
+      note: 'Partnership request created',
+    });
+
+  if (eventError) {
+    throw new Error(
+      `Failed to log initial request event: ${eventError.message}`
+    );
+  }
+
+  return {
+    id: data.id,
+    requestNumber,
+  };
+}
+
+export async function createBoardNominationRequest(params: {
+  userId: string;
+  payload: CreateBoardNominationRequestInput;
+}): Promise<{ id: string; requestNumber: string }> {
+  const adminClient = requireSupabaseAdmin();
+  const requestNumber = await generateRequestNumber();
+
+  // Build metadata object
+  const metadata = {
+    cvSummary: params.payload.cvSummary,
+    experience: params.payload.experience,
+    motivations: params.payload.motivations,
+    qualifications: params.payload.qualifications,
+  };
+
+  const requestPayload = {
+    user_id: params.userId,
+    request_number: requestNumber,
+    type: 'board_nomination' as const,
+    amount: null, // Board nomination is not a financial request
+    currency: null,
+    target_price: null,
+    expiry_at: null,
+    status: 'draft',
+    notes: params.payload.notes ?? null,
+    metadata,
+  };
+
+  const { data, error } = await adminClient
+    .from('requests')
+    .insert(requestPayload)
+    .select('id')
+    .single<{ id: string }>();
+
+  if (error || !data) {
+    throw new Error(
+      `Failed to create board nomination request: ${error?.message ?? 'unknown'}`
+    );
+  }
+
+  const { error: eventError } = await adminClient
+    .from('request_events')
+    .insert({
+      request_id: data.id,
+      from_status: null,
+      to_status: 'draft',
+      actor_id: params.userId,
+      note: 'Board nomination request created',
+    });
+
+  if (eventError) {
+    throw new Error(
+      `Failed to log initial request event: ${eventError.message}`
+    );
+  }
+
+  return {
+    id: data.id,
+    requestNumber,
+  };
+}
+
+export async function createFeedbackRequest(params: {
+  userId: string;
+  payload: CreateFeedbackRequestInput;
+}): Promise<{ id: string; requestNumber: string }> {
+  const adminClient = requireSupabaseAdmin();
+  const requestNumber = await generateRequestNumber();
+
+  // Build metadata object
+  const metadata = {
+    subject: params.payload.subject,
+    category: params.payload.category,
+    description: params.payload.description,
+    priority: params.payload.priority,
+  };
+
+  const requestPayload = {
+    user_id: params.userId,
+    request_number: requestNumber,
+    type: 'feedback' as const,
+    amount: null, // Feedback is not a financial request
+    currency: null,
+    target_price: null,
+    expiry_at: null,
+    status: 'draft',
+    notes: params.payload.notes ?? null,
+    metadata,
+  };
+
+  const { data, error } = await adminClient
+    .from('requests')
+    .insert(requestPayload)
+    .select('id')
+    .single<{ id: string }>();
+
+  if (error || !data) {
+    throw new Error(
+      `Failed to create feedback request: ${error?.message ?? 'unknown'}`
+    );
+  }
+
+  const { error: eventError } = await adminClient
+    .from('request_events')
+    .insert({
+      request_id: data.id,
+      from_status: null,
+      to_status: 'draft',
+      actor_id: params.userId,
+      note: 'Feedback request created',
+    });
+
+  if (eventError) {
+    throw new Error(
+      `Failed to log initial request event: ${eventError.message}`
+    );
+  }
+
+  // TODO: Send notification to admins based on priority (Story 3.11 AC #7)
+  // This will be implemented when notification service supports priority-based notifications
 
   return {
     id: data.id,
@@ -183,6 +390,16 @@ export async function listInvestorRequests(params: {
 
   if (params.query.status) {
     queryBuilder = queryBuilder.eq('status', params.query.status);
+  }
+
+  // Filter by type(s) - support multiple types
+  if (params.query.type) {
+    const types = Array.isArray(params.query.type) ? params.query.type : [params.query.type];
+    if (types.length === 1) {
+      queryBuilder = queryBuilder.eq('type', types[0]);
+    } else if (types.length > 1) {
+      queryBuilder = queryBuilder.in('type', types);
+    }
   }
 
   const { data, error, count } = await queryBuilder
@@ -426,5 +643,114 @@ export async function getInvestorRequestDetail(params: {
         note: event.note,
         createdAt: event.createdAt,
       })),
+  };
+}
+
+// Storage bucket for request attachments
+const REQUEST_ATTACHMENTS_BUCKET =
+  process.env.REQUEST_ATTACHMENTS_BUCKET?.trim() || 'request-attachments';
+
+function resolveRequestAttachmentPath(
+  requestId: string,
+  fileName: string,
+  now: Date = new Date()
+): { objectPath: string; storageKey: string } {
+  const extension = path.extname(fileName).toLowerCase();
+  const year = now.getUTCFullYear();
+  const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+  const uuid = randomUUID();
+  const objectPath = `${requestId}/${year}/${month}/${uuid}${extension}`;
+  const storageKey = `${REQUEST_ATTACHMENTS_BUCKET}/${objectPath}`;
+  return { objectPath, storageKey };
+}
+
+export type RequestAttachmentPresignResult = {
+  attachmentId: string;
+  bucket: string;
+  storageKey: string;
+  uploadUrl: string;
+  token: string | null;
+  path: string;
+  headers: {
+    'Content-Type': string;
+    'x-upsert': string;
+  };
+};
+
+export async function createRequestAttachmentUploadUrl(params: {
+  requestId: string;
+  userId: string;
+  input: RequestAttachmentPresignInput;
+}): Promise<RequestAttachmentPresignResult> {
+  const adminClient = requireSupabaseAdmin();
+
+  // Verify request exists and belongs to user
+  const { data: requestRecord, error: requestError } = await adminClient
+    .from('requests')
+    .select('id, user_id, status')
+    .eq('id', params.requestId)
+    .single<{ id: string; user_id: string; status: string }>();
+
+  if (requestError || !requestRecord) {
+    throw new Error('REQUEST_NOT_FOUND');
+  }
+
+  if (requestRecord.user_id !== params.userId) {
+    throw new Error('REQUEST_NOT_OWNED');
+  }
+
+  // Only allow attachments for draft or submitted requests
+  if (
+    requestRecord.status !== 'draft' &&
+    requestRecord.status !== 'submitted'
+  ) {
+    throw new Error('REQUEST_NOT_EDITABLE');
+  }
+
+  const { objectPath, storageKey } = resolveRequestAttachmentPath(
+    params.requestId,
+    params.input.fileName
+  );
+
+  const { data, error } = await adminClient.storage
+    .from(REQUEST_ATTACHMENTS_BUCKET)
+    .createSignedUploadUrl(objectPath);
+
+  if (error || !data) {
+    throw new Error(
+      `Failed to create signed upload url: ${error?.message ?? 'unknown error'}`
+    );
+  }
+
+  // Pre-create attachment record (will be updated after successful upload)
+  const attachmentId = randomUUID();
+  const { error: insertError } = await adminClient
+    .from('attachments')
+    .insert({
+      id: attachmentId,
+      request_id: params.requestId,
+      filename: params.input.fileName,
+      mime_type: params.input.fileType,
+      size: params.input.fileSize,
+      storage_key: storageKey,
+    });
+
+  if (insertError) {
+    throw new Error(
+      `Failed to create attachment record: ${insertError.message}`
+    );
+  }
+
+  return {
+    attachmentId,
+    bucket: REQUEST_ATTACHMENTS_BUCKET,
+    storageKey,
+    uploadUrl: data.signedUrl,
+    token: data.token ?? null,
+    path: data.path ?? objectPath,
+    headers: {
+      'Content-Type': params.input.fileType,
+      'x-upsert': 'false',
+    },
   };
 }

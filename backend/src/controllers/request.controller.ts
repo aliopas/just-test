@@ -1,12 +1,22 @@
 import type { Response } from 'express';
 import type { AuthenticatedRequest } from '../middleware/auth.middleware';
-import { createRequestSchema } from '../schemas/request.schema';
+import {
+  createRequestSchema,
+  requestAttachmentPresignSchema,
+  createPartnershipRequestSchema,
+  createBoardNominationRequestSchema,
+  createFeedbackRequestSchema,
+} from '../schemas/request.schema';
 import { requestListQuerySchema } from '../schemas/request-list.schema';
 import {
   createInvestorRequest,
+  createPartnershipRequest,
+  createBoardNominationRequest,
+  createFeedbackRequest,
   submitInvestorRequest,
   listInvestorRequests,
   getInvestorRequestDetail,
+  createRequestAttachmentUploadUrl,
 } from '../services/request.service';
 import { getInvestorRequestTimeline } from '../services/request-timeline.service';
 
@@ -309,6 +319,243 @@ export const requestController = {
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to load request timeline',
+        },
+      });
+    }
+  },
+
+  async presignAttachment(req: AuthenticatedRequest, res: Response) {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'User not authenticated',
+          },
+        });
+      }
+
+      const requestId = req.params.id;
+      if (!requestId) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Request id is required',
+          },
+        });
+      }
+
+      const validation = requestAttachmentPresignSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid request payload',
+            details: validation.error.issues.map(issue => ({
+              field: issue.path.join('.'),
+              message: issue.message,
+            })),
+          },
+        });
+      }
+
+      const result = await createRequestAttachmentUploadUrl({
+        requestId,
+        userId,
+        input: validation.data,
+      });
+
+      return res.status(201).json(result);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'REQUEST_NOT_FOUND') {
+        return res.status(404).json({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Request not found',
+          },
+        });
+      }
+
+      if (error instanceof Error && error.message === 'REQUEST_NOT_OWNED') {
+        return res.status(403).json({
+          error: {
+            code: 'FORBIDDEN',
+            message: 'You do not have access to this request',
+          },
+        });
+      }
+
+      if (
+        error instanceof Error &&
+        error.message === 'REQUEST_NOT_EDITABLE'
+      ) {
+        return res.status(409).json({
+          error: {
+            code: 'INVALID_STATE',
+            message: 'Attachments can only be added to draft or submitted requests',
+          },
+        });
+      }
+
+      console.error('Failed to create attachment upload url:', error);
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to create attachment upload url',
+        },
+      });
+    }
+  },
+
+  async createPartnership(req: AuthenticatedRequest, res: Response) {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'User not authenticated',
+          },
+        });
+      }
+
+      const validation = createPartnershipRequestSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid request payload',
+            details: validation.error.issues.map(issue => ({
+              field: issue.path.join('.'),
+              message: issue.message,
+            })),
+          },
+        });
+      }
+
+      const { id, requestNumber } = await createPartnershipRequest({
+        userId,
+        payload: validation.data,
+      });
+
+      return res.status(201).json({
+        requestId: id,
+        requestNumber,
+        status: 'draft',
+        type: 'partnership',
+      });
+    } catch (error) {
+      if (error instanceof Error && error.message === 'PROJECT_NOT_FOUND') {
+        return res.status(404).json({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Project not found',
+          },
+        });
+      }
+
+      console.error('Failed to create partnership request:', error);
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to create partnership request',
+        },
+      });
+    }
+  },
+
+  async createBoardNomination(req: AuthenticatedRequest, res: Response) {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'User not authenticated',
+          },
+        });
+      }
+
+      const validation = createBoardNominationRequestSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid request payload',
+            details: validation.error.issues.map(issue => ({
+              field: issue.path.join('.'),
+              message: issue.message,
+            })),
+          },
+        });
+      }
+
+      const { id, requestNumber } = await createBoardNominationRequest({
+        userId,
+        payload: validation.data,
+      });
+
+      return res.status(201).json({
+        requestId: id,
+        requestNumber,
+        status: 'draft',
+        type: 'board_nomination',
+      });
+    } catch (error) {
+      console.error('Failed to create board nomination request:', error);
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to create board nomination request',
+        },
+      });
+    }
+  },
+
+  async createFeedback(req: AuthenticatedRequest, res: Response) {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'User not authenticated',
+          },
+        });
+      }
+
+      const validation = createFeedbackRequestSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid request payload',
+            details: validation.error.issues.map(issue => ({
+              field: issue.path.join('.'),
+              message: issue.message,
+            })),
+          },
+        });
+      }
+
+      const { id, requestNumber } = await createFeedbackRequest({
+        userId,
+        payload: validation.data,
+      });
+
+      return res.status(201).json({
+        requestId: id,
+        requestNumber,
+        status: 'draft',
+        type: 'feedback',
+      });
+    } catch (error) {
+      console.error('Failed to create feedback request:', error);
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to create feedback request',
         },
       });
     }
