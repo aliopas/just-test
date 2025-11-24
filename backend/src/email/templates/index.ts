@@ -714,6 +714,96 @@ const templateRenderers: {
       ],
     };
   },
+  otp_verification(language, context) {
+    const supportEmail = context.supportEmail ?? DEFAULT_SUPPORT_EMAIL;
+    const subject =
+      language === 'ar'
+        ? 'رمز التحقق الخاص بك - باكورة'
+        : 'Your verification code - Bakurah';
+
+    return {
+      subject,
+      heading:
+        language === 'ar'
+          ? 'رمز التحقق الخاص بك'
+          : 'Your verification code',
+      intro:
+        language === 'ar'
+          ? `مرحبًا ${context.userName}،`
+          : `Hello ${context.userName},`,
+      highlightItems: [
+        {
+          label:
+            language === 'ar' ? 'رمز التحقق' : 'Verification code',
+          value: context.otpCode,
+        },
+        {
+          label:
+            language === 'ar'
+              ? 'صالح لمدة'
+              : 'Valid for',
+          value:
+            language === 'ar'
+              ? `${context.expiresInMinutes} دقائق`
+              : `${context.expiresInMinutes} minutes`,
+        },
+      ],
+      paragraphs: [
+        language === 'ar'
+          ? 'استخدم هذا الرمز للتحقق من حسابك في منصة باكورة للمستثمرين.'
+          : 'Use this code to verify your account on Bakurah Investors Portal.',
+        language === 'ar'
+          ? 'هذا الرمز سينتهي خلال فترة قصيرة من الزمن. لا تشارك هذا الرمز مع أي شخص.'
+          : 'This code will expire shortly. Do not share this code with anyone.',
+      ],
+      cta: null,
+      footerLines: [
+        language === 'ar'
+          ? `إذا لم تطلب هذا الرمز، يرجى تجاهل هذا البريد أو الاتصال بنا عبر ${supportEmail}`
+          : `If you did not request this code, please ignore this email or contact us at ${supportEmail}`,
+      ],
+    };
+  },
+  welcome(language, context) {
+    const supportEmail = context.supportEmail ?? DEFAULT_SUPPORT_EMAIL;
+    const subject =
+      language === 'ar'
+        ? 'مرحباً بك في منصة باكورة للمستثمرين'
+        : 'Welcome to Bakurah Investors Portal';
+
+    return {
+      subject,
+      heading:
+        language === 'ar'
+          ? 'مرحباً بك في باكورة'
+          : 'Welcome to Bakurah',
+      intro:
+        language === 'ar'
+          ? `مرحبًا ${context.userName}،`
+          : `Hello ${context.userName},`,
+      highlightItems: [],
+      paragraphs: [
+        language === 'ar'
+          ? 'نشكرك على التسجيل في منصة باكورة للمستثمرين. تم تفعيل حسابك بنجاح!'
+          : 'Thank you for registering with Bakurah Investors Portal. Your account has been successfully activated!',
+        language === 'ar'
+          ? 'يمكنك الآن تسجيل الدخول والبدء في استخدام جميع الميزات المتاحة في المنصة.'
+          : 'You can now log in and start using all the features available on the platform.',
+        language === 'ar'
+          ? 'نتمنى أن تجد منصة باكورة مفيدة لاستثماراتك، ويسعدنا مساعدتك في أي وقت.'
+          : 'We hope you find Bakurah useful for your investments, and we are happy to assist you anytime.',
+      ],
+      cta: {
+        label: language === 'ar' ? 'تسجيل الدخول' : 'Log in',
+        url: context.loginLink,
+      },
+      footerLines: [
+        language === 'ar'
+          ? `للاستفسارات أو المساعدة، تواصل معنا عبر ${supportEmail}`
+          : `For questions or assistance, please contact us at ${supportEmail}`,
+      ],
+    };
+  },
 };
 
 export function renderNotificationEmailTemplate<

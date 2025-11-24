@@ -5,7 +5,7 @@ const primaryLogoSrc = new URL('../assets/logo.png', import.meta.url).href;
 const legacyLogoSrc = new URL('../assets/logo.jpg', import.meta.url).href;
 
 export interface LogoProps extends React.ImgHTMLAttributes<HTMLImageElement> {
-  size?: number;
+  size?: number; // Minimum: 96px for web, 72px for mobile (per PRD)
   variant?: 'primary' | 'inverse';
   showWordmark?: boolean;
   tagline?: string;
@@ -19,7 +19,7 @@ const defaultTagline = {
 };
 
 export const Logo: React.FC<LogoProps> = ({
-  size = 120,
+  size = 120, // Default 120px, minimum 96px per PRD
   variant = 'primary',
   showWordmark = true,
   tagline,
@@ -29,6 +29,9 @@ export const Logo: React.FC<LogoProps> = ({
   alt,
   ...imgProps
 }) => {
+  // Enforce minimum size per PRD: 96px for web, 72px for mobile
+  const minSize = typeof window !== 'undefined' && window.innerWidth < 768 ? 72 : 96;
+  const actualSize = Math.max(size, minSize);
   const background =
     variant === 'inverse'
       ? {
@@ -50,13 +53,15 @@ export const Logo: React.FC<LogoProps> = ({
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: size,
-    height: size,
-    minWidth: size,
-    minHeight: size,
+    width: actualSize,
+    height: actualSize,
+    minWidth: actualSize,
+    minHeight: actualSize,
     borderRadius: '24px',
     overflow: 'hidden',
     boxShadow: '0 6px 18px rgba(4, 44, 84, 0.12)',
+    // Minimum clear space per PRD: ≥ height of "ب" character in Arabic logo
+    margin: `${actualSize * 0.1}px`, // ~10% of logo height for clear space
     ...background,
   };
 
@@ -90,7 +95,7 @@ export const Logo: React.FC<LogoProps> = ({
           style={{
             fontFamily: "'Tajawal', 'Inter', sans-serif",
             fontWeight: 700,
-            fontSize: stacked ? '1.5rem' : '1.7rem',
+            fontSize: stacked ? `${actualSize * 0.0125}rem` : `${actualSize * 0.014}rem`,
             lineHeight: stacked ? 1.15 : 1.2,
             color: variant === 'inverse' ? palette.textOnInverse : palette.brandAccentDeep,
             textAlign: stacked ? 'center' : 'start',

@@ -20,6 +20,8 @@ import {
   setAuthCookies,
 } from '../utils/auth.util';
 import { investorSignupRequestService } from '../services/investor-signup-request.service';
+import { enqueueEmailNotification } from '../services/email-dispatch.service';
+import type { EmailLanguage } from '../email/templates/types';
 
 type EmptyParams = Record<string, never>;
 
@@ -179,7 +181,48 @@ export const authController = {
         // Don't fail the request, OTP is already verified
       }
 
-      // TODO: Send welcome notification/email
+      // Send welcome email
+      try {
+        const { data: authUser } = await adminClient.auth.admin.getUserById(userId);
+        const userEmail = email ?? authUser?.user?.email;
+        
+        if (userEmail) {
+          // Get user profile for name and language
+          const { data: profile } = await adminClient
+            .from('investor_profiles')
+            .select('full_name, preferred_name, language')
+            .eq('user_id', userId)
+            .maybeSingle();
+
+          const userName =
+            profile?.preferred_name ??
+            profile?.full_name ??
+            authUser?.user?.user_metadata?.full_name ??
+            userEmail.split('@')[0];
+
+          const language: EmailLanguage =
+            (profile?.language as EmailLanguage) ??
+            (authUser?.user?.user_metadata?.locale as EmailLanguage) ??
+            'ar';
+
+          const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173';
+          const loginLink = `${frontendUrl}/login`;
+
+          await enqueueEmailNotification({
+            userId,
+            templateId: 'welcome',
+            language,
+            recipientEmail: userEmail,
+            context: {
+              userName,
+              loginLink,
+            },
+          });
+        }
+      } catch (emailError) {
+        console.error('Failed to send welcome email:', emailError);
+        // Don't fail the request if email fails
+      }
 
       return res.status(200).json({
         activated: true,
@@ -206,7 +249,7 @@ export const authController = {
       const adminClient = requireSupabaseAdmin();
       const { data: userData, error: userError } = await adminClient
         .from('users')
-        .select('id')
+        .select('id, email')
         .eq('email', email)
         .single();
 
@@ -225,9 +268,55 @@ export const authController = {
       await otpService.invalidateUserOTPs(userId);
 
       // Create new OTP
-      const { expiresAt } = await otpService.createOTP(userId);
+      const { code, expiresAt } = await otpService.createOTP(userId);
 
-      // TODO: Send OTP via email (Supabase Edge Function or email service)
+      // Get user details for email
+      const { data: authUser } = await adminClient.auth.admin.getUserById(userId);
+      const userEmail = userData.email ?? authUser?.user?.email;
+      if (!userEmail) {
+        return res.status(400).json({
+          error: {
+            code: 'EMAIL_NOT_FOUND',
+            message: 'User email not found',
+          },
+        });
+      }
+
+      // Get user profile for name and language
+      const { data: profile } = await adminClient
+        .from('investor_profiles')
+        .select('full_name, preferred_name, language')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      const userName =
+        profile?.preferred_name ??
+        profile?.full_name ??
+        authUser?.user?.user_metadata?.full_name ??
+        userEmail.split('@')[0];
+
+      const language: EmailLanguage =
+        (profile?.language as EmailLanguage) ??
+        (authUser?.user?.user_metadata?.locale as EmailLanguage) ??
+        'ar';
+
+      // Send OTP via email
+      try {
+        await enqueueEmailNotification({
+          userId,
+          templateId: 'otp_verification',
+          language,
+          recipientEmail: userEmail,
+          context: {
+            userName,
+            otpCode: code,
+            expiresInMinutes: 10,
+          },
+        });
+      } catch (emailError) {
+        console.error('Failed to send OTP email:', emailError);
+        // Don't fail the request if email fails
+      }
 
       return res.status(200).json({
         message: 'OTP resent successfully',

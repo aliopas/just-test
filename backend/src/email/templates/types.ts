@@ -11,7 +11,9 @@ export type NotificationEmailTemplateId =
   | 'admin_request_pending_info'
   | 'admin_request_decision'
   | 'admin_request_settling'
-  | 'admin_request_completed';
+  | 'admin_request_completed'
+  | 'otp_verification'
+  | 'welcome';
 
 export interface TemplateBaseContext {
   userName: string;
@@ -85,6 +87,19 @@ export interface AdminRequestCompletedContext extends AdminTemplateBaseContext {
   completedAt: string;
 }
 
+export interface OTPVerificationContext {
+  userName: string;
+  otpCode: string;
+  expiresInMinutes: number;
+  supportEmail?: string;
+}
+
+export interface WelcomeContext {
+  userName: string;
+  loginLink: string;
+  supportEmail?: string;
+}
+
 export type TemplateContextMap = {
   request_submitted: RequestSubmittedContext;
   request_pending_info: RequestPendingInfoContext;
@@ -97,6 +112,8 @@ export type TemplateContextMap = {
   admin_request_decision: AdminRequestDecisionContext;
   admin_request_settling: AdminRequestSettlingContext;
   admin_request_completed: AdminRequestCompletedContext;
+  otp_verification: OTPVerificationContext;
+  welcome: WelcomeContext;
 };
 
 export type TemplateContext<TTemplate extends NotificationEmailTemplateId> =

@@ -1,33 +1,40 @@
 ﻿export const palette = {
-  brandPrimary: '#2364A4',
-  brandPrimaryStrong: '#2C74CC',
-  brandPrimaryMuted: '#327CB6',
+  // Primary Colors (from PRD)
+  brandPrimary: '#2D6FA3', // Bacura Blue
+  brandPrimaryDark: '#1E3A5F', // Navy Tech
+  brandPrimaryStrong: '#2D6FA3',
+  brandPrimaryMuted: '#245A84',
+  // Secondary Colors
   brandSecondary: '#55677A',
   brandSecondaryMuted: '#7197B4',
   brandSecondarySoft: '#AACCE3',
   brandAccent: '#3E6A95',
   brandAccentDeep: '#2E5B81',
   brandAccentMid: '#31566F',
+  // Background Colors
   backgroundBase: '#FFFFFF',
-  backgroundSurface: '#FFFFFF',
+  backgroundSurface: '#F9FAFB', // Gray 50 from PRD
   backgroundAlt: '#F4F7FB',
   backgroundHighlight: '#EDF2FB',
-  backgroundInverse: '#042C54',
+  backgroundInverse: '#1E3A5F', // Navy Tech
+  // Neutral Colors
   neutralSurface: '#E4E4E4',
-  neutralSolid: '#080809',
+  neutralSolid: '#111418', // Near Black from PRD
   neutralMuted: '#7C7C7C',
   neutralDivider: '#BCBCBC',
-  neutralBorder: '#A2AEBA',
+  neutralBorder: '#9CA3AF', // Gray 400 from PRD
   neutralBorderMuted: '#C7C8C8',
   neutralBorderSoft: '#DCDCD4',
-  textPrimary: '#080809',
+  // Text Colors
+  textPrimary: '#111418', // Near Black from PRD
   textSecondary: '#31566F',
   textMuted: '#7C7C7C',
-  textOnBrand: '#F6FAFA',
-  textOnInverse: '#F6FAFA',
-  success: '#10B981',
-  warning: '#F59E0B',
-  error: '#EF4444',
+  textOnBrand: '#FFFFFF',
+  textOnInverse: '#FFFFFF',
+  // Accent Colors (from PRD)
+  success: '#10B981', // Emerald
+  warning: '#F59E0B', // Amber
+  error: '#EF4444', // Red
 } as const;
 
 export type PaletteColor = keyof typeof palette;
