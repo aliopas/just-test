@@ -195,9 +195,11 @@ export const companyContentImagePresignSchema = z
   .refine(
     value => {
       const extension = value.fileName.split('.').pop()?.toLowerCase() ?? '';
-      const allowedExtensions =
-        value.purpose === 'logo' ? ALLOWED_LOGO_EXTENSIONS : ALLOWED_IMAGE_EXTENSIONS;
-      return allowedExtensions.includes(extension as typeof allowedExtensions[number]);
+      if (value.purpose === 'logo') {
+        return (ALLOWED_LOGO_EXTENSIONS as readonly string[]).includes(extension);
+      } else {
+        return (ALLOWED_IMAGE_EXTENSIONS as readonly string[]).includes(extension);
+      }
     },
     {
       message: 'Unsupported image extension for the specified purpose',
