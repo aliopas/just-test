@@ -9,6 +9,16 @@ import { resolveCoverUrl, NEWS_IMAGES_BUCKET, PROJECT_IMAGES_BUCKET } from '../u
 import { OptimizedImage } from '../components/OptimizedImage';
 import { usePublicProjects } from '../hooks/usePublicProjects';
 import { useHomepageSections, type HomepageSection } from '../hooks/useHomepageSections';
+import {
+  usePublicCompanyProfiles,
+  usePublicCompanyPartners,
+  usePublicCompanyClients,
+  usePublicCompanyResources,
+  usePublicCompanyStrengths,
+  usePublicPartnershipInfo,
+  usePublicMarketValue,
+  usePublicCompanyGoals,
+} from '../hooks/usePublicContent';
 import { ScrollToTopButton } from '../components/landing/ScrollToTopButton';
 import { StatisticsSection } from '../components/landing/StatisticsSection';
 import { SectionSkeleton } from '../components/landing/SectionSkeleton';
