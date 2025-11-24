@@ -45,8 +45,8 @@ export interface InvestorRequest {
   id: string;
   requestNumber: string;
   type: RequestType;
-  amount: number;
-  currency: RequestCurrency;
+  amount: number | null;
+  currency: RequestCurrency | null;
   targetPrice: number | null | undefined;
   expiryAt: string | null | undefined;
   status: RequestStatus;

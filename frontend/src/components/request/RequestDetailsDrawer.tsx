@@ -38,6 +38,9 @@ export function RequestDetailsDrawer({
   const timelineItems = timelineData?.items ?? [];
 
   const formattedAmount = useMemo(() => {
+    if (detailRequest.amount == null || detailRequest.currency == null) {
+      return '—';
+    }
     try {
       return new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
         style: 'currency',
@@ -49,7 +52,7 @@ export function RequestDetailsDrawer({
   }, [language, detailRequest.amount, detailRequest.currency]);
 
   const targetPriceDisplay = useMemo(() => {
-    if (detailRequest.targetPrice == null) return '—';
+    if (detailRequest.targetPrice == null || detailRequest.currency == null) return '—';
     try {
       return new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
         style: 'currency',
@@ -75,6 +78,9 @@ export function RequestDetailsDrawer({
   const typeLabels = {
     buy: { en: 'Buy request', ar: 'طلب شراء' },
     sell: { en: 'Sell request', ar: 'طلب بيع' },
+    partnership: { en: 'Partnership request', ar: 'طلب شراكة' },
+    board_nomination: { en: 'Board nomination request', ar: 'طلب ترشيح مجلس' },
+    feedback: { en: 'Feedback request', ar: 'طلب ملاحظات' },
   };
 
   return createPortal(

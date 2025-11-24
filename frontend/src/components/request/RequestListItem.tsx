@@ -14,6 +14,18 @@ const typeLabels = {
     en: 'Sell',
     ar: 'بيع',
   },
+  partnership: {
+    en: 'Partnership',
+    ar: 'شراكة',
+  },
+  board_nomination: {
+    en: 'Board Nomination',
+    ar: 'ترشيح مجلس',
+  },
+  feedback: {
+    en: 'Feedback',
+    ar: 'ملاحظات',
+  },
 };
 
 interface RequestListItemProps {
@@ -29,6 +41,9 @@ export function RequestListItem({
 }: RequestListItemProps) {
   const { language, direction } = useLanguage();
   const formattedAmount = useMemo(() => {
+    if (request.amount == null || request.currency == null) {
+      return '—';
+    }
     try {
       return new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
         style: 'currency',
