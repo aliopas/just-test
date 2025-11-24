@@ -168,6 +168,16 @@ export async function listAdminRequests(params: {
   const limit = params.query.limit ?? 25;
   const offset = (page - 1) * limit;
 
+  // Determine sort field and order first
+  const sortField = params.query.sortBy ?? 'created_at';
+  const order = (params.query.order ?? 'desc') === 'asc' ? true : false;
+
+  // Validate sortField is one of the allowed fields (must be on the main requests table)
+  const allowedSortFields = ['created_at', 'amount', 'status'] as const;
+  const validSortField = allowedSortFields.includes(sortField as typeof allowedSortFields[number])
+    ? sortField
+    : 'created_at';
+
   let queryBuilder = adminClient.from('requests').select(
     `
         id,
@@ -211,6 +221,9 @@ export async function listAdminRequests(params: {
     { count: 'exact' }
   );
 
+  // Apply ordering early to avoid issues with complex filters
+  queryBuilder = queryBuilder.order(validSortField, { ascending: order });
+
   if (params.query.status) {
     queryBuilder = queryBuilder.eq('status', params.query.status);
   }
@@ -242,6 +255,7 @@ export async function listAdminRequests(params: {
   }
 
   // Apply search filter if provided
+  // Note: Using .or() with nested relations can cause issues, so we apply it last
   if (params.query.search) {
     const pattern = `%${escapeLikePattern(params.query.search)}%`;
     queryBuilder = queryBuilder.or(
@@ -249,21 +263,8 @@ export async function listAdminRequests(params: {
     );
   }
 
-  // Determine sort field and order
-  const sortField = params.query.sortBy ?? 'created_at';
-  const order = (params.query.order ?? 'desc') === 'asc' ? true : false;
-
-  // Validate sortField is one of the allowed fields (must be on the main requests table)
-  const allowedSortFields = ['created_at', 'amount', 'status'] as const;
-  const validSortField = allowedSortFields.includes(sortField as typeof allowedSortFields[number])
-    ? sortField
-    : 'created_at';
-
-  // Apply ordering and pagination
-  // Note: Order must be applied to fields on the main table when using nested selects
-  const { data, count, error } = await queryBuilder
-    .order(validSortField, { ascending: order })
-    .range(offset, offset + limit - 1);
+  // Apply pagination last
+  const { data, count, error } = await queryBuilder.range(offset, offset + limit - 1);
 
   if (error) {
     console.error('Failed to list admin requests - Supabase error:', {

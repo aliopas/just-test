@@ -22,6 +22,7 @@ import {
 import { ScrollToTopButton } from '../components/landing/ScrollToTopButton';
 import { StatisticsSection } from '../components/landing/StatisticsSection';
 import { SectionSkeleton } from '../components/landing/SectionSkeleton';
+import { CompanyContentSection } from '../components/landing/CompanyContentSection';
 
 // Animated Icon Components
 const NetworkIcon = () => (
@@ -2167,8 +2168,10 @@ export function PublicLandingPage() {
             </div>
           </div>
 
-          {/* Homepage Sections with Icons */}
-          {isSectionsLoading && <SectionSkeleton />}
+          {/* Company Content Sections - Using New APIs (Story 9.3) */}
+          <CompanyContentSection />
+
+          {/* Legacy Homepage Sections - Keep as fallback */}
           {!isSectionsLoading && !isSectionsError && homepageSections.length > 0 && (
             <div
               style={{
@@ -2195,7 +2198,7 @@ export function PublicLandingPage() {
                 }}
                 className="section-title"
               >
-                {isArabic ? 'معلومات عن الشركة' : 'Company Information'}
+                {isArabic ? 'معلومات إضافية' : 'Additional Information'}
               </h2>
               <div
                 className="homepage-sections-grid"
