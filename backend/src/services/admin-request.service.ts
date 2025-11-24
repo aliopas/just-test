@@ -255,12 +255,12 @@ export async function listAdminRequests(params: {
   }
 
   // Apply search filter if provided
-  // Note: Using .or() with nested relations can cause issues, so we apply it last
+  // Note: Supabase .or() with nested relations doesn't work reliably
+  // For now, we only search on request_number. Profile name search can be added later
+  // using a different approach (e.g., separate query or full-text search)
   if (params.query.search) {
     const pattern = `%${escapeLikePattern(params.query.search)}%`;
-    queryBuilder = queryBuilder.or(
-      `request_number.ilike.${pattern},users.profile.full_name.ilike.${pattern},users.profile.preferred_name.ilike.${pattern}`
-    );
+    queryBuilder = queryBuilder.ilike('request_number', pattern);
   }
 
   // Apply pagination last
