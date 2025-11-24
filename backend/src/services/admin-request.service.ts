@@ -29,6 +29,7 @@ type AdminRequestRow = {
   metadata: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
+  user_id: string;
   users?: MaybeArray<{
     id: string;
     email: string | null;
@@ -36,24 +37,6 @@ type AdminRequestRow = {
     phone_cc: string | null;
     status: string | null;
     created_at: string | null;
-    profile?: MaybeArray<{
-      full_name: string | null;
-      preferred_name: string | null;
-      language: string | null;
-      id_type: string | null;
-      id_number: string | null;
-      id_expiry: string | null;
-      nationality: string | null;
-      residency_country: string | null;
-      city: string | null;
-      kyc_status: string | null;
-      kyc_updated_at: string | null;
-      risk_profile: string | null;
-      communication_preferences: Record<string, boolean> | null;
-      kyc_documents: unknown;
-      created_at: string | null;
-      updated_at: string | null;
-    }>;
   }>;
 };
 
