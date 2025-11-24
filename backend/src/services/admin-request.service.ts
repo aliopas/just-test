@@ -245,6 +245,20 @@ export async function listAdminRequests(params: {
     console.log('No requests found with query:', params.query);
   }
 
+  // If no rows, return empty result early
+  if (rows.length === 0) {
+    return {
+      requests: [],
+      meta: {
+        page: params.query.page ?? 1,
+        limit: params.query.limit ?? 25,
+        total: count ?? 0,
+        pageCount: 0,
+        hasNext: false,
+      },
+    };
+  }
+
   // Get read status for all requests by this admin
   const requestIds = rows.map(row => row.id);
   let readStatusMap: Record<string, boolean> = {};
