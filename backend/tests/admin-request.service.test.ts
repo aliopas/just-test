@@ -60,6 +60,40 @@ beforeEach(() => {
   mockNotifySettlement.mockReset();
 });
 
+// Helper function to create mocks for markRequestAsRead
+function createMarkRequestAsReadMocks(requestStatus: string = 'submitted') {
+  const adminViewsSelectMock = jest.fn().mockReturnThis();
+  const adminViewsEqMock = jest.fn().mockReturnThis();
+  const adminViewsLimitMock = jest.fn().mockResolvedValue({
+    data: [],
+    error: null,
+  });
+  const requestStatusSelectMock = jest.fn().mockReturnThis();
+  const requestStatusEqMock = jest.fn().mockReturnThis();
+  const requestStatusSingleMock = jest.fn().mockResolvedValue({
+    data: { status: requestStatus },
+    error: null,
+  });
+  const adminViewsUpsertMock = jest.fn().mockReturnValue({
+    select: jest.fn().mockReturnValue({
+      single: jest.fn().mockResolvedValue({
+        data: { viewed_at: '2025-01-01T00:00:00Z' },
+        error: null,
+      }),
+    }),
+  });
+
+  return {
+    adminViewsSelectMock,
+    adminViewsEqMock,
+    adminViewsLimitMock,
+    requestStatusSelectMock,
+    requestStatusEqMock,
+    requestStatusSingleMock,
+    adminViewsUpsertMock,
+  };
+}
+
 describe('escapeLikePattern', () => {
   it('escapes percent and underscore characters', () => {
     expect(escapeLikePattern('100%_match')).toBe('100\\%\\_match');
@@ -372,8 +406,38 @@ describe('getAdminRequestDetail', () => {
       error: null,
     });
 
+    // Mock for markRequestAsRead calls
+    const adminViewsSelectMock = jest.fn().mockReturnThis();
+    const adminViewsEqMock = jest.fn().mockReturnThis();
+    const adminViewsLimitMock = jest.fn().mockResolvedValue({
+      data: [],
+      error: null,
+    });
+    const adminViewsUpsertMock = jest.fn().mockReturnThis();
+    const adminViewsUpsertSelectMock = jest.fn().mockReturnThis();
+    const adminViewsUpsertSingleMock = jest.fn().mockResolvedValue({
+      data: { viewed_at: '2025-01-01T00:00:00Z' },
+      error: null,
+    });
+    const requestStatusSelectMock = jest.fn().mockReturnThis();
+    const requestStatusEqMock = jest.fn().mockReturnThis();
+    const requestStatusSingleMock = jest.fn().mockResolvedValue({
+      data: { status: 'submitted' },
+      error: null,
+    });
+
+    let requestCallCount = 0;
     const fromMock = jest.fn((table: string) => {
       if (table === 'requests') {
+        requestCallCount++;
+        // First call is for status check in markRequestAsRead, second is for full detail
+        if (requestCallCount === 1) {
+          return {
+            select: requestStatusSelectMock,
+            eq: requestStatusEqMock,
+            single: requestStatusSingleMock,
+          };
+        }
         return {
           select: selectMock,
           eq: eqMock,
@@ -401,11 +465,28 @@ describe('getAdminRequestDetail', () => {
           order: commentOrderMock,
         };
       }
+      if (table === 'admin_request_views') {
+        return {
+          select: adminViewsSelectMock,
+          eq: adminViewsEqMock,
+          limit: adminViewsLimitMock,
+          upsert: adminViewsUpsertMock.mockReturnValue({
+            select: adminViewsUpsertSelectMock.mockReturnValue({
+              single: adminViewsUpsertSingleMock,
+            }),
+          }),
+        };
+      }
       throw new Error(`Unhandled table ${table}`);
     });
 
     mockRequireSupabaseAdmin.mockReturnValue({
       from: fromMock,
+      storage: {
+        from: jest.fn().mockReturnValue({
+          createSignedUrl: jest.fn().mockResolvedValue({ data: null, error: null }),
+        }),
+      },
     });
 
     const result = await getAdminRequestDetail({
@@ -450,6 +531,627 @@ describe('getAdminRequestDetail', () => {
         }),
       })
     );
+  });
+
+  it('includes metadata in request response', async () => {
+    const requestData = {
+      id: 'req-1',
+      request_number: 'INV-2025-000001',
+      user_id: 'user-1',
+      status: 'submitted',
+      type: 'partnership',
+      amount: null,
+      currency: null,
+      target_price: null,
+      expiry_at: null,
+      notes: null,
+      metadata: {
+        projectId: 'proj-123',
+        proposedAmount: 50000,
+        partnershipPlan: 'Strategic partnership plan...',
+      },
+      created_at: '2025-01-01T00:00:00Z',
+      updated_at: '2025-01-02T00:00:00Z',
+      settlement_started_at: null,
+      settlement_completed_at: null,
+      settlement_reference: null,
+      settlement_notes: null,
+      users: [
+        {
+          id: 'user-1',
+          email: 'user@example.com',
+          profile: [],
+        },
+      ],
+    };
+
+    // Mock for markRequestAsRead
+    const markAsReadMocks = createMarkRequestAsReadMocks('submitted');
+    
+    const selectMock = jest.fn().mockReturnThis();
+    const eqMock = jest.fn().mockReturnThis();
+    const singleMock = jest.fn().mockResolvedValue({
+      data: requestData,
+      error: null,
+    });
+
+    let requestCallCount = 0;
+    const fromMock = jest.fn((table: string) => {
+      if (table === 'requests') {
+        requestCallCount++;
+        // First call is for status check in markRequestAsRead, second is for full detail
+        if (requestCallCount === 1) {
+          return {
+            select: markAsReadMocks.requestStatusSelectMock,
+            eq: markAsReadMocks.requestStatusEqMock,
+            single: markAsReadMocks.requestStatusSingleMock,
+          };
+        }
+        return {
+          select: selectMock,
+          eq: eqMock,
+          single: singleMock,
+        };
+      }
+      if (table === 'attachments') {
+        return {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnThis(),
+          order: jest.fn().mockResolvedValue({ data: [], error: null }),
+        };
+      }
+      if (table === 'request_events') {
+        return {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnThis(),
+          order: jest.fn().mockResolvedValue({ data: [], error: null }),
+        };
+      }
+      if (table === 'request_comments') {
+        return {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnThis(),
+          order: jest.fn().mockResolvedValue({ data: [], error: null }),
+        };
+      }
+      if (table === 'admin_request_views') {
+        return {
+          select: markAsReadMocks.adminViewsSelectMock,
+          eq: markAsReadMocks.adminViewsEqMock,
+          limit: markAsReadMocks.adminViewsLimitMock,
+          upsert: markAsReadMocks.adminViewsUpsertMock,
+        };
+      }
+      throw new Error(`Unhandled table ${table}`);
+    });
+
+    mockRequireSupabaseAdmin.mockReturnValue({
+      from: fromMock,
+      storage: {
+        from: jest.fn().mockReturnValue({
+          createSignedUrl: jest.fn().mockResolvedValue({ data: null, error: null }),
+        }),
+      },
+    });
+
+    const result = await getAdminRequestDetail({
+      actorId: 'admin-1',
+      requestId: 'req-1',
+    });
+
+    expect(result.request.metadata).toEqual({
+      projectId: 'proj-123',
+      proposedAmount: 50000,
+      partnershipPlan: 'Strategic partnership plan...',
+    });
+    expect(result.request.type).toBe('partnership');
+  });
+
+  it('generates download URLs for attachments', async () => {
+    const requestData = {
+      id: 'req-1',
+      request_number: 'INV-2025-000001',
+      user_id: 'user-1',
+      status: 'submitted',
+      type: 'buy',
+      amount: '5000',
+      currency: 'SAR',
+      target_price: null,
+      expiry_at: null,
+      notes: null,
+      metadata: null,
+      created_at: '2025-01-01T00:00:00Z',
+      updated_at: '2025-01-02T00:00:00Z',
+      settlement_started_at: null,
+      settlement_completed_at: null,
+      settlement_reference: null,
+      settlement_notes: null,
+      users: [
+        {
+          id: 'user-1',
+          email: 'user@example.com',
+          profile: [],
+        },
+      ],
+    };
+
+    // Mock for markRequestAsRead
+    const markAsReadMocks = createMarkRequestAsReadMocks('submitted');
+    
+    const mockCreateSignedUrl = jest.fn().mockResolvedValue({
+      data: { signedUrl: 'https://example.com/download?token=xyz123' },
+      error: null,
+    });
+
+    const selectMock = jest.fn().mockReturnThis();
+    const eqMock = jest.fn().mockReturnThis();
+    const singleMock = jest.fn().mockResolvedValue({
+      data: requestData,
+      error: null,
+    });
+
+    const attachmentOrderMock = jest.fn().mockResolvedValue({
+      data: [
+        {
+          id: 'att-1',
+          filename: 'doc.pdf',
+          mime_type: 'application/pdf',
+          size: '2048',
+          storage_key: 'request-attachments/req-1/doc.pdf',
+          created_at: '2025-01-01T01:00:00Z',
+          category: 'general',
+          metadata: {},
+        },
+      ],
+      error: null,
+    });
+
+    let requestCallCount = 0;
+    const fromMock = jest.fn((table: string) => {
+      if (table === 'requests') {
+        requestCallCount++;
+        // First call is for status check in markRequestAsRead, second is for full detail
+        if (requestCallCount === 1) {
+          return {
+            select: markAsReadMocks.requestStatusSelectMock,
+            eq: markAsReadMocks.requestStatusEqMock,
+            single: markAsReadMocks.requestStatusSingleMock,
+          };
+        }
+        return {
+          select: selectMock,
+          eq: eqMock,
+          single: singleMock,
+        };
+      }
+      if (table === 'attachments') {
+        return {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnThis(),
+          order: attachmentOrderMock,
+        };
+      }
+      if (table === 'request_events') {
+        return {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnThis(),
+          order: jest.fn().mockResolvedValue({ data: [], error: null }),
+        };
+      }
+      if (table === 'request_comments') {
+        return {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnThis(),
+          order: jest.fn().mockResolvedValue({ data: [], error: null }),
+        };
+      }
+      if (table === 'admin_request_views') {
+        return {
+          select: markAsReadMocks.adminViewsSelectMock,
+          eq: markAsReadMocks.adminViewsEqMock,
+          limit: markAsReadMocks.adminViewsLimitMock,
+          upsert: markAsReadMocks.adminViewsUpsertMock,
+        };
+      }
+      throw new Error(`Unhandled table ${table}`);
+    });
+
+    mockRequireSupabaseAdmin.mockReturnValue({
+      from: fromMock,
+      storage: {
+        from: jest.fn((bucket: string) => {
+          if (bucket === 'request-attachments') {
+            return {
+              createSignedUrl: mockCreateSignedUrl,
+            };
+          }
+          return {
+            createSignedUrl: jest.fn().mockResolvedValue({ data: null, error: null }),
+          };
+        }),
+      },
+    });
+
+    const result = await getAdminRequestDetail({
+      actorId: 'admin-1',
+      requestId: 'req-1',
+    });
+
+    expect(result.attachments).toHaveLength(1);
+    expect(result.attachments[0].downloadUrl).toBe('https://example.com/download?token=xyz123');
+    expect(mockCreateSignedUrl).toHaveBeenCalledWith('req-1/doc.pdf', 3600);
+  });
+
+  it('handles attachment download URL generation failure gracefully', async () => {
+    const requestData = {
+      id: 'req-1',
+      request_number: 'INV-2025-000001',
+      user_id: 'user-1',
+      status: 'submitted',
+      type: 'buy',
+      amount: '5000',
+      currency: 'SAR',
+      target_price: null,
+      expiry_at: null,
+      notes: null,
+      metadata: null,
+      created_at: '2025-01-01T00:00:00Z',
+      updated_at: '2025-01-02T00:00:00Z',
+      settlement_started_at: null,
+      settlement_completed_at: null,
+      settlement_reference: null,
+      settlement_notes: null,
+      users: [
+        {
+          id: 'user-1',
+          email: 'user@example.com',
+          profile: [],
+        },
+      ],
+    };
+
+    // Mock for markRequestAsRead
+    const markAsReadMocks = createMarkRequestAsReadMocks('submitted');
+    
+    const mockCreateSignedUrl = jest.fn().mockResolvedValue({
+      data: null,
+      error: { message: 'Storage error' },
+    });
+
+    const selectMock = jest.fn().mockReturnThis();
+    const eqMock = jest.fn().mockReturnThis();
+    const singleMock = jest.fn().mockResolvedValue({
+      data: requestData,
+      error: null,
+    });
+
+    const attachmentOrderMock = jest.fn().mockResolvedValue({
+      data: [
+        {
+          id: 'att-1',
+          filename: 'doc.pdf',
+          mime_type: 'application/pdf',
+          size: '2048',
+          storage_key: 'request-attachments/req-1/doc.pdf',
+          created_at: '2025-01-01T01:00:00Z',
+          category: 'general',
+          metadata: {},
+        },
+      ],
+      error: null,
+    });
+
+    let requestCallCount = 0;
+    const fromMock = jest.fn((table: string) => {
+      if (table === 'requests') {
+        requestCallCount++;
+        // First call is for status check in markRequestAsRead, second is for full detail
+        if (requestCallCount === 1) {
+          return {
+            select: markAsReadMocks.requestStatusSelectMock,
+            eq: markAsReadMocks.requestStatusEqMock,
+            single: markAsReadMocks.requestStatusSingleMock,
+          };
+        }
+        return {
+          select: selectMock,
+          eq: eqMock,
+          single: singleMock,
+        };
+      }
+      if (table === 'attachments') {
+        return {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnThis(),
+          order: attachmentOrderMock,
+        };
+      }
+      if (table === 'request_events') {
+        return {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnThis(),
+          order: jest.fn().mockResolvedValue({ data: [], error: null }),
+        };
+      }
+      if (table === 'request_comments') {
+        return {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnThis(),
+          order: jest.fn().mockResolvedValue({ data: [], error: null }),
+        };
+      }
+      if (table === 'admin_request_views') {
+        return {
+          select: markAsReadMocks.adminViewsSelectMock,
+          eq: markAsReadMocks.adminViewsEqMock,
+          limit: markAsReadMocks.adminViewsLimitMock,
+          upsert: markAsReadMocks.adminViewsUpsertMock,
+        };
+      }
+      throw new Error(`Unhandled table ${table}`);
+    });
+
+    mockRequireSupabaseAdmin.mockReturnValue({
+      from: fromMock,
+      storage: {
+        from: jest.fn((bucket: string) => {
+          if (bucket === 'request-attachments') {
+            return {
+              createSignedUrl: mockCreateSignedUrl,
+            };
+          }
+          return {
+            createSignedUrl: jest.fn().mockResolvedValue({ data: null, error: null }),
+          };
+        }),
+      },
+    });
+
+    const result = await getAdminRequestDetail({
+      actorId: 'admin-1',
+      requestId: 'req-1',
+    });
+
+    expect(result.attachments).toHaveLength(1);
+    expect(result.attachments[0].downloadUrl).toBeNull();
+  });
+
+  it('handles invalid storage_key format gracefully', async () => {
+    const requestData = {
+      id: 'req-1',
+      request_number: 'INV-2025-000001',
+      user_id: 'user-1',
+      status: 'submitted',
+      type: 'buy',
+      amount: '5000',
+      currency: 'SAR',
+      target_price: null,
+      expiry_at: null,
+      notes: null,
+      metadata: null,
+      created_at: '2025-01-01T00:00:00Z',
+      updated_at: '2025-01-02T00:00:00Z',
+      settlement_started_at: null,
+      settlement_completed_at: null,
+      settlement_reference: null,
+      settlement_notes: null,
+      users: [
+        {
+          id: 'user-1',
+          email: 'user@example.com',
+          profile: [],
+        },
+      ],
+    };
+
+    // Mock for markRequestAsRead
+    const markAsReadMocks = createMarkRequestAsReadMocks('submitted');
+
+    const selectMock = jest.fn().mockReturnThis();
+    const eqMock = jest.fn().mockReturnThis();
+    const singleMock = jest.fn().mockResolvedValue({
+      data: requestData,
+      error: null,
+    });
+
+    const attachmentOrderMock = jest.fn().mockResolvedValue({
+      data: [
+        {
+          id: 'att-1',
+          filename: 'doc.pdf',
+          mime_type: 'application/pdf',
+          size: '2048',
+          storage_key: 'invalid-key', // Missing bucket/path separator
+          created_at: '2025-01-01T01:00:00Z',
+          category: 'general',
+          metadata: {},
+        },
+      ],
+      error: null,
+    });
+
+    let requestCallCount = 0;
+    const fromMock = jest.fn((table: string) => {
+      if (table === 'requests') {
+        requestCallCount++;
+        // First call is for status check in markRequestAsRead, second is for full detail
+        if (requestCallCount === 1) {
+          return {
+            select: markAsReadMocks.requestStatusSelectMock,
+            eq: markAsReadMocks.requestStatusEqMock,
+            single: markAsReadMocks.requestStatusSingleMock,
+          };
+        }
+        return {
+          select: selectMock,
+          eq: eqMock,
+          single: singleMock,
+        };
+      }
+      if (table === 'attachments') {
+        return {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnThis(),
+          order: attachmentOrderMock,
+        };
+      }
+      if (table === 'request_events') {
+        return {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnThis(),
+          order: jest.fn().mockResolvedValue({ data: [], error: null }),
+        };
+      }
+      if (table === 'request_comments') {
+        return {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnThis(),
+          order: jest.fn().mockResolvedValue({ data: [], error: null }),
+        };
+      }
+      if (table === 'admin_request_views') {
+        return {
+          select: markAsReadMocks.adminViewsSelectMock,
+          eq: markAsReadMocks.adminViewsEqMock,
+          limit: markAsReadMocks.adminViewsLimitMock,
+          upsert: markAsReadMocks.adminViewsUpsertMock,
+        };
+      }
+      throw new Error(`Unhandled table ${table}`);
+    });
+
+    mockRequireSupabaseAdmin.mockReturnValue({
+      from: fromMock,
+      storage: {
+        from: jest.fn().mockReturnValue({
+          createSignedUrl: jest.fn(),
+        }),
+      },
+    });
+
+    const result = await getAdminRequestDetail({
+      actorId: 'admin-1',
+      requestId: 'req-1',
+    });
+
+    expect(result.attachments).toHaveLength(1);
+    expect(result.attachments[0].downloadUrl).toBeNull();
+  });
+
+  it('returns metadata for feedback request type', async () => {
+    const requestData = {
+      id: 'req-1',
+      request_number: 'INV-2025-000001',
+      user_id: 'user-1',
+      status: 'submitted',
+      type: 'feedback',
+      amount: null,
+      currency: null,
+      target_price: null,
+      expiry_at: null,
+      notes: null,
+      metadata: {
+        subject: 'Feature Request',
+        category: 'suggestion',
+        description: 'Please add dark mode support',
+        priority: 'high',
+      },
+      created_at: '2025-01-01T00:00:00Z',
+      updated_at: '2025-01-02T00:00:00Z',
+      settlement_started_at: null,
+      settlement_completed_at: null,
+      settlement_reference: null,
+      settlement_notes: null,
+      users: [
+        {
+          id: 'user-1',
+          email: 'user@example.com',
+          profile: [],
+        },
+      ],
+    };
+
+    // Mock for markRequestAsRead
+    const markAsReadMocks = createMarkRequestAsReadMocks('submitted');
+
+    const selectMock = jest.fn().mockReturnThis();
+    const eqMock = jest.fn().mockReturnThis();
+    const singleMock = jest.fn().mockResolvedValue({
+      data: requestData,
+      error: null,
+    });
+
+    let requestCallCount = 0;
+    const fromMock = jest.fn((table: string) => {
+      if (table === 'requests') {
+        requestCallCount++;
+        // First call is for status check in markRequestAsRead, second is for full detail
+        if (requestCallCount === 1) {
+          return {
+            select: markAsReadMocks.requestStatusSelectMock,
+            eq: markAsReadMocks.requestStatusEqMock,
+            single: markAsReadMocks.requestStatusSingleMock,
+          };
+        }
+        return {
+          select: selectMock,
+          eq: eqMock,
+          single: singleMock,
+        };
+      }
+      if (table === 'attachments') {
+        return {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnThis(),
+          order: jest.fn().mockResolvedValue({ data: [], error: null }),
+        };
+      }
+      if (table === 'request_events') {
+        return {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnThis(),
+          order: jest.fn().mockResolvedValue({ data: [], error: null }),
+        };
+      }
+      if (table === 'request_comments') {
+        return {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnThis(),
+          order: jest.fn().mockResolvedValue({ data: [], error: null }),
+        };
+      }
+      if (table === 'admin_request_views') {
+        return {
+          select: markAsReadMocks.adminViewsSelectMock,
+          eq: markAsReadMocks.adminViewsEqMock,
+          limit: markAsReadMocks.adminViewsLimitMock,
+          upsert: markAsReadMocks.adminViewsUpsertMock,
+        };
+      }
+      throw new Error(`Unhandled table ${table}`);
+    });
+
+    mockRequireSupabaseAdmin.mockReturnValue({
+      from: fromMock,
+      storage: {
+        from: jest.fn().mockReturnValue({
+          createSignedUrl: jest.fn().mockResolvedValue({ data: null, error: null }),
+        }),
+      },
+    });
+
+    const result = await getAdminRequestDetail({
+      actorId: 'admin-1',
+      requestId: 'req-1',
+    });
+
+    expect(result.request.type).toBe('feedback');
+    expect(result.request.metadata).toEqual({
+      subject: 'Feature Request',
+      category: 'suggestion',
+      description: 'Please add dark mode support',
+      priority: 'high',
+    });
   });
 });
 

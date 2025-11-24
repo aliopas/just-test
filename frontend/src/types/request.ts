@@ -3,7 +3,7 @@
   NotificationType,
 } from './notification';
 
-export type RequestType = 'buy' | 'sell';
+export type RequestType = 'buy' | 'sell' | 'partnership' | 'board_nomination' | 'feedback';
 export type RequestCurrency = 'SAR' | 'USD' | 'EUR';
 export type RequestStatus =
   | 'draft'

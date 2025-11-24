@@ -9,6 +9,7 @@ import { adminContentAnalyticsController } from '../controllers/admin-content-an
 import { investorSignupRequestController } from '../controllers/investor-signup-request.controller';
 import { projectController } from '../controllers/project.controller';
 import { homepageSectionsController } from '../controllers/homepage-sections.controller';
+import { companyContentController } from '../controllers/company-content.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { requirePermission } from '../middleware/rbac.middleware';
 
@@ -329,6 +330,306 @@ adminRouter.delete(
   authenticate,
   requirePermission('admin.content.manage'),
   homepageSectionsController.remove
+);
+
+// ============================================================================
+// Company Content Routes (Epic 9 - Story 9.2)
+// ============================================================================
+
+// Company Profile routes
+adminRouter.get(
+  '/company-profile',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.listProfiles
+);
+
+adminRouter.get(
+  '/company-profile/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.getProfileById
+);
+
+adminRouter.post(
+  '/company-profile',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.createProfile
+);
+
+adminRouter.patch(
+  '/company-profile/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.updateProfile
+);
+
+adminRouter.delete(
+  '/company-profile/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.deleteProfile
+);
+
+// Company Partners routes
+adminRouter.get(
+  '/company-partners',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.listPartners
+);
+
+adminRouter.get(
+  '/company-partners/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.getPartnerById
+);
+
+adminRouter.post(
+  '/company-partners',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.createPartner
+);
+
+adminRouter.patch(
+  '/company-partners/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.updatePartner
+);
+
+adminRouter.delete(
+  '/company-partners/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.deletePartner
+);
+
+// Company Clients routes
+adminRouter.get(
+  '/company-clients',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.listClients
+);
+
+adminRouter.get(
+  '/company-clients/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.getClientById
+);
+
+adminRouter.post(
+  '/company-clients',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.createClient
+);
+
+adminRouter.patch(
+  '/company-clients/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.updateClient
+);
+
+adminRouter.delete(
+  '/company-clients/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.deleteClient
+);
+
+// Company Resources routes
+adminRouter.get(
+  '/company-resources',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.listResources
+);
+
+adminRouter.get(
+  '/company-resources/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.getResourceById
+);
+
+adminRouter.post(
+  '/company-resources',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.createResource
+);
+
+adminRouter.patch(
+  '/company-resources/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.updateResource
+);
+
+adminRouter.delete(
+  '/company-resources/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.deleteResource
+);
+
+// Company Strengths routes
+adminRouter.get(
+  '/company-strengths',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.listStrengths
+);
+
+adminRouter.get(
+  '/company-strengths/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.getStrengthById
+);
+
+adminRouter.post(
+  '/company-strengths',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.createStrength
+);
+
+adminRouter.patch(
+  '/company-strengths/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.updateStrength
+);
+
+adminRouter.delete(
+  '/company-strengths/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.deleteStrength
+);
+
+// Partnership Info routes
+adminRouter.get(
+  '/partnership-info',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.listPartnershipInfo
+);
+
+adminRouter.get(
+  '/partnership-info/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.getPartnershipInfoById
+);
+
+adminRouter.post(
+  '/partnership-info',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.createPartnershipInfo
+);
+
+adminRouter.patch(
+  '/partnership-info/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.updatePartnershipInfo
+);
+
+adminRouter.delete(
+  '/partnership-info/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.deletePartnershipInfo
+);
+
+// Market Value routes
+adminRouter.get(
+  '/market-value',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.listMarketValues
+);
+
+adminRouter.get(
+  '/market-value/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.getMarketValueById
+);
+
+adminRouter.post(
+  '/market-value',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.createMarketValue
+);
+
+adminRouter.patch(
+  '/market-value/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.updateMarketValue
+);
+
+adminRouter.delete(
+  '/market-value/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.deleteMarketValue
+);
+
+// Company Goals routes
+adminRouter.get(
+  '/company-goals',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.listGoals
+);
+
+adminRouter.get(
+  '/company-goals/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.getGoalById
+);
+
+adminRouter.post(
+  '/company-goals',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.createGoal
+);
+
+adminRouter.patch(
+  '/company-goals/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.updateGoal
+);
+
+adminRouter.delete(
+  '/company-goals/:id',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.deleteGoal
+);
+
+// Presigned URL for company content images/icons
+adminRouter.post(
+  '/company-content/images/presign',
+  authenticate,
+  requirePermission('admin.content.manage'),
+  companyContentController.presignImage
 );
 
 export { adminRouter };

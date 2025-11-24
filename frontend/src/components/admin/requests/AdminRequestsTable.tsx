@@ -14,6 +14,70 @@ interface Props {
   onRetry?: () => void;
 }
 
+// Helper to format amount/subject based on request type
+function formatAmountOrSubject(
+  request: AdminRequest,
+  language: 'ar' | 'en'
+): string {
+  if (request.type === 'feedback') {
+    const metadata = request.metadata;
+    if (metadata && typeof metadata === 'object' && 'subject' in metadata) {
+      return String(metadata.subject || '—');
+    }
+    return '—';
+  }
+
+  if (request.type === 'partnership') {
+    const metadata = request.metadata;
+    if (metadata && typeof metadata === 'object' && 'proposedAmount' in metadata) {
+      const amount = metadata.proposedAmount;
+      if (typeof amount === 'number') {
+        // Use currency from request if available, otherwise default to SAR
+        const currency = request.currency || 'SAR';
+        return new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
+          style: 'currency',
+          currency: currency,
+        }).format(amount);
+      }
+    }
+    return '—';
+  }
+
+  if (request.type === 'board_nomination') {
+    // For board nomination, we can show a simple label
+    return language === 'ar' ? 'ترشيح مجلس' : 'Board Nomination';
+  }
+
+  // For buy/sell, show formatted amount
+  if (request.amount != null && request.currency) {
+    try {
+      return new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
+        style: 'currency',
+        currency: request.currency,
+      }).format(request.amount);
+    } catch {
+      return `${request.amount} ${request.currency}`;
+    }
+  }
+
+  return '—';
+}
+
+// Helper to get type label
+function getTypeLabel(type: AdminRequest['type'], language: 'ar' | 'en'): string {
+  return tAdminRequests(`type.${type}` as Parameters<typeof tAdminRequests>[0], language);
+}
+
+// Helper to check if request is stale (pending_info for more than 7 days)
+function isStaleRequest(request: AdminRequest): boolean {
+  if (request.status !== 'pending_info') {
+    return false;
+  }
+  const updatedAt = new Date(request.updatedAt);
+  const daysSinceUpdate = (Date.now() - updatedAt.getTime()) / (1000 * 60 * 60 * 24);
+  return daysSinceUpdate > 7;
+}
+
 export function AdminRequestsTable({
   requests,
   isLoading,
@@ -48,7 +112,7 @@ export function AdminRequestsTable({
     if (requests.length === 0) {
       return (
         <div style={emptyStateStyle}>
-          <div style={{ fontSize: '1.4rem' }}>ðŸ“­</div>
+          <div style={{ fontSize: '1.4rem' }}>📬</div>
           <strong>{tAdminRequests('table.emptyTitle', language)}</strong>
           <span>{tAdminRequests('table.emptySubtitle', language)}</span>
         </div>
@@ -59,11 +123,24 @@ export function AdminRequestsTable({
       <table style={{ ...tableStyle, direction }}>
         <thead>
           <tr>
-            <th>{tAdminRequests('table.requestNumber', language)}</th>
-            <th>{tAdminRequests('table.investor', language)}</th>
-            <th>{tAdminRequests('table.amount', language)}</th>
-            <th>{tAdminRequests('table.status', language)}</th>
-            <th>{tAdminRequests('table.createdAt', language)}</th>
+            <th style={headerCellStyle}>
+              {tAdminRequests('table.requestNumber', language)}
+            </th>
+            <th style={headerCellStyle}>
+              {tAdminRequests('table.type', language)}
+            </th>
+            <th style={headerCellStyle}>
+              {tAdminRequests('table.investor', language)}
+            </th>
+            <th style={headerCellStyle}>
+              {tAdminRequests('table.amount', language)}
+            </th>
+            <th style={headerCellStyle}>
+              {tAdminRequests('table.status', language)}
+            </th>
+            <th style={headerCellStyle}>
+              {tAdminRequests('table.createdAt', language)}
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -72,43 +149,119 @@ export function AdminRequestsTable({
               request.investor?.fullName ??
               request.investor?.preferredName ??
               request.investor?.email ??
-              '\u2014';
-            const amountFormatted = new Intl.NumberFormat(
-              language === 'ar' ? 'ar-SA' : 'en-US',
-              {
-                style: 'currency',
-                currency: request.currency,
-              }
-            ).format(request.amount);
+              '—';
+            const amountOrSubject = formatAmountOrSubject(request, language);
+            const typeLabel = getTypeLabel(request.type, language);
             const createdAt = new Date(request.createdAt).toLocaleString(
               language === 'ar' ? 'ar-SA' : 'en-US',
               { dateStyle: 'medium', timeStyle: 'short' }
             );
+            const isUnread = !request.isRead;
+            const isStale = isStaleRequest(request);
+
+            const rowStyle: React.CSSProperties = {
+              ...rowBaseStyle,
+              background: isUnread
+                ? 'var(--color-background-highlight)'
+                : 'var(--color-background-surface)',
+              borderLeft: isUnread
+                ? `4px solid var(--color-brand-primary-strong)`
+                : '4px solid transparent',
+              fontWeight: isUnread ? 600 : 400,
+            };
+
             return (
-              <tr key={request.id}>
-                <td>
+              <tr key={request.id} style={rowStyle}>
+                <td style={cellStyle}>
                   <Link
                     to={`/admin/requests/${request.id}`}
                     style={{
                       color: 'var(--color-brand-primary-strong)',
                       textDecoration: 'none',
-                      fontWeight: 600,
+                      fontWeight: isUnread ? 700 : 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
                     }}
                   >
                     {request.requestNumber}
+                    {isUnread && (
+                      <span
+                        style={{
+                          width: '8px',
+                          height: '8px',
+                          borderRadius: '50%',
+                          background: 'var(--color-brand-primary-strong)',
+                          display: 'inline-block',
+                        }}
+                        title={language === 'ar' ? 'غير مقروء' : 'Unread'}
+                      />
+                    )}
                   </Link>
                 </td>
-                <td>{investorName}</td>
-                <td>{amountFormatted}</td>
-                <td>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <td style={cellStyle}>
+                  <span
+                    style={{
+                      padding: '0.25rem 0.65rem',
+                      borderRadius: '0.5rem',
+                      background:
+                        request.type === 'buy'
+                          ? 'var(--color-success)'
+                          : request.type === 'sell'
+                            ? 'var(--color-warning)'
+                            : request.type === 'partnership'
+                              ? '#3B82F6'
+                              : request.type === 'board_nomination'
+                                ? '#8B5CF6'
+                                : '#EC4899',
+                      color: '#FFFFFF',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      display: 'inline-block',
+                    }}
+                  >
+                    {typeLabel}
+                  </span>
+                </td>
+                <td style={cellStyle}>{investorName}</td>
+                <td style={cellStyle}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.25rem',
+                    }}
+                  >
+                    <span>{amountOrSubject}</span>
+                    {isStale && (
+                      <span
+                        style={{
+                          fontSize: '0.75rem',
+                          color: 'var(--color-error)',
+                          fontWeight: 600,
+                        }}
+                      >
+                        {language === 'ar' ? '⚠️ متعثر' : '⚠️ Stale'}
+                      </span>
+                    )}
+                  </div>
+                </td>
+                <td style={cellStyle}>
+                  <div
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                  >
                     <RequestStatusBadge status={request.status} />
-                    <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.8rem' }}>
+                    <span
+                      style={{
+                        color: 'var(--color-text-secondary)',
+                        fontSize: '0.8rem',
+                      }}
+                    >
                       {getStatusLabel(request.status, language)}
                     </span>
                   </div>
                 </td>
-                <td>{createdAt}</td>
+                <td style={cellStyle}>{createdAt}</td>
               </tr>
             );
           })}
@@ -137,6 +290,27 @@ const tableStyle: React.CSSProperties = {
   overflow: 'hidden',
   boxShadow: '0 12px 32px rgba(15, 23, 42, 0.1)',
   background: 'var(--color-background-surface)',
+};
+
+const headerCellStyle: React.CSSProperties = {
+  padding: '1rem',
+  textAlign: 'start',
+  background: 'var(--color-background-alt)',
+  color: 'var(--color-text-primary)',
+  fontWeight: 700,
+  fontSize: '0.95rem',
+  borderBottom: '2px solid var(--color-neutral-border)',
+};
+
+const rowBaseStyle: React.CSSProperties = {
+  transition: 'background-color 0.2s ease',
+};
+
+const cellStyle: React.CSSProperties = {
+  padding: '0.95rem 1rem',
+  borderBottom: '1px solid var(--color-neutral-border-soft)',
+  color: 'var(--color-text-primary)',
+  fontSize: '0.9rem',
 };
 
 const loadingContainerStyle: React.CSSProperties = {
@@ -189,6 +363,3 @@ const loadingOverlayStyle: React.CSSProperties = {
   fontSize: '2rem',
   color: 'var(--color-brand-primary-strong)',
 };
-
-
-

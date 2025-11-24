@@ -32,6 +32,8 @@ function AdminRequestDetailPageInner() {
   const { data, isLoading, isError, error, refetch, isFetching } =
     useAdminRequestDetail(requestId);
   const [decisionNote, setDecisionNote] = useState('');
+  const [rejectNote, setRejectNote] = useState('');
+  const [requestInfoMessage, setRequestInfoMessage] = useState('');
   const [newComment, setNewComment] = useState('');
   const {
     data: timelineData,
@@ -71,6 +73,67 @@ function AdminRequestDetailPageInner() {
     },
   });
 
+  const rejectMutation = useMutation({
+    mutationFn: async (payload: { note?: string }) => {
+      if (!requestId) {
+        throw new Error('Request id is missing');
+      }
+      return apiClient(`/admin/requests/${requestId}/reject`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      });
+    },
+    onSuccess: () => {
+      pushToast({
+        message: tAdminRequests('decision.rejectedSuccess', language),
+        variant: 'success',
+      });
+      setRejectNote('');
+      refetch();
+    },
+    onError: (mutationError: unknown) => {
+      const message =
+        mutationError instanceof Error
+          ? mutationError.message
+          : tAdminRequests('table.error', language);
+      pushToast({
+        message,
+        variant: 'error',
+      });
+    },
+  });
+
+  const requestInfoMutation = useMutation({
+    mutationFn: async (payload: { message: string }) => {
+      if (!requestId) {
+        throw new Error('Request id is missing');
+      }
+      return apiClient(`/admin/requests/${requestId}/request-info`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+    },
+    onSuccess: () => {
+      pushToast({
+        message: language === 'ar' 
+          ? 'تم إرسال طلب المعلومات بنجاح'
+          : 'Information request sent successfully',
+        variant: 'success',
+      });
+      setRequestInfoMessage('');
+      refetch();
+    },
+    onError: (mutationError: unknown) => {
+      const message =
+        mutationError instanceof Error
+          ? mutationError.message
+          : tAdminRequests('table.error', language);
+      pushToast({
+        message,
+        variant: 'error',
+      });
+    },
+  });
 
   const addCommentMutation = useMutation({
     mutationFn: async (payload: { comment: string }) => {
@@ -121,10 +184,11 @@ function AdminRequestDetailPageInner() {
   const isDecisionFinal = request
     ? request.status === 'approved' || request.status === 'rejected'
     : false;
-  const isActionBusy = approveMutation.isPending;
+  const canMakeDecision = request && !isDecisionFinal && request.status !== 'draft';
+  const isActionBusy = approveMutation.isPending || rejectMutation.isPending || requestInfoMutation.isPending;
   const isCommentBusy = addCommentMutation.isPending;
 
-  const amountFormatted = request
+  const amountFormatted = request && request.amount != null
     ? new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
         style: 'currency',
         currency: request.currency ?? 'SAR',
@@ -148,6 +212,171 @@ function AdminRequestDetailPageInner() {
       return tAdminRequests('detail.attachmentCategory.settlement', language);
     }
     return tAdminRequests('detail.attachmentCategory.general', language);
+  };
+
+  // Helper to render metadata section based on request type
+  const renderMetadataSection = () => {
+    if (!request || !request.metadata || typeof request.metadata !== 'object') {
+      return null;
+    }
+
+    const metadata = request.metadata;
+    const items: Array<{ label: string; value: string }> = [];
+
+    switch (request.type) {
+      case 'partnership':
+        if ('projectId' in metadata && metadata.projectId) {
+          items.push({
+            label: language === 'ar' ? 'معرف المشروع' : 'Project ID',
+            value: String(metadata.projectId),
+          });
+        }
+        if ('proposedAmount' in metadata && metadata.proposedAmount) {
+          const amount = typeof metadata.proposedAmount === 'number' 
+            ? metadata.proposedAmount 
+            : Number.parseFloat(String(metadata.proposedAmount));
+          if (!Number.isNaN(amount)) {
+            items.push({
+              label: language === 'ar' ? 'المبلغ المقترح' : 'Proposed Amount',
+              value: new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
+                style: 'currency',
+                currency: request.currency || 'SAR',
+              }).format(amount),
+            });
+          }
+        }
+        if ('partnershipPlan' in metadata && metadata.partnershipPlan) {
+          return (
+            <Card key="metadata">
+              <CardTitle>{language === 'ar' ? 'تفاصيل الشراكة' : 'Partnership Details'}</CardTitle>
+              <InfoGrid items={items} />
+              <div style={{ marginTop: '1rem' }}>
+                <strong style={{ color: 'var(--color-text-primary)', fontSize: '0.9rem', display: 'block', marginBottom: '0.5rem' }}>
+                  {language === 'ar' ? 'خطة الشراكة' : 'Partnership Plan'}
+                </strong>
+                <div
+                  style={{
+                    background: 'var(--color-background-surface)',
+                    borderRadius: '0.85rem',
+                    padding: '0.75rem 1rem',
+                    color: 'var(--color-text-secondary)',
+                    lineHeight: 1.6,
+                    whiteSpace: 'pre-wrap',
+                  }}
+                >
+                  {String(metadata.partnershipPlan)}
+                </div>
+              </div>
+            </Card>
+          );
+        }
+        break;
+
+      case 'board_nomination':
+        if ('cvSummary' in metadata && metadata.cvSummary) {
+          items.push({
+            label: language === 'ar' ? 'ملخص السيرة الذاتية' : 'CV Summary',
+            value: String(metadata.cvSummary),
+          });
+        }
+        if ('experience' in metadata && metadata.experience) {
+          items.push({
+            label: language === 'ar' ? 'الخبرات' : 'Experience',
+            value: String(metadata.experience),
+          });
+        }
+        if ('motivations' in metadata && metadata.motivations) {
+          items.push({
+            label: language === 'ar' ? 'الدوافع' : 'Motivations',
+            value: String(metadata.motivations),
+          });
+        }
+        if ('qualifications' in metadata && metadata.qualifications) {
+          items.push({
+            label: language === 'ar' ? 'المؤهلات' : 'Qualifications',
+            value: String(metadata.qualifications),
+          });
+        }
+        if (items.length > 0) {
+          return (
+            <Card key="metadata">
+              <CardTitle>{language === 'ar' ? 'تفاصيل الترشيح للمجلس' : 'Board Nomination Details'}</CardTitle>
+              <InfoGrid items={items.map(item => ({
+                label: item.label,
+                value: item.value.length > 200 
+                  ? `${item.value.slice(0, 200)}...`
+                  : item.value,
+              }))} />
+            </Card>
+          );
+        }
+        break;
+
+      case 'feedback':
+        if ('subject' in metadata && metadata.subject) {
+          items.push({
+            label: language === 'ar' ? 'الموضوع' : 'Subject',
+            value: String(metadata.subject),
+          });
+        }
+        if ('category' in metadata && metadata.category) {
+          const categoryLabel = {
+            suggestion: language === 'ar' ? 'اقتراح' : 'Suggestion',
+            complaint: language === 'ar' ? 'شكوى' : 'Complaint',
+            question: language === 'ar' ? 'سؤال' : 'Question',
+            other: language === 'ar' ? 'أخرى' : 'Other',
+          }[String(metadata.category)] || String(metadata.category);
+          items.push({
+            label: language === 'ar' ? 'الفئة' : 'Category',
+            value: categoryLabel,
+          });
+        }
+        if ('priority' in metadata && metadata.priority) {
+          const priorityLabel = {
+            low: language === 'ar' ? 'منخفضة' : 'Low',
+            medium: language === 'ar' ? 'متوسطة' : 'Medium',
+            high: language === 'ar' ? 'عالية' : 'High',
+          }[String(metadata.priority)] || String(metadata.priority);
+          items.push({
+            label: language === 'ar' ? 'الأولوية' : 'Priority',
+            value: priorityLabel,
+          });
+        }
+        if ('description' in metadata && metadata.description) {
+          const description = String(metadata.description);
+          return (
+            <Card key="metadata">
+              <CardTitle>{language === 'ar' ? 'تفاصيل الملاحظات' : 'Feedback Details'}</CardTitle>
+              <InfoGrid items={items} />
+              <div style={{ marginTop: '1rem' }}>
+                <strong style={{ color: 'var(--color-text-primary)', fontSize: '0.9rem', display: 'block', marginBottom: '0.5rem' }}>
+                  {language === 'ar' ? 'الوصف' : 'Description'}
+                </strong>
+                <div
+                  style={{
+                    background: 'var(--color-background-surface)',
+                    borderRadius: '0.85rem',
+                    padding: '0.75rem 1rem',
+                    color: 'var(--color-text-secondary)',
+                    lineHeight: 1.6,
+                    whiteSpace: 'pre-wrap',
+                  }}
+                >
+                  {description}
+                </div>
+              </div>
+            </Card>
+          );
+        }
+        break;
+    }
+
+    return items.length > 0 ? (
+      <Card key="metadata">
+        <CardTitle>{language === 'ar' ? 'تفاصيل إضافية' : 'Additional Details'}</CardTitle>
+        <InfoGrid items={items} />
+      </Card>
+    ) : null;
   };
 
 
@@ -244,9 +473,39 @@ function AdminRequestDetailPageInner() {
                     value: request.requestNumber,
                   },
                   {
-                    label: tAdminRequests('table.amount', language),
-                    value: amountFormatted,
+                    label: tAdminRequests('table.type', language),
+                    value: tAdminRequests(`type.${request.type}` as const, language),
                   },
+                  ...((request.type === 'buy' || request.type === 'sell') && request.amount
+                    ? [
+                        {
+                          label: tAdminRequests('table.amount', language),
+                          value: amountFormatted,
+                        },
+                        ...(request.targetPrice
+                          ? [
+                              {
+                                label: language === 'ar' ? 'السعر المستهدف' : 'Target Price',
+                                value: new Intl.NumberFormat(
+                                  language === 'ar' ? 'ar-SA' : 'en-US',
+                                  {
+                                    style: 'currency',
+                                    currency: request.currency || 'SAR',
+                                  }
+                                ).format(request.targetPrice),
+                              },
+                            ]
+                          : []),
+                        ...(request.expiryAt
+                          ? [
+                              {
+                                label: language === 'ar' ? 'تاريخ الصلاحية' : 'Expiry Date',
+                                value: formatDateTime(request.expiryAt),
+                              },
+                            ]
+                          : []),
+                      ]
+                    : []),
                   {
                     label: tAdminRequests('table.status', language),
                     value: getStatusLabel(request.status, language),
@@ -262,6 +521,8 @@ function AdminRequestDetailPageInner() {
               />
             )}
           </Card>
+
+          {request && renderMetadataSection()}
 
           <Card>
             <CardTitle>{tAdminRequests('detail.investorInfo', language)}</CardTitle>
@@ -645,27 +906,50 @@ function AdminRequestDetailPageInner() {
                       padding: '0.75rem 1rem',
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: '0.35rem',
+                      gap: '0.5rem',
                     }}
                   >
-                    <strong style={{ color: 'var(--color-text-primary)' }}>{attachment.filename}</strong>
-                    <span
-                      style={{
-                        color: 'var(--color-brand-primary-strong)',
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.08em',
-                      }}
-                    >
-                      {attachmentCategoryLabel(attachment.category)}
-                    </span>
-                    <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem' }}>
-                      {attachment.mimeType ?? '\u2014'} {'\u00B7'}{' '}
-                      {attachment.size != null
-                        ? `${(attachment.size / (1024 * 1024)).toFixed(2)} MB`
-                        : '\u2014'}
-                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                      <strong style={{ color: 'var(--color-text-primary)' }}>{attachment.filename}</strong>
+                      <span
+                        style={{
+                          color: 'var(--color-brand-primary-strong)',
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.08em',
+                        }}
+                      >
+                        {attachmentCategoryLabel(attachment.category)}
+                      </span>
+                      <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem' }}>
+                        {attachment.mimeType ?? '\u2014'} {'\u00B7'}{' '}
+                        {attachment.size != null
+                          ? `${(attachment.size / (1024 * 1024)).toFixed(2)} MB`
+                          : '\u2014'}
+                      </span>
+                    </div>
+                    {attachment.downloadUrl && (
+                      <a
+                        href={attachment.downloadUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          alignSelf: direction === 'rtl' ? 'flex-start' : 'flex-end',
+                          padding: '0.5rem 1rem',
+                          borderRadius: '0.65rem',
+                          border: '1px solid var(--color-brand-primary-strong)',
+                          background: 'var(--color-background-surface)',
+                          color: 'var(--color-brand-primary-strong)',
+                          fontWeight: 600,
+                          fontSize: '0.85rem',
+                          textDecoration: 'none',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {language === 'ar' ? 'تنزيل' : 'Download'}
+                      </a>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -695,7 +979,7 @@ function AdminRequestDetailPageInner() {
                     note: decisionNote.trim() ? decisionNote.trim() : undefined,
                   })
                 }
-                disabled={isDecisionFinal || isActionBusy || !request}
+                disabled={!canMakeDecision || isActionBusy}
                 loading={approveMutation.isPending}
               />
             </div>
@@ -708,7 +992,94 @@ function AdminRequestDetailPageInner() {
             >
               {language === 'ar' 
                 ? '* سيتم إرسال إشعار للمستثمر عند قبول الطلب'
-                : '* An notification will be sent to the investor upon approval'}
+                : '* A notification will be sent to the investor upon approval'}
+            </p>
+          </Card>
+
+          <Card>
+            <CardTitle>{language === 'ar' ? 'رفض الطلب' : 'Reject Request'}</CardTitle>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.75rem',
+              }}
+            >
+              <textarea
+                value={rejectNote}
+                onChange={event => setRejectNote(event.target.value)}
+                maxLength={500}
+                placeholder={language === 'ar' ? 'سبب الرفض (اختياري)' : 'Rejection reason (optional)'}
+                style={{ ...textAreaStyle, direction }}
+              />
+              <ActionButton
+                label={language === 'ar' ? 'رفض الطلب' : 'Reject Request'}
+                variant="danger"
+                onClick={() =>
+                  rejectMutation.mutate({
+                    note: rejectNote.trim() ? rejectNote.trim() : undefined,
+                  })
+                }
+                disabled={!canMakeDecision || isActionBusy}
+                loading={rejectMutation.isPending}
+              />
+            </div>
+            <p
+              style={{
+                marginTop: '0.75rem',
+                color: 'var(--color-brand-secondary-muted)',
+                fontSize: '0.85rem',
+              }}
+            >
+              {language === 'ar' 
+                ? '* سيتم إرسال إشعار للمستثمر عند رفض الطلب'
+                : '* A notification will be sent to the investor upon rejection'}
+            </p>
+          </Card>
+
+          <Card>
+            <CardTitle>{language === 'ar' ? 'طلب معلومات إضافية' : 'Request Additional Info'}</CardTitle>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.75rem',
+              }}
+            >
+              <textarea
+                value={requestInfoMessage}
+                onChange={event => setRequestInfoMessage(event.target.value)}
+                maxLength={1000}
+                placeholder={language === 'ar' ? 'ما هي المعلومات الإضافية المطلوبة من المستثمر؟' : 'What additional information is needed from the investor?'}
+                style={{ ...textAreaStyle, minHeight: '120px', direction }}
+              />
+              <ActionButton
+                label={language === 'ar' ? 'إرسال طلب المعلومات' : 'Send Info Request'}
+                variant="secondary"
+                onClick={() => {
+                  if (!requestInfoMessage.trim()) {
+                    pushToast({
+                      message: language === 'ar' ? 'الرجاء إدخال رسالة' : 'Please enter a message',
+                      variant: 'error',
+                    });
+                    return;
+                  }
+                  requestInfoMutation.mutate({ message: requestInfoMessage.trim() });
+                }}
+                disabled={!canMakeDecision || isActionBusy}
+                loading={requestInfoMutation.isPending}
+              />
+            </div>
+            <p
+              style={{
+                marginTop: '0.75rem',
+                color: 'var(--color-brand-secondary-muted)',
+                fontSize: '0.85rem',
+              }}
+            >
+              {language === 'ar' 
+                ? '* سيتم إرسال إشعار للمستثمر لطلب معلومات إضافية'
+                : '* A notification will be sent to the investor requesting additional information'}
             </p>
           </Card>
 

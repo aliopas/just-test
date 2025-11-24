@@ -23,9 +23,10 @@ type AdminRequestRow = {
   status: string;
   type: 'buy' | 'sell' | 'partnership' | 'board_nomination' | 'feedback';
   amount: number | string | null;
-  currency: string;
+  currency: string | null;
   target_price: number | string | null;
   expiry_at: string | null;
+  metadata: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
   users?: MaybeArray<{
@@ -177,6 +178,7 @@ export async function listAdminRequests(params: {
         currency,
         target_price,
         expiry_at,
+        metadata,
         created_at,
         updated_at,
         users:users!requests_user_id_fkey (
@@ -295,15 +297,18 @@ export async function listAdminRequests(params: {
       status: row.status,
       type: row.type,
       amount:
-        typeof row.amount === 'string'
-          ? Number.parseFloat(row.amount)
-          : row.amount,
-      currency: row.currency,
+        row.amount == null
+          ? null
+          : typeof row.amount === 'string'
+            ? Number.parseFloat(row.amount)
+            : row.amount,
+      currency: row.currency ?? null,
       targetPrice:
         typeof row.target_price === 'string'
           ? Number.parseFloat(row.target_price)
           : row.target_price,
       expiryAt: row.expiry_at,
+      metadata: row.metadata ?? null,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       isRead: readStatusMap[row.id] ?? false,
@@ -360,6 +365,7 @@ type AdminRequestDetailRow = {
   target_price: number | string | null;
   expiry_at: string | null;
   notes: string | null;
+  metadata: Record<string, unknown> | null;
   settlement_started_at: string | null;
   settlement_completed_at: string | null;
   settlement_reference: string | null;
@@ -472,6 +478,7 @@ export async function getAdminRequestDetail(params: {
         target_price,
         expiry_at,
         notes,
+        metadata,
         settlement_started_at,
         settlement_completed_at,
         settlement_reference,
@@ -628,6 +635,37 @@ export async function getAdminRequestDetail(params: {
       };
     }) ?? [];
 
+  // Generate presigned download URLs for attachments
+  const attachmentsWithUrls = await Promise.all(
+    attachments.map(async attachment => {
+      try {
+        // Parse storage_key to get bucket and path
+        // Format: bucket_name/path/to/file
+        const parts = attachment.storageKey.split('/');
+        if (parts.length < 2) {
+          return { ...attachment, downloadUrl: null };
+        }
+
+        const bucket = parts[0];
+        const path = parts.slice(1).join('/');
+
+        const { data: urlData, error: urlError } = await adminClient.storage
+          .from(bucket)
+          .createSignedUrl(path, 3600); // 1 hour expiry
+
+        if (urlError || !urlData?.signedUrl) {
+          console.error('Failed to create signed URL:', urlError);
+          return { ...attachment, downloadUrl: null };
+        }
+
+        return { ...attachment, downloadUrl: urlData.signedUrl };
+      } catch (error) {
+        console.error('Error generating download URL:', error);
+        return { ...attachment, downloadUrl: null };
+      }
+    })
+  );
+
   return {
     request: {
       id: requestRow.id,
@@ -640,6 +678,7 @@ export async function getAdminRequestDetail(params: {
       targetPrice: normalizeNumber(requestRow.target_price),
       expiryAt: requestRow.expiry_at,
       notes: requestRow.notes,
+      metadata: requestRow.metadata ?? null,
       settlement: {
         startedAt: requestRow.settlement_started_at,
         completedAt: requestRow.settlement_completed_at,
@@ -673,7 +712,7 @@ export async function getAdminRequestDetail(params: {
         userCreatedAt: user?.created_at ?? null,
       },
     },
-    attachments,
+    attachments: attachmentsWithUrls,
     events,
     comments,
   };

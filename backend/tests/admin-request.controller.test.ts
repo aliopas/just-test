@@ -271,6 +271,91 @@ describe('adminRequestController.getRequestDetail', () => {
       })
     );
   });
+
+  it('returns detail with metadata for partnership request', async () => {
+    mockedGetAdminRequestDetail.mockResolvedValueOnce({
+      request: {
+        id: 'req-1',
+        requestNumber: 'INV-2025-000001',
+        status: 'submitted',
+        type: 'partnership',
+        metadata: {
+          projectId: 'proj-123',
+          proposedAmount: 50000,
+          partnershipPlan: 'Strategic partnership plan...',
+        },
+      },
+      attachments: [],
+      events: [],
+      comments: [],
+    });
+
+    const req = {
+      params: { id: 'req-1' },
+      user: { id: 'admin-1', email: 'admin@example.com' },
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.getRequestDetail(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        request: expect.objectContaining({
+          type: 'partnership',
+          metadata: expect.objectContaining({
+            projectId: 'proj-123',
+            proposedAmount: 50000,
+          }),
+        }),
+      })
+    );
+  });
+
+  it('returns detail with download URLs for attachments', async () => {
+    mockedGetAdminRequestDetail.mockResolvedValueOnce({
+      request: {
+        id: 'req-1',
+        requestNumber: 'INV-2025-000001',
+        status: 'submitted',
+      },
+      attachments: [
+        {
+          id: 'att-1',
+          filename: 'doc.pdf',
+          mimeType: 'application/pdf',
+          size: 2048,
+          storageKey: 'request-attachments/req-1/doc.pdf',
+          createdAt: '2025-01-01T01:00:00Z',
+          category: 'general',
+          metadata: {},
+          downloadUrl: 'https://example.com/download?token=xyz123',
+        },
+      ],
+      events: [],
+      comments: [],
+    });
+
+    const req = {
+      params: { id: 'req-1' },
+      user: { id: 'admin-1', email: 'admin@example.com' },
+    } as unknown as AuthenticatedRequest;
+    const res = createMockResponse();
+
+    await adminRequestController.getRequestDetail(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        attachments: expect.arrayContaining([
+          expect.objectContaining({
+            id: 'att-1',
+            downloadUrl: 'https://example.com/download?token=xyz123',
+          }),
+        ]),
+      })
+    );
+  });
 });
 
 describe('adminRequestController.approveRequest', () => {

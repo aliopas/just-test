@@ -30,10 +30,11 @@ export interface AdminRequest {
   requestNumber: string;
   status: RequestStatus;
   type: RequestType;
-  amount: number;
-  currency: RequestCurrency;
+  amount: number | null;
+  currency: RequestCurrency | null;
   targetPrice: number | null | undefined;
   expiryAt: string | null | undefined;
+  metadata: Record<string, unknown> | null;
   createdAt: string;
   updatedAt: string;
   isRead: boolean;
@@ -62,6 +63,7 @@ export interface AdminAttachment {
   createdAt: string;
   category: string;
   metadata: Record<string, unknown>;
+  downloadUrl: string | null;
 }
 
 export interface AdminRequestEvent {

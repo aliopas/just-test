@@ -13,7 +13,15 @@ import { useAdminRequests } from '../hooks/useAdminRequests';
 import type { AdminRequestFilters } from '../types/admin';
 import { tAdminRequests } from '../locales/adminRequests';
 
-const queryClient = new QueryClient();
+// Create QueryClient outside component to avoid recreating it on every render
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60 * 1000, // 1 minute
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const defaultFilters: AdminRequestFilters = {
   page: 1,
