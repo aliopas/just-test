@@ -28,11 +28,29 @@ import {
   useCreateCompanyStrengthMutation,
   useUpdateCompanyStrengthMutation,
   useDeleteCompanyStrengthMutation,
+  useAdminPartnershipInfo,
+  useAdminPartnershipInfoDetail,
+  useCreatePartnershipInfoMutation,
+  useUpdatePartnershipInfoMutation,
+  useDeletePartnershipInfoMutation,
+  useAdminMarketValue,
+  useAdminMarketValueDetail,
+  useCreateMarketValueMutation,
+  useUpdateMarketValueMutation,
+  useDeleteMarketValueMutation,
+  useAdminCompanyGoals,
+  useAdminCompanyGoalDetail,
+  useCreateCompanyGoalMutation,
+  useUpdateCompanyGoalMutation,
+  useDeleteCompanyGoalMutation,
   useCompanyContentImagePresignMutation,
   type CompanyProfile,
   type CompanyClient,
   type CompanyResource,
   type CompanyStrength,
+  type PartnershipInfo,
+  type MarketValue,
+  type CompanyGoal,
 } from '../hooks/useAdminCompanyContent';
 import { CompanyProfilesTable } from '../components/admin/company-content/CompanyProfilesTable';
 import { CompanyProfileFormDrawer } from '../components/admin/company-content/CompanyProfileFormDrawer';
@@ -42,6 +60,12 @@ import { CompanyResourcesTable } from '../components/admin/company-content/Compa
 import { CompanyResourceFormDrawer } from '../components/admin/company-content/CompanyResourceFormDrawer';
 import { CompanyStrengthsTable } from '../components/admin/company-content/CompanyStrengthsTable';
 import { CompanyStrengthFormDrawer } from '../components/admin/company-content/CompanyStrengthFormDrawer';
+import { PartnershipInfoTable } from '../components/admin/company-content/PartnershipInfoTable';
+import { PartnershipInfoFormDrawer } from '../components/admin/company-content/PartnershipInfoFormDrawer';
+import { MarketValueTable } from '../components/admin/company-content/MarketValueTable';
+import { MarketValueFormDrawer } from '../components/admin/company-content/MarketValueFormDrawer';
+import { CompanyGoalsTable } from '../components/admin/company-content/CompanyGoalsTable';
+import { CompanyGoalFormDrawer } from '../components/admin/company-content/CompanyGoalFormDrawer';
 import { ApiError } from '../utils/api-client';
 
 const queryClient = new QueryClient();
@@ -72,6 +96,9 @@ type DrawerState = {
   client: CompanyClient | null;
   resource: CompanyResource | null;
   strength: CompanyStrength | null;
+  partnership: PartnershipInfo | null;
+  marketValue: MarketValue | null;
+  goal: CompanyGoal | null;
 };
 
 function AdminCompanyContentPageInner() {
@@ -85,6 +112,9 @@ function AdminCompanyContentPageInner() {
     client: null,
     resource: null,
     strength: null,
+    partnership: null,
+    marketValue: null,
+    goal: null,
   });
 
   const activeTabLabel = TABS.find((tab) => tab.id === activeTab);
@@ -118,6 +148,27 @@ function AdminCompanyContentPageInner() {
   const updateStrengthMutation = useUpdateCompanyStrengthMutation();
   const deleteStrengthMutation = useDeleteCompanyStrengthMutation();
 
+  // Partnership Info hooks
+  const { data: partnershipData, isLoading: isLoadingPartnership, isError: isErrorPartnership, refetch: refetchPartnership } = useAdminPartnershipInfo();
+  const partnershipInfo = partnershipData?.partnershipInfo ?? [];
+  const createPartnershipMutation = useCreatePartnershipInfoMutation();
+  const updatePartnershipMutation = useUpdatePartnershipInfoMutation();
+  const deletePartnershipMutation = useDeletePartnershipInfoMutation();
+
+  // Market Value hooks
+  const { data: marketValueData, isLoading: isLoadingMarketValue, isError: isErrorMarketValue, refetch: refetchMarketValue } = useAdminMarketValue();
+  const marketValue = marketValueData?.marketValue ?? null;
+  const createMarketValueMutation = useCreateMarketValueMutation();
+  const updateMarketValueMutation = useUpdateMarketValueMutation();
+  const deleteMarketValueMutation = useDeleteMarketValueMutation();
+
+  // Goals hooks
+  const { data: goalsData, isLoading: isLoadingGoals, isError: isErrorGoals, refetch: refetchGoals } = useAdminCompanyGoals();
+  const goals = goalsData?.goals ?? [];
+  const createGoalMutation = useCreateCompanyGoalMutation();
+  const updateGoalMutation = useUpdateCompanyGoalMutation();
+  const deleteGoalMutation = useDeleteCompanyGoalMutation();
+
   const presignMutation = useCompanyContentImagePresignMutation();
 
   const detailQuery = useAdminCompanyProfileDetail(
@@ -131,6 +182,15 @@ function AdminCompanyContentPageInner() {
   );
   const strengthDetailQuery = useAdminCompanyStrengthDetail(
     drawer.open && drawer.mode === 'edit' && activeTab === 'strengths' ? drawer.strength?.id ?? null : null
+  );
+  const partnershipDetailQuery = useAdminPartnershipInfoDetail(
+    drawer.open && drawer.mode === 'edit' && activeTab === 'partnership' ? drawer.partnership?.id ?? null : null
+  );
+  const marketValueDetailQuery = useAdminMarketValueDetail(
+    drawer.open && drawer.mode === 'edit' && activeTab === 'market-value' ? drawer.marketValue?.id ?? null : null
+  );
+  const goalDetailQuery = useAdminCompanyGoalDetail(
+    drawer.open && drawer.mode === 'edit' && activeTab === 'goals' ? drawer.goal?.id ?? null : null
   );
 
   const selectedProfile = useMemo(() => {
@@ -161,27 +221,62 @@ function AdminCompanyContentPageInner() {
     return drawer.strength;
   }, [drawer.strength, drawer.mode, strengthDetailQuery.data]);
 
+  const selectedPartnership = useMemo(() => {
+    if (drawer.partnership && drawer.partnership.id && drawer.mode === 'edit') {
+      return partnershipDetailQuery.data ?? drawer.partnership;
+    }
+    return drawer.partnership;
+  }, [drawer.partnership, drawer.mode, partnershipDetailQuery.data]);
+
+  const selectedMarketValue = useMemo(() => {
+    if (drawer.marketValue && drawer.marketValue.id && drawer.mode === 'edit') {
+      return marketValueDetailQuery.data ?? drawer.marketValue;
+    }
+    return drawer.marketValue;
+  }, [drawer.marketValue, drawer.mode, marketValueDetailQuery.data]);
+
+  const selectedGoal = useMemo(() => {
+    if (drawer.goal && drawer.goal.id && drawer.mode === 'edit') {
+      return goalDetailQuery.data ?? drawer.goal;
+    }
+    return drawer.goal;
+  }, [drawer.goal, drawer.mode, goalDetailQuery.data]);
+
   const handleCreate = () => {
+    const empty = { profile: null, client: null, resource: null, strength: null, partnership: null, marketValue: null, goal: null };
     if (activeTab === 'profiles') {
-      setDrawer({ mode: 'create', open: true, profile: null, client: null, resource: null, strength: null });
+      setDrawer({ mode: 'create', open: true, ...empty });
     } else if (activeTab === 'clients') {
-      setDrawer({ mode: 'create', open: true, profile: null, client: null, resource: null, strength: null });
+      setDrawer({ mode: 'create', open: true, ...empty });
     } else if (activeTab === 'resources') {
-      setDrawer({ mode: 'create', open: true, profile: null, client: null, resource: null, strength: null });
+      setDrawer({ mode: 'create', open: true, ...empty });
     } else if (activeTab === 'strengths') {
-      setDrawer({ mode: 'create', open: true, profile: null, client: null, resource: null, strength: null });
+      setDrawer({ mode: 'create', open: true, ...empty });
+    } else if (activeTab === 'partnership') {
+      setDrawer({ mode: 'create', open: true, ...empty });
+    } else if (activeTab === 'market-value') {
+      setDrawer({ mode: 'create', open: true, ...empty });
+    } else if (activeTab === 'goals') {
+      setDrawer({ mode: 'create', open: true, ...empty });
     }
   };
 
-  const handleEdit = (item: CompanyProfile | CompanyClient | CompanyResource | CompanyStrength) => {
+  const handleEdit = (item: CompanyProfile | CompanyClient | CompanyResource | CompanyStrength | PartnershipInfo | MarketValue | CompanyGoal) => {
+    const empty = { profile: null, client: null, resource: null, strength: null, partnership: null, marketValue: null, goal: null };
     if (activeTab === 'profiles') {
-      setDrawer({ mode: 'edit', open: true, profile: item as CompanyProfile, client: null, resource: null, strength: null });
+      setDrawer({ mode: 'edit', open: true, ...empty, profile: item as CompanyProfile });
     } else if (activeTab === 'clients') {
-      setDrawer({ mode: 'edit', open: true, profile: null, client: item as CompanyClient, resource: null, strength: null });
+      setDrawer({ mode: 'edit', open: true, ...empty, client: item as CompanyClient });
     } else if (activeTab === 'resources') {
-      setDrawer({ mode: 'edit', open: true, profile: null, client: null, resource: item as CompanyResource, strength: null });
+      setDrawer({ mode: 'edit', open: true, ...empty, resource: item as CompanyResource });
     } else if (activeTab === 'strengths') {
-      setDrawer({ mode: 'edit', open: true, profile: null, client: null, resource: null, strength: item as CompanyStrength });
+      setDrawer({ mode: 'edit', open: true, ...empty, strength: item as CompanyStrength });
+    } else if (activeTab === 'partnership') {
+      setDrawer({ mode: 'edit', open: true, ...empty, partnership: item as PartnershipInfo });
+    } else if (activeTab === 'market-value') {
+      setDrawer({ mode: 'edit', open: true, ...empty, marketValue: item as MarketValue });
+    } else if (activeTab === 'goals') {
+      setDrawer({ mode: 'edit', open: true, ...empty, goal: item as CompanyGoal });
     }
   };
 
@@ -575,19 +670,156 @@ function AdminCompanyContentPageInner() {
           </div>
         )}
 
-        {activeTab !== 'profiles' && activeTab !== 'clients' && activeTab !== 'resources' && activeTab !== 'strengths' && (
-          <div
-            style={{
-              padding: '3rem',
-              textAlign: 'center',
-              color: palette.textSecondary,
-            }}
-          >
-            <p style={{ fontSize: '1.1rem', margin: 0 }}>
-              {isArabic
-                ? `إدارة ${activeTabLabel?.labelAr ?? ''} - قيد التطوير`
-                : `Manage ${activeTabLabel?.labelEn ?? ''} - Under Development`}
-            </p>
+        {activeTab === 'partnership' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: palette.textPrimary }}>
+                {isArabic ? 'معلومات الشراكة' : 'Partnership Info'}
+              </h2>
+              <button
+                type="button"
+                onClick={handleCreate}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '0.5rem',
+                  border: 'none',
+                  background: palette.brandPrimaryStrong,
+                  color: '#FFFFFF',
+                  cursor: 'pointer',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                }}
+              >
+                {isArabic ? '+ إضافة معلومات شراكة جديدة' : '+ Add Partnership Info'}
+              </button>
+            </div>
+            <PartnershipInfoTable
+              partnershipInfo={partnershipInfo}
+              isLoading={isLoadingPartnership}
+              isError={isErrorPartnership}
+              onRetry={refetchPartnership}
+              onEdit={handleEdit}
+              onDelete={async (info) => {
+                if (window.confirm(isArabic ? 'هل أنت متأكد من حذف هذه المعلومات؟' : 'Are you sure you want to delete this info?')) {
+                  try {
+                    await deletePartnershipMutation.mutateAsync(info.id);
+                    pushToast({
+                      message: isArabic ? 'تم حذف المعلومات بنجاح' : 'Partnership info deleted successfully',
+                      variant: 'success',
+                    });
+                    refetchPartnership();
+                  } catch (error) {
+                    pushToast({
+                      message: error instanceof Error ? error.message : isArabic ? 'حدث خطأ أثناء الحذف' : 'An error occurred',
+                      variant: 'error',
+                    });
+                  }
+                }
+              }}
+            />
+          </div>
+        )}
+
+        {activeTab === 'market-value' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: palette.textPrimary }}>
+                {isArabic ? 'القيمة السوقية' : 'Market Value'}
+              </h2>
+              <button
+                type="button"
+                onClick={handleCreate}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '0.5rem',
+                  border: 'none',
+                  background: palette.brandPrimaryStrong,
+                  color: '#FFFFFF',
+                  cursor: 'pointer',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                }}
+              >
+                {isArabic ? '+ إضافة قيمة سوقية' : '+ Add Market Value'}
+              </button>
+            </div>
+            <MarketValueTable
+              marketValue={marketValue}
+              isLoading={isLoadingMarketValue}
+              isError={isErrorMarketValue}
+              onRetry={refetchMarketValue}
+              onEdit={() => {
+                if (marketValue) handleEdit(marketValue);
+              }}
+              onDelete={async () => {
+                if (!marketValue) return;
+                if (window.confirm(isArabic ? 'هل أنت متأكد من حذف القيمة السوقية؟' : 'Are you sure you want to delete market value?')) {
+                  try {
+                    await deleteMarketValueMutation.mutateAsync(marketValue.id);
+                    pushToast({
+                      message: isArabic ? 'تم حذف القيمة السوقية بنجاح' : 'Market value deleted successfully',
+                      variant: 'success',
+                    });
+                    refetchMarketValue();
+                  } catch (error) {
+                    pushToast({
+                      message: error instanceof Error ? error.message : isArabic ? 'حدث خطأ أثناء الحذف' : 'An error occurred',
+                      variant: 'error',
+                    });
+                  }
+                }
+              }}
+            />
+          </div>
+        )}
+
+        {activeTab === 'goals' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: palette.textPrimary }}>
+                {isArabic ? 'الأهداف' : 'Company Goals'}
+              </h2>
+              <button
+                type="button"
+                onClick={handleCreate}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '0.5rem',
+                  border: 'none',
+                  background: palette.brandPrimaryStrong,
+                  color: '#FFFFFF',
+                  cursor: 'pointer',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                }}
+              >
+                {isArabic ? '+ إضافة هدف جديد' : '+ Add New Goal'}
+              </button>
+            </div>
+            <CompanyGoalsTable
+              goals={goals}
+              isLoading={isLoadingGoals}
+              isError={isErrorGoals}
+              onRetry={refetchGoals}
+              onEdit={handleEdit}
+              onDelete={async (goal) => {
+                if (window.confirm(isArabic ? 'هل أنت متأكد من حذف هذا الهدف؟' : 'Are you sure you want to delete this goal?')) {
+                  try {
+                    await deleteGoalMutation.mutateAsync(goal.id);
+                    pushToast({
+                      message: isArabic ? 'تم حذف الهدف بنجاح' : 'Goal deleted successfully',
+                      variant: 'success',
+                    });
+                    refetchGoals();
+                  } catch (error) {
+                    pushToast({
+                      message: error instanceof Error ? error.message : isArabic ? 'حدث خطأ أثناء الحذف' : 'An error occurred',
+                      variant: 'error',
+                    });
+                  }
+                }
+              }}
+            />
           </div>
         )}
       </div>
@@ -819,6 +1051,221 @@ function AdminCompanyContentPageInner() {
         }}
         submitting={createStrengthMutation.isPending || updateStrengthMutation.isPending}
         deleting={deleteStrengthMutation.isPending}
+        onPresignImage={(file) => handlePresignImage(file, 'icon')}
+      />
+
+      <PartnershipInfoFormDrawer
+        open={drawer.open && activeTab === 'partnership'}
+        mode={drawer.mode}
+        partnershipInfo={selectedPartnership}
+        isLoadingDetail={drawer.mode === 'edit' && drawer.open && activeTab === 'partnership' ? partnershipDetailQuery.isFetching || partnershipDetailQuery.isLoading : false}
+        onClose={handleCloseDrawer}
+        onSubmit={async (values) => {
+          try {
+            if (drawer.mode === 'create') {
+              await createPartnershipMutation.mutateAsync(values);
+              pushToast({
+                message: isArabic ? 'تم إضافة المعلومات بنجاح' : 'Partnership info created successfully',
+                variant: 'success',
+              });
+            } else if (drawer.partnership?.id) {
+              await updatePartnershipMutation.mutateAsync({ id: drawer.partnership.id, payload: values });
+              pushToast({
+                message: isArabic ? 'تم تحديث المعلومات بنجاح' : 'Partnership info updated successfully',
+                variant: 'success',
+              });
+            }
+            refetchPartnership();
+            handleCloseDrawer();
+          } catch (error) {
+            const message =
+              error instanceof ApiError
+                ? error.message
+                : error instanceof Error
+                  ? error.message
+                  : isArabic
+                    ? 'حدث خطأ أثناء الحفظ'
+                    : 'An error occurred while saving';
+            pushToast({
+              message,
+              variant: 'error',
+            });
+            throw error;
+          }
+        }}
+        onDelete={async () => {
+          if (!drawer.partnership?.id) return;
+          if (!window.confirm(isArabic ? 'هل أنت متأكد من حذف هذه المعلومات؟' : 'Are you sure you want to delete this info?')) {
+            return;
+          }
+          try {
+            await deletePartnershipMutation.mutateAsync(drawer.partnership.id);
+            pushToast({
+              message: isArabic ? 'تم حذف المعلومات بنجاح' : 'Partnership info deleted successfully',
+              variant: 'success',
+            });
+            refetchPartnership();
+            handleCloseDrawer();
+          } catch (error) {
+            const message =
+              error instanceof ApiError
+                ? error.message
+                : error instanceof Error
+                  ? error.message
+                  : isArabic
+                    ? 'حدث خطأ أثناء الحذف'
+                    : 'An error occurred while deleting';
+            pushToast({
+              message,
+              variant: 'error',
+            });
+          }
+        }}
+        submitting={createPartnershipMutation.isPending || updatePartnershipMutation.isPending}
+        deleting={deletePartnershipMutation.isPending}
+        onPresignImage={(file) => handlePresignImage(file, 'icon')}
+      />
+
+      <MarketValueFormDrawer
+        open={drawer.open && activeTab === 'market-value'}
+        mode={drawer.mode}
+        marketValue={selectedMarketValue}
+        isLoadingDetail={drawer.mode === 'edit' && drawer.open && activeTab === 'market-value' ? marketValueDetailQuery.isFetching || marketValueDetailQuery.isLoading : false}
+        onClose={handleCloseDrawer}
+        onSubmit={async (values) => {
+          try {
+            if (drawer.mode === 'create') {
+              await createMarketValueMutation.mutateAsync(values);
+              pushToast({
+                message: isArabic ? 'تم إضافة القيمة السوقية بنجاح' : 'Market value created successfully',
+                variant: 'success',
+              });
+            } else if (drawer.marketValue?.id) {
+              await updateMarketValueMutation.mutateAsync({ id: drawer.marketValue.id, payload: values });
+              pushToast({
+                message: isArabic ? 'تم تحديث القيمة السوقية بنجاح' : 'Market value updated successfully',
+                variant: 'success',
+              });
+            }
+            refetchMarketValue();
+            handleCloseDrawer();
+          } catch (error) {
+            const message =
+              error instanceof ApiError
+                ? error.message
+                : error instanceof Error
+                  ? error.message
+                  : isArabic
+                    ? 'حدث خطأ أثناء الحفظ'
+                    : 'An error occurred while saving';
+            pushToast({
+              message,
+              variant: 'error',
+            });
+            throw error;
+          }
+        }}
+        onDelete={async () => {
+          if (!drawer.marketValue?.id) return;
+          if (!window.confirm(isArabic ? 'هل أنت متأكد من حذف القيمة السوقية؟' : 'Are you sure you want to delete market value?')) {
+            return;
+          }
+          try {
+            await deleteMarketValueMutation.mutateAsync(drawer.marketValue.id);
+            pushToast({
+              message: isArabic ? 'تم حذف القيمة السوقية بنجاح' : 'Market value deleted successfully',
+              variant: 'success',
+            });
+            refetchMarketValue();
+            handleCloseDrawer();
+          } catch (error) {
+            const message =
+              error instanceof ApiError
+                ? error.message
+                : error instanceof Error
+                  ? error.message
+                  : isArabic
+                    ? 'حدث خطأ أثناء الحذف'
+                    : 'An error occurred while deleting';
+            pushToast({
+              message,
+              variant: 'error',
+            });
+          }
+        }}
+        submitting={createMarketValueMutation.isPending || updateMarketValueMutation.isPending}
+        deleting={deleteMarketValueMutation.isPending}
+      />
+
+      <CompanyGoalFormDrawer
+        open={drawer.open && activeTab === 'goals'}
+        mode={drawer.mode}
+        goal={selectedGoal}
+        isLoadingDetail={drawer.mode === 'edit' && drawer.open && activeTab === 'goals' ? goalDetailQuery.isFetching || goalDetailQuery.isLoading : false}
+        onClose={handleCloseDrawer}
+        onSubmit={async (values) => {
+          try {
+            if (drawer.mode === 'create') {
+              await createGoalMutation.mutateAsync(values);
+              pushToast({
+                message: isArabic ? 'تم إضافة الهدف بنجاح' : 'Goal created successfully',
+                variant: 'success',
+              });
+            } else if (drawer.goal?.id) {
+              await updateGoalMutation.mutateAsync({ id: drawer.goal.id, payload: values });
+              pushToast({
+                message: isArabic ? 'تم تحديث الهدف بنجاح' : 'Goal updated successfully',
+                variant: 'success',
+              });
+            }
+            refetchGoals();
+            handleCloseDrawer();
+          } catch (error) {
+            const message =
+              error instanceof ApiError
+                ? error.message
+                : error instanceof Error
+                  ? error.message
+                  : isArabic
+                    ? 'حدث خطأ أثناء الحفظ'
+                    : 'An error occurred while saving';
+            pushToast({
+              message,
+              variant: 'error',
+            });
+            throw error;
+          }
+        }}
+        onDelete={async () => {
+          if (!drawer.goal?.id) return;
+          if (!window.confirm(isArabic ? 'هل أنت متأكد من حذف هذا الهدف؟' : 'Are you sure you want to delete this goal?')) {
+            return;
+          }
+          try {
+            await deleteGoalMutation.mutateAsync(drawer.goal.id);
+            pushToast({
+              message: isArabic ? 'تم حذف الهدف بنجاح' : 'Goal deleted successfully',
+              variant: 'success',
+            });
+            refetchGoals();
+            handleCloseDrawer();
+          } catch (error) {
+            const message =
+              error instanceof ApiError
+                ? error.message
+                : error instanceof Error
+                  ? error.message
+                  : isArabic
+                    ? 'حدث خطأ أثناء الحذف'
+                    : 'An error occurred while deleting';
+            pushToast({
+              message,
+              variant: 'error',
+            });
+          }
+        }}
+        submitting={createGoalMutation.isPending || updateGoalMutation.isPending}
+        deleting={deleteGoalMutation.isPending}
         onPresignImage={(file) => handlePresignImage(file, 'icon')}
       />
     </div>
