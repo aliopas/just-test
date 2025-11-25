@@ -1190,17 +1190,16 @@ export async function listInternalInvestorNews(
   const total = count ?? 0;
   const pageCount = Math.ceil(total / limit) || 0;
   const hasNext = page < pageCount;
-  const rows =
-    (data ?? []) as Array<{
-      id: string;
-      title: string;
-      slug: string;
-      body_md: string;
-      cover_key: string | null;
-      published_at: string | null;
-      created_at: string;
-      attachments: unknown;
-    }>;
+  const rows = (data ?? []) as Array<{
+    id: string;
+    title: string;
+    slug: string;
+    body_md: string;
+    cover_key: string | null;
+    published_at: string | null;
+    created_at: string;
+    attachments: unknown;
+  }>;
 
   const news = await Promise.all(
     rows.map(async row => {

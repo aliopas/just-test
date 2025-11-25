@@ -30,6 +30,7 @@
     ".next/",
     "coverage/",
     "*.config.js",
+    "scripts/**",
     "backend/tests/**",
     "netlify/functions/**",
     "frontend/**",

@@ -160,7 +160,7 @@ export const investorProfileController = {
       if (payload.email !== undefined || payload.phone !== undefined) {
         const adminClient = requireSupabaseAdmin();
         const userUpdate: { email?: string; phone?: string | null } = {};
-        
+
         if (payload.email !== undefined) {
           userUpdate.email = payload.email ?? undefined;
         }
@@ -186,10 +186,10 @@ export const investorProfileController = {
         // Also update in Supabase Auth if email changed
         if (payload.email !== undefined && payload.email) {
           try {
-            const { error: authUpdateError } = await adminClient.auth.admin.updateUserById(
-              req.user.id,
-              { email: payload.email }
-            );
+            const { error: authUpdateError } =
+              await adminClient.auth.admin.updateUserById(req.user.id, {
+                email: payload.email,
+              });
             if (authUpdateError) {
               console.error('Failed to update auth email:', authUpdateError);
             }

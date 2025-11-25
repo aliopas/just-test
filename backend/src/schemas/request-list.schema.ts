@@ -9,7 +9,13 @@ const statusEnum = z.enum([...REQUEST_STATUSES] as [
   ...RequestStatus[],
 ]);
 
-const requestTypes = ['buy', 'sell', 'partnership', 'board_nomination', 'feedback'] as const;
+const requestTypes = [
+  'buy',
+  'sell',
+  'partnership',
+  'board_nomination',
+  'feedback',
+] as const;
 
 export const requestListQuerySchema = z.object({
   page: z.preprocess(
@@ -28,7 +34,10 @@ export const requestListQuerySchema = z.object({
       }
       // Support both single type and comma-separated types for multi-filter
       if (typeof value === 'string') {
-        const types = value.split(',').map(t => t.trim()).filter(t => t.length > 0);
+        const types = value
+          .split(',')
+          .map(t => t.trim())
+          .filter(t => t.length > 0);
         return types.length > 0 ? types : undefined;
       }
       if (Array.isArray(value)) {

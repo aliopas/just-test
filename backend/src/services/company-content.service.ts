@@ -288,7 +288,8 @@ function mapCompanyResource(row: CompanyResourceRow): CompanyResource {
     descriptionAr: row.description_ar,
     descriptionEn: row.description_en,
     iconKey: row.icon_key,
-    value: typeof row.value === 'string' ? Number.parseFloat(row.value) : row.value,
+    value:
+      typeof row.value === 'string' ? Number.parseFloat(row.value) : row.value,
     currency: row.currency,
     displayOrder: row.display_order,
     createdAt: row.created_at,
@@ -329,7 +330,8 @@ function mapPartnershipInfo(row: PartnershipInfoRow): PartnershipInfo {
 function mapMarketValue(row: MarketValueRow): MarketValue {
   return {
     id: row.id,
-    value: typeof row.value === 'string' ? Number.parseFloat(row.value) : row.value,
+    value:
+      typeof row.value === 'string' ? Number.parseFloat(row.value) : row.value,
     currency: row.currency,
     valuationDate: row.valuation_date,
     source: row.source,
@@ -359,7 +361,9 @@ function mapCompanyGoal(row: CompanyGoalRow): CompanyGoal {
 // Company Profile Service
 // ============================================================================
 
-export async function listCompanyProfiles(includeInactive = false): Promise<CompanyProfile[]> {
+export async function listCompanyProfiles(
+  includeInactive = false
+): Promise<CompanyProfile[]> {
   const adminClient = requireSupabaseAdmin();
   let query = adminClient
     .from('company_profile')
@@ -379,7 +383,9 @@ export async function listCompanyProfiles(includeInactive = false): Promise<Comp
   return (data ?? []).map(mapCompanyProfile);
 }
 
-export async function getCompanyProfileById(id: string): Promise<CompanyProfile | null> {
+export async function getCompanyProfileById(
+  id: string
+): Promise<CompanyProfile | null> {
   const adminClient = requireSupabaseAdmin();
   const { data, error } = await adminClient
     .from('company_profile')
@@ -438,7 +444,8 @@ export async function updateCompanyProfile(
   if (input.contentAr !== undefined) updateData.content_ar = input.contentAr;
   if (input.contentEn !== undefined) updateData.content_en = input.contentEn;
   if (input.iconKey !== undefined) updateData.icon_key = input.iconKey;
-  if (input.displayOrder !== undefined) updateData.display_order = input.displayOrder;
+  if (input.displayOrder !== undefined)
+    updateData.display_order = input.displayOrder;
   if (input.isActive !== undefined) updateData.is_active = input.isActive;
 
   const { data, error } = await adminClient
@@ -464,7 +471,10 @@ export async function updateCompanyProfile(
 
 export async function deleteCompanyProfile(id: string): Promise<void> {
   const adminClient = requireSupabaseAdmin();
-  const { error } = await adminClient.from('company_profile').delete().eq('id', id);
+  const { error } = await adminClient
+    .from('company_profile')
+    .delete()
+    .eq('id', id);
 
   if (error) {
     throw new Error(`Failed to delete company profile: ${error.message}`);
@@ -489,7 +499,9 @@ export async function listCompanyPartners(): Promise<CompanyPartner[]> {
   return (data ?? []).map(mapCompanyPartner);
 }
 
-export async function getCompanyPartnerById(id: string): Promise<CompanyPartner | null> {
+export async function getCompanyPartnerById(
+  id: string
+): Promise<CompanyPartner | null> {
   const adminClient = requireSupabaseAdmin();
   const { data, error } = await adminClient
     .from('company_partners')
@@ -546,10 +558,13 @@ export async function updateCompanyPartner(
   if (input.nameAr !== undefined) updateData.name_ar = input.nameAr;
   if (input.nameEn !== undefined) updateData.name_en = input.nameEn;
   if (input.logoKey !== undefined) updateData.logo_key = input.logoKey;
-  if (input.descriptionAr !== undefined) updateData.description_ar = input.descriptionAr;
-  if (input.descriptionEn !== undefined) updateData.description_en = input.descriptionEn;
+  if (input.descriptionAr !== undefined)
+    updateData.description_ar = input.descriptionAr;
+  if (input.descriptionEn !== undefined)
+    updateData.description_en = input.descriptionEn;
   if (input.websiteUrl !== undefined) updateData.website_url = input.websiteUrl;
-  if (input.displayOrder !== undefined) updateData.display_order = input.displayOrder;
+  if (input.displayOrder !== undefined)
+    updateData.display_order = input.displayOrder;
 
   const { data, error } = await adminClient
     .from('company_partners')
@@ -574,7 +589,10 @@ export async function updateCompanyPartner(
 
 export async function deleteCompanyPartner(id: string): Promise<void> {
   const adminClient = requireSupabaseAdmin();
-  const { error } = await adminClient.from('company_partners').delete().eq('id', id);
+  const { error } = await adminClient
+    .from('company_partners')
+    .delete()
+    .eq('id', id);
 
   if (error) {
     throw new Error(`Failed to delete company partner: ${error.message}`);
@@ -599,7 +617,9 @@ export async function listCompanyClients(): Promise<CompanyClient[]> {
   return (data ?? []).map(mapCompanyClient);
 }
 
-export async function getCompanyClientById(id: string): Promise<CompanyClient | null> {
+export async function getCompanyClientById(
+  id: string
+): Promise<CompanyClient | null> {
   const adminClient = requireSupabaseAdmin();
   const { data, error } = await adminClient
     .from('company_clients')
@@ -655,9 +675,12 @@ export async function updateCompanyClient(
   if (input.nameAr !== undefined) updateData.name_ar = input.nameAr;
   if (input.nameEn !== undefined) updateData.name_en = input.nameEn;
   if (input.logoKey !== undefined) updateData.logo_key = input.logoKey;
-  if (input.descriptionAr !== undefined) updateData.description_ar = input.descriptionAr;
-  if (input.descriptionEn !== undefined) updateData.description_en = input.descriptionEn;
-  if (input.displayOrder !== undefined) updateData.display_order = input.displayOrder;
+  if (input.descriptionAr !== undefined)
+    updateData.description_ar = input.descriptionAr;
+  if (input.descriptionEn !== undefined)
+    updateData.description_en = input.descriptionEn;
+  if (input.displayOrder !== undefined)
+    updateData.display_order = input.displayOrder;
 
   const { data, error } = await adminClient
     .from('company_clients')
@@ -682,7 +705,10 @@ export async function updateCompanyClient(
 
 export async function deleteCompanyClient(id: string): Promise<void> {
   const adminClient = requireSupabaseAdmin();
-  const { error } = await adminClient.from('company_clients').delete().eq('id', id);
+  const { error } = await adminClient
+    .from('company_clients')
+    .delete()
+    .eq('id', id);
 
   if (error) {
     throw new Error(`Failed to delete company client: ${error.message}`);
@@ -707,7 +733,9 @@ export async function listCompanyResources(): Promise<CompanyResource[]> {
   return (data ?? []).map(mapCompanyResource);
 }
 
-export async function getCompanyResourceById(id: string): Promise<CompanyResource | null> {
+export async function getCompanyResourceById(
+  id: string
+): Promise<CompanyResource | null> {
   const adminClient = requireSupabaseAdmin();
   const { data, error } = await adminClient
     .from('company_resources')
@@ -764,12 +792,15 @@ export async function updateCompanyResource(
 
   if (input.titleAr !== undefined) updateData.title_ar = input.titleAr;
   if (input.titleEn !== undefined) updateData.title_en = input.titleEn;
-  if (input.descriptionAr !== undefined) updateData.description_ar = input.descriptionAr;
-  if (input.descriptionEn !== undefined) updateData.description_en = input.descriptionEn;
+  if (input.descriptionAr !== undefined)
+    updateData.description_ar = input.descriptionAr;
+  if (input.descriptionEn !== undefined)
+    updateData.description_en = input.descriptionEn;
   if (input.iconKey !== undefined) updateData.icon_key = input.iconKey;
   if (input.value !== undefined) updateData.value = input.value;
   if (input.currency !== undefined) updateData.currency = input.currency;
-  if (input.displayOrder !== undefined) updateData.display_order = input.displayOrder;
+  if (input.displayOrder !== undefined)
+    updateData.display_order = input.displayOrder;
 
   const { data, error } = await adminClient
     .from('company_resources')
@@ -794,7 +825,10 @@ export async function updateCompanyResource(
 
 export async function deleteCompanyResource(id: string): Promise<void> {
   const adminClient = requireSupabaseAdmin();
-  const { error } = await adminClient.from('company_resources').delete().eq('id', id);
+  const { error } = await adminClient
+    .from('company_resources')
+    .delete()
+    .eq('id', id);
 
   if (error) {
     throw new Error(`Failed to delete company resource: ${error.message}`);
@@ -819,7 +853,9 @@ export async function listCompanyStrengths(): Promise<CompanyStrength[]> {
   return (data ?? []).map(mapCompanyStrength);
 }
 
-export async function getCompanyStrengthById(id: string): Promise<CompanyStrength | null> {
+export async function getCompanyStrengthById(
+  id: string
+): Promise<CompanyStrength | null> {
   const adminClient = requireSupabaseAdmin();
   const { data, error } = await adminClient
     .from('company_strengths')
@@ -874,10 +910,13 @@ export async function updateCompanyStrength(
 
   if (input.titleAr !== undefined) updateData.title_ar = input.titleAr;
   if (input.titleEn !== undefined) updateData.title_en = input.titleEn;
-  if (input.descriptionAr !== undefined) updateData.description_ar = input.descriptionAr;
-  if (input.descriptionEn !== undefined) updateData.description_en = input.descriptionEn;
+  if (input.descriptionAr !== undefined)
+    updateData.description_ar = input.descriptionAr;
+  if (input.descriptionEn !== undefined)
+    updateData.description_en = input.descriptionEn;
   if (input.iconKey !== undefined) updateData.icon_key = input.iconKey;
-  if (input.displayOrder !== undefined) updateData.display_order = input.displayOrder;
+  if (input.displayOrder !== undefined)
+    updateData.display_order = input.displayOrder;
 
   const { data, error } = await adminClient
     .from('company_strengths')
@@ -902,7 +941,10 @@ export async function updateCompanyStrength(
 
 export async function deleteCompanyStrength(id: string): Promise<void> {
   const adminClient = requireSupabaseAdmin();
-  const { error } = await adminClient.from('company_strengths').delete().eq('id', id);
+  const { error } = await adminClient
+    .from('company_strengths')
+    .delete()
+    .eq('id', id);
 
   if (error) {
     throw new Error(`Failed to delete company strength: ${error.message}`);
@@ -927,7 +969,9 @@ export async function listPartnershipInfo(): Promise<PartnershipInfo[]> {
   return (data ?? []).map(mapPartnershipInfo);
 }
 
-export async function getPartnershipInfoById(id: string): Promise<PartnershipInfo | null> {
+export async function getPartnershipInfoById(
+  id: string
+): Promise<PartnershipInfo | null> {
   const adminClient = requireSupabaseAdmin();
   const { data, error } = await adminClient
     .from('partnership_info')
@@ -989,7 +1033,8 @@ export async function updatePartnershipInfo(
   if (input.stepsAr !== undefined) updateData.steps_ar = input.stepsAr;
   if (input.stepsEn !== undefined) updateData.steps_en = input.stepsEn;
   if (input.iconKey !== undefined) updateData.icon_key = input.iconKey;
-  if (input.displayOrder !== undefined) updateData.display_order = input.displayOrder;
+  if (input.displayOrder !== undefined)
+    updateData.display_order = input.displayOrder;
 
   const { data, error } = await adminClient
     .from('partnership_info')
@@ -1014,7 +1059,10 @@ export async function updatePartnershipInfo(
 
 export async function deletePartnershipInfo(id: string): Promise<void> {
   const adminClient = requireSupabaseAdmin();
-  const { error } = await adminClient.from('partnership_info').delete().eq('id', id);
+  const { error } = await adminClient
+    .from('partnership_info')
+    .delete()
+    .eq('id', id);
 
   if (error) {
     throw new Error(`Failed to delete partnership info: ${error.message}`);
@@ -1025,7 +1073,9 @@ export async function deletePartnershipInfo(id: string): Promise<void> {
 // Market Value Service
 // ============================================================================
 
-export async function listMarketValues(includeUnverified = false): Promise<MarketValue[]> {
+export async function listMarketValues(
+  includeUnverified = false
+): Promise<MarketValue[]> {
   const adminClient = requireSupabaseAdmin();
   let query = adminClient
     .from('market_value')
@@ -1045,7 +1095,9 @@ export async function listMarketValues(includeUnverified = false): Promise<Marke
   return (data ?? []).map(mapMarketValue);
 }
 
-export async function getMarketValueById(id: string): Promise<MarketValue | null> {
+export async function getMarketValueById(
+  id: string
+): Promise<MarketValue | null> {
   const adminClient = requireSupabaseAdmin();
   const { data, error } = await adminClient
     .from('market_value')
@@ -1063,7 +1115,9 @@ export async function getMarketValueById(id: string): Promise<MarketValue | null
   return data ? mapMarketValue(data) : null;
 }
 
-export async function createMarketValue(input: MarketValueCreateInput): Promise<MarketValue> {
+export async function createMarketValue(
+  input: MarketValueCreateInput
+): Promise<MarketValue> {
   const adminClient = requireSupabaseAdmin();
   const { data, error } = await adminClient
     .from('market_value')
@@ -1098,7 +1152,8 @@ export async function updateMarketValue(
 
   if (input.value !== undefined) updateData.value = input.value;
   if (input.currency !== undefined) updateData.currency = input.currency;
-  if (input.valuationDate !== undefined) updateData.valuation_date = input.valuationDate;
+  if (input.valuationDate !== undefined)
+    updateData.valuation_date = input.valuationDate;
   if (input.source !== undefined) updateData.source = input.source;
   if (input.isVerified !== undefined) updateData.is_verified = input.isVerified;
   if (input.verifiedAt !== undefined) {
@@ -1136,7 +1191,10 @@ export async function updateMarketValue(
 
 export async function deleteMarketValue(id: string): Promise<void> {
   const adminClient = requireSupabaseAdmin();
-  const { error } = await adminClient.from('market_value').delete().eq('id', id);
+  const { error } = await adminClient
+    .from('market_value')
+    .delete()
+    .eq('id', id);
 
   if (error) {
     throw new Error(`Failed to delete market value: ${error.message}`);
@@ -1161,7 +1219,9 @@ export async function listCompanyGoals(): Promise<CompanyGoal[]> {
   return (data ?? []).map(mapCompanyGoal);
 }
 
-export async function getCompanyGoalById(id: string): Promise<CompanyGoal | null> {
+export async function getCompanyGoalById(
+  id: string
+): Promise<CompanyGoal | null> {
   const adminClient = requireSupabaseAdmin();
   const { data, error } = await adminClient
     .from('company_goals')
@@ -1179,7 +1239,9 @@ export async function getCompanyGoalById(id: string): Promise<CompanyGoal | null
   return data ? mapCompanyGoal(data) : null;
 }
 
-export async function createCompanyGoal(input: CompanyGoalsCreateInput): Promise<CompanyGoal> {
+export async function createCompanyGoal(
+  input: CompanyGoalsCreateInput
+): Promise<CompanyGoal> {
   const adminClient = requireSupabaseAdmin();
   const { data, error } = await adminClient
     .from('company_goals')
@@ -1215,11 +1277,14 @@ export async function updateCompanyGoal(
 
   if (input.titleAr !== undefined) updateData.title_ar = input.titleAr;
   if (input.titleEn !== undefined) updateData.title_en = input.titleEn;
-  if (input.descriptionAr !== undefined) updateData.description_ar = input.descriptionAr;
-  if (input.descriptionEn !== undefined) updateData.description_en = input.descriptionEn;
+  if (input.descriptionAr !== undefined)
+    updateData.description_ar = input.descriptionAr;
+  if (input.descriptionEn !== undefined)
+    updateData.description_en = input.descriptionEn;
   if (input.targetDate !== undefined) updateData.target_date = input.targetDate;
   if (input.iconKey !== undefined) updateData.icon_key = input.iconKey;
-  if (input.displayOrder !== undefined) updateData.display_order = input.displayOrder;
+  if (input.displayOrder !== undefined)
+    updateData.display_order = input.displayOrder;
 
   const { data, error } = await adminClient
     .from('company_goals')
@@ -1244,7 +1309,10 @@ export async function updateCompanyGoal(
 
 export async function deleteCompanyGoal(id: string): Promise<void> {
   const adminClient = requireSupabaseAdmin();
-  const { error } = await adminClient.from('company_goals').delete().eq('id', id);
+  const { error } = await adminClient
+    .from('company_goals')
+    .delete()
+    .eq('id', id);
 
   if (error) {
     throw new Error(`Failed to delete company goal: ${error.message}`);
@@ -1319,4 +1387,3 @@ export async function createCompanyContentImageUploadUrl(params: {
     },
   };
 }
-

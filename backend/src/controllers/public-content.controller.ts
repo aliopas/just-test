@@ -26,7 +26,7 @@ export const publicContentController = {
     try {
       const language = getLanguageFromQuery(req);
       const profiles = await listCompanyProfiles(false); // includeInactive = false (only active)
-      
+
       const mapped = profiles.map(profile => ({
         id: profile.id,
         title: language === 'ar' ? profile.titleAr : profile.titleEn,
@@ -55,12 +55,13 @@ export const publicContentController = {
     try {
       const language = getLanguageFromQuery(req);
       const partners = await listCompanyPartners();
-      
+
       const mapped = partners.map(partner => ({
         id: partner.id,
         name: language === 'ar' ? partner.nameAr : partner.nameEn,
         logoKey: partner.logoKey,
-        description: language === 'ar' ? partner.descriptionAr : partner.descriptionEn,
+        description:
+          language === 'ar' ? partner.descriptionAr : partner.descriptionEn,
         websiteUrl: partner.websiteUrl,
         displayOrder: partner.displayOrder,
       }));
@@ -85,12 +86,13 @@ export const publicContentController = {
     try {
       const language = getLanguageFromQuery(req);
       const clients = await listCompanyClients();
-      
+
       const mapped = clients.map(client => ({
         id: client.id,
         name: language === 'ar' ? client.nameAr : client.nameEn,
         logoKey: client.logoKey,
-        description: language === 'ar' ? client.descriptionAr : client.descriptionEn,
+        description:
+          language === 'ar' ? client.descriptionAr : client.descriptionEn,
         displayOrder: client.displayOrder,
       }));
 
@@ -114,11 +116,12 @@ export const publicContentController = {
     try {
       const language = getLanguageFromQuery(req);
       const resources = await listCompanyResources();
-      
+
       const mapped = resources.map(resource => ({
         id: resource.id,
         title: language === 'ar' ? resource.titleAr : resource.titleEn,
-        description: language === 'ar' ? resource.descriptionAr : resource.descriptionEn,
+        description:
+          language === 'ar' ? resource.descriptionAr : resource.descriptionEn,
         iconKey: resource.iconKey,
         value: resource.value,
         currency: resource.currency,
@@ -145,11 +148,12 @@ export const publicContentController = {
     try {
       const language = getLanguageFromQuery(req);
       const strengths = await listCompanyStrengths();
-      
+
       const mapped = strengths.map(strength => ({
         id: strength.id,
         title: language === 'ar' ? strength.titleAr : strength.titleEn,
-        description: language === 'ar' ? strength.descriptionAr : strength.descriptionEn,
+        description:
+          language === 'ar' ? strength.descriptionAr : strength.descriptionEn,
         iconKey: strength.iconKey,
         displayOrder: strength.displayOrder,
       }));
@@ -174,7 +178,7 @@ export const publicContentController = {
     try {
       const language = getLanguageFromQuery(req);
       const partnershipInfoList = await listPartnershipInfo();
-      
+
       const mapped = partnershipInfoList.map(info => ({
         id: info.id,
         title: language === 'ar' ? info.titleAr : info.titleEn,
@@ -203,10 +207,10 @@ export const publicContentController = {
   async getMarketValue(_req: Request, res: Response) {
     try {
       const marketValues = await listMarketValues(false); // includeUnverified = false (only verified)
-      
+
       // Return the latest verified market value
       const latest = marketValues.length > 0 ? marketValues[0] : null;
-      
+
       if (!latest) {
         return res.status(200).json({
           marketValue: null,
@@ -240,11 +244,12 @@ export const publicContentController = {
     try {
       const language = getLanguageFromQuery(req);
       const goals = await listCompanyGoals();
-      
+
       const mapped = goals.map(goal => ({
         id: goal.id,
         title: language === 'ar' ? goal.titleAr : goal.titleEn,
-        description: language === 'ar' ? goal.descriptionAr : goal.descriptionEn,
+        description:
+          language === 'ar' ? goal.descriptionAr : goal.descriptionEn,
         targetDate: goal.targetDate,
         iconKey: goal.iconKey,
         displayOrder: goal.displayOrder,
@@ -265,4 +270,3 @@ export const publicContentController = {
     }
   },
 };
-

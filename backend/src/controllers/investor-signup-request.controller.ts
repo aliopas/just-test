@@ -52,8 +52,8 @@ export const investorSignupRequestController = {
           ? error.message === 'REQUEST_ALREADY_PENDING'
             ? 'Signup request already pending for this email.'
             : error.message === 'USER_ALREADY_EXISTS'
-            ? 'An active account already exists for this email.'
-            : error.message
+              ? 'An active account already exists for this email.'
+              : error.message
           : 'Failed to submit signup request.';
 
       return res.status(status).json({
@@ -300,4 +300,3 @@ export const investorSignupRequestController = {
     }
   },
 };
-

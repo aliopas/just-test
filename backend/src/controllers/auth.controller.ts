@@ -183,9 +183,10 @@ export const authController = {
 
       // Send welcome email
       try {
-        const { data: authUser } = await adminClient.auth.admin.getUserById(userId);
+        const { data: authUser } =
+          await adminClient.auth.admin.getUserById(userId);
         const userEmail = email ?? authUser?.user?.email;
-        
+
         if (userEmail) {
           // Get user profile for name and language
           const { data: profile } = await adminClient
@@ -205,7 +206,8 @@ export const authController = {
             (authUser?.user?.user_metadata?.locale as EmailLanguage) ??
             'ar';
 
-          const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173';
+          const frontendUrl =
+            process.env.FRONTEND_URL ?? 'http://localhost:5173';
           const loginLink = `${frontendUrl}/login`;
 
           await enqueueEmailNotification({
@@ -271,7 +273,8 @@ export const authController = {
       const { code, expiresAt } = await otpService.createOTP(userId);
 
       // Get user details for email
-      const { data: authUser } = await adminClient.auth.admin.getUserById(userId);
+      const { data: authUser } =
+        await adminClient.auth.admin.getUserById(userId);
       const userEmail = userData.email ?? authUser?.user?.email;
       if (!userEmail) {
         return res.status(400).json({
@@ -796,29 +799,38 @@ export const authController = {
       const { email } = req.body;
 
       // Use Supabase to send password reset email
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${process.env.FRONTEND_URL || 'https://investor-bacura.netlify.app'}/reset-password`,
-      });
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        email.trim(),
+        {
+          redirectTo: `${process.env.FRONTEND_URL || 'https://investor-bacura.netlify.app'}/reset-password`,
+        }
+      );
 
       if (error) {
         // Don't reveal if user exists or not for security
-        if (error.message.includes('rate limit') || error.message.includes('too many')) {
+        if (
+          error.message.includes('rate limit') ||
+          error.message.includes('too many')
+        ) {
           return res.status(429).json({
             error: {
               code: 'RATE_LIMIT_EXCEEDED',
-              message: 'Too many requests. Please wait a few minutes before trying again.',
+              message:
+                'Too many requests. Please wait a few minutes before trying again.',
             },
           });
         }
 
         // For security, always return success even if user doesn't exist
         return res.status(200).json({
-          message: 'If an account exists with this email, a password reset link has been sent.',
+          message:
+            'If an account exists with this email, a password reset link has been sent.',
         });
       }
 
       return res.status(200).json({
-        message: 'If an account exists with this email, a password reset link has been sent.',
+        message:
+          'If an account exists with this email, a password reset link has been sent.',
       });
     } catch (error) {
       console.error('Password reset request error:', error);
@@ -849,7 +861,8 @@ export const authController = {
         return res.status(400).json({
           error: {
             code: 'INVALID_OR_EXPIRED_TOKEN',
-            message: 'Invalid or expired reset token. Please request a new link.',
+            message:
+              'Invalid or expired reset token. Please request a new link.',
           },
         });
       }
@@ -859,7 +872,8 @@ export const authController = {
         return res.status(400).json({
           error: {
             code: 'INVALID_OR_EXPIRED_TOKEN',
-            message: 'Invalid or expired reset token. Please request a new link.',
+            message:
+              'Invalid or expired reset token. Please request a new link.',
           },
         });
       }
@@ -886,10 +900,7 @@ export const authController = {
     }
   },
 
-  updatePassword: async (
-    req: AuthenticatedRequest,
-    res: Response
-  ) => {
+  updatePassword: async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { password } = req.body as UpdatePasswordInput;
 
@@ -904,10 +915,10 @@ export const authController = {
 
       // Use admin client to update password (most reliable method)
       const adminClient = requireSupabaseAdmin();
-      const { error: updateError } = await adminClient.auth.admin.updateUserById(
-        req.user.id,
-        { password: password }
-      );
+      const { error: updateError } =
+        await adminClient.auth.admin.updateUserById(req.user.id, {
+          password: password,
+        });
 
       if (updateError) {
         return res.status(400).json({

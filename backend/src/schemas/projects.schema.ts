@@ -51,7 +51,18 @@ export const projectImagePresignSchema = z
   .refine(
     value => {
       const extension = value.fileName.split('.').pop()?.toLowerCase() ?? '';
-      return ['jpg', 'jpeg', 'png', 'webp', 'avif', 'gif', 'svg', 'ico', 'bmp', 'tiff', ].includes(extension);
+      return [
+        'jpg',
+        'jpeg',
+        'png',
+        'webp',
+        'avif',
+        'gif',
+        'svg',
+        'ico',
+        'bmp',
+        'tiff',
+      ].includes(extension);
     },
     {
       message: 'Unsupported image extension',
@@ -59,5 +70,6 @@ export const projectImagePresignSchema = z
     }
   );
 
-export type ProjectImagePresignInput = z.infer<typeof projectImagePresignSchema>;
-
+export type ProjectImagePresignInput = z.infer<
+  typeof projectImagePresignSchema
+>;

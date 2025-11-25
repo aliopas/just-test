@@ -91,8 +91,7 @@ function calculateStandardDeviation(values: number[]): number {
   }
   const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
   const variance =
-    values.reduce((sum, value) => sum + (value - mean) ** 2, 0) /
-    values.length;
+    values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / values.length;
   return Number(Math.sqrt(variance).toFixed(2));
 }
 
@@ -172,10 +171,12 @@ function buildFeedFromTimeline(
     return buildEmptyFeed();
   }
 
-  const sortedTimeline = timeline.slice().sort(
-    (a, b) =>
-      new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime()
-  );
+  const sortedTimeline = timeline
+    .slice()
+    .sort(
+      (a, b) =>
+        new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime()
+    );
 
   const latest = sortedTimeline[sortedTimeline.length - 1];
   const previous =
@@ -287,7 +288,9 @@ function buildSyntheticTimeline(limit: number): InvestorStockSnapshot[] {
     const rawLow = Math.min(open, close) - downSwing;
 
     const high = Number(Math.max(rawHigh, open, close).toFixed(2));
-    const low = Number(Math.max(Math.min(rawLow, open, close), 0.01).toFixed(2));
+    const low = Number(
+      Math.max(Math.min(rawLow, open, close), 0.01).toFixed(2)
+    );
 
     const volumeBase = 150_000 + dayIndex * 1_950;
     const volumeWave = Math.sin(dayIndex / 2.8) * 13_000;
@@ -363,5 +366,3 @@ export async function getBacuraStockFeed(params?: {
     return buildFallbackFeed(limit);
   }
 }
-
-

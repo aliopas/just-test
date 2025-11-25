@@ -61,7 +61,7 @@ async function markSignupRequestAsRead(params: {
   adminId: string;
 }): Promise<{ viewedAt: string }> {
   const adminClient = requireSupabaseAdmin();
-  
+
   const { data, error } = await adminClient
     .from('admin_signup_request_views')
     .upsert(
@@ -91,7 +91,7 @@ async function markSignupRequestAsRead(params: {
  */
 async function getUnreadSignupRequestCount(adminId: string): Promise<number> {
   const adminClient = requireSupabaseAdmin();
-  
+
   // Get all pending signup requests
   const { data: allPending, error: pendingError } = await adminClient
     .from('investor_signup_requests')
@@ -111,13 +111,18 @@ async function getUnreadSignupRequestCount(adminId: string): Promise<number> {
     .from('admin_signup_request_views')
     .select('signup_request_id')
     .eq('admin_id', adminId)
-    .in('signup_request_id', allPending.map(r => r.id));
+    .in(
+      'signup_request_id',
+      allPending.map(r => r.id)
+    );
 
   if (readError) {
     return 0;
   }
 
-  const readIds = new Set((readRequests ?? []).map(r => r.signup_request_id as string));
+  const readIds = new Set(
+    (readRequests ?? []).map(r => r.signup_request_id as string)
+  );
   return allPending.filter(r => !readIds.has(r.id)).length;
 }
 
@@ -246,10 +251,13 @@ export const investorSignupRequestService = {
         .in('signup_request_id', requestIds);
 
       if (!readError && readViews) {
-        readStatusMap = readViews.reduce((acc, view) => {
-          acc[view.signup_request_id as string] = true;
-          return acc;
-        }, {} as Record<string, boolean>);
+        readStatusMap = readViews.reduce(
+          (acc, view) => {
+            acc[view.signup_request_id as string] = true;
+            return acc;
+          },
+          {} as Record<string, boolean>
+        );
       }
     }
 
@@ -382,4 +390,3 @@ export const investorSignupRequestService = {
     return updated;
   },
 };
-

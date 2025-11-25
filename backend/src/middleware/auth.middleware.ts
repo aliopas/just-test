@@ -62,7 +62,7 @@ export const authenticate = async (
     req.user = {
       id: userRecord.id,
       email: userRecord.email,
-      role: userRecord.role?? 'investor' ,
+      role: userRecord.role ?? 'investor',
       roles: userRecord.role ? [userRecord.role] : [],
       permissions: [],
     };
@@ -98,13 +98,14 @@ async function ensureUserRecord(user: SupabaseUser): Promise<UserRow | null> {
   }
 
   const metadataRole =
-    ((user.user_metadata as { role?: string } | null | undefined)?.role ??
-      (user.app_metadata as { role?: string } | null | undefined)?.role) ??
+    (user.user_metadata as { role?: string } | null | undefined)?.role ??
+    (user.app_metadata as { role?: string } | null | undefined)?.role ??
     undefined;
 
-  const inferredRole = metadataRole && typeof metadataRole === 'string'
-    ? metadataRole
-    : 'investor';
+  const inferredRole =
+    metadataRole && typeof metadataRole === 'string'
+      ? metadataRole
+      : 'investor';
 
   const email =
     user.email ??

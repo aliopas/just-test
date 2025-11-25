@@ -23,11 +23,16 @@ export const homepageSectionCreateSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-export type HomepageSectionCreateInput = z.infer<typeof homepageSectionCreateSchema>;
+export type HomepageSectionCreateInput = z.infer<
+  typeof homepageSectionCreateSchema
+>;
 
-export const homepageSectionUpdateSchema = homepageSectionCreateSchema.partial().extend({
-  type: homepageSectionTypeSchema.optional(),
-});
+export const homepageSectionUpdateSchema = homepageSectionCreateSchema
+  .partial()
+  .extend({
+    type: homepageSectionTypeSchema.optional(),
+  });
 
-export type HomepageSectionUpdateInput = z.infer<typeof homepageSectionUpdateSchema>;
-
+export type HomepageSectionUpdateInput = z.infer<
+  typeof homepageSectionUpdateSchema
+>;

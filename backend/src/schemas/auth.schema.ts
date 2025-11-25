@@ -92,7 +92,9 @@ export const resetPasswordRequestSchema = z.object({
   email: z.string().email('Invalid email format').min(1, 'Email is required'),
 });
 
-export type ResetPasswordRequestInput = z.infer<typeof resetPasswordRequestSchema>;
+export type ResetPasswordRequestInput = z.infer<
+  typeof resetPasswordRequestSchema
+>;
 
 export const verifyResetTokenSchema = z.object({
   token_hash: z.string().min(1, 'token_hash is required'),

@@ -34,10 +34,7 @@ export const investorInternalNewsController = {
           result.news.map(item => item.id),
           { context: 'investor_internal_feed' }
         ).catch(error =>
-          console.error(
-            'Failed to record internal news impressions:',
-            error
-          )
+          console.error('Failed to record internal news impressions:', error)
         );
       }
 
@@ -94,6 +91,3 @@ export const investorInternalNewsController = {
     }
   },
 };
-
-
-

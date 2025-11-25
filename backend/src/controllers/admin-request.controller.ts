@@ -51,11 +51,12 @@ export const adminRequestController = {
       return res.status(200).json(result);
     } catch (error) {
       console.error('Failed to list admin requests:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       const errorStack = error instanceof Error ? error.stack : undefined;
-      console.error('Error details:', { 
-        errorMessage, 
-        errorStack, 
+      console.error('Error details:', {
+        errorMessage,
+        errorStack,
         query: req.query,
         actorId: req.user?.id,
         nodeEnv: process.env.NODE_ENV,
@@ -64,7 +65,8 @@ export const adminRequestController = {
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to list admin requests',
-          details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
+          details:
+            process.env.NODE_ENV === 'development' ? errorMessage : undefined,
         },
       });
     }
@@ -225,8 +227,12 @@ export const adminRequestController = {
           ? req.body.status.trim().toLowerCase()
           : '';
 
-      const allowedStatuses: WorkflowStatus[] = ['screening', 'compliance_review'];
-      const statusValue = allowedStatuses.find(status => status === rawStatus) ?? null;
+      const allowedStatuses: WorkflowStatus[] = [
+        'screening',
+        'compliance_review',
+      ];
+      const statusValue =
+        allowedStatuses.find(status => status === rawStatus) ?? null;
 
       if (!statusValue) {
         return res.status(400).json({

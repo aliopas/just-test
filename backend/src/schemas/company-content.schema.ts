@@ -22,11 +22,15 @@ export const companyProfileCreateSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-export type CompanyProfileCreateInput = z.infer<typeof companyProfileCreateSchema>;
+export type CompanyProfileCreateInput = z.infer<
+  typeof companyProfileCreateSchema
+>;
 
 export const companyProfileUpdateSchema = companyProfileCreateSchema.partial();
 
-export type CompanyProfileUpdateInput = z.infer<typeof companyProfileUpdateSchema>;
+export type CompanyProfileUpdateInput = z.infer<
+  typeof companyProfileUpdateSchema
+>;
 
 // ============================================================================
 // company_partners schemas
@@ -42,11 +46,16 @@ export const companyPartnersCreateSchema = z.object({
   displayOrder: displayOrderSchema,
 });
 
-export type CompanyPartnersCreateInput = z.infer<typeof companyPartnersCreateSchema>;
+export type CompanyPartnersCreateInput = z.infer<
+  typeof companyPartnersCreateSchema
+>;
 
-export const companyPartnersUpdateSchema = companyPartnersCreateSchema.partial();
+export const companyPartnersUpdateSchema =
+  companyPartnersCreateSchema.partial();
 
-export type CompanyPartnersUpdateInput = z.infer<typeof companyPartnersUpdateSchema>;
+export type CompanyPartnersUpdateInput = z.infer<
+  typeof companyPartnersUpdateSchema
+>;
 
 // ============================================================================
 // company_clients schemas
@@ -61,17 +70,24 @@ export const companyClientsCreateSchema = z.object({
   displayOrder: displayOrderSchema,
 });
 
-export type CompanyClientsCreateInput = z.infer<typeof companyClientsCreateSchema>;
+export type CompanyClientsCreateInput = z.infer<
+  typeof companyClientsCreateSchema
+>;
 
 export const companyClientsUpdateSchema = companyClientsCreateSchema.partial();
 
-export type CompanyClientsUpdateInput = z.infer<typeof companyClientsUpdateSchema>;
+export type CompanyClientsUpdateInput = z.infer<
+  typeof companyClientsUpdateSchema
+>;
 
 // ============================================================================
 // company_resources schemas
 // ============================================================================
 
-const currencySchema = z.string().length(3, 'Currency must be ISO 3-letter code').default('SAR');
+const currencySchema = z
+  .string()
+  .length(3, 'Currency must be ISO 3-letter code')
+  .default('SAR');
 
 export const companyResourcesCreateSchema = z.object({
   titleAr: z.string().trim().min(1, 'Arabic title is required').max(200),
@@ -79,16 +95,25 @@ export const companyResourcesCreateSchema = z.object({
   descriptionAr: z.string().trim().max(2000).optional().nullable(),
   descriptionEn: z.string().trim().max(2000).optional().nullable(),
   iconKey: iconKeySchema,
-  value: z.number().nonnegative('Value must be non-negative').optional().nullable(),
+  value: z
+    .number()
+    .nonnegative('Value must be non-negative')
+    .optional()
+    .nullable(),
   currency: currencySchema,
   displayOrder: displayOrderSchema,
 });
 
-export type CompanyResourcesCreateInput = z.infer<typeof companyResourcesCreateSchema>;
+export type CompanyResourcesCreateInput = z.infer<
+  typeof companyResourcesCreateSchema
+>;
 
-export const companyResourcesUpdateSchema = companyResourcesCreateSchema.partial();
+export const companyResourcesUpdateSchema =
+  companyResourcesCreateSchema.partial();
 
-export type CompanyResourcesUpdateInput = z.infer<typeof companyResourcesUpdateSchema>;
+export type CompanyResourcesUpdateInput = z.infer<
+  typeof companyResourcesUpdateSchema
+>;
 
 // ============================================================================
 // company_strengths schemas
@@ -103,11 +128,16 @@ export const companyStrengthsCreateSchema = z.object({
   displayOrder: displayOrderSchema,
 });
 
-export type CompanyStrengthsCreateInput = z.infer<typeof companyStrengthsCreateSchema>;
+export type CompanyStrengthsCreateInput = z.infer<
+  typeof companyStrengthsCreateSchema
+>;
 
-export const companyStrengthsUpdateSchema = companyStrengthsCreateSchema.partial();
+export const companyStrengthsUpdateSchema =
+  companyStrengthsCreateSchema.partial();
 
-export type CompanyStrengthsUpdateInput = z.infer<typeof companyStrengthsUpdateSchema>;
+export type CompanyStrengthsUpdateInput = z.infer<
+  typeof companyStrengthsUpdateSchema
+>;
 
 // ============================================================================
 // partnership_info schemas
@@ -129,11 +159,16 @@ export const partnershipInfoCreateSchema = z.object({
   displayOrder: displayOrderSchema,
 });
 
-export type PartnershipInfoCreateInput = z.infer<typeof partnershipInfoCreateSchema>;
+export type PartnershipInfoCreateInput = z.infer<
+  typeof partnershipInfoCreateSchema
+>;
 
-export const partnershipInfoUpdateSchema = partnershipInfoCreateSchema.partial();
+export const partnershipInfoUpdateSchema =
+  partnershipInfoCreateSchema.partial();
 
-export type PartnershipInfoUpdateInput = z.infer<typeof partnershipInfoUpdateSchema>;
+export type PartnershipInfoUpdateInput = z.infer<
+  typeof partnershipInfoUpdateSchema
+>;
 
 // ============================================================================
 // market_value schemas
@@ -178,7 +213,14 @@ export type CompanyGoalsUpdateInput = z.infer<typeof companyGoalsUpdateSchema>;
 // Presigned URL schemas for file uploads
 // ============================================================================
 
-const ALLOWED_IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'] as const;
+const ALLOWED_IMAGE_EXTENSIONS = [
+  'png',
+  'jpg',
+  'jpeg',
+  'webp',
+  'gif',
+  'svg',
+] as const;
 const ALLOWED_LOGO_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp', 'svg'] as const;
 
 export const companyContentImagePresignSchema = z
@@ -196,9 +238,13 @@ export const companyContentImagePresignSchema = z
     value => {
       const extension = value.fileName.split('.').pop()?.toLowerCase() ?? '';
       if (value.purpose === 'logo') {
-        return (ALLOWED_LOGO_EXTENSIONS as readonly string[]).includes(extension);
+        return (ALLOWED_LOGO_EXTENSIONS as readonly string[]).includes(
+          extension
+        );
       } else {
-        return (ALLOWED_IMAGE_EXTENSIONS as readonly string[]).includes(extension);
+        return (ALLOWED_IMAGE_EXTENSIONS as readonly string[]).includes(
+          extension
+        );
       }
     },
     {
@@ -210,4 +256,3 @@ export const companyContentImagePresignSchema = z
 export type CompanyContentImagePresignInput = z.infer<
   typeof companyContentImagePresignSchema
 >;
-

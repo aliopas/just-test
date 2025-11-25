@@ -86,7 +86,9 @@ export async function getInvestorDashboard(params: {
 }): Promise<InvestorDashboardResponse> {
   const adminClient = requireSupabaseAdmin();
   const recentLimit = params.recentLimit ?? 8;
-  const thirtyDaysAgoIso = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const thirtyDaysAgoIso = new Date(
+    Date.now() - 30 * 24 * 60 * 60 * 1000
+  ).toISOString();
 
   const statusPromise = adminClient
     .from('requests')
@@ -140,16 +142,23 @@ export async function getInvestorDashboard(params: {
       .maybeSingle<{ average: number | null }>()
   );
 
-  const [statusResult, recentResult, pendingResult, unreadResult, rollingVolumeResult, averageBuyResult, averageSellResult] =
-    await Promise.all([
-      statusPromise,
-      recentPromise,
-      pendingInfoPromise,
-      unreadPromise as unknown as Promise<NotificationCount>,
-      rollingVolumePromise,
-      averagePromises[0],
-      averagePromises[1],
-    ]);
+  const [
+    statusResult,
+    recentResult,
+    pendingResult,
+    unreadResult,
+    rollingVolumeResult,
+    averageBuyResult,
+    averageSellResult,
+  ] = await Promise.all([
+    statusPromise,
+    recentPromise,
+    pendingInfoPromise,
+    unreadPromise as unknown as Promise<NotificationCount>,
+    rollingVolumePromise,
+    averagePromises[0],
+    averagePromises[1],
+  ]);
 
   if (statusResult.error) {
     throw new Error(
@@ -200,20 +209,21 @@ export async function getInvestorDashboard(params: {
     total += 1;
   }
 
-  const recentRequests = ((recentResult.data ?? []) as RequestRow[]).map(row => {
-    const normalizedType: RequestType =
-      row.type === 'sell' ? 'sell' : 'buy';
+  const recentRequests = ((recentResult.data ?? []) as RequestRow[]).map(
+    row => {
+      const normalizedType: RequestType = row.type === 'sell' ? 'sell' : 'buy';
 
-    return {
-      id: row.id,
-      requestNumber: row.request_number,
-      type: normalizedType,
-      status: row.status,
-      amount: Number(row.amount ?? 0),
-      currency: row.currency ?? 'SAR',
-      createdAt: row.created_at,
-    };
-  });
+      return {
+        id: row.id,
+        requestNumber: row.request_number,
+        type: normalizedType,
+        status: row.status,
+        amount: Number(row.amount ?? 0),
+        currency: row.currency ?? 'SAR',
+        createdAt: row.created_at,
+      };
+    }
+  );
 
   const pendingItems = ((pendingResult.data ?? []) as PendingRow[]).map(
     row => ({

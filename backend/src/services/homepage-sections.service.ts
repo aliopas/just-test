@@ -49,7 +49,9 @@ function mapHomepageSectionRow(row: HomepageSectionRow): HomepageSection {
   };
 }
 
-export async function listHomepageSections(includeInactive = false): Promise<HomepageSection[]> {
+export async function listHomepageSections(
+  includeInactive = false
+): Promise<HomepageSection[]> {
   let query = supabase
     .from('homepage_sections')
     .select('*')
@@ -68,7 +70,9 @@ export async function listHomepageSections(includeInactive = false): Promise<Hom
   return (data ?? []).map(mapHomepageSectionRow);
 }
 
-export async function getHomepageSectionById(id: string): Promise<HomepageSection | null> {
+export async function getHomepageSectionById(
+  id: string
+): Promise<HomepageSection | null> {
   const { data, error } = await supabase
     .from('homepage_sections')
     .select('*')
@@ -192,10 +196,12 @@ export async function updateHomepageSection(
 }
 
 export async function deleteHomepageSection(id: string): Promise<void> {
-  const { error } = await supabase.from('homepage_sections').delete().eq('id', id);
+  const { error } = await supabase
+    .from('homepage_sections')
+    .delete()
+    .eq('id', id);
 
   if (error) {
     throw new Error(`Failed to delete homepage section: ${error.message}`);
   }
 }
-

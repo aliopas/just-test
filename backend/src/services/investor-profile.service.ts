@@ -54,15 +54,22 @@ export const DEFAULT_COMMUNICATION_PREFERENCES: Record<
 };
 
 const PROFILE_CACHE_TTL_MS =
-  Number.parseInt(process.env.INVESTOR_PROFILE_CACHE_MS ?? '60000', 10) || 60000;
+  Number.parseInt(process.env.INVESTOR_PROFILE_CACHE_MS ?? '60000', 10) ||
+  60000;
 
 type CacheEntry<T> = {
   value: T;
   expiresAt: number;
 };
 
-const profileViewCache = new Map<string, CacheEntry<InvestorProfileView | null>>();
-const profileRecordCache = new Map<string, CacheEntry<InvestorProfileRecord | null>>();
+const profileViewCache = new Map<
+  string,
+  CacheEntry<InvestorProfileView | null>
+>();
+const profileRecordCache = new Map<
+  string,
+  CacheEntry<InvestorProfileRecord | null>
+>();
 
 type CacheRead<T> =
   | {
@@ -86,7 +93,11 @@ function readCache<T>(
   return { hit: true, value: entry.value };
 }
 
-function writeCache<T>(cache: Map<string, CacheEntry<T>>, key: string, value: T): void {
+function writeCache<T>(
+  cache: Map<string, CacheEntry<T>>,
+  key: string,
+  value: T
+): void {
   cache.set(key, {
     value,
     expiresAt: Date.now() + PROFILE_CACHE_TTL_MS,

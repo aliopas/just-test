@@ -34,19 +34,31 @@ publicRouter.get('/homepage-sections', async (_req, res) => {
 publicRouter.get('/company-profile', publicContentController.getCompanyProfile);
 
 // Company Partners
-publicRouter.get('/company-partners', publicContentController.getCompanyPartners);
+publicRouter.get(
+  '/company-partners',
+  publicContentController.getCompanyPartners
+);
 
 // Company Clients
 publicRouter.get('/company-clients', publicContentController.getCompanyClients);
 
 // Company Resources
-publicRouter.get('/company-resources', publicContentController.getCompanyResources);
+publicRouter.get(
+  '/company-resources',
+  publicContentController.getCompanyResources
+);
 
 // Company Strengths
-publicRouter.get('/company-strengths', publicContentController.getCompanyStrengths);
+publicRouter.get(
+  '/company-strengths',
+  publicContentController.getCompanyStrengths
+);
 
 // Partnership Info
-publicRouter.get('/partnership-info', publicContentController.getPartnershipInfo);
+publicRouter.get(
+  '/partnership-info',
+  publicContentController.getPartnershipInfo
+);
 
 // Market Value
 publicRouter.get('/market-value', publicContentController.getMarketValue);
@@ -55,4 +67,3 @@ publicRouter.get('/market-value', publicContentController.getMarketValue);
 publicRouter.get('/company-goals', publicContentController.getCompanyGoals);
 
 export { publicRouter };
-

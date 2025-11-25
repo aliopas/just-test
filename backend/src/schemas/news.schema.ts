@@ -188,7 +188,9 @@ export const newsAttachmentPresignSchema = z
   .refine(
     value => {
       const extension = value.fileName.split('.').pop()?.toLowerCase() ?? '';
-      return ALLOWED_ATTACHMENT_EXTENSIONS.includes(extension as typeof ALLOWED_ATTACHMENT_EXTENSIONS[number]);
+      return ALLOWED_ATTACHMENT_EXTENSIONS.includes(
+        extension as (typeof ALLOWED_ATTACHMENT_EXTENSIONS)[number]
+      );
     },
     {
       message: 'Unsupported attachment extension',
@@ -196,7 +198,9 @@ export const newsAttachmentPresignSchema = z
     }
   );
 
-export type NewsAttachmentPresignInput = z.infer<typeof newsAttachmentPresignSchema>;
+export type NewsAttachmentPresignInput = z.infer<
+  typeof newsAttachmentPresignSchema
+>;
 
 export const newsApproveSchema = z.object({
   comment: z

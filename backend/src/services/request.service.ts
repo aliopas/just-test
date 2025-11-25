@@ -117,7 +117,9 @@ export async function createPartnershipRequest(params: {
     .single<{ id: string }>();
 
   if (error || !data) {
-    throw new Error(`Failed to create partnership request: ${error?.message ?? 'unknown'}`);
+    throw new Error(
+      `Failed to create partnership request: ${error?.message ?? 'unknown'}`
+    );
   }
 
   const { error: eventError } = await adminClient
@@ -394,7 +396,9 @@ export async function listInvestorRequests(params: {
 
   // Filter by type(s) - support multiple types
   if (params.query.type) {
-    const types = Array.isArray(params.query.type) ? params.query.type : [params.query.type];
+    const types = Array.isArray(params.query.type)
+      ? params.query.type
+      : [params.query.type];
     if (types.length === 1) {
       queryBuilder = queryBuilder.eq('type', types[0]);
     } else if (types.length > 1) {
@@ -724,16 +728,14 @@ export async function createRequestAttachmentUploadUrl(params: {
 
   // Pre-create attachment record (will be updated after successful upload)
   const attachmentId = randomUUID();
-  const { error: insertError } = await adminClient
-    .from('attachments')
-    .insert({
-      id: attachmentId,
-      request_id: params.requestId,
-      filename: params.input.fileName,
-      mime_type: params.input.fileType,
-      size: params.input.fileSize,
-      storage_key: storageKey,
-    });
+  const { error: insertError } = await adminClient.from('attachments').insert({
+    id: attachmentId,
+    request_id: params.requestId,
+    filename: params.input.fileName,
+    mime_type: params.input.fileType,
+    size: params.input.fileSize,
+    storage_key: storageKey,
+  });
 
   if (insertError) {
     throw new Error(

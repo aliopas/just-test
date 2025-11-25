@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { CompanyContentCard } from './CompanyContentCard';
+import { CompanyContentModal } from './CompanyContentModal';
 import { palette } from '../../styles/theme';
 import { useLanguage } from '../../context/LanguageContext';
 import {
@@ -21,6 +22,7 @@ interface SectionCard {
   title: string;
   description?: string | null;
   iconKey?: string | null;
+  displayOrder?: number;
   onClick?: () => void;
 }
 
@@ -68,12 +70,19 @@ export function CompanyContentSection() {
         title: profile.title,
         description: profile.content.substring(0, 100) + (profile.content.length > 100 ? '...' : ''),
         iconKey: profile.iconKey,
+        displayOrder: profile.displayOrder,
         onClick: () => setSelectedSection(`profile-${profile.id}`),
       });
     });
 
     // 2. Partners & Clients (combined as one section if they exist)
     if (partners.length > 0 || clients.length > 0) {
+      // Use the minimum displayOrder from partners/clients
+      const minOrder = Math.min(
+        ...partners.map((p) => p.displayOrder),
+        ...clients.map((c) => c.displayOrder),
+        Infinity
+      );
       cards.push({
         id: 'partners-clients',
         title: language === 'ar' ? 'عملائنا وشركائنا' : 'Our Partners & Clients',
@@ -82,6 +91,7 @@ export function CompanyContentSection() {
             ? `${partners.length} شريك و ${clients.length} عميل`
             : `${partners.length} partners and ${clients.length} clients`,
         iconKey: null,
+        displayOrder: minOrder === Infinity ? 999 : minOrder,
         onClick: () => setSelectedSection('partners-clients'),
       });
     }
@@ -103,6 +113,7 @@ export function CompanyContentSection() {
         title: resource.title,
         description,
         iconKey: resource.iconKey,
+        displayOrder: resource.displayOrder,
         onClick: () => setSelectedSection(`resource-${resource.id}`),
       });
     });
@@ -116,6 +127,7 @@ export function CompanyContentSection() {
           ? strength.description.substring(0, 100) + (strength.description.length > 100 ? '...' : '')
           : null,
         iconKey: strength.iconKey,
+        displayOrder: strength.displayOrder,
         onClick: () => setSelectedSection(`strength-${strength.id}`),
       });
     });
@@ -127,6 +139,7 @@ export function CompanyContentSection() {
         title: info.title,
         description: info.content.substring(0, 120) + (info.content.length > 120 ? '...' : ''),
         iconKey: info.iconKey,
+        displayOrder: info.displayOrder,
         onClick: () => setSelectedSection(`partnership-${info.id}`),
       });
     });
@@ -148,6 +161,7 @@ export function CompanyContentSection() {
         title: language === 'ar' ? 'القيمة السوقية المعتمدة' : 'Verified Market Value',
         description: `${formattedValue} (${formattedDate})`,
         iconKey: null,
+        displayOrder: 500, // Fixed order for market value
         onClick: () => setSelectedSection('market-value'),
       });
     }
@@ -167,12 +181,17 @@ export function CompanyContentSection() {
         title: goal.title,
         description,
         iconKey: goal.iconKey,
+        displayOrder: goal.displayOrder,
         onClick: () => setSelectedSection(`goal-${goal.id}`),
       });
     });
 
-    // Sort by display order if available (for now, maintain insertion order)
-    return cards;
+    // Sort by displayOrder
+    return cards.sort((a, b) => {
+      const orderA = a.displayOrder ?? 999;
+      const orderB = b.displayOrder ?? 999;
+      return orderA - orderB;
+    });
   }, [
     profilesData,
     partnersData,
@@ -240,7 +259,12 @@ export function CompanyContentSection() {
         ))}
       </div>
 
-      {/* TODO: Add modal for section details */}
+      {/* Modal for section details */}
+      <CompanyContentModal
+        sectionId={selectedSection}
+        isOpen={selectedSection !== null}
+        onClose={() => setSelectedSection(null)}
+      />
     </section>
   );
 }

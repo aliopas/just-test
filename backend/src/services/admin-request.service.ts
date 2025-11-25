@@ -54,7 +54,7 @@ export async function markRequestAsRead(params: {
   adminId: string;
 }): Promise<{ viewedAt: string }> {
   const adminClient = requireSupabaseAdmin();
-  
+
   // Check if this is the first time any admin reads this request
   const { data: existingViews, error: checkError } = await adminClient
     .from('admin_request_views')
@@ -93,7 +93,7 @@ export async function markRequestAsRead(params: {
       console.error('Failed to transition request status:', transitionError);
     }
   }
-  
+
   // Use upsert to handle both new views and updates
   const { data, error } = await adminClient
     .from('admin_request_views')
@@ -127,7 +127,7 @@ export async function isRequestReadByAdmin(params: {
   adminId: string;
 }): Promise<boolean> {
   const adminClient = requireSupabaseAdmin();
-  
+
   const { data, error } = await adminClient
     .from('admin_request_views')
     .select('id')
@@ -157,7 +157,9 @@ export async function listAdminRequests(params: {
 
   // Validate sortField is one of the allowed fields (must be on the main requests table)
   const allowedSortFields = ['created_at', 'amount', 'status'] as const;
-  const validSortField = allowedSortFields.includes(sortField as typeof allowedSortFields[number])
+  const validSortField = allowedSortFields.includes(
+    sortField as (typeof allowedSortFields)[number]
+  )
     ? sortField
     : 'created_at';
 
@@ -189,7 +191,9 @@ export async function listAdminRequests(params: {
 
   // Filter by type(s) - support multiple types
   if (params.query.type) {
-    const types = Array.isArray(params.query.type) ? params.query.type : [params.query.type];
+    const types = Array.isArray(params.query.type)
+      ? params.query.type
+      : [params.query.type];
     if (types.length === 1) {
       queryBuilder = queryBuilder.eq('type', types[0]);
     } else if (types.length > 1) {
@@ -223,7 +227,10 @@ export async function listAdminRequests(params: {
   }
 
   // Apply pagination last
-  const { data, count, error } = await queryBuilder.range(offset, offset + limit - 1);
+  const { data, count, error } = await queryBuilder.range(
+    offset,
+    offset + limit - 1
+  );
 
   if (error) {
     console.error('Failed to list admin requests - Supabase error:', {
@@ -239,11 +246,8 @@ export async function listAdminRequests(params: {
   }
 
   const rows = (data as AdminRequestRow[] | null) ?? [];
-  
-  // Log for debugging if no data
-  if (rows.length === 0) {
-    console.log('No requests found with query:', params.query);
-  }
+
+  // No data found (this is a valid case, no logging needed)
 
   // If no rows, return empty result early
   if (rows.length === 0) {
@@ -262,7 +266,7 @@ export async function listAdminRequests(params: {
   // Get read status for all requests by this admin
   const requestIds = rows.map(row => row.id);
   let readStatusMap: Record<string, boolean> = {};
-  
+
   if (requestIds.length > 0) {
     const { data: readViews, error: readError } = await adminClient
       .from('admin_request_views')
@@ -271,10 +275,13 @@ export async function listAdminRequests(params: {
       .in('request_id', requestIds);
 
     if (!readError && readViews) {
-      readStatusMap = readViews.reduce((acc, view) => {
-        acc[view.request_id as string] = true;
-        return acc;
-      }, {} as Record<string, boolean>);
+      readStatusMap = readViews.reduce(
+        (acc, view) => {
+          acc[view.request_id as string] = true;
+          return acc;
+        },
+        {} as Record<string, boolean>
+      );
     }
   }
 
@@ -284,14 +291,17 @@ export async function listAdminRequests(params: {
     .filter((id): id is string => id !== null && id !== undefined && id !== '');
 
   // Get users data in one query
-  let usersMap: Record<string, {
-    id: string;
-    email: string | null;
-    phone: string | null;
-    phone_cc: string | null;
-    status: string | null;
-    created_at: string | null;
-  }> = {};
+  const usersMap: Record<
+    string,
+    {
+      id: string;
+      email: string | null;
+      phone: string | null;
+      phone_cc: string | null;
+      status: string | null;
+      created_at: string | null;
+    }
+  > = {};
 
   if (userIds.length > 0) {
     const { data: users, error: usersError } = await adminClient
@@ -315,24 +325,27 @@ export async function listAdminRequests(params: {
     }
   }
 
-  let profilesMap: Record<string, {
-    full_name: string | null;
-    preferred_name: string | null;
-    language: string | null;
-    id_type: string | null;
-    id_number: string | null;
-    id_expiry: string | null;
-    nationality: string | null;
-    residency_country: string | null;
-    city: string | null;
-    kyc_status: string | null;
-    kyc_updated_at: string | null;
-    risk_profile: string | null;
-    communication_preferences: Record<string, boolean> | null;
-    kyc_documents: unknown;
-    created_at: string | null;
-    updated_at: string | null;
-  }> = {};
+  const profilesMap: Record<
+    string,
+    {
+      full_name: string | null;
+      preferred_name: string | null;
+      language: string | null;
+      id_type: string | null;
+      id_number: string | null;
+      id_expiry: string | null;
+      nationality: string | null;
+      residency_country: string | null;
+      city: string | null;
+      kyc_status: string | null;
+      kyc_updated_at: string | null;
+      risk_profile: string | null;
+      communication_preferences: Record<string, boolean> | null;
+      kyc_documents: unknown;
+      created_at: string | null;
+      updated_at: string | null;
+    }
+  > = {};
 
   if (userIds.length > 0) {
     const { data: profiles, error: profilesError } = await adminClient
@@ -355,7 +368,8 @@ export async function listAdminRequests(params: {
           kyc_status: profile.kyc_status ?? null,
           kyc_updated_at: profile.kyc_updated_at ?? null,
           risk_profile: profile.risk_profile ?? null,
-          communication_preferences: profile.communication_preferences as Record<string, boolean> | null,
+          communication_preferences:
+            profile.communication_preferences as Record<string, boolean> | null,
           kyc_documents: profile.kyc_documents ?? null,
           created_at: profile.created_at ?? null,
           updated_at: profile.updated_at ?? null,
@@ -366,8 +380,8 @@ export async function listAdminRequests(params: {
 
   const requests = rows.map(row => {
     const userId = row.user_id;
-    const user = userId ? usersMap[userId] ?? null : null;
-    const profile = userId ? profilesMap[userId] ?? null : null;
+    const user = userId ? (usersMap[userId] ?? null) : null;
+    const profile = userId ? (profilesMap[userId] ?? null) : null;
 
     return {
       id: row.id,
@@ -530,7 +544,7 @@ export async function getAdminRequestDetail(params: {
   requestId: string;
 }) {
   const adminClient = requireSupabaseAdmin();
-  
+
   // Mark request as read by this admin
   try {
     await markRequestAsRead({
@@ -830,9 +844,11 @@ type DecisionParams = {
 
 export type WorkflowStatus = 'screening' | 'compliance_review';
 
-export async function moveAdminRequestToStatus(params: DecisionParams & {
-  status: WorkflowStatus;
-}) {
+export async function moveAdminRequestToStatus(
+  params: DecisionParams & {
+    status: WorkflowStatus;
+  }
+) {
   const trimmedNote = params.note?.trim() || null;
 
   const transition = await transitionRequestStatus({

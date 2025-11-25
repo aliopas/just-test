@@ -63,7 +63,6 @@ import {
   createCompanyContentImageUploadUrl,
 } from '../services/company-content.service';
 
-
 // ============================================================================
 // Company Profile Controller
 // ============================================================================
@@ -161,7 +160,10 @@ export const companyContentController = {
       const profile = await updateCompanyProfile(id, validation.data);
       return res.status(200).json(profile);
     } catch (error) {
-      if (error instanceof Error && error.message === 'COMPANY_PROFILE_NOT_FOUND') {
+      if (
+        error instanceof Error &&
+        error.message === 'COMPANY_PROFILE_NOT_FOUND'
+      ) {
         return res.status(404).json({
           error: {
             code: 'NOT_FOUND',
@@ -242,12 +244,12 @@ export const companyContentController = {
       const validation = companyPartnersCreateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
-            code: 'VALIDATION_ERROR',
-            message: 'Invalid request payload',
-            details: validation.error.issues.map(issue => ({
-              field: issue.path.join('.'),
-              message: issue.message,
-            })),
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid request payload',
+          details: validation.error.issues.map(issue => ({
+            field: issue.path.join('.'),
+            message: issue.message,
+          })),
         });
       }
 
@@ -270,19 +272,22 @@ export const companyContentController = {
       const validation = companyPartnersUpdateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
-            code: 'VALIDATION_ERROR',
-            message: 'Invalid request payload',
-            details: validation.error.issues.map(issue => ({
-              field: issue.path.join('.'),
-              message: issue.message,
-            })),
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid request payload',
+          details: validation.error.issues.map(issue => ({
+            field: issue.path.join('.'),
+            message: issue.message,
+          })),
         });
       }
 
       const partner = await updateCompanyPartner(id, validation.data);
       return res.status(200).json(partner);
     } catch (error) {
-      if (error instanceof Error && error.message === 'COMPANY_PARTNER_NOT_FOUND') {
+      if (
+        error instanceof Error &&
+        error.message === 'COMPANY_PARTNER_NOT_FOUND'
+      ) {
         return res.status(404).json({
           error: {
             code: 'NOT_FOUND',
@@ -363,12 +368,12 @@ export const companyContentController = {
       const validation = companyClientsCreateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
-            code: 'VALIDATION_ERROR',
-            message: 'Invalid request payload',
-            details: validation.error.issues.map(issue => ({
-              field: issue.path.join('.'),
-              message: issue.message,
-            })),
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid request payload',
+          details: validation.error.issues.map(issue => ({
+            field: issue.path.join('.'),
+            message: issue.message,
+          })),
         });
       }
 
@@ -391,19 +396,22 @@ export const companyContentController = {
       const validation = companyClientsUpdateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
-            code: 'VALIDATION_ERROR',
-            message: 'Invalid request payload',
-            details: validation.error.issues.map(issue => ({
-              field: issue.path.join('.'),
-              message: issue.message,
-            })),
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid request payload',
+          details: validation.error.issues.map(issue => ({
+            field: issue.path.join('.'),
+            message: issue.message,
+          })),
         });
       }
 
       const client = await updateCompanyClient(id, validation.data);
       return res.status(200).json(client);
     } catch (error) {
-      if (error instanceof Error && error.message === 'COMPANY_CLIENT_NOT_FOUND') {
+      if (
+        error instanceof Error &&
+        error.message === 'COMPANY_CLIENT_NOT_FOUND'
+      ) {
         return res.status(404).json({
           error: {
             code: 'NOT_FOUND',
@@ -484,12 +492,12 @@ export const companyContentController = {
       const validation = companyResourcesCreateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
-            code: 'VALIDATION_ERROR',
-            message: 'Invalid request payload',
-            details: validation.error.issues.map(issue => ({
-              field: issue.path.join('.'),
-              message: issue.message,
-            })),
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid request payload',
+          details: validation.error.issues.map(issue => ({
+            field: issue.path.join('.'),
+            message: issue.message,
+          })),
         });
       }
 
@@ -512,19 +520,22 @@ export const companyContentController = {
       const validation = companyResourcesUpdateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
-            code: 'VALIDATION_ERROR',
-            message: 'Invalid request payload',
-            details: validation.error.issues.map(issue => ({
-              field: issue.path.join('.'),
-              message: issue.message,
-            })),
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid request payload',
+          details: validation.error.issues.map(issue => ({
+            field: issue.path.join('.'),
+            message: issue.message,
+          })),
         });
       }
 
       const resource = await updateCompanyResource(id, validation.data);
       return res.status(200).json(resource);
     } catch (error) {
-      if (error instanceof Error && error.message === 'COMPANY_RESOURCE_NOT_FOUND') {
+      if (
+        error instanceof Error &&
+        error.message === 'COMPANY_RESOURCE_NOT_FOUND'
+      ) {
         return res.status(404).json({
           error: {
             code: 'NOT_FOUND',
@@ -605,12 +616,12 @@ export const companyContentController = {
       const validation = companyStrengthsCreateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
-            code: 'VALIDATION_ERROR',
-            message: 'Invalid request payload',
-            details: validation.error.issues.map(issue => ({
-              field: issue.path.join('.'),
-              message: issue.message,
-            })),
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid request payload',
+          details: validation.error.issues.map(issue => ({
+            field: issue.path.join('.'),
+            message: issue.message,
+          })),
         });
       }
 
@@ -633,19 +644,22 @@ export const companyContentController = {
       const validation = companyStrengthsUpdateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
-            code: 'VALIDATION_ERROR',
-            message: 'Invalid request payload',
-            details: validation.error.issues.map(issue => ({
-              field: issue.path.join('.'),
-              message: issue.message,
-            })),
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid request payload',
+          details: validation.error.issues.map(issue => ({
+            field: issue.path.join('.'),
+            message: issue.message,
+          })),
         });
       }
 
       const strength = await updateCompanyStrength(id, validation.data);
       return res.status(200).json(strength);
     } catch (error) {
-      if (error instanceof Error && error.message === 'COMPANY_STRENGTH_NOT_FOUND') {
+      if (
+        error instanceof Error &&
+        error.message === 'COMPANY_STRENGTH_NOT_FOUND'
+      ) {
         return res.status(404).json({
           error: {
             code: 'NOT_FOUND',
@@ -726,12 +740,12 @@ export const companyContentController = {
       const validation = partnershipInfoCreateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
-            code: 'VALIDATION_ERROR',
-            message: 'Invalid request payload',
-            details: validation.error.issues.map(issue => ({
-              field: issue.path.join('.'),
-              message: issue.message,
-            })),
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid request payload',
+          details: validation.error.issues.map(issue => ({
+            field: issue.path.join('.'),
+            message: issue.message,
+          })),
         });
       }
 
@@ -754,19 +768,22 @@ export const companyContentController = {
       const validation = partnershipInfoUpdateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
-            code: 'VALIDATION_ERROR',
-            message: 'Invalid request payload',
-            details: validation.error.issues.map(issue => ({
-              field: issue.path.join('.'),
-              message: issue.message,
-            })),
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid request payload',
+          details: validation.error.issues.map(issue => ({
+            field: issue.path.join('.'),
+            message: issue.message,
+          })),
         });
       }
 
       const info = await updatePartnershipInfo(id, validation.data);
       return res.status(200).json(info);
     } catch (error) {
-      if (error instanceof Error && error.message === 'PARTNERSHIP_INFO_NOT_FOUND') {
+      if (
+        error instanceof Error &&
+        error.message === 'PARTNERSHIP_INFO_NOT_FOUND'
+      ) {
         return res.status(404).json({
           error: {
             code: 'NOT_FOUND',
@@ -848,12 +865,12 @@ export const companyContentController = {
       const validation = marketValueCreateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
-            code: 'VALIDATION_ERROR',
-            message: 'Invalid request payload',
-            details: validation.error.issues.map(issue => ({
-              field: issue.path.join('.'),
-              message: issue.message,
-            })),
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid request payload',
+          details: validation.error.issues.map(issue => ({
+            field: issue.path.join('.'),
+            message: issue.message,
+          })),
         });
       }
 
@@ -876,19 +893,22 @@ export const companyContentController = {
       const validation = marketValueUpdateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
-            code: 'VALIDATION_ERROR',
-            message: 'Invalid request payload',
-            details: validation.error.issues.map(issue => ({
-              field: issue.path.join('.'),
-              message: issue.message,
-            })),
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid request payload',
+          details: validation.error.issues.map(issue => ({
+            field: issue.path.join('.'),
+            message: issue.message,
+          })),
         });
       }
 
       const marketValue = await updateMarketValue(id, validation.data);
       return res.status(200).json(marketValue);
     } catch (error) {
-      if (error instanceof Error && error.message === 'MARKET_VALUE_NOT_FOUND') {
+      if (
+        error instanceof Error &&
+        error.message === 'MARKET_VALUE_NOT_FOUND'
+      ) {
         return res.status(404).json({
           error: {
             code: 'NOT_FOUND',
@@ -969,12 +989,12 @@ export const companyContentController = {
       const validation = companyGoalsCreateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
-            code: 'VALIDATION_ERROR',
-            message: 'Invalid request payload',
-            details: validation.error.issues.map(issue => ({
-              field: issue.path.join('.'),
-              message: issue.message,
-            })),
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid request payload',
+          details: validation.error.issues.map(issue => ({
+            field: issue.path.join('.'),
+            message: issue.message,
+          })),
         });
       }
 
@@ -997,19 +1017,22 @@ export const companyContentController = {
       const validation = companyGoalsUpdateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
-            code: 'VALIDATION_ERROR',
-            message: 'Invalid request payload',
-            details: validation.error.issues.map(issue => ({
-              field: issue.path.join('.'),
-              message: issue.message,
-            })),
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid request payload',
+          details: validation.error.issues.map(issue => ({
+            field: issue.path.join('.'),
+            message: issue.message,
+          })),
         });
       }
 
       const goal = await updateCompanyGoal(id, validation.data);
       return res.status(200).json(goal);
     } catch (error) {
-      if (error instanceof Error && error.message === 'COMPANY_GOAL_NOT_FOUND') {
+      if (
+        error instanceof Error &&
+        error.message === 'COMPANY_GOAL_NOT_FOUND'
+      ) {
         return res.status(404).json({
           error: {
             code: 'NOT_FOUND',
@@ -1078,4 +1101,3 @@ export const companyContentController = {
     }
   },
 };
-

@@ -724,24 +724,18 @@ const templateRenderers: {
     return {
       subject,
       heading:
-        language === 'ar'
-          ? 'رمز التحقق الخاص بك'
-          : 'Your verification code',
+        language === 'ar' ? 'رمز التحقق الخاص بك' : 'Your verification code',
       intro:
         language === 'ar'
           ? `مرحبًا ${context.userName}،`
           : `Hello ${context.userName},`,
       highlightItems: [
         {
-          label:
-            language === 'ar' ? 'رمز التحقق' : 'Verification code',
+          label: language === 'ar' ? 'رمز التحقق' : 'Verification code',
           value: context.otpCode,
         },
         {
-          label:
-            language === 'ar'
-              ? 'صالح لمدة'
-              : 'Valid for',
+          label: language === 'ar' ? 'صالح لمدة' : 'Valid for',
           value:
             language === 'ar'
               ? `${context.expiresInMinutes} دقائق`
@@ -772,10 +766,7 @@ const templateRenderers: {
 
     return {
       subject,
-      heading:
-        language === 'ar'
-          ? 'مرحباً بك في باكورة'
-          : 'Welcome to Bakurah',
+      heading: language === 'ar' ? 'مرحباً بك في باكورة' : 'Welcome to Bakurah',
       intro:
         language === 'ar'
           ? `مرحبًا ${context.userName}،`

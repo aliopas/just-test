@@ -47,12 +47,14 @@ const PROJECT_IMAGES_BUCKET =
   process.env.PROJECT_IMAGES_BUCKET?.trim() || 'project-images';
 
 function mapProject(row: ProjectRow): Project {
-  const operatingCostPerShare = row.total_shares > 0 
-    ? Number((row.operating_costs / row.total_shares).toFixed(2))
-    : 0;
-  const annualBenefitPerShare = row.total_shares > 0
-    ? Number((row.annual_benefits / row.total_shares).toFixed(2))
-    : 0;
+  const operatingCostPerShare =
+    row.total_shares > 0
+      ? Number((row.operating_costs / row.total_shares).toFixed(2))
+      : 0;
+  const annualBenefitPerShare =
+    row.total_shares > 0
+      ? Number((row.annual_benefits / row.total_shares).toFixed(2))
+      : 0;
 
   return {
     id: row.id,
@@ -104,7 +106,9 @@ export async function listProjects(query: ProjectListQuery): Promise<{
   }
 
   if (search) {
-    queryBuilder = queryBuilder.or(`name.ilike.%${search}%,name_ar.ilike.%${search}%,description.ilike.%${search}%`);
+    queryBuilder = queryBuilder.or(
+      `name.ilike.%${search}%,name_ar.ilike.%${search}%,description.ilike.%${search}%`
+    );
   }
 
   const { data, error, count } = await queryBuilder
@@ -189,12 +193,17 @@ export async function updateProject(
 
   if (input.name !== undefined) updateData.name = input.name;
   if (input.nameAr !== undefined) updateData.name_ar = input.nameAr;
-  if (input.description !== undefined) updateData.description = input.description;
-  if (input.descriptionAr !== undefined) updateData.description_ar = input.descriptionAr;
+  if (input.description !== undefined)
+    updateData.description = input.description;
+  if (input.descriptionAr !== undefined)
+    updateData.description_ar = input.descriptionAr;
   if (input.coverKey !== undefined) updateData.cover_key = input.coverKey;
-  if (input.operatingCosts !== undefined) updateData.operating_costs = input.operatingCosts;
-  if (input.annualBenefits !== undefined) updateData.annual_benefits = input.annualBenefits;
-  if (input.totalShares !== undefined) updateData.total_shares = input.totalShares;
+  if (input.operatingCosts !== undefined)
+    updateData.operating_costs = input.operatingCosts;
+  if (input.annualBenefits !== undefined)
+    updateData.annual_benefits = input.annualBenefits;
+  if (input.totalShares !== undefined)
+    updateData.total_shares = input.totalShares;
   if (input.sharePrice !== undefined) updateData.share_price = input.sharePrice;
   if (input.status !== undefined) updateData.status = input.status;
 
@@ -214,10 +223,7 @@ export async function updateProject(
 
 export async function deleteProject(id: string): Promise<void> {
   const adminClient = requireSupabaseAdmin();
-  const { error } = await adminClient
-    .from('projects')
-    .delete()
-    .eq('id', id);
+  const { error } = await adminClient.from('projects').delete().eq('id', id);
 
   if (error) {
     throw new Error(`Failed to delete project: ${error.message}`);
@@ -264,4 +270,3 @@ export async function createProjectImageUploadUrl(
     },
   };
 }
-

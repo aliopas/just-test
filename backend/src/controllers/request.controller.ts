@@ -386,14 +386,12 @@ export const requestController = {
         });
       }
 
-      if (
-        error instanceof Error &&
-        error.message === 'REQUEST_NOT_EDITABLE'
-      ) {
+      if (error instanceof Error && error.message === 'REQUEST_NOT_EDITABLE') {
         return res.status(409).json({
           error: {
             code: 'INVALID_STATE',
-            message: 'Attachments can only be added to draft or submitted requests',
+            message:
+              'Attachments can only be added to draft or submitted requests',
           },
         });
       }

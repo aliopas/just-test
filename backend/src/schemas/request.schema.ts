@@ -46,7 +46,10 @@ export const requestAttachmentPresignSchema = z
       .string()
       .trim()
       .refine(
-        value => ALLOWED_MIME_TYPES.includes(value as typeof ALLOWED_MIME_TYPES[number]),
+        value =>
+          ALLOWED_MIME_TYPES.includes(
+            value as (typeof ALLOWED_MIME_TYPES)[number]
+          ),
         'Only PDF, JPG, or PNG files are allowed'
       ),
     fileSize: z.coerce
@@ -59,7 +62,7 @@ export const requestAttachmentPresignSchema = z
     value => {
       const extension = value.fileName.split('.').pop()?.toLowerCase() ?? '';
       return ALLOWED_ATTACHMENT_EXTENSIONS.includes(
-        extension as typeof ALLOWED_ATTACHMENT_EXTENSIONS[number]
+        extension as (typeof ALLOWED_ATTACHMENT_EXTENSIONS)[number]
       );
     },
     {

@@ -10,7 +10,10 @@ export const investorSignupRequestSchema = z.object({
     .max(150, 'Full name must be 150 characters or fewer'),
   phone: z
     .string()
-    .regex(phoneRegex, 'Phone must be in international format, e.g. +9665xxxxxxx')
+    .regex(
+      phoneRegex,
+      'Phone must be in international format, e.g. +9665xxxxxxx'
+    )
     .optional()
     .or(z.literal(''))
     .transform(value => (value === '' ? undefined : value)),
@@ -29,7 +32,9 @@ export const investorSignupRequestSchema = z.object({
   language: z.enum(['ar', 'en']).default('ar'),
 });
 
-export type InvestorSignupRequestInput = z.infer<typeof investorSignupRequestSchema>;
+export type InvestorSignupRequestInput = z.infer<
+  typeof investorSignupRequestSchema
+>;
 
 export const investorSignupDecisionSchema = z.object({
   note: z
@@ -42,5 +47,6 @@ export const investorSignupDecisionSchema = z.object({
   locale: z.enum(['ar', 'en']).default('ar'),
 });
 
-export type InvestorSignupDecisionInput = z.infer<typeof investorSignupDecisionSchema>;
-
+export type InvestorSignupDecisionInput = z.infer<
+  typeof investorSignupDecisionSchema
+>;
