@@ -123,7 +123,7 @@ export function usePublicCompanyProfiles() {
   return useQuery<CompanyProfileResponse>({
     queryKey: ['publicCompanyProfiles', language],
     queryFn: () =>
-      apiClient<CompanyProfileResponse>(`/api/v1/public/company-profile?lang=${language}`, {
+      apiClient<CompanyProfileResponse>(`/public/company-profile?lang=${language}`, {
         auth: false,
       }),
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -136,7 +136,7 @@ export function usePublicCompanyPartners() {
   return useQuery<CompanyPartnersResponse>({
     queryKey: ['publicCompanyPartners', language],
     queryFn: () =>
-      apiClient<CompanyPartnersResponse>(`/api/v1/public/company-partners?lang=${language}`, {
+      apiClient<CompanyPartnersResponse>(`/public/company-partners?lang=${language}`, {
         auth: false,
       }),
     staleTime: 5 * 60 * 1000,
@@ -149,7 +149,7 @@ export function usePublicCompanyClients() {
   return useQuery<CompanyClientsResponse>({
     queryKey: ['publicCompanyClients', language],
     queryFn: () =>
-      apiClient<CompanyClientsResponse>(`/api/v1/public/company-clients?lang=${language}`, {
+      apiClient<CompanyClientsResponse>(`/public/company-clients?lang=${language}`, {
         auth: false,
       }),
     staleTime: 5 * 60 * 1000,
@@ -162,7 +162,7 @@ export function usePublicCompanyResources() {
   return useQuery<CompanyResourcesResponse>({
     queryKey: ['publicCompanyResources', language],
     queryFn: () =>
-      apiClient<CompanyResourcesResponse>(`/api/v1/public/company-resources?lang=${language}`, {
+      apiClient<CompanyResourcesResponse>(`/public/company-resources?lang=${language}`, {
         auth: false,
       }),
     staleTime: 5 * 60 * 1000,
@@ -175,7 +175,7 @@ export function usePublicCompanyStrengths() {
   return useQuery<CompanyStrengthsResponse>({
     queryKey: ['publicCompanyStrengths', language],
     queryFn: () =>
-      apiClient<CompanyStrengthsResponse>(`/api/v1/public/company-strengths?lang=${language}`, {
+      apiClient<CompanyStrengthsResponse>(`/public/company-strengths?lang=${language}`, {
         auth: false,
       }),
     staleTime: 5 * 60 * 1000,
@@ -188,7 +188,7 @@ export function usePublicPartnershipInfo() {
   return useQuery<PartnershipInfoResponse>({
     queryKey: ['publicPartnershipInfo', language],
     queryFn: () =>
-      apiClient<PartnershipInfoResponse>(`/api/v1/public/partnership-info?lang=${language}`, {
+      apiClient<PartnershipInfoResponse>(`/public/partnership-info?lang=${language}`, {
         auth: false,
       }),
     staleTime: 5 * 60 * 1000,
@@ -199,7 +199,7 @@ export function usePublicMarketValue() {
   return useQuery<MarketValueResponse>({
     queryKey: ['publicMarketValue'],
     queryFn: () =>
-      apiClient<MarketValueResponse>('/api/v1/public/market-value', {
+      apiClient<MarketValueResponse>('/public/market-value', {
         auth: false,
       }),
     staleTime: 5 * 60 * 1000,
@@ -212,7 +212,7 @@ export function usePublicCompanyGoals() {
   return useQuery<CompanyGoalsResponse>({
     queryKey: ['publicCompanyGoals', language],
     queryFn: () =>
-      apiClient<CompanyGoalsResponse>(`/api/v1/public/company-goals?lang=${language}`, {
+      apiClient<CompanyGoalsResponse>(`/public/company-goals?lang=${language}`, {
         auth: false,
       }),
     staleTime: 5 * 60 * 1000,
