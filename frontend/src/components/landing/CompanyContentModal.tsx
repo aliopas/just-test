@@ -76,7 +76,20 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
       };
     }
 
-    // Partners & Clients
+    // Client (Business Model)
+    if (sectionId.startsWith('client-')) {
+      const id = sectionId.replace('client-', '');
+      const client = clientsData?.clients.find((c) => c.id === id);
+      if (!client) return null;
+      return {
+        type: 'client' as const,
+        name: client.name,
+        description: client.description,
+        logoKey: client.logoKey,
+      };
+    }
+
+    // Partners & Clients (legacy - kept for backward compatibility)
     if (sectionId === 'partners-clients') {
       const partners = partnersData?.partners ?? [];
       const clients = clientsData?.clients ?? [];
@@ -176,9 +189,17 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
   }
 
   const container = document.getElementById('drawer-root') ?? document.body;
-  const iconUrl = content.iconKey
-    ? getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, content.iconKey)
-    : null;
+  
+  // Get icon URL - handle different content types
+  const iconUrl = useMemo(() => {
+    if (content.type === 'client' && content.logoKey) {
+      return getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, content.logoKey);
+    }
+    if ('iconKey' in content && content.iconKey) {
+      return getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, content.iconKey);
+    }
+    return null;
+  }, [content]);
 
   let modalContent: React.ReactNode = null;
 
@@ -367,6 +388,39 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
                 })}
               </div>
             </div>
+          )}
+        </div>
+      );
+      break;
+
+    case 'client':
+      const clientLogoUrl = content.logoKey
+        ? getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, content.logoKey)
+        : null;
+      modalContent = (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', alignItems: 'center' }}>
+          {clientLogoUrl && (
+            <div style={{ width: '200px', height: '120px' }}>
+              <OptimizedImage
+                src={clientLogoUrl}
+                alt={content.name}
+                aspectRatio={3 / 2}
+                objectFit="contain"
+              />
+            </div>
+          )}
+          {content.description && (
+            <p
+              style={{
+                margin: 0,
+                lineHeight: 1.8,
+                color: palette.textSecondary,
+                textAlign: 'center',
+                maxWidth: '600px',
+              }}
+            >
+              {content.description}
+            </p>
           )}
         </div>
       );
@@ -624,6 +678,8 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
     switch (content.type) {
       case 'profile':
         return content.title;
+      case 'client':
+        return content.name;
       case 'partners-clients':
         return isArabic ? 'عملائنا وشركائنا' : 'Our Partners & Clients';
       case 'resource':
@@ -636,6 +692,8 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
         return isArabic ? 'القيمة السوقية المعتمدة' : 'Verified Market Value';
       case 'goal':
         return content.title;
+      default:
+        return '';
     }
   }, [content, isArabic]);
 
@@ -742,7 +800,7 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
         </button>
 
         {/* Icon */}
-        {iconUrl && (
+        {iconUrl && content.type !== 'client' && (
           <div
             style={{
               width: '80px',
@@ -754,7 +812,7 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
           >
             <OptimizedImage
               src={iconUrl}
-              alt={title}
+              alt={title || ''}
               aspectRatio={1}
               objectFit="contain"
               style={{

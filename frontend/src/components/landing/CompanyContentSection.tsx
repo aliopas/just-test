@@ -13,8 +13,6 @@ import {
   usePublicMarketValue,
   usePublicCompanyGoals,
 } from '../../hooks/usePublicContent';
-import { getStoragePublicUrl, COMPANY_CONTENT_IMAGES_BUCKET } from '../../utils/supabase-storage';
-import { OptimizedImage } from '../OptimizedImage';
 import { SectionSkeleton } from './SectionSkeleton';
 
 interface SectionCard {
@@ -26,8 +24,16 @@ interface SectionCard {
   onClick?: () => void;
 }
 
+interface ContentSection {
+  id: string;
+  title: string;
+  cards: SectionCard[];
+  displayOrder: number;
+}
+
 export function CompanyContentSection() {
   const { language, direction } = useLanguage();
+  const isArabic = language === 'ar';
 
   // Fetch all content
   const { data: profilesData, isLoading: isLoadingProfiles } = usePublicCompanyProfiles();
@@ -51,9 +57,9 @@ export function CompanyContentSection() {
     isLoadingMarketValue ||
     isLoadingGoals;
 
-  // Build section cards - aggregate all items into cards
-  const sections = useMemo<SectionCard[]>(() => {
-    const cards: SectionCard[] = [];
+  // Build separate sections for each content type
+  const sections = useMemo<ContentSection[]>(() => {
+    const sectionsList: ContentSection[] = [];
     const profiles = profilesData?.profiles ?? [];
     const partners = partnersData?.partners ?? [];
     const clients = clientsData?.clients ?? [];
@@ -63,135 +69,195 @@ export function CompanyContentSection() {
     const marketValue = marketValueData?.marketValue;
     const goals = goalsData?.goals ?? [];
 
-    // 1. Company Profile (all profiles)
-    profiles.forEach((profile) => {
-      cards.push({
-        id: `profile-${profile.id}`,
-        title: profile.title,
-        description: profile.content.substring(0, 100) + (profile.content.length > 100 ? '...' : ''),
-        iconKey: profile.iconKey,
-        displayOrder: profile.displayOrder,
-        onClick: () => setSelectedSection(`profile-${profile.id}`),
-      });
-    });
+    // 1. Company Profiles Section
+    if (profiles.length > 0) {
+      const profileCards: SectionCard[] = profiles
+        .sort((a, b) => a.displayOrder - b.displayOrder)
+        .map((profile) => ({
+          id: `profile-${profile.id}`,
+          title: profile.title,
+          description: profile.content.substring(0, 100) + (profile.content.length > 100 ? '...' : ''),
+          iconKey: profile.iconKey,
+          displayOrder: profile.displayOrder,
+          onClick: () => setSelectedSection(`profile-${profile.id}`),
+        }));
 
-    // 2. Partners & Clients (combined as one section if they exist)
-    if (partners.length > 0 || clients.length > 0) {
-      // Use the minimum displayOrder from partners/clients
-      const minOrder = Math.min(
-        ...partners.map((p) => p.displayOrder),
-        ...clients.map((c) => c.displayOrder),
-        Infinity
-      );
-      cards.push({
-        id: 'partners-clients',
-        title: language === 'ar' ? 'عملائنا وشركائنا' : 'Our Partners & Clients',
-        description:
-          language === 'ar'
-            ? `${partners.length} شريك و ${clients.length} عميل`
-            : `${partners.length} partners and ${clients.length} clients`,
-        iconKey: null,
-        displayOrder: minOrder === Infinity ? 999 : minOrder,
-        onClick: () => setSelectedSection('partners-clients'),
+      const minDisplayOrder = Math.min(...profiles.map((p) => p.displayOrder), Infinity);
+      sectionsList.push({
+        id: 'profiles',
+        title: isArabic ? 'البروفايل التعريفي' : 'Company Profile',
+        cards: profileCards,
+        displayOrder: minDisplayOrder === Infinity ? 0 : minDisplayOrder,
       });
     }
 
-    // 3. Resources (all resources - Business Model + Financial Resources)
-    resources.forEach((resource) => {
-      const description = resource.description
-        ? resource.description.substring(0, 100) + (resource.description.length > 100 ? '...' : '')
-        : resource.value
-          ? new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
-              style: 'currency',
-              currency: resource.currency,
-              maximumFractionDigits: 0,
-            }).format(resource.value)
-          : null;
+    // 2. Business Model Section (Clients)
+    if (clients.length > 0) {
+      const clientCards: SectionCard[] = clients
+        .sort((a, b) => a.displayOrder - b.displayOrder)
+        .map((client) => ({
+          id: `client-${client.id}`,
+          title: client.name,
+          description: client.description
+            ? client.description.substring(0, 100) + (client.description.length > 100 ? '...' : '')
+            : null,
+          iconKey: client.logoKey,
+          displayOrder: client.displayOrder,
+          onClick: () => setSelectedSection(`client-${client.id}`),
+        }));
 
-      cards.push({
-        id: `resource-${resource.id}`,
-        title: resource.title,
-        description,
-        iconKey: resource.iconKey,
-        displayOrder: resource.displayOrder,
-        onClick: () => setSelectedSection(`resource-${resource.id}`),
+      const minDisplayOrder = Math.min(...clients.map((c) => c.displayOrder), Infinity);
+      sectionsList.push({
+        id: 'clients',
+        title: isArabic ? 'نموذج العمل التجاري' : 'Business Model',
+        cards: clientCards,
+        displayOrder: minDisplayOrder === Infinity ? 1 : minDisplayOrder,
       });
-    });
+    }
 
-    // 4. Company Strengths (all strengths)
-    strengths.forEach((strength) => {
-      cards.push({
-        id: `strength-${strength.id}`,
-        title: strength.title,
-        description: strength.description
-          ? strength.description.substring(0, 100) + (strength.description.length > 100 ? '...' : '')
-          : null,
-        iconKey: strength.iconKey,
-        displayOrder: strength.displayOrder,
-        onClick: () => setSelectedSection(`strength-${strength.id}`),
+    // 3. Financial Resources Section
+    if (resources.length > 0) {
+      const resourceCards: SectionCard[] = resources
+        .sort((a, b) => a.displayOrder - b.displayOrder)
+        .map((resource) => {
+          const description = resource.description
+            ? resource.description.substring(0, 100) + (resource.description.length > 100 ? '...' : '')
+            : resource.value
+              ? new Intl.NumberFormat(isArabic ? 'ar-SA' : 'en-US', {
+                  style: 'currency',
+                  currency: resource.currency,
+                  maximumFractionDigits: 0,
+                }).format(resource.value)
+              : null;
+
+          return {
+            id: `resource-${resource.id}`,
+            title: resource.title,
+            description,
+            iconKey: resource.iconKey,
+            displayOrder: resource.displayOrder,
+            onClick: () => setSelectedSection(`resource-${resource.id}`),
+          };
+        });
+
+      const minDisplayOrder = Math.min(...resources.map((r) => r.displayOrder), Infinity);
+      sectionsList.push({
+        id: 'resources',
+        title: isArabic ? 'الموارد المالية' : 'Financial Resources',
+        cards: resourceCards,
+        displayOrder: minDisplayOrder === Infinity ? 2 : minDisplayOrder,
       });
-    });
+    }
 
-    // 5. Partnership Info (all partnership info items)
-    partnershipInfo.forEach((info) => {
-      cards.push({
-        id: `partnership-${info.id}`,
-        title: info.title,
-        description: info.content.substring(0, 120) + (info.content.length > 120 ? '...' : ''),
-        iconKey: info.iconKey,
-        displayOrder: info.displayOrder,
-        onClick: () => setSelectedSection(`partnership-${info.id}`),
+    // 4. Company Strengths Section
+    if (strengths.length > 0) {
+      const strengthCards: SectionCard[] = strengths
+        .sort((a, b) => a.displayOrder - b.displayOrder)
+        .map((strength) => ({
+          id: `strength-${strength.id}`,
+          title: strength.title,
+          description: strength.description
+            ? strength.description.substring(0, 100) + (strength.description.length > 100 ? '...' : '')
+            : null,
+          iconKey: strength.iconKey,
+          displayOrder: strength.displayOrder,
+          onClick: () => setSelectedSection(`strength-${strength.id}`),
+        }));
+
+      const minDisplayOrder = Math.min(...strengths.map((s) => s.displayOrder), Infinity);
+      sectionsList.push({
+        id: 'strengths',
+        title: isArabic ? 'نقاط القوة' : 'Company Strengths',
+        cards: strengthCards,
+        displayOrder: minDisplayOrder === Infinity ? 3 : minDisplayOrder,
       });
-    });
+    }
 
-    // 6. Market Value (single card)
+    // 5. Partnership Info Section
+    if (partnershipInfo.length > 0) {
+      const partnershipCards: SectionCard[] = partnershipInfo
+        .sort((a, b) => a.displayOrder - b.displayOrder)
+        .map((info) => ({
+          id: `partnership-${info.id}`,
+          title: info.title,
+          description: info.content.substring(0, 120) + (info.content.length > 120 ? '...' : ''),
+          iconKey: info.iconKey,
+          displayOrder: info.displayOrder,
+          onClick: () => setSelectedSection(`partnership-${info.id}`),
+        }));
+
+      const minDisplayOrder = Math.min(...partnershipInfo.map((i) => i.displayOrder), Infinity);
+      sectionsList.push({
+        id: 'partnership',
+        title: isArabic ? 'معلومات الشراكة' : 'Partnership Information',
+        cards: partnershipCards,
+        displayOrder: minDisplayOrder === Infinity ? 4 : minDisplayOrder,
+      });
+    }
+
+    // 6. Market Value Section
     if (marketValue) {
-      const formattedValue = new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
+      const formattedValue = new Intl.NumberFormat(isArabic ? 'ar-SA' : 'en-US', {
         style: 'currency',
         currency: marketValue.currency,
         maximumFractionDigits: 0,
       }).format(marketValue.value);
 
-      const formattedDate = new Intl.DateTimeFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
+      const formattedDate = new Intl.DateTimeFormat(isArabic ? 'ar-SA' : 'en-US', {
         dateStyle: 'medium',
       }).format(new Date(marketValue.valuationDate));
 
-      cards.push({
+      sectionsList.push({
         id: 'market-value',
-        title: language === 'ar' ? 'القيمة السوقية المعتمدة' : 'Verified Market Value',
-        description: `${formattedValue} (${formattedDate})`,
-        iconKey: null,
-        displayOrder: 500, // Fixed order for market value
-        onClick: () => setSelectedSection('market-value'),
+        title: isArabic ? 'القيمة السوقية' : 'Market Value',
+        cards: [
+          {
+            id: 'market-value',
+            title: isArabic ? 'القيمة السوقية المعتمدة' : 'Verified Market Value',
+            description: `${formattedValue} (${formattedDate})`,
+            iconKey: null,
+            displayOrder: 500,
+            onClick: () => setSelectedSection('market-value'),
+          },
+        ],
+        displayOrder: 500,
       });
     }
 
-    // 7. Company Goals (all goals)
-    goals.forEach((goal) => {
-      const description = goal.description
-        ? goal.description.substring(0, 100) + (goal.description.length > 100 ? '...' : '')
-        : goal.targetDate
-          ? new Intl.DateTimeFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
-              dateStyle: 'medium',
-            }).format(new Date(goal.targetDate))
-          : null;
+    // 7. Company Goals Section
+    if (goals.length > 0) {
+      const goalCards: SectionCard[] = goals
+        .sort((a, b) => a.displayOrder - b.displayOrder)
+        .map((goal) => {
+          const description = goal.description
+            ? goal.description.substring(0, 100) + (goal.description.length > 100 ? '...' : '')
+            : goal.targetDate
+              ? new Intl.DateTimeFormat(isArabic ? 'ar-SA' : 'en-US', {
+                  dateStyle: 'medium',
+                }).format(new Date(goal.targetDate))
+              : null;
 
-      cards.push({
-        id: `goal-${goal.id}`,
-        title: goal.title,
-        description,
-        iconKey: goal.iconKey,
-        displayOrder: goal.displayOrder,
-        onClick: () => setSelectedSection(`goal-${goal.id}`),
+          return {
+            id: `goal-${goal.id}`,
+            title: goal.title,
+            description,
+            iconKey: goal.iconKey,
+            displayOrder: goal.displayOrder,
+            onClick: () => setSelectedSection(`goal-${goal.id}`),
+          };
+        });
+
+      const minDisplayOrder = Math.min(...goals.map((g) => g.displayOrder), Infinity);
+      sectionsList.push({
+        id: 'goals',
+        title: isArabic ? 'الأهداف' : 'Company Goals',
+        cards: goalCards,
+        displayOrder: minDisplayOrder === Infinity ? 6 : minDisplayOrder,
       });
-    });
+    }
 
-    // Sort by displayOrder
-    return cards.sort((a, b) => {
-      const orderA = a.displayOrder ?? 999;
-      const orderB = b.displayOrder ?? 999;
-      return orderA - orderB;
-    });
+    // Sort sections by displayOrder
+    return sectionsList.sort((a, b) => a.displayOrder - b.displayOrder);
   }, [
     profilesData,
     partnersData,
@@ -202,6 +268,7 @@ export function CompanyContentSection() {
     marketValueData,
     goalsData,
     language,
+    isArabic,
   ]);
 
   if (isLoading) {
@@ -213,7 +280,7 @@ export function CompanyContentSection() {
   }
 
   return (
-    <section
+    <div
       style={{
         width: '100%',
         maxWidth: '1200px',
@@ -222,42 +289,51 @@ export function CompanyContentSection() {
         direction,
       }}
     >
-      <h2
-        style={{
-          margin: 0,
-          marginBottom: '2rem',
-          fontSize: '2.25rem',
-          fontWeight: 700,
-          color: palette.textPrimary,
-          textAlign: 'center',
-          background: `linear-gradient(135deg, ${palette.brandPrimaryStrong}, ${palette.brandSecondaryMuted})`,
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text',
-        }}
-      >
-        {language === 'ar' ? 'معلومات عن الشركة' : 'Company Information'}
-      </h2>
+      {sections.map((section) => (
+        <section
+          key={section.id}
+          style={{
+            marginBottom: '4rem',
+          }}
+        >
+          <h2
+            style={{
+              margin: 0,
+              marginBottom: '2rem',
+              fontSize: '2rem',
+              fontWeight: 700,
+              color: palette.textPrimary,
+              textAlign: 'center',
+              background: `linear-gradient(135deg, ${palette.brandPrimaryStrong}, ${palette.brandSecondaryMuted})`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
+          >
+            {section.title}
+          </h2>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: '1.5rem',
-        }}
-      >
-        {sections.map((section) => (
-          <CompanyContentCard
-            key={section.id}
-            id={section.id}
-            title={section.title}
-            description={section.description}
-            iconKey={section.iconKey}
-            onClick={section.onClick}
-            language={language}
-          />
-        ))}
-      </div>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '1.5rem',
+            }}
+          >
+            {section.cards.map((card) => (
+              <CompanyContentCard
+                key={card.id}
+                id={card.id}
+                title={card.title}
+                description={card.description}
+                iconKey={card.iconKey}
+                onClick={card.onClick}
+                language={language}
+              />
+            ))}
+          </div>
+        </section>
+      ))}
 
       {/* Modal for section details */}
       <CompanyContentModal
@@ -265,7 +341,6 @@ export function CompanyContentSection() {
         isOpen={selectedSection !== null}
         onClose={() => setSelectedSection(null)}
       />
-    </section>
+    </div>
   );
 }
-
