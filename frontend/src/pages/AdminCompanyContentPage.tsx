@@ -200,10 +200,12 @@ function AdminCompanyContentPageInner() {
     }
   };
 
-  const handlePresignImage = async (file: File) => {
+  const handlePresignImage = async (file: File, purpose: 'icon' | 'logo' = 'icon') => {
     const result = await presignMutation.mutateAsync({
       fileName: file.name,
-      contentType: file.type,
+      fileType: file.type,
+      fileSize: file.size,
+      purpose,
     });
 
     // Upload to presigned URL
@@ -441,7 +443,7 @@ function AdminCompanyContentPageInner() {
         onDelete={handleDelete}
         submitting={createMutation.isPending || updateMutation.isPending}
         deleting={deleteMutation.isPending}
-        onPresignImage={handlePresignImage}
+        onPresignImage={(file) => handlePresignImage(file, 'icon')}
       />
 
       <CompanyPartnerFormDrawer
@@ -513,7 +515,7 @@ function AdminCompanyContentPageInner() {
         }}
         submitting={createPartnerMutation.isPending || updatePartnerMutation.isPending}
         deleting={deletePartnerMutation.isPending}
-        onPresignImage={handlePresignImage}
+        onPresignImage={(file) => handlePresignImage(file, 'logo')}
       />
     </div>
   );

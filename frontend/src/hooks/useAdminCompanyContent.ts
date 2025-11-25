@@ -701,7 +701,7 @@ export function useDeleteCompanyGoalMutation() {
 
 export function useCompanyContentImagePresignMutation() {
   return useMutation({
-    mutationFn: (payload: { fileName: string; contentType: string }) =>
+    mutationFn: (payload: { fileName: string; fileType: string; fileSize: number; purpose?: 'icon' | 'logo' }) =>
       apiClient<ImagePresignResponse>('/admin/company-content/images/presign', {
         method: 'POST',
         body: JSON.stringify(payload),
