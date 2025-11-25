@@ -210,9 +210,10 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
     return null;
   }
 
+  const container = document.getElementById('drawer-root') ?? document.body;
+
   // If no content found, show error message
   if (!content) {
-    const container = document.getElementById('drawer-root') ?? document.body;
     return createPortal(
       <div
         style={{
@@ -283,11 +284,10 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
     );
   }
 
-  const container = document.getElementById('drawer-root') ?? document.body;
-  
   // Get icon URL - handle different content types
   const iconUrl = useMemo(() => {
-    if ((content.type === 'client' || content.type === 'partner') && content.logoKey) {
+    if (!content) return null;
+    if ((content.type === 'client' || content.type === 'partner') && 'logoKey' in content && content.logoKey) {
       return getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, content.logoKey);
     }
     if ('iconKey' in content && content.iconKey) {
@@ -847,6 +847,7 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
   }
 
   const title = useMemo(() => {
+    if (!content) return '';
     switch (content.type) {
       case 'profile':
         return content.title;
