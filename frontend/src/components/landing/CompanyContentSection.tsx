@@ -5,7 +5,6 @@ import { palette } from '../../styles/theme';
 import { useLanguage } from '../../context/LanguageContext';
 import {
   usePublicCompanyProfiles,
-  usePublicCompanyPartners,
   usePublicCompanyClients,
   usePublicCompanyResources,
   usePublicCompanyStrengths,
@@ -35,9 +34,8 @@ export function CompanyContentSection() {
   const { language, direction } = useLanguage();
   const isArabic = language === 'ar';
 
-  // Fetch all content
+  // Fetch all content from general content management group
   const { data: profilesData, isLoading: isLoadingProfiles, isError: isErrorProfiles } = usePublicCompanyProfiles();
-  const { data: partnersData, isLoading: isLoadingPartners, isError: isErrorPartners } = usePublicCompanyPartners();
   const { data: clientsData, isLoading: isLoadingClients, isError: isErrorClients } = usePublicCompanyClients();
   const { data: resourcesData, isLoading: isLoadingResources, isError: isErrorResources } = usePublicCompanyResources();
   const { data: strengthsData, isLoading: isLoadingStrengths, isError: isErrorStrengths } = usePublicCompanyStrengths();
@@ -49,7 +47,6 @@ export function CompanyContentSection() {
 
   const isLoading =
     isLoadingProfiles ||
-    isLoadingPartners ||
     isLoadingClients ||
     isLoadingResources ||
     isLoadingStrengths ||
@@ -59,7 +56,6 @@ export function CompanyContentSection() {
 
   const hasError =
     isErrorProfiles ||
-    isErrorPartners ||
     isErrorClients ||
     isErrorResources ||
     isErrorStrengths ||
@@ -67,11 +63,11 @@ export function CompanyContentSection() {
     isErrorMarketValue ||
     isErrorGoals;
 
-  // Build separate sections for each content type according to requirements
+  // Build separate sections for each content type according to general content management group
+  // Sections: Profiles, Business Model (Clients), Resources, Strengths, Partnership Info, Market Value, Goals
   const sections = useMemo<ContentSection[]>(() => {
     const sectionsList: ContentSection[] = [];
     const profiles = profilesData?.profiles ?? [];
-    const partners = partnersData?.partners ?? [];
     const clients = clientsData?.clients ?? [];
     const resources = resourcesData?.resources ?? [];
     const strengths = strengthsData?.strengths ?? [];
@@ -79,75 +75,34 @@ export function CompanyContentSection() {
     const marketValue = marketValueData?.marketValue;
     const goals = goalsData?.goals ?? [];
 
-    // 1. بروفايل تعريفي عن الشركة وعملائنا وشركائنا
-    // Combined section: Profiles + Partners + Clients
-    const profileCards: SectionCard[] = [];
-    let minOrder1 = Infinity;
+    // 1. البروفايل التعريفي (Company Profile)
+    if (profiles.length > 0) {
+      const profileCards: SectionCard[] = profiles
+        .sort((a, b) => a.displayOrder - b.displayOrder)
+        .map((profile) => ({
+          id: `profile-${profile.id}`,
+          title: profile.title,
+          description: profile.content.substring(0, 100) + (profile.content.length > 100 ? '...' : ''),
+          iconKey: profile.iconKey,
+          displayOrder: profile.displayOrder,
+          onClick: () => setSelectedSection(`profile-${profile.id}`),
+        }));
 
-    // Add profiles
-    profiles.forEach((profile) => {
-      profileCards.push({
-        id: `profile-${profile.id}`,
-        title: profile.title,
-        description: profile.content.substring(0, 100) + (profile.content.length > 100 ? '...' : ''),
-        iconKey: profile.iconKey,
-        displayOrder: profile.displayOrder,
-        onClick: () => setSelectedSection(`profile-${profile.id}`),
-      });
-      minOrder1 = Math.min(minOrder1, profile.displayOrder);
-    });
-
-    // Add partners
-    partners.forEach((partner) => {
-      profileCards.push({
-        id: `partner-${partner.id}`,
-        title: partner.name,
-        description: partner.description
-          ? partner.description.substring(0, 100) + (partner.description.length > 100 ? '...' : '')
-          : null,
-        iconKey: partner.logoKey,
-        displayOrder: partner.displayOrder,
-        onClick: () => setSelectedSection(`partner-${partner.id}`),
-      });
-      minOrder1 = Math.min(minOrder1, partner.displayOrder);
-    });
-
-    // Add clients (as part of partners/clients section)
-    clients.forEach((client) => {
-      profileCards.push({
-        id: `client-${client.id}`,
-        title: client.name,
-        description: client.description
-          ? client.description.substring(0, 100) + (client.description.length > 100 ? '...' : '')
-          : null,
-        iconKey: client.logoKey,
-        displayOrder: client.displayOrder,
-        onClick: () => setSelectedSection(`client-${client.id}`),
-      });
-      minOrder1 = Math.min(minOrder1, client.displayOrder);
-    });
-
-    if (profileCards.length > 0) {
-      // Sort all cards by displayOrder
-      profileCards.sort((a, b) => (a.displayOrder ?? 999) - (b.displayOrder ?? 999));
-
+      const minDisplayOrder = Math.min(...profiles.map((p) => p.displayOrder), Infinity);
       sectionsList.push({
         id: 'company-profile',
-        title: isArabic
-          ? 'بروفايل تعريفي عن الشركة وعملائنا وشركائنا'
-          : 'Company Profile, Partners & Clients',
+        title: isArabic ? 'البروفايل التعريفي' : 'Company Profile',
         cards: profileCards,
-        displayOrder: minOrder1 === Infinity ? 0 : minOrder1,
+        displayOrder: minDisplayOrder === Infinity ? 0 : minDisplayOrder,
       });
     }
 
-    // 2. نموذج العمل التجاري للشركة (Business Model)
-    // Note: Clients are also shown here separately as business model examples
+    // 2. نموذج العمل التجاري (Business Model - Clients)
     if (clients.length > 0) {
       const businessModelCards: SectionCard[] = clients
         .sort((a, b) => a.displayOrder - b.displayOrder)
         .map((client) => ({
-          id: `business-model-${client.id}`,
+          id: `client-${client.id}`,
           title: client.name,
           description: client.description
             ? client.description.substring(0, 100) + (client.description.length > 100 ? '...' : '')
@@ -160,7 +115,7 @@ export function CompanyContentSection() {
       const minDisplayOrder = Math.min(...clients.map((c) => c.displayOrder), Infinity);
       sectionsList.push({
         id: 'business-model',
-        title: isArabic ? 'نموذج العمل التجاري للشركة' : 'Company Business Model',
+        title: isArabic ? 'نموذج العمل التجاري' : 'Business Model',
         cards: businessModelCards,
         displayOrder: minDisplayOrder === Infinity ? 1 : minDisplayOrder,
       });
@@ -311,7 +266,6 @@ export function CompanyContentSection() {
     return sectionsList.sort((a, b) => a.displayOrder - b.displayOrder);
   }, [
     profilesData,
-    partnersData,
     clientsData,
     resourcesData,
     strengthsData,
