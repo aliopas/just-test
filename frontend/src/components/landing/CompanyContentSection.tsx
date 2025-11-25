@@ -57,6 +57,16 @@ export function CompanyContentSection() {
     isLoadingMarketValue ||
     isLoadingGoals;
 
+  const hasError =
+    isErrorProfiles ||
+    isErrorPartners ||
+    isErrorClients ||
+    isErrorResources ||
+    isErrorStrengths ||
+    isErrorPartnership ||
+    isErrorMarketValue ||
+    isErrorGoals;
+
   // Build separate sections for each content type according to requirements
   const sections = useMemo<ContentSection[]>(() => {
     const sectionsList: ContentSection[] = [];
@@ -316,8 +326,66 @@ export function CompanyContentSection() {
     return <SectionSkeleton />;
   }
 
+  if (hasError) {
+    return (
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '1400px',
+          margin: '0 auto',
+          padding: '4rem 2rem',
+          textAlign: 'center',
+          direction,
+        }}
+      >
+        <div
+          style={{
+            padding: '3rem 2rem',
+            borderRadius: '1.5rem',
+            background: palette.backgroundSurface,
+            border: `2px dashed ${palette.brandSecondaryMuted}`,
+            color: palette.textSecondary,
+          }}
+        >
+          <p style={{ margin: 0, fontSize: '1.1rem', lineHeight: 1.7 }}>
+            {isArabic
+              ? 'حدث خطأ في تحميل البيانات. يرجى المحاولة مرة أخرى لاحقاً.'
+              : 'Failed to load content. Please try again later.'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (sections.length === 0) {
-    return null;
+    return (
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '1400px',
+          margin: '0 auto',
+          padding: '4rem 2rem',
+          textAlign: 'center',
+          direction,
+        }}
+      >
+        <div
+          style={{
+            padding: '3rem 2rem',
+            borderRadius: '1.5rem',
+            background: palette.backgroundSurface,
+            border: `2px dashed ${palette.brandSecondaryMuted}`,
+            color: palette.textSecondary,
+          }}
+        >
+          <p style={{ margin: 0, fontSize: '1.1rem', lineHeight: 1.7 }}>
+            {isArabic
+              ? 'لا توجد بيانات متاحة للعرض حالياً.'
+              : 'No content available to display at the moment.'}
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
