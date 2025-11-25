@@ -1,8 +1,10 @@
+import { useMemo } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { palette } from '../../../styles/theme';
 import type { PartnershipInfo } from '../../../hooks/useAdminCompanyContent';
 import { getStoragePublicUrl, COMPANY_CONTENT_IMAGES_BUCKET } from '../../../utils/supabase-storage';
 import { OptimizedImage } from '../../OptimizedImage';
+import { OrderControls } from './OrderControls';
 
 interface PartnershipInfoTableProps {
   partnershipInfo: PartnershipInfo[];
@@ -11,6 +13,7 @@ interface PartnershipInfoTableProps {
   onRetry: () => void;
   onEdit: (info: PartnershipInfo) => void;
   onDelete: (info: PartnershipInfo) => void;
+  onOrderChange?: (infoId: string, newOrder: number) => void;
 }
 
 export function PartnershipInfoTable({
@@ -20,9 +23,14 @@ export function PartnershipInfoTable({
   onRetry,
   onEdit,
   onDelete,
+  onOrderChange,
 }: PartnershipInfoTableProps) {
   const { language, direction } = useLanguage();
   const isArabic = language === 'ar';
+
+  const sortedPartnershipInfo = useMemo(() => {
+    return [...partnershipInfo].sort((a, b) => a.displayOrder - b.displayOrder);
+  }, [partnershipInfo]);
 
   if (isLoading) {
     return (
@@ -81,7 +89,7 @@ export function PartnershipInfoTable({
           </tr>
         </thead>
         <tbody>
-          {partnershipInfo.map((info) => {
+          {sortedPartnershipInfo.map((info) => {
             const title = isArabic ? info.titleAr : info.titleEn;
             const steps = isArabic ? info.stepsAr : info.stepsEn;
             const iconUrl = info.iconKey
@@ -107,7 +115,18 @@ export function PartnershipInfoTable({
                 <td style={tdStyle}>
                   {steps && steps.length > 0 ? steps.length : 0}
                 </td>
-                <td style={tdStyle}>{info.displayOrder}</td>
+                <td style={tdStyle}>
+                  {onOrderChange ? (
+                    <OrderControls
+                      currentOrder={info.displayOrder}
+                      minOrder={0}
+                      maxOrder={partnershipInfo.length - 1}
+                      onOrderChange={(newOrder) => onOrderChange(info.id, newOrder)}
+                    />
+                  ) : (
+                    info.displayOrder
+                  )}
+                </td>
                 <td style={tdStyle}>
                   {new Intl.DateTimeFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
                     dateStyle: 'medium',

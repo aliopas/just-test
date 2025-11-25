@@ -1,8 +1,10 @@
+import { useMemo } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { palette } from '../../../styles/theme';
 import type { CompanyProfile } from '../../../hooks/useAdminCompanyContent';
 import { getStoragePublicUrl, COMPANY_CONTENT_IMAGES_BUCKET } from '../../../utils/supabase-storage';
 import { OptimizedImage } from '../../OptimizedImage';
+import { OrderControls } from './OrderControls';
 
 interface CompanyProfilesTableProps {
   profiles: CompanyProfile[];
@@ -11,6 +13,7 @@ interface CompanyProfilesTableProps {
   onRetry: () => void;
   onEdit: (profile: CompanyProfile) => void;
   onDelete: (profile: CompanyProfile) => void;
+  onOrderChange?: (profileId: string, newOrder: number) => void;
 }
 
 export function CompanyProfilesTable({
@@ -20,9 +23,14 @@ export function CompanyProfilesTable({
   onRetry,
   onEdit,
   onDelete,
+  onOrderChange,
 }: CompanyProfilesTableProps) {
   const { language, direction } = useLanguage();
   const isArabic = language === 'ar';
+
+  const sortedProfiles = useMemo(() => {
+    return [...profiles].sort((a, b) => a.displayOrder - b.displayOrder);
+  }, [profiles]);
 
   if (isLoading) {
     return (
@@ -81,7 +89,7 @@ export function CompanyProfilesTable({
           </tr>
         </thead>
         <tbody>
-          {profiles.map((profile) => {
+          {sortedProfiles.map((profile, index) => {
             const title = isArabic ? profile.titleAr : profile.titleEn;
             const iconUrl = profile.iconKey
               ? getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, profile.iconKey)
@@ -103,7 +111,18 @@ export function CompanyProfilesTable({
                 <td style={tdStyle}>
                   <strong style={{ color: palette.textPrimary }}>{title}</strong>
                 </td>
-                <td style={tdStyle}>{profile.displayOrder}</td>
+                <td style={tdStyle}>
+                  {onOrderChange ? (
+                    <OrderControls
+                      currentOrder={profile.displayOrder}
+                      minOrder={0}
+                      maxOrder={profiles.length - 1}
+                      onOrderChange={(newOrder) => onOrderChange(profile.id, newOrder)}
+                    />
+                  ) : (
+                    profile.displayOrder
+                  )}
+                </td>
                 <td style={tdStyle}>
                   <span
                     style={{

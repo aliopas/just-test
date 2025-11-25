@@ -160,7 +160,9 @@ export async function apiClient<TResponse>(
   { auth = true, headers, ...init }: ApiClientOptions = {}
 ): Promise<TResponse> {
   const baseUrl = getBaseUrl();
-  const url = path.startsWith('http') ? path : `${baseUrl}${path}`;
+  // Remove any duplicate /api/v1 prefix from path if it exists
+  const cleanPath = path.replace(/^\/api\/v1\//, '/');
+  const url = cleanPath.startsWith('http') ? cleanPath : `${baseUrl}${cleanPath}`;
 
   const createHeaders = () => {
     const requestHeaders = new Headers(defaultHeaders);

@@ -1,8 +1,10 @@
+import { useMemo } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { palette } from '../../../styles/theme';
 import type { CompanyGoal } from '../../../hooks/useAdminCompanyContent';
 import { getStoragePublicUrl, COMPANY_CONTENT_IMAGES_BUCKET } from '../../../utils/supabase-storage';
 import { OptimizedImage } from '../../OptimizedImage';
+import { OrderControls } from './OrderControls';
 
 interface CompanyGoalsTableProps {
   goals: CompanyGoal[];
@@ -11,6 +13,7 @@ interface CompanyGoalsTableProps {
   onRetry: () => void;
   onEdit: (goal: CompanyGoal) => void;
   onDelete: (goal: CompanyGoal) => void;
+  onOrderChange?: (goalId: string, newOrder: number) => void;
 }
 
 export function CompanyGoalsTable({
@@ -20,9 +23,14 @@ export function CompanyGoalsTable({
   onRetry,
   onEdit,
   onDelete,
+  onOrderChange,
 }: CompanyGoalsTableProps) {
   const { language, direction } = useLanguage();
   const isArabic = language === 'ar';
+
+  const sortedGoals = useMemo(() => {
+    return [...goals].sort((a, b) => a.displayOrder - b.displayOrder);
+  }, [goals]);
 
   if (isLoading) {
     return (
@@ -81,7 +89,7 @@ export function CompanyGoalsTable({
           </tr>
         </thead>
         <tbody>
-          {goals.map((goal) => {
+          {sortedGoals.map((goal) => {
             const title = isArabic ? goal.titleAr : goal.titleEn;
             const iconUrl = goal.iconKey
               ? getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, goal.iconKey)
@@ -110,7 +118,18 @@ export function CompanyGoalsTable({
                       }).format(new Date(goal.targetDate))
                     : '—'}
                 </td>
-                <td style={tdStyle}>{goal.displayOrder}</td>
+                <td style={tdStyle}>
+                  {onOrderChange ? (
+                    <OrderControls
+                      currentOrder={goal.displayOrder}
+                      minOrder={0}
+                      maxOrder={goals.length - 1}
+                      onOrderChange={(newOrder) => onOrderChange(goal.id, newOrder)}
+                    />
+                  ) : (
+                    goal.displayOrder
+                  )}
+                </td>
                 <td style={tdStyle}>
                   {new Intl.DateTimeFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
                     dateStyle: 'medium',

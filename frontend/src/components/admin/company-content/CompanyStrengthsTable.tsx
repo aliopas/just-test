@@ -1,8 +1,10 @@
+import { useMemo } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { palette } from '../../../styles/theme';
 import type { CompanyStrength } from '../../../hooks/useAdminCompanyContent';
 import { getStoragePublicUrl, COMPANY_CONTENT_IMAGES_BUCKET } from '../../../utils/supabase-storage';
 import { OptimizedImage } from '../../OptimizedImage';
+import { OrderControls } from './OrderControls';
 
 interface CompanyStrengthsTableProps {
   strengths: CompanyStrength[];
@@ -11,6 +13,7 @@ interface CompanyStrengthsTableProps {
   onRetry: () => void;
   onEdit: (strength: CompanyStrength) => void;
   onDelete: (strength: CompanyStrength) => void;
+  onOrderChange?: (strengthId: string, newOrder: number) => void;
 }
 
 export function CompanyStrengthsTable({
@@ -20,9 +23,14 @@ export function CompanyStrengthsTable({
   onRetry,
   onEdit,
   onDelete,
+  onOrderChange,
 }: CompanyStrengthsTableProps) {
   const { language, direction } = useLanguage();
   const isArabic = language === 'ar';
+
+  const sortedStrengths = useMemo(() => {
+    return [...strengths].sort((a, b) => a.displayOrder - b.displayOrder);
+  }, [strengths]);
 
   if (isLoading) {
     return (
@@ -81,7 +89,7 @@ export function CompanyStrengthsTable({
           </tr>
         </thead>
         <tbody>
-          {strengths.map((strength) => {
+          {sortedStrengths.map((strength) => {
             const title = isArabic ? strength.titleAr : strength.titleEn;
             const description = isArabic ? strength.descriptionAr : strength.descriptionEn;
             const iconUrl = strength.iconKey
@@ -109,7 +117,18 @@ export function CompanyStrengthsTable({
                     {description ? (description.length > 50 ? `${description.substring(0, 50)}...` : description) : '—'}
                   </span>
                 </td>
-                <td style={tdStyle}>{strength.displayOrder}</td>
+                <td style={tdStyle}>
+                  {onOrderChange ? (
+                    <OrderControls
+                      currentOrder={strength.displayOrder}
+                      minOrder={0}
+                      maxOrder={strengths.length - 1}
+                      onOrderChange={(newOrder) => onOrderChange(strength.id, newOrder)}
+                    />
+                  ) : (
+                    strength.displayOrder
+                  )}
+                </td>
                 <td style={tdStyle}>
                   {new Intl.DateTimeFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
                     dateStyle: 'medium',

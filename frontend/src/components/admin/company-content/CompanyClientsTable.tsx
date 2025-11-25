@@ -1,8 +1,10 @@
+import { useMemo } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { palette } from '../../../styles/theme';
 import type { CompanyClient } from '../../../hooks/useAdminCompanyContent';
 import { getStoragePublicUrl, COMPANY_CONTENT_IMAGES_BUCKET } from '../../../utils/supabase-storage';
 import { OptimizedImage } from '../../OptimizedImage';
+import { OrderControls } from './OrderControls';
 
 interface CompanyClientsTableProps {
   clients: CompanyClient[];
@@ -11,6 +13,7 @@ interface CompanyClientsTableProps {
   onRetry: () => void;
   onEdit: (client: CompanyClient) => void;
   onDelete: (client: CompanyClient) => void;
+  onOrderChange?: (clientId: string, newOrder: number) => void;
 }
 
 export function CompanyClientsTable({
@@ -20,9 +23,14 @@ export function CompanyClientsTable({
   onRetry,
   onEdit,
   onDelete,
+  onOrderChange,
 }: CompanyClientsTableProps) {
   const { language, direction } = useLanguage();
   const isArabic = language === 'ar';
+
+  const sortedClients = useMemo(() => {
+    return [...clients].sort((a, b) => a.displayOrder - b.displayOrder);
+  }, [clients]);
 
   if (isLoading) {
     return (
@@ -81,7 +89,7 @@ export function CompanyClientsTable({
           </tr>
         </thead>
         <tbody>
-          {clients.map((client) => {
+          {sortedClients.map((client) => {
             const name = isArabic ? client.nameAr : client.nameEn;
             const description = isArabic ? client.descriptionAr : client.descriptionEn;
             const logoUrl = client.logoKey
@@ -118,7 +126,18 @@ export function CompanyClientsTable({
                     {description || '—'}
                   </span>
                 </td>
-                <td style={tdStyle}>{client.displayOrder}</td>
+                <td style={tdStyle}>
+                  {onOrderChange ? (
+                    <OrderControls
+                      currentOrder={client.displayOrder}
+                      minOrder={0}
+                      maxOrder={clients.length - 1}
+                      onOrderChange={(newOrder) => onOrderChange(client.id, newOrder)}
+                    />
+                  ) : (
+                    client.displayOrder
+                  )}
+                </td>
                 <td style={tdStyle}>
                   {new Intl.DateTimeFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
                     dateStyle: 'medium',

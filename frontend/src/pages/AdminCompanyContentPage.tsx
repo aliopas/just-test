@@ -534,6 +534,22 @@ function AdminCompanyContentPageInner() {
                   }
                 }
               }}
+              onOrderChange={async (profileId, newOrder) => {
+                try {
+                  const profile = profiles.find((p) => p.id === profileId);
+                  if (!profile) return;
+                  await updateMutation.mutateAsync({
+                    id: profileId,
+                    payload: { displayOrder: newOrder },
+                  });
+                  await refetchProfiles();
+                } catch (error) {
+                  pushToast({
+                    message: error instanceof Error ? error.message : isArabic ? 'حدث خطأ أثناء تحديث الترتيب' : 'An error occurred while updating order',
+                    variant: 'error',
+                  });
+                }
+              }}
             />
           </div>
         )}
@@ -582,6 +598,22 @@ function AdminCompanyContentPageInner() {
                       variant: 'error',
                     });
                   }
+                }
+              }}
+              onOrderChange={async (clientId, newOrder) => {
+                try {
+                  const client = clients.find((c) => c.id === clientId);
+                  if (!client) return;
+                  await updateClientMutation.mutateAsync({
+                    id: clientId,
+                    payload: { displayOrder: newOrder },
+                  });
+                  await refetchClients();
+                } catch (error) {
+                  pushToast({
+                    message: error instanceof Error ? error.message : isArabic ? 'حدث خطأ أثناء تحديث الترتيب' : 'An error occurred while updating order',
+                    variant: 'error',
+                  });
                 }
               }}
             />
@@ -634,6 +666,22 @@ function AdminCompanyContentPageInner() {
                   }
                 }
               }}
+              onOrderChange={async (resourceId, newOrder) => {
+                try {
+                  const resource = resources.find((r) => r.id === resourceId);
+                  if (!resource) return;
+                  await updateResourceMutation.mutateAsync({
+                    id: resourceId,
+                    payload: { displayOrder: newOrder },
+                  });
+                  await refetchResources();
+                } catch (error) {
+                  pushToast({
+                    message: error instanceof Error ? error.message : isArabic ? 'حدث خطأ أثناء تحديث الترتيب' : 'An error occurred while updating order',
+                    variant: 'error',
+                  });
+                }
+              }}
             />
           </div>
         )}
@@ -684,6 +732,22 @@ function AdminCompanyContentPageInner() {
                   }
                 }
               }}
+              onOrderChange={async (strengthId, newOrder) => {
+                try {
+                  const strength = strengths.find((s) => s.id === strengthId);
+                  if (!strength) return;
+                  await updateStrengthMutation.mutateAsync({
+                    id: strengthId,
+                    payload: { displayOrder: newOrder },
+                  });
+                  await refetchStrengths();
+                } catch (error) {
+                  pushToast({
+                    message: error instanceof Error ? error.message : isArabic ? 'حدث خطأ أثناء تحديث الترتيب' : 'An error occurred while updating order',
+                    variant: 'error',
+                  });
+                }
+              }}
             />
           </div>
         )}
@@ -732,6 +796,22 @@ function AdminCompanyContentPageInner() {
                       variant: 'error',
                     });
                   }
+                }
+              }}
+              onOrderChange={async (infoId, newOrder) => {
+                try {
+                  const info = partnershipInfo.find((i) => i.id === infoId);
+                  if (!info) return;
+                  await updatePartnershipMutation.mutateAsync({
+                    id: infoId,
+                    payload: { displayOrder: newOrder },
+                  });
+                  await refetchPartnership();
+                } catch (error) {
+                  pushToast({
+                    message: error instanceof Error ? error.message : isArabic ? 'حدث خطأ أثناء تحديث الترتيب' : 'An error occurred while updating order',
+                    variant: 'error',
+                  });
                 }
               }}
             />
@@ -835,6 +915,22 @@ function AdminCompanyContentPageInner() {
                       variant: 'error',
                     });
                   }
+                }
+              }}
+              onOrderChange={async (goalId, newOrder) => {
+                try {
+                  const goal = goals.find((g) => g.id === goalId);
+                  if (!goal) return;
+                  await updateGoalMutation.mutateAsync({
+                    id: goalId,
+                    payload: { displayOrder: newOrder },
+                  });
+                  await refetchGoals();
+                } catch (error) {
+                  pushToast({
+                    message: error instanceof Error ? error.message : isArabic ? 'حدث خطأ أثناء تحديث الترتيب' : 'An error occurred while updating order',
+                    variant: 'error',
+                  });
                 }
               }}
             />

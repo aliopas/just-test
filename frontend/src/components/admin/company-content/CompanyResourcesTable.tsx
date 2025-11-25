@@ -1,8 +1,10 @@
+import { useMemo } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { palette } from '../../../styles/theme';
 import type { CompanyResource } from '../../../hooks/useAdminCompanyContent';
 import { getStoragePublicUrl, COMPANY_CONTENT_IMAGES_BUCKET } from '../../../utils/supabase-storage';
 import { OptimizedImage } from '../../OptimizedImage';
+import { OrderControls } from './OrderControls';
 
 interface CompanyResourcesTableProps {
   resources: CompanyResource[];
@@ -11,6 +13,7 @@ interface CompanyResourcesTableProps {
   onRetry: () => void;
   onEdit: (resource: CompanyResource) => void;
   onDelete: (resource: CompanyResource) => void;
+  onOrderChange?: (resourceId: string, newOrder: number) => void;
 }
 
 export function CompanyResourcesTable({
@@ -20,9 +23,14 @@ export function CompanyResourcesTable({
   onRetry,
   onEdit,
   onDelete,
+  onOrderChange,
 }: CompanyResourcesTableProps) {
   const { language, direction } = useLanguage();
   const isArabic = language === 'ar';
+
+  const sortedResources = useMemo(() => {
+    return [...resources].sort((a, b) => a.displayOrder - b.displayOrder);
+  }, [resources]);
 
   if (isLoading) {
     return (
@@ -81,7 +89,7 @@ export function CompanyResourcesTable({
           </tr>
         </thead>
         <tbody>
-          {resources.map((resource) => {
+          {sortedResources.map((resource) => {
             const title = isArabic ? resource.titleAr : resource.titleEn;
             const iconUrl = resource.iconKey
               ? getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, resource.iconKey)
@@ -113,7 +121,18 @@ export function CompanyResourcesTable({
                       }).format(resource.value)}`
                     : '—'}
                 </td>
-                <td style={tdStyle}>{resource.displayOrder}</td>
+                <td style={tdStyle}>
+                  {onOrderChange ? (
+                    <OrderControls
+                      currentOrder={resource.displayOrder}
+                      minOrder={0}
+                      maxOrder={resources.length - 1}
+                      onOrderChange={(newOrder) => onOrderChange(resource.id, newOrder)}
+                    />
+                  ) : (
+                    resource.displayOrder
+                  )}
+                </td>
                 <td style={tdStyle}>
                   {new Intl.DateTimeFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
                     dateStyle: 'medium',
