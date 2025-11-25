@@ -125,8 +125,12 @@ export type CompanyGoalListResponse = { goals: CompanyGoal[] };
 
 // Presign response
 export type ImagePresignResponse = {
-  uploadUrl: string;
+  bucket: string;
   storageKey: string;
+  uploadUrl: string;
+  token: string | null;
+  headers: Record<string, string>;
+  path: string;
 };
 
 // ============================================================================

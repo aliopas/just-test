@@ -363,18 +363,36 @@ function AdminCompanyContentPageInner() {
       purpose,
     });
 
-    // Upload to presigned URL
-    const headers = new Headers();
-    headers.set('Content-Type', file.type || 'application/octet-stream');
+    // Build upload URL - add token if provided and not already in URL
+    let uploadUrl = result.uploadUrl;
+    if (result.token) {
+      try {
+        const url = new URL(result.uploadUrl);
+        // Only add token if it's not already in the URL
+        if (!url.searchParams.has('token')) {
+          url.searchParams.set('token', result.token);
+          uploadUrl = url.toString();
+        }
+      } catch {
+        // If URL parsing fails, use original URL as-is
+      }
+    }
 
-    const uploadResponse = await fetch(result.uploadUrl, {
+    // Upload to presigned URL using headers from response
+    const headers = new Headers(result.headers);
+    if (!headers.has('Content-Type')) {
+      headers.set('Content-Type', file.type || 'application/octet-stream');
+    }
+
+    const uploadResponse = await fetch(uploadUrl, {
       method: 'PUT',
       headers,
       body: file,
     });
 
     if (!uploadResponse.ok) {
-      throw new Error(`Failed to upload image: ${uploadResponse.statusText}`);
+      const errorText = await uploadResponse.text().catch(() => uploadResponse.statusText);
+      throw new Error(`Failed to upload image: ${uploadResponse.status} ${errorText}`);
     }
 
     return { storageKey: result.storageKey };
