@@ -13,26 +13,25 @@ import {
   useCreateCompanyProfileMutation,
   useUpdateCompanyProfileMutation,
   useDeleteCompanyProfileMutation,
-  useAdminCompanyPartners,
-  useAdminCompanyPartnerDetail,
-  useCreateCompanyPartnerMutation,
-  useUpdateCompanyPartnerMutation,
-  useDeleteCompanyPartnerMutation,
+  useAdminCompanyClients,
+  useAdminCompanyClientDetail,
+  useCreateCompanyClientMutation,
+  useUpdateCompanyClientMutation,
+  useDeleteCompanyClientMutation,
   useCompanyContentImagePresignMutation,
   type CompanyProfile,
-  type CompanyPartner,
+  type CompanyClient,
 } from '../hooks/useAdminCompanyContent';
 import { CompanyProfilesTable } from '../components/admin/company-content/CompanyProfilesTable';
 import { CompanyProfileFormDrawer } from '../components/admin/company-content/CompanyProfileFormDrawer';
-import { CompanyPartnersTable } from '../components/admin/company-content/CompanyPartnersTable';
-import { CompanyPartnerFormDrawer } from '../components/admin/company-content/CompanyPartnerFormDrawer';
+import { CompanyClientsTable } from '../components/admin/company-content/CompanyClientsTable';
+import { CompanyClientFormDrawer } from '../components/admin/company-content/CompanyClientFormDrawer';
 import { ApiError } from '../utils/api-client';
 
 const queryClient = new QueryClient();
 
 type ContentTab = 
   | 'profiles'
-  | 'partners'
   | 'clients'
   | 'resources'
   | 'strengths'
@@ -42,7 +41,6 @@ type ContentTab =
 
 const TABS: Array<{ id: ContentTab; labelAr: string; labelEn: string }> = [
   { id: 'profiles', labelAr: 'البروفايل التعريفي', labelEn: 'Company Profile' },
-  { id: 'partners', labelAr: 'الشركاء', labelEn: 'Partners' },
   { id: 'clients', labelAr: 'العملاء', labelEn: 'Clients' },
   { id: 'resources', labelAr: 'الموارد المالية', labelEn: 'Financial Resources' },
   { id: 'strengths', labelAr: 'نقاط القوة', labelEn: 'Strengths' },
@@ -55,7 +53,7 @@ type DrawerState = {
   mode: 'create' | 'edit';
   open: boolean;
   profile: CompanyProfile | null;
-  partner: CompanyPartner | null;
+  client: CompanyClient | null;
 };
 
 function AdminCompanyContentPageInner() {
