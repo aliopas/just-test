@@ -79,8 +79,12 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
     // Partner
     if (sectionId.startsWith('partner-')) {
       const id = sectionId.replace('partner-', '');
-      const partner = partnersData?.partners.find((p) => p.id === id);
-      if (!partner) return null;
+      const partners = partnersData?.partners ?? [];
+      const partner = partners.find((p) => p.id === id);
+      if (!partner) {
+        console.warn(`Partner with id "${id}" not found. Available partners:`, partners.map((p) => p.id));
+        return null;
+      }
       return {
         type: 'partner' as const,
         name: partner.name,
@@ -93,8 +97,12 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
     // Client (Business Model)
     if (sectionId.startsWith('client-')) {
       const id = sectionId.replace('client-', '');
-      const client = clientsData?.clients.find((c) => c.id === id);
-      if (!client) return null;
+      const clients = clientsData?.clients ?? [];
+      const client = clients.find((c) => c.id === id);
+      if (!client) {
+        console.warn(`Client with id "${id}" not found. Available clients:`, clients.map((c) => c.id));
+        return null;
+      }
       return {
         type: 'client' as const,
         name: client.name,
@@ -198,8 +206,81 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
     goalsData,
   ]);
 
-  if (!isOpen || !content) {
+  if (!isOpen) {
     return null;
+  }
+
+  // If no content found, show error message
+  if (!content) {
+    const container = document.getElementById('drawer-root') ?? document.body;
+    return createPortal(
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '1rem',
+        }}
+        onClick={onClose}
+      >
+        <div
+          style={{
+            background: palette.backgroundSurface,
+            borderRadius: '1rem',
+            padding: '2rem',
+            maxWidth: '500px',
+            width: '100%',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+            direction,
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <h2
+            style={{
+              margin: 0,
+              marginBottom: '1rem',
+              fontSize: '1.5rem',
+              fontWeight: 700,
+              color: palette.textPrimary,
+            }}
+          >
+            {isArabic ? 'خطأ في تحميل المحتوى' : 'Error Loading Content'}
+          </h2>
+          <p
+            style={{
+              margin: 0,
+              marginBottom: '1.5rem',
+              color: palette.textSecondary,
+            }}
+          >
+            {isArabic
+              ? 'لم يتم العثور على المحتوى المطلوب. يرجى المحاولة مرة أخرى.'
+              : 'The requested content could not be found. Please try again.'}
+          </p>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              padding: '0.75rem 1.5rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              background: palette.brandPrimaryStrong,
+              color: '#fff',
+              fontSize: '1rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            {isArabic ? 'إغلاق' : 'Close'}
+          </button>
+        </div>
+      </div>,
+      container
+    );
   }
 
   const container = document.getElementById('drawer-root') ?? document.body;
@@ -412,7 +493,7 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
         ? getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, content.logoKey)
         : null;
       modalContent = (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', alignItems: 'center', minHeight: '200px' }}>
           {clientLogoUrl && (
             <div style={{ width: '200px', height: '120px' }}>
               <OptimizedImage
@@ -423,7 +504,7 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
               />
             </div>
           )}
-          {content.description && (
+          {content.description ? (
             <p
               style={{
                 margin: 0,
@@ -431,9 +512,23 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
                 color: palette.textSecondary,
                 textAlign: 'center',
                 maxWidth: '600px',
+                whiteSpace: 'pre-wrap',
               }}
             >
               {content.description}
+            </p>
+          ) : (
+            <p
+              style={{
+                margin: 0,
+                lineHeight: 1.8,
+                color: palette.textSecondary,
+                textAlign: 'center',
+                maxWidth: '600px',
+                fontStyle: 'italic',
+              }}
+            >
+              {isArabic ? 'لا يوجد وصف متاح' : 'No description available'}
             </p>
           )}
         </div>
@@ -445,7 +540,7 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
         ? getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, content.logoKey)
         : null;
       modalContent = (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', alignItems: 'center', minHeight: '200px' }}>
           {partnerLogoUrl && (
             <div style={{ width: '200px', height: '120px' }}>
               <OptimizedImage
@@ -456,7 +551,7 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
               />
             </div>
           )}
-          {content.description && (
+          {content.description ? (
             <p
               style={{
                 margin: 0,
@@ -464,9 +559,23 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
                 color: palette.textSecondary,
                 textAlign: 'center',
                 maxWidth: '600px',
+                whiteSpace: 'pre-wrap',
               }}
             >
               {content.description}
+            </p>
+          ) : (
+            <p
+              style={{
+                margin: 0,
+                lineHeight: 1.8,
+                color: palette.textSecondary,
+                textAlign: 'center',
+                maxWidth: '600px',
+                fontStyle: 'italic',
+              }}
+            >
+              {isArabic ? 'لا يوجد وصف متاح' : 'No description available'}
             </p>
           )}
           {content.websiteUrl && (
