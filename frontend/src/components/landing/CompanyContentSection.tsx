@@ -36,14 +36,14 @@ export function CompanyContentSection() {
   const isArabic = language === 'ar';
 
   // Fetch all content
-  const { data: profilesData, isLoading: isLoadingProfiles } = usePublicCompanyProfiles();
-  const { data: partnersData, isLoading: isLoadingPartners } = usePublicCompanyPartners();
-  const { data: clientsData, isLoading: isLoadingClients } = usePublicCompanyClients();
-  const { data: resourcesData, isLoading: isLoadingResources } = usePublicCompanyResources();
-  const { data: strengthsData, isLoading: isLoadingStrengths } = usePublicCompanyStrengths();
-  const { data: partnershipData, isLoading: isLoadingPartnership } = usePublicPartnershipInfo();
-  const { data: marketValueData, isLoading: isLoadingMarketValue } = usePublicMarketValue();
-  const { data: goalsData, isLoading: isLoadingGoals } = usePublicCompanyGoals();
+  const { data: profilesData, isLoading: isLoadingProfiles, isError: isErrorProfiles } = usePublicCompanyProfiles();
+  const { data: partnersData, isLoading: isLoadingPartners, isError: isErrorPartners } = usePublicCompanyPartners();
+  const { data: clientsData, isLoading: isLoadingClients, isError: isErrorClients } = usePublicCompanyClients();
+  const { data: resourcesData, isLoading: isLoadingResources, isError: isErrorResources } = usePublicCompanyResources();
+  const { data: strengthsData, isLoading: isLoadingStrengths, isError: isErrorStrengths } = usePublicCompanyStrengths();
+  const { data: partnershipData, isLoading: isLoadingPartnership, isError: isErrorPartnership } = usePublicPartnershipInfo();
+  const { data: marketValueData, isLoading: isLoadingMarketValue, isError: isErrorMarketValue } = usePublicMarketValue();
+  const { data: goalsData, isLoading: isLoadingGoals, isError: isErrorGoals } = usePublicCompanyGoals();
 
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
 
@@ -324,9 +324,9 @@ export function CompanyContentSection() {
     <div
       style={{
         width: '100%',
-        maxWidth: '1200px',
+        maxWidth: '1400px',
         margin: '0 auto',
-        padding: '2rem 1.5rem',
+        padding: '3rem 2rem',
         direction,
       }}
     >
@@ -334,21 +334,25 @@ export function CompanyContentSection() {
         <section
           key={section.id}
           style={{
-            marginBottom: '4rem',
+            marginBottom: '6rem',
+            padding: '0',
+            borderRadius: '0',
+            border: 'none',
+            background: 'transparent',
+            boxShadow: 'none',
+            position: 'relative',
           }}
         >
           <h2
             style={{
               margin: 0,
-              marginBottom: '2rem',
-              fontSize: '2rem',
-              fontWeight: 700,
+              marginBottom: '3rem',
+              fontSize: '2.5rem',
+              fontWeight: 800,
               color: palette.textPrimary,
               textAlign: 'center',
-              background: `linear-gradient(135deg, ${palette.brandPrimaryStrong}, ${palette.brandSecondaryMuted})`,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
+              letterSpacing: '-0.03em',
+              lineHeight: 1.2,
             }}
           >
             {section.title}
@@ -357,8 +361,8 @@ export function CompanyContentSection() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: '1.5rem',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+              gap: '3rem 2rem',
             }}
           >
             {section.cards.map((card) => (

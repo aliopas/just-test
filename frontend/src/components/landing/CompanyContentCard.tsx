@@ -32,41 +32,65 @@ export function CompanyContentCard({
       type="button"
       onClick={onClick}
       style={{
-        padding: '1.75rem',
-        borderRadius: '1.25rem',
-        border: `1px solid ${palette.neutralBorderSoft}`,
+        padding: '2.5rem',
+        borderRadius: '1.5rem',
+        border: `3px solid ${palette.neutralBorder}`,
         background: palette.backgroundSurface,
-        boxShadow: '0 4px 16px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(15, 23, 42, 0.04)',
+        boxShadow: `
+          0 6px 20px rgba(15, 23, 42, 0.1),
+          0 3px 10px rgba(15, 23, 42, 0.06),
+          inset 0 1px 0 rgba(255, 255, 255, 0.08)
+        `,
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         cursor: onClick ? 'pointer' : 'default',
         textAlign: 'start',
         width: '100%',
         display: 'flex',
         flexDirection: 'column',
-        gap: '1rem',
+        gap: '1.5rem',
         direction,
+        position: 'relative',
+        overflow: 'hidden',
       }}
       onMouseEnter={(e) => {
         if (onClick) {
-          e.currentTarget.style.transform = 'translateY(-4px)';
-          e.currentTarget.style.boxShadow =
-            '0 8px 24px rgba(15, 23, 42, 0.12), 0 4px 12px rgba(15, 23, 42, 0.08)';
+          e.currentTarget.style.transform = 'translateY(-8px)';
+          e.currentTarget.style.borderColor = palette.brandPrimaryStrong;
+          e.currentTarget.style.borderWidth = '4px';
+          e.currentTarget.style.background = `linear-gradient(135deg, ${palette.backgroundSurface} 0%, ${palette.brandPrimaryStrong}05 100%)`;
+          e.currentTarget.style.boxShadow = `
+            0 16px 40px rgba(15, 23, 42, 0.15),
+            0 8px 20px rgba(15, 23, 42, 0.1),
+            0 0 0 1px ${palette.brandPrimaryStrong}20
+          `;
         }
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow =
-          '0 4px 16px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(15, 23, 42, 0.04)';
+        e.currentTarget.style.borderColor = palette.neutralBorder;
+        e.currentTarget.style.borderWidth = '3px';
+        e.currentTarget.style.background = palette.backgroundSurface;
+        e.currentTarget.style.boxShadow = `
+          0 6px 20px rgba(15, 23, 42, 0.1),
+          0 3px 10px rgba(15, 23, 42, 0.06),
+          inset 0 1px 0 rgba(255, 255, 255, 0.08)
+        `;
       }}
     >
       {iconUrl && (
         <div
           style={{
-            width: '64px',
-            height: '64px',
-            borderRadius: '1rem',
+            width: '80px',
+            height: '80px',
+            borderRadius: '1.25rem',
             overflow: 'hidden',
             flexShrink: 0,
+            background: `linear-gradient(135deg, ${palette.brandPrimaryStrong}15, ${palette.brandSecondarySoft}10)`,
+            padding: '0.75rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: `2px solid ${palette.brandPrimaryStrong}20`,
           }}
         >
           <OptimizedImage
@@ -75,20 +99,22 @@ export function CompanyContentCard({
             aspectRatio={1}
             objectFit="contain"
             style={{
-              background: palette.backgroundBase,
+              background: 'transparent',
             }}
           />
         </div>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1 }}>
         <h3
           style={{
             margin: 0,
-            fontSize: '1.25rem',
-            fontWeight: 700,
+            fontSize: '1.5rem',
+            fontWeight: 800,
             color: palette.textPrimary,
-            lineHeight: 1.3,
+            lineHeight: 1.4,
+            letterSpacing: '-0.01em',
+            fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
           }}
         >
           {title}
@@ -97,13 +123,15 @@ export function CompanyContentCard({
           <p
             style={{
               margin: 0,
-              fontSize: '0.95rem',
+              fontSize: '1.05rem',
               color: palette.textSecondary,
-              lineHeight: 1.6,
+              lineHeight: 1.75,
               display: '-webkit-box',
               WebkitLineClamp: 3,
               WebkitBoxOrient: 'vertical',
               overflow: 'hidden',
+              fontWeight: 400,
+              letterSpacing: '0.01em',
             }}
           >
             {description}
@@ -113,4 +141,3 @@ export function CompanyContentCard({
     </button>
   );
 }
-
