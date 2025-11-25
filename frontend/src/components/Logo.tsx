@@ -11,6 +11,7 @@ export interface LogoProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   tagline?: string;
   stacked?: boolean;
   useLegacyAsset?: boolean;
+  logoUrl?: string | null; // URL to use instead of default logo (e.g., from company profile)
 }
 
 const defaultTagline = {
@@ -25,6 +26,7 @@ export const Logo: React.FC<LogoProps> = ({
   tagline,
   stacked = false,
   useLegacyAsset = false,
+  logoUrl,
   style,
   alt,
   ...imgProps
@@ -65,6 +67,9 @@ export const Logo: React.FC<LogoProps> = ({
     ...background,
   };
 
+  // Determine which logo source to use
+  const logoSrc = logoUrl || (useLegacyAsset ? legacyLogoSrc : primaryLogoSrc);
+
   return (
     <figure
       style={{
@@ -78,7 +83,7 @@ export const Logo: React.FC<LogoProps> = ({
     >
       <span style={illustrationStyles}>
         <img
-          src={useLegacyAsset ? legacyLogoSrc : primaryLogoSrc}
+          src={logoSrc}
           alt={resolvedAlt}
           style={{
             width: '100%',

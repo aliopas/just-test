@@ -6,6 +6,7 @@ import { useToast } from '../context/ToastContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Logo } from '../components/Logo';
 import { palette } from '../styles/theme';
+import { useCompanyLogoUrl } from '../hooks/usePublicContent';
 import { ApiError } from '../utils/api-client';
 
 type VerifyFormState = {
@@ -18,6 +19,7 @@ export function VerifyOtpPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { pushToast } = useToast();
+  const companyLogoUrl = useCompanyLogoUrl();
   const verifyMutation = useVerifyOtp();
   const confirmEmailMutation = useConfirmEmail();
   const [form, setForm] = useState<VerifyFormState>({
@@ -248,7 +250,7 @@ export function VerifyOtpPage() {
             textAlign: direction === 'rtl' ? 'right' : 'left',
           }}
         >
-          <Logo size={68} stacked />
+          <Logo size={68} stacked logoUrl={companyLogoUrl} />
           <div>
             <h1
               style={{

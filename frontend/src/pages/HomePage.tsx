@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { palette } from '../styles/theme';
 import { Logo } from '../components/Logo';
+import { useCompanyLogoUrl } from '../hooks/usePublicContent';
 import { useInvestorNewsList } from '../hooks/useInvestorNews';
 import { usePublicProjects } from '../hooks/usePublicProjects';
 import { resolveCoverUrl, NEWS_IMAGES_BUCKET, PROJECT_IMAGES_BUCKET } from '../utils/supabase-storage';
@@ -31,6 +32,7 @@ function formatCurrency(
 export function HomePage() {
   const { direction, language } = useLanguage();
   const [activeTab, setActiveTab] = useState<'news' | 'projects'>('news');
+  const companyLogoUrl = useCompanyLogoUrl();
 
   const {
     data: projectsResponse,
@@ -77,7 +79,7 @@ export function HomePage() {
               gap: '1.75rem',
             }}
           >
-            <Logo size={120} stacked tagline={language === 'ar' ? 'بوابتك للاستثمار الذكي' : 'Your gateway to smart investing'} />
+            <Logo size={120} stacked tagline={language === 'ar' ? 'بوابتك للاستثمار الذكي' : 'Your gateway to smart investing'} logoUrl={companyLogoUrl} />
             <div>
               <h2
                 style={{

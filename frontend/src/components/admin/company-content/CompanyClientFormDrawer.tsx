@@ -115,10 +115,10 @@ export function CompanyClientFormDrawer({
 
     const newErrors: Record<string, string> = {};
     if (!values.nameAr.trim()) {
-      newErrors.nameAr = isArabic ? 'الاسم العربي مطلوب' : 'Arabic name is required';
+      newErrors.nameAr = isArabic ? 'العنوان العربي مطلوب' : 'Arabic title is required';
     }
     if (!values.nameEn.trim()) {
-      newErrors.nameEn = isArabic ? 'الاسم الإنجليزي مطلوب' : 'English name is required';
+      newErrors.nameEn = isArabic ? 'العنوان الإنجليزي مطلوب' : 'English title is required';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -193,11 +193,11 @@ export function CompanyClientFormDrawer({
           >
             {mode === 'create'
               ? isArabic
-                ? 'إضافة عميل جديد'
-                : 'Add New Client'
+                ? 'إضافة نموذج عمل جديد'
+                : 'Add Business Model Item'
               : isArabic
-                ? 'تعديل العميل'
-                : 'Edit Client'}
+                ? 'تعديل نموذج العمل'
+                : 'Edit Business Model Item'}
           </h2>
           <button
             type="button"
@@ -245,7 +245,7 @@ export function CompanyClientFormDrawer({
                     marginBottom: '0.5rem',
                   }}
                 >
-                  {isArabic ? 'الاسم (عربي) *' : 'Name (Arabic) *'}
+                  {isArabic ? 'العنوان (عربي) *' : 'Title (Arabic) *'}
                 </label>
                 <input
                   type="text"
@@ -279,7 +279,7 @@ export function CompanyClientFormDrawer({
                     marginBottom: '0.5rem',
                   }}
                 >
-                  {isArabic ? 'الاسم (إنجليزي) *' : 'Name (English) *'}
+                  {isArabic ? 'العنوان (إنجليزي) *' : 'Title (English) *'}
                 </label>
                 <input
                   type="text"
@@ -325,7 +325,7 @@ export function CompanyClientFormDrawer({
                 value={values.logoKey}
                 onChange={(key) => handleChange('logoKey', key)}
                 onUpload={handleImageUpload}
-                label={isArabic ? 'الشعار' : 'Logo'}
+                label={isArabic ? 'الأيقونة/الشعار' : 'Icon/Logo'}
                 uploading={isUploading}
               />
 

@@ -35,7 +35,7 @@ export function CompanyClientsTable({
   if (isError) {
     return (
       <div style={stateStyle}>
-        <span>{isArabic ? 'حدث خطأ في التحميل' : 'Error loading clients'}</span>
+        <span>{isArabic ? 'حدث خطأ في التحميل' : 'Error loading business model items'}</span>
         <button type="button" onClick={onRetry} style={retryButtonStyle}>
           ↻
         </button>
@@ -47,10 +47,10 @@ export function CompanyClientsTable({
     return (
       <div style={emptyStyle}>
         <h3 style={emptyTitleStyle}>
-          {isArabic ? 'لا يوجد عملاء' : 'No clients found'}
+          {isArabic ? 'لا يوجد نماذج عمل' : 'No business model items found'}
         </h3>
         <p style={emptySubtitleStyle}>
-          {isArabic ? 'ابدأ بإضافة عميل جديد' : 'Start by adding a new client'}
+          {isArabic ? 'ابدأ بإضافة نموذج عمل جديد' : 'Start by adding a new business model item'}
         </p>
       </div>
     );
@@ -72,8 +72,8 @@ export function CompanyClientsTable({
       >
         <thead>
           <tr style={{ background: palette.backgroundAlt }}>
-            <th style={thStyle}>{isArabic ? 'الشعار' : 'Logo'}</th>
-            <th style={thStyle}>{isArabic ? 'الاسم' : 'Name'}</th>
+            <th style={thStyle}>{isArabic ? 'الأيقونة/الشعار' : 'Icon/Logo'}</th>
+            <th style={thStyle}>{isArabic ? 'العنوان' : 'Title'}</th>
             <th style={thStyle}>{isArabic ? 'الوصف' : 'Description'}</th>
             <th style={thStyle}>{isArabic ? 'الترتيب' : 'Order'}</th>
             <th style={thStyle}>{isArabic ? 'تاريخ التحديث' : 'Updated'}</th>

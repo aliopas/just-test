@@ -7,6 +7,7 @@ import { useToast } from '../context/ToastContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Logo } from '../components/Logo';
 import { palette } from '../styles/theme';
+import { useCompanyLogoUrl } from '../hooks/usePublicContent';
 import { ApiError } from '../utils/api-client';
 import { getSupabaseBrowserClient } from '../utils/supabase-client';
 import { storeSessionTokens } from '../utils/session-storage';
@@ -14,6 +15,7 @@ import { storeSessionTokens } from '../utils/session-storage';
 export function ResetPasswordPage() {
   const { language } = useLanguage();
   const { pushToast } = useToast();
+  const companyLogoUrl = useCompanyLogoUrl();
   const updatePasswordMutation = useUpdatePasswordViaAPI();
   const resetPasswordMutation = useResetPasswordRequest();
   const verifyTokenMutation = useVerifyResetToken();
@@ -251,7 +253,7 @@ export function ResetPasswordPage() {
         }}
       >
         <div style={{ textAlign: 'center' }}>
-          <Logo size={64} />
+          <Logo size={64} logoUrl={companyLogoUrl} />
         </div>
 
         <header

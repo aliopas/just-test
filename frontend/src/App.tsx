@@ -33,6 +33,7 @@ import { InvestorInternalNewsPage } from './pages/InvestorInternalNewsPage';
 import { AdminProjectsPage } from './pages/AdminProjectsPage';
 import { useNotifications } from './hooks/useNotifications';
 import { useUnreadSignupRequestCount } from './hooks/useAdminAccountRequests';
+import { useCompanyLogoUrl } from './hooks/usePublicContent';
 
 const navLinkStyle: React.CSSProperties = {
   borderRadius: '0.75rem',
@@ -112,6 +113,7 @@ function InvestorSidebarNav(): JSX.Element {
   const logout = useLogout();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const companyLogoUrl = useCompanyLogoUrl();
   const portalName =
     language === 'ar' ? 'شركاء باكورة التقنيات' : 'Bacura Technologies Partners';
   const portalSubtitle =
@@ -260,7 +262,7 @@ function InvestorSidebarNav(): JSX.Element {
               gap: '1rem',
             }}
           >
-            <Logo size={48} showWordmark={false} aria-hidden />
+            <Logo size={48} showWordmark={false} aria-hidden logoUrl={companyLogoUrl} />
             <div
               style={{
                 display: 'flex',
@@ -349,6 +351,7 @@ function HeaderNav(): JSX.Element {
   const logout = useLogout();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+  const companyLogoUrl = useCompanyLogoUrl();
   const portalName =
     language === 'ar' ? 'شركاء باكورة التقنيات' : 'Bacura Technologies Partners';
   const portalSubtitle =
@@ -419,7 +422,7 @@ function HeaderNav(): JSX.Element {
             maxWidth: '100%',
           }}
         >
-          <Logo size={56} showWordmark={false} aria-hidden />
+          <Logo size={56} showWordmark={false} aria-hidden logoUrl={companyLogoUrl} />
           <div
             style={{
               display: 'flex',
@@ -556,7 +559,7 @@ function HeaderNav(): JSX.Element {
             borderBottom: `1px solid ${palette.neutralBorderSoft}`,
           }}
         >
-          <Logo size={48} showWordmark={false} aria-hidden />
+          <Logo size={48} showWordmark={false} aria-hidden logoUrl={companyLogoUrl} />
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen(false)}
@@ -650,6 +653,7 @@ function AdminSidebarNav(): JSX.Element {
   const { language, direction } = useLanguage();
   const logout = useLogout();
   const location = useLocation();
+  const companyLogoUrl = useCompanyLogoUrl();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const portalName =
     language === 'ar' ? 'لوحة تحكم إدارة باكورة' : 'Bakurah Admin Console';
@@ -799,7 +803,7 @@ function AdminSidebarNav(): JSX.Element {
             gap: '1rem',
           }}
         >
-          <Logo size={48} showWordmark={false} aria-hidden />
+          <Logo size={48} showWordmark={false} aria-hidden logoUrl={companyLogoUrl} />
           <div
             style={{
               display: 'flex',
@@ -925,6 +929,7 @@ function AdminSidebarNav(): JSX.Element {
 function AppFooter(): JSX.Element {
   const { language } = useLanguage();
   const isArabic = language === 'ar';
+  const companyLogoUrl = useCompanyLogoUrl();
   
   return (
     <footer
@@ -939,7 +944,7 @@ function AppFooter(): JSX.Element {
         gap: '1rem',
       }}
     >
-      <Logo size={96} stacked tagline="Bacura · Empowering smart capital" />
+      <Logo size={96} stacked tagline="Bacura · Empowering smart capital" logoUrl={companyLogoUrl} />
       <div
         style={{
           marginTop: '1.5rem',

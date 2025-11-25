@@ -5,6 +5,7 @@ import { useToast } from '../context/ToastContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Logo } from '../components/Logo';
 import { palette } from '../styles/theme';
+import { useCompanyLogoUrl } from '../hooks/usePublicContent';
 import { ApiError } from '../utils/api-client';
 
 type RegisterFormState = {
@@ -20,6 +21,7 @@ export function RegisterPage() {
   const { language } = useLanguage();
   const navigate = useNavigate();
   const { pushToast } = useToast();
+  const companyLogoUrl = useCompanyLogoUrl();
   const registerMutation = useRegister();
   const [form, setForm] = useState<RegisterFormState>({
     fullName: '',
@@ -118,7 +120,7 @@ export function RegisterPage() {
             textAlign: direction === 'rtl' ? 'right' : 'left',
           }}
         >
-          <Logo size={64} stacked />
+          <Logo size={64} stacked logoUrl={companyLogoUrl} />
           <div>
             <h1
               style={{

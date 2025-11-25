@@ -81,7 +81,7 @@ type ContentTab =
 
 const TABS: Array<{ id: ContentTab; labelAr: string; labelEn: string }> = [
   { id: 'profiles', labelAr: 'البروفايل التعريفي', labelEn: 'Company Profile' },
-  { id: 'clients', labelAr: 'العملاء', labelEn: 'Clients' },
+  { id: 'clients', labelAr: 'نموذج العمل التجاري', labelEn: 'Business Model' },
   { id: 'resources', labelAr: 'الموارد المالية', labelEn: 'Financial Resources' },
   { id: 'strengths', labelAr: 'نقاط القوة', labelEn: 'Strengths' },
   { id: 'partnership', labelAr: 'معلومات الشراكة', labelEn: 'Partnership Info' },
@@ -430,8 +430,8 @@ function AdminCompanyContentPageInner() {
           }}
         >
           {isArabic
-            ? 'إدارة محتوى الصفحة الرئيسية: البروفايل، العملاء، الموارد، نقاط القوة، معلومات الشراكة، القيمة السوقية، والأهداف'
-            : 'Manage homepage content: profiles, clients, resources, strengths, partnership info, market value, and goals'}
+            ? 'إدارة محتوى الصفحة الرئيسية: البروفايل، نموذج العمل التجاري، الموارد، نقاط القوة، معلومات الشراكة، القيمة السوقية، والأهداف'
+            : 'Manage homepage content: profiles, business model, resources, strengths, partnership info, market value, and goals'}
         </p>
       </header>
 
@@ -542,7 +542,7 @@ function AdminCompanyContentPageInner() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: palette.textPrimary }}>
-                {isArabic ? 'العملاء' : 'Company Clients'}
+                {isArabic ? 'نموذج العمل التجاري للشركة' : 'Company Business Model'}
               </h2>
               <button
                 type="button"
@@ -558,7 +558,7 @@ function AdminCompanyContentPageInner() {
                   fontWeight: 600,
                 }}
               >
-                {isArabic ? '+ إضافة عميل جديد' : '+ Add New Client'}
+                {isArabic ? '+ إضافة نموذج عمل جديد' : '+ Add Business Model Item'}
               </button>
             </div>
             <CompanyClientsTable
@@ -568,11 +568,11 @@ function AdminCompanyContentPageInner() {
               onRetry={refetchClients}
               onEdit={handleEdit}
               onDelete={async (client) => {
-                if (window.confirm(isArabic ? 'هل أنت متأكد من حذف هذا العميل؟' : 'Are you sure you want to delete this client?')) {
+                if (window.confirm(isArabic ? 'هل أنت متأكد من حذف هذا النموذج؟' : 'Are you sure you want to delete this business model item?')) {
                   try {
                     await deleteClientMutation.mutateAsync(client.id);
                     pushToast({
-                      message: isArabic ? 'تم حذف العميل بنجاح' : 'Client deleted successfully',
+                      message: isArabic ? 'تم حذف النموذج بنجاح' : 'Business model item deleted successfully',
                       variant: 'success',
                     });
                     refetchClients();
@@ -867,13 +867,13 @@ function AdminCompanyContentPageInner() {
             if (drawer.mode === 'create') {
               await createClientMutation.mutateAsync(values);
               pushToast({
-                message: isArabic ? 'تم إضافة العميل بنجاح' : 'Client created successfully',
+                message: isArabic ? 'تم إضافة النموذج بنجاح' : 'Business model item created successfully',
                 variant: 'success',
               });
             } else if (drawer.client?.id) {
               await updateClientMutation.mutateAsync({ id: drawer.client.id, payload: values });
               pushToast({
-                message: isArabic ? 'تم تحديث العميل بنجاح' : 'Client updated successfully',
+                message: isArabic ? 'تم تحديث النموذج بنجاح' : 'Business model item updated successfully',
                 variant: 'success',
               });
             }
@@ -897,13 +897,13 @@ function AdminCompanyContentPageInner() {
         }}
         onDelete={async () => {
           if (!drawer.client?.id) return;
-          if (!window.confirm(isArabic ? 'هل أنت متأكد من حذف هذا العميل؟' : 'Are you sure you want to delete this client?')) {
+          if (!window.confirm(isArabic ? 'هل أنت متأكد من حذف هذا النموذج؟' : 'Are you sure you want to delete this business model item?')) {
             return;
           }
           try {
             await deleteClientMutation.mutateAsync(drawer.client.id);
             pushToast({
-              message: isArabic ? 'تم حذف العميل بنجاح' : 'Client deleted successfully',
+              message: isArabic ? 'تم حذف النموذج بنجاح' : 'Business model item deleted successfully',
               variant: 'success',
             });
             refetchClients();

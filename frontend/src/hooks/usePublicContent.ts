@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../utils/api-client';
 import { useLanguage } from '../context/LanguageContext';
+import { useMemo } from 'react';
+import { getStoragePublicUrl, COMPANY_CONTENT_IMAGES_BUCKET } from '../utils/supabase-storage';
 
 // Types
 export interface PublicCompanyProfile {
@@ -215,5 +217,27 @@ export function usePublicCompanyGoals() {
       }),
     staleTime: 5 * 60 * 1000,
   });
+}
+
+/**
+ * Hook to get the company logo URL from the first company profile
+ * Returns null if no profile with iconKey exists
+ */
+export function useCompanyLogoUrl(): string | null {
+  const { data: profilesData } = usePublicCompanyProfiles();
+  
+  return useMemo(() => {
+    const profiles = profilesData?.profiles ?? [];
+    // Get the first profile with an iconKey, sorted by displayOrder
+    const profileWithLogo = profiles
+      .filter(p => p.iconKey)
+      .sort((a, b) => a.displayOrder - b.displayOrder)[0];
+    
+    if (!profileWithLogo?.iconKey) {
+      return null;
+    }
+    
+    return getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, profileWithLogo.iconKey);
+  }, [profilesData]);
 }
 
