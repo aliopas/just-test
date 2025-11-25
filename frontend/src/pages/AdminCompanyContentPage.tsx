@@ -23,10 +23,16 @@ import {
   useCreateCompanyResourceMutation,
   useUpdateCompanyResourceMutation,
   useDeleteCompanyResourceMutation,
+  useAdminCompanyStrengths,
+  useAdminCompanyStrengthDetail,
+  useCreateCompanyStrengthMutation,
+  useUpdateCompanyStrengthMutation,
+  useDeleteCompanyStrengthMutation,
   useCompanyContentImagePresignMutation,
   type CompanyProfile,
   type CompanyClient,
   type CompanyResource,
+  type CompanyStrength,
 } from '../hooks/useAdminCompanyContent';
 import { CompanyProfilesTable } from '../components/admin/company-content/CompanyProfilesTable';
 import { CompanyProfileFormDrawer } from '../components/admin/company-content/CompanyProfileFormDrawer';
@@ -34,6 +40,8 @@ import { CompanyClientsTable } from '../components/admin/company-content/Company
 import { CompanyClientFormDrawer } from '../components/admin/company-content/CompanyClientFormDrawer';
 import { CompanyResourcesTable } from '../components/admin/company-content/CompanyResourcesTable';
 import { CompanyResourceFormDrawer } from '../components/admin/company-content/CompanyResourceFormDrawer';
+import { CompanyStrengthsTable } from '../components/admin/company-content/CompanyStrengthsTable';
+import { CompanyStrengthFormDrawer } from '../components/admin/company-content/CompanyStrengthFormDrawer';
 import { ApiError } from '../utils/api-client';
 
 const queryClient = new QueryClient();
@@ -63,6 +71,7 @@ type DrawerState = {
   profile: CompanyProfile | null;
   client: CompanyClient | null;
   resource: CompanyResource | null;
+  strength: CompanyStrength | null;
 };
 
 function AdminCompanyContentPageInner() {
@@ -75,6 +84,7 @@ function AdminCompanyContentPageInner() {
     profile: null,
     client: null,
     resource: null,
+    strength: null,
   });
 
   const activeTabLabel = TABS.find((tab) => tab.id === activeTab);
@@ -101,6 +111,13 @@ function AdminCompanyContentPageInner() {
   const updateResourceMutation = useUpdateCompanyResourceMutation();
   const deleteResourceMutation = useDeleteCompanyResourceMutation();
 
+  // Strengths hooks
+  const { data: strengthsData, isLoading: isLoadingStrengths, isError: isErrorStrengths, refetch: refetchStrengths } = useAdminCompanyStrengths();
+  const strengths = strengthsData?.strengths ?? [];
+  const createStrengthMutation = useCreateCompanyStrengthMutation();
+  const updateStrengthMutation = useUpdateCompanyStrengthMutation();
+  const deleteStrengthMutation = useDeleteCompanyStrengthMutation();
+
   const presignMutation = useCompanyContentImagePresignMutation();
 
   const detailQuery = useAdminCompanyProfileDetail(
@@ -111,6 +128,9 @@ function AdminCompanyContentPageInner() {
   );
   const resourceDetailQuery = useAdminCompanyResourceDetail(
     drawer.open && drawer.mode === 'edit' && activeTab === 'resources' ? drawer.resource?.id ?? null : null
+  );
+  const strengthDetailQuery = useAdminCompanyStrengthDetail(
+    drawer.open && drawer.mode === 'edit' && activeTab === 'strengths' ? drawer.strength?.id ?? null : null
   );
 
   const selectedProfile = useMemo(() => {
@@ -134,23 +154,34 @@ function AdminCompanyContentPageInner() {
     return drawer.resource;
   }, [drawer.resource, drawer.mode, resourceDetailQuery.data]);
 
+  const selectedStrength = useMemo(() => {
+    if (drawer.strength && drawer.strength.id && drawer.mode === 'edit') {
+      return strengthDetailQuery.data ?? drawer.strength;
+    }
+    return drawer.strength;
+  }, [drawer.strength, drawer.mode, strengthDetailQuery.data]);
+
   const handleCreate = () => {
     if (activeTab === 'profiles') {
-      setDrawer({ mode: 'create', open: true, profile: null, client: null, resource: null });
+      setDrawer({ mode: 'create', open: true, profile: null, client: null, resource: null, strength: null });
     } else if (activeTab === 'clients') {
-      setDrawer({ mode: 'create', open: true, profile: null, client: null, resource: null });
+      setDrawer({ mode: 'create', open: true, profile: null, client: null, resource: null, strength: null });
     } else if (activeTab === 'resources') {
-      setDrawer({ mode: 'create', open: true, profile: null, client: null, resource: null });
+      setDrawer({ mode: 'create', open: true, profile: null, client: null, resource: null, strength: null });
+    } else if (activeTab === 'strengths') {
+      setDrawer({ mode: 'create', open: true, profile: null, client: null, resource: null, strength: null });
     }
   };
 
-  const handleEdit = (item: CompanyProfile | CompanyClient | CompanyResource) => {
+  const handleEdit = (item: CompanyProfile | CompanyClient | CompanyResource | CompanyStrength) => {
     if (activeTab === 'profiles') {
-      setDrawer({ mode: 'edit', open: true, profile: item as CompanyProfile, client: null, resource: null });
+      setDrawer({ mode: 'edit', open: true, profile: item as CompanyProfile, client: null, resource: null, strength: null });
     } else if (activeTab === 'clients') {
-      setDrawer({ mode: 'edit', open: true, profile: null, client: item as CompanyClient, resource: null });
+      setDrawer({ mode: 'edit', open: true, profile: null, client: item as CompanyClient, resource: null, strength: null });
     } else if (activeTab === 'resources') {
-      setDrawer({ mode: 'edit', open: true, profile: null, client: null, resource: item as CompanyResource });
+      setDrawer({ mode: 'edit', open: true, profile: null, client: null, resource: item as CompanyResource, strength: null });
+    } else if (activeTab === 'strengths') {
+      setDrawer({ mode: 'edit', open: true, profile: null, client: null, resource: null, strength: item as CompanyStrength });
     }
   };
 
@@ -494,7 +525,57 @@ function AdminCompanyContentPageInner() {
           </div>
         )}
 
-        {activeTab !== 'profiles' && activeTab !== 'clients' && activeTab !== 'resources' && (
+        {activeTab === 'strengths' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: palette.textPrimary }}>
+                {isArabic ? 'نقاط القوة' : 'Company Strengths'}
+              </h2>
+              <button
+                type="button"
+                onClick={handleCreate}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '0.5rem',
+                  border: 'none',
+                  background: palette.brandPrimaryStrong,
+                  color: '#FFFFFF',
+                  cursor: 'pointer',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                }}
+              >
+                {isArabic ? '+ إضافة نقطة قوة جديدة' : '+ Add New Strength'}
+              </button>
+            </div>
+            <CompanyStrengthsTable
+              strengths={strengths}
+              isLoading={isLoadingStrengths}
+              isError={isErrorStrengths}
+              onRetry={refetchStrengths}
+              onEdit={handleEdit}
+              onDelete={async (strength) => {
+                if (window.confirm(isArabic ? 'هل أنت متأكد من حذف هذه النقطة؟' : 'Are you sure you want to delete this strength?')) {
+                  try {
+                    await deleteStrengthMutation.mutateAsync(strength.id);
+                    pushToast({
+                      message: isArabic ? 'تم حذف النقطة بنجاح' : 'Strength deleted successfully',
+                      variant: 'success',
+                    });
+                    refetchStrengths();
+                  } catch (error) {
+                    pushToast({
+                      message: error instanceof Error ? error.message : isArabic ? 'حدث خطأ أثناء الحذف' : 'An error occurred',
+                      variant: 'error',
+                    });
+                  }
+                }
+              }}
+            />
+          </div>
+        )}
+
+        {activeTab !== 'profiles' && activeTab !== 'clients' && activeTab !== 'resources' && activeTab !== 'strengths' && (
           <div
             style={{
               padding: '3rem',
@@ -666,6 +747,78 @@ function AdminCompanyContentPageInner() {
         }}
         submitting={createResourceMutation.isPending || updateResourceMutation.isPending}
         deleting={deleteResourceMutation.isPending}
+        onPresignImage={(file) => handlePresignImage(file, 'icon')}
+      />
+
+      <CompanyStrengthFormDrawer
+        open={drawer.open && activeTab === 'strengths'}
+        mode={drawer.mode}
+        strength={selectedStrength}
+        isLoadingDetail={drawer.mode === 'edit' && drawer.open && activeTab === 'strengths' ? strengthDetailQuery.isFetching || strengthDetailQuery.isLoading : false}
+        onClose={handleCloseDrawer}
+        onSubmit={async (values) => {
+          try {
+            if (drawer.mode === 'create') {
+              await createStrengthMutation.mutateAsync(values);
+              pushToast({
+                message: isArabic ? 'تم إضافة النقطة بنجاح' : 'Strength created successfully',
+                variant: 'success',
+              });
+            } else if (drawer.strength?.id) {
+              await updateStrengthMutation.mutateAsync({ id: drawer.strength.id, payload: values });
+              pushToast({
+                message: isArabic ? 'تم تحديث النقطة بنجاح' : 'Strength updated successfully',
+                variant: 'success',
+              });
+            }
+            refetchStrengths();
+            handleCloseDrawer();
+          } catch (error) {
+            const message =
+              error instanceof ApiError
+                ? error.message
+                : error instanceof Error
+                  ? error.message
+                  : isArabic
+                    ? 'حدث خطأ أثناء الحفظ'
+                    : 'An error occurred while saving';
+            pushToast({
+              message,
+              variant: 'error',
+            });
+            throw error;
+          }
+        }}
+        onDelete={async () => {
+          if (!drawer.strength?.id) return;
+          if (!window.confirm(isArabic ? 'هل أنت متأكد من حذف هذه النقطة؟' : 'Are you sure you want to delete this strength?')) {
+            return;
+          }
+          try {
+            await deleteStrengthMutation.mutateAsync(drawer.strength.id);
+            pushToast({
+              message: isArabic ? 'تم حذف النقطة بنجاح' : 'Strength deleted successfully',
+              variant: 'success',
+            });
+            refetchStrengths();
+            handleCloseDrawer();
+          } catch (error) {
+            const message =
+              error instanceof ApiError
+                ? error.message
+                : error instanceof Error
+                  ? error.message
+                  : isArabic
+                    ? 'حدث خطأ أثناء الحذف'
+                    : 'An error occurred while deleting';
+            pushToast({
+              message,
+              variant: 'error',
+            });
+          }
+        }}
+        submitting={createStrengthMutation.isPending || updateStrengthMutation.isPending}
+        deleting={deleteStrengthMutation.isPending}
         onPresignImage={(file) => handlePresignImage(file, 'icon')}
       />
     </div>
