@@ -18,14 +18,22 @@ import {
   useCreateCompanyClientMutation,
   useUpdateCompanyClientMutation,
   useDeleteCompanyClientMutation,
+  useAdminCompanyResources,
+  useAdminCompanyResourceDetail,
+  useCreateCompanyResourceMutation,
+  useUpdateCompanyResourceMutation,
+  useDeleteCompanyResourceMutation,
   useCompanyContentImagePresignMutation,
   type CompanyProfile,
   type CompanyClient,
+  type CompanyResource,
 } from '../hooks/useAdminCompanyContent';
 import { CompanyProfilesTable } from '../components/admin/company-content/CompanyProfilesTable';
 import { CompanyProfileFormDrawer } from '../components/admin/company-content/CompanyProfileFormDrawer';
 import { CompanyClientsTable } from '../components/admin/company-content/CompanyClientsTable';
 import { CompanyClientFormDrawer } from '../components/admin/company-content/CompanyClientFormDrawer';
+import { CompanyResourcesTable } from '../components/admin/company-content/CompanyResourcesTable';
+import { CompanyResourceFormDrawer } from '../components/admin/company-content/CompanyResourceFormDrawer';
 import { ApiError } from '../utils/api-client';
 
 const queryClient = new QueryClient();
@@ -54,6 +62,7 @@ type DrawerState = {
   open: boolean;
   profile: CompanyProfile | null;
   client: CompanyClient | null;
+  resource: CompanyResource | null;
 };
 
 function AdminCompanyContentPageInner() {
@@ -64,7 +73,8 @@ function AdminCompanyContentPageInner() {
     mode: 'create',
     open: false,
     profile: null,
-    partner: null,
+    client: null,
+    resource: null,
   });
 
   const activeTabLabel = TABS.find((tab) => tab.id === activeTab);
@@ -77,20 +87,30 @@ function AdminCompanyContentPageInner() {
   const updateMutation = useUpdateCompanyProfileMutation();
   const deleteMutation = useDeleteCompanyProfileMutation();
 
-  // Partners hooks
-  const { data: partnersData, isLoading: isLoadingPartners, isError: isErrorPartners, refetch: refetchPartners } = useAdminCompanyPartners();
-  const partners = partnersData?.partners ?? [];
-  const createPartnerMutation = useCreateCompanyPartnerMutation();
-  const updatePartnerMutation = useUpdateCompanyPartnerMutation();
-  const deletePartnerMutation = useDeleteCompanyPartnerMutation();
+  // Clients hooks
+  const { data: clientsData, isLoading: isLoadingClients, isError: isErrorClients, refetch: refetchClients } = useAdminCompanyClients();
+  const clients = clientsData?.clients ?? [];
+  const createClientMutation = useCreateCompanyClientMutation();
+  const updateClientMutation = useUpdateCompanyClientMutation();
+  const deleteClientMutation = useDeleteCompanyClientMutation();
+
+  // Resources hooks
+  const { data: resourcesData, isLoading: isLoadingResources, isError: isErrorResources, refetch: refetchResources } = useAdminCompanyResources();
+  const resources = resourcesData?.resources ?? [];
+  const createResourceMutation = useCreateCompanyResourceMutation();
+  const updateResourceMutation = useUpdateCompanyResourceMutation();
+  const deleteResourceMutation = useDeleteCompanyResourceMutation();
 
   const presignMutation = useCompanyContentImagePresignMutation();
 
   const detailQuery = useAdminCompanyProfileDetail(
     drawer.open && drawer.mode === 'edit' && activeTab === 'profiles' ? drawer.profile?.id ?? null : null
   );
-  const partnerDetailQuery = useAdminCompanyPartnerDetail(
-    drawer.open && drawer.mode === 'edit' && activeTab === 'partners' ? drawer.partner?.id ?? null : null
+  const clientDetailQuery = useAdminCompanyClientDetail(
+    drawer.open && drawer.mode === 'edit' && activeTab === 'clients' ? drawer.client?.id ?? null : null
+  );
+  const resourceDetailQuery = useAdminCompanyResourceDetail(
+    drawer.open && drawer.mode === 'edit' && activeTab === 'resources' ? drawer.resource?.id ?? null : null
   );
 
   const selectedProfile = useMemo(() => {
@@ -100,26 +120,37 @@ function AdminCompanyContentPageInner() {
     return drawer.profile;
   }, [drawer.profile, drawer.mode, detailQuery.data]);
 
-  const selectedPartner = useMemo(() => {
-    if (drawer.partner && drawer.partner.id && drawer.mode === 'edit') {
-      return partnerDetailQuery.data ?? drawer.partner;
+  const selectedClient = useMemo(() => {
+    if (drawer.client && drawer.client.id && drawer.mode === 'edit') {
+      return clientDetailQuery.data ?? drawer.client;
     }
-    return drawer.partner;
-  }, [drawer.partner, drawer.mode, partnerDetailQuery.data]);
+    return drawer.client;
+  }, [drawer.client, drawer.mode, clientDetailQuery.data]);
+
+  const selectedResource = useMemo(() => {
+    if (drawer.resource && drawer.resource.id && drawer.mode === 'edit') {
+      return resourceDetailQuery.data ?? drawer.resource;
+    }
+    return drawer.resource;
+  }, [drawer.resource, drawer.mode, resourceDetailQuery.data]);
 
   const handleCreate = () => {
     if (activeTab === 'profiles') {
-      setDrawer({ mode: 'create', open: true, profile: null, partner: null });
-    } else if (activeTab === 'partners') {
-      setDrawer({ mode: 'create', open: true, profile: null, partner: null });
+      setDrawer({ mode: 'create', open: true, profile: null, client: null, resource: null });
+    } else if (activeTab === 'clients') {
+      setDrawer({ mode: 'create', open: true, profile: null, client: null, resource: null });
+    } else if (activeTab === 'resources') {
+      setDrawer({ mode: 'create', open: true, profile: null, client: null, resource: null });
     }
   };
 
-  const handleEdit = (item: CompanyProfile | CompanyPartner) => {
+  const handleEdit = (item: CompanyProfile | CompanyClient | CompanyResource) => {
     if (activeTab === 'profiles') {
-      setDrawer({ mode: 'edit', open: true, profile: item as CompanyProfile, partner: null });
-    } else if (activeTab === 'partners') {
-      setDrawer({ mode: 'edit', open: true, profile: null, partner: item as CompanyPartner });
+      setDrawer({ mode: 'edit', open: true, profile: item as CompanyProfile, client: null, resource: null });
+    } else if (activeTab === 'clients') {
+      setDrawer({ mode: 'edit', open: true, profile: null, client: item as CompanyClient, resource: null });
+    } else if (activeTab === 'resources') {
+      setDrawer({ mode: 'edit', open: true, profile: null, client: null, resource: item as CompanyResource });
     }
   };
 
@@ -255,8 +286,8 @@ function AdminCompanyContentPageInner() {
           }}
         >
           {isArabic
-            ? 'إدارة محتوى الصفحة الرئيسية: البروفايل، الشركاء، العملاء، الموارد، نقاط القوة، معلومات الشراكة، القيمة السوقية، والأهداف'
-            : 'Manage homepage content: profiles, partners, clients, resources, strengths, partnership info, market value, and goals'}
+            ? 'إدارة محتوى الصفحة الرئيسية: البروفايل، العملاء، الموارد، نقاط القوة، معلومات الشراكة، القيمة السوقية، والأهداف'
+            : 'Manage homepage content: profiles, clients, resources, strengths, partnership info, market value, and goals'}
         </p>
       </header>
 
@@ -363,11 +394,11 @@ function AdminCompanyContentPageInner() {
           </div>
         )}
 
-        {activeTab === 'partners' && (
+        {activeTab === 'clients' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: palette.textPrimary }}>
-                {isArabic ? 'الشركاء' : 'Company Partners'}
+                {isArabic ? 'العملاء' : 'Company Clients'}
               </h2>
               <button
                 type="button"
@@ -383,24 +414,24 @@ function AdminCompanyContentPageInner() {
                   fontWeight: 600,
                 }}
               >
-                {isArabic ? '+ إضافة شريك جديد' : '+ Add New Partner'}
+                {isArabic ? '+ إضافة عميل جديد' : '+ Add New Client'}
               </button>
             </div>
-            <CompanyPartnersTable
-              partners={partners}
-              isLoading={isLoadingPartners}
-              isError={isErrorPartners}
-              onRetry={refetchPartners}
+            <CompanyClientsTable
+              clients={clients}
+              isLoading={isLoadingClients}
+              isError={isErrorClients}
+              onRetry={refetchClients}
               onEdit={handleEdit}
-              onDelete={async (partner) => {
-                if (window.confirm(isArabic ? 'هل أنت متأكد من حذف هذا الشريك؟' : 'Are you sure you want to delete this partner?')) {
+              onDelete={async (client) => {
+                if (window.confirm(isArabic ? 'هل أنت متأكد من حذف هذا العميل؟' : 'Are you sure you want to delete this client?')) {
                   try {
-                    await deletePartnerMutation.mutateAsync(partner.id);
+                    await deleteClientMutation.mutateAsync(client.id);
                     pushToast({
-                      message: isArabic ? 'تم حذف الشريك بنجاح' : 'Partner deleted successfully',
+                      message: isArabic ? 'تم حذف العميل بنجاح' : 'Client deleted successfully',
                       variant: 'success',
                     });
-                    refetchPartners();
+                    refetchClients();
                   } catch (error) {
                     pushToast({
                       message: error instanceof Error ? error.message : isArabic ? 'حدث خطأ أثناء الحذف' : 'An error occurred',
@@ -413,7 +444,57 @@ function AdminCompanyContentPageInner() {
           </div>
         )}
 
-        {activeTab !== 'profiles' && activeTab !== 'partners' && (
+        {activeTab === 'resources' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: palette.textPrimary }}>
+                {isArabic ? 'الموارد المالية' : 'Financial Resources'}
+              </h2>
+              <button
+                type="button"
+                onClick={handleCreate}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '0.5rem',
+                  border: 'none',
+                  background: palette.brandPrimaryStrong,
+                  color: '#FFFFFF',
+                  cursor: 'pointer',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                }}
+              >
+                {isArabic ? '+ إضافة مورد جديد' : '+ Add New Resource'}
+              </button>
+            </div>
+            <CompanyResourcesTable
+              resources={resources}
+              isLoading={isLoadingResources}
+              isError={isErrorResources}
+              onRetry={refetchResources}
+              onEdit={handleEdit}
+              onDelete={async (resource) => {
+                if (window.confirm(isArabic ? 'هل أنت متأكد من حذف هذا المورد؟' : 'Are you sure you want to delete this resource?')) {
+                  try {
+                    await deleteResourceMutation.mutateAsync(resource.id);
+                    pushToast({
+                      message: isArabic ? 'تم حذف المورد بنجاح' : 'Resource deleted successfully',
+                      variant: 'success',
+                    });
+                    refetchResources();
+                  } catch (error) {
+                    pushToast({
+                      message: error instanceof Error ? error.message : isArabic ? 'حدث خطأ أثناء الحذف' : 'An error occurred',
+                      variant: 'error',
+                    });
+                  }
+                }
+              }}
+            />
+          </div>
+        )}
+
+        {activeTab !== 'profiles' && activeTab !== 'clients' && activeTab !== 'resources' && (
           <div
             style={{
               padding: '3rem',
@@ -444,28 +525,28 @@ function AdminCompanyContentPageInner() {
         onPresignImage={(file) => handlePresignImage(file, 'icon')}
       />
 
-      <CompanyPartnerFormDrawer
-        open={drawer.open && activeTab === 'partners'}
+      <CompanyClientFormDrawer
+        open={drawer.open && activeTab === 'clients'}
         mode={drawer.mode}
-        partner={selectedPartner}
-        isLoadingDetail={drawer.mode === 'edit' && drawer.open && activeTab === 'partners' ? partnerDetailQuery.isFetching || partnerDetailQuery.isLoading : false}
+        client={selectedClient}
+        isLoadingDetail={drawer.mode === 'edit' && drawer.open && activeTab === 'clients' ? clientDetailQuery.isFetching || clientDetailQuery.isLoading : false}
         onClose={handleCloseDrawer}
         onSubmit={async (values) => {
           try {
             if (drawer.mode === 'create') {
-              await createPartnerMutation.mutateAsync(values);
+              await createClientMutation.mutateAsync(values);
               pushToast({
-                message: isArabic ? 'تم إضافة الشريك بنجاح' : 'Partner created successfully',
+                message: isArabic ? 'تم إضافة العميل بنجاح' : 'Client created successfully',
                 variant: 'success',
               });
-            } else if (drawer.partner?.id) {
-              await updatePartnerMutation.mutateAsync({ id: drawer.partner.id, payload: values });
+            } else if (drawer.client?.id) {
+              await updateClientMutation.mutateAsync({ id: drawer.client.id, payload: values });
               pushToast({
-                message: isArabic ? 'تم تحديث الشريك بنجاح' : 'Partner updated successfully',
+                message: isArabic ? 'تم تحديث العميل بنجاح' : 'Client updated successfully',
                 variant: 'success',
               });
             }
-            refetchPartners();
+            refetchClients();
             handleCloseDrawer();
           } catch (error) {
             const message =
@@ -484,17 +565,17 @@ function AdminCompanyContentPageInner() {
           }
         }}
         onDelete={async () => {
-          if (!drawer.partner?.id) return;
-          if (!window.confirm(isArabic ? 'هل أنت متأكد من حذف هذا الشريك؟' : 'Are you sure you want to delete this partner?')) {
+          if (!drawer.client?.id) return;
+          if (!window.confirm(isArabic ? 'هل أنت متأكد من حذف هذا العميل؟' : 'Are you sure you want to delete this client?')) {
             return;
           }
           try {
-            await deletePartnerMutation.mutateAsync(drawer.partner.id);
+            await deleteClientMutation.mutateAsync(drawer.client.id);
             pushToast({
-              message: isArabic ? 'تم حذف الشريك بنجاح' : 'Partner deleted successfully',
+              message: isArabic ? 'تم حذف العميل بنجاح' : 'Client deleted successfully',
               variant: 'success',
             });
-            refetchPartners();
+            refetchClients();
             handleCloseDrawer();
           } catch (error) {
             const message =
@@ -511,9 +592,81 @@ function AdminCompanyContentPageInner() {
             });
           }
         }}
-        submitting={createPartnerMutation.isPending || updatePartnerMutation.isPending}
-        deleting={deletePartnerMutation.isPending}
+        submitting={createClientMutation.isPending || updateClientMutation.isPending}
+        deleting={deleteClientMutation.isPending}
         onPresignImage={(file) => handlePresignImage(file, 'logo')}
+      />
+
+      <CompanyResourceFormDrawer
+        open={drawer.open && activeTab === 'resources'}
+        mode={drawer.mode}
+        resource={selectedResource}
+        isLoadingDetail={drawer.mode === 'edit' && drawer.open && activeTab === 'resources' ? resourceDetailQuery.isFetching || resourceDetailQuery.isLoading : false}
+        onClose={handleCloseDrawer}
+        onSubmit={async (values) => {
+          try {
+            if (drawer.mode === 'create') {
+              await createResourceMutation.mutateAsync(values);
+              pushToast({
+                message: isArabic ? 'تم إضافة المورد بنجاح' : 'Resource created successfully',
+                variant: 'success',
+              });
+            } else if (drawer.resource?.id) {
+              await updateResourceMutation.mutateAsync({ id: drawer.resource.id, payload: values });
+              pushToast({
+                message: isArabic ? 'تم تحديث المورد بنجاح' : 'Resource updated successfully',
+                variant: 'success',
+              });
+            }
+            refetchResources();
+            handleCloseDrawer();
+          } catch (error) {
+            const message =
+              error instanceof ApiError
+                ? error.message
+                : error instanceof Error
+                  ? error.message
+                  : isArabic
+                    ? 'حدث خطأ أثناء الحفظ'
+                    : 'An error occurred while saving';
+            pushToast({
+              message,
+              variant: 'error',
+            });
+            throw error;
+          }
+        }}
+        onDelete={async () => {
+          if (!drawer.resource?.id) return;
+          if (!window.confirm(isArabic ? 'هل أنت متأكد من حذف هذا المورد؟' : 'Are you sure you want to delete this resource?')) {
+            return;
+          }
+          try {
+            await deleteResourceMutation.mutateAsync(drawer.resource.id);
+            pushToast({
+              message: isArabic ? 'تم حذف المورد بنجاح' : 'Resource deleted successfully',
+              variant: 'success',
+            });
+            refetchResources();
+            handleCloseDrawer();
+          } catch (error) {
+            const message =
+              error instanceof ApiError
+                ? error.message
+                : error instanceof Error
+                  ? error.message
+                  : isArabic
+                    ? 'حدث خطأ أثناء الحذف'
+                    : 'An error occurred while deleting';
+            pushToast({
+              message,
+              variant: 'error',
+            });
+          }
+        }}
+        submitting={createResourceMutation.isPending || updateResourceMutation.isPending}
+        deleting={deleteResourceMutation.isPending}
+        onPresignImage={(file) => handlePresignImage(file, 'icon')}
       />
     </div>
   );
