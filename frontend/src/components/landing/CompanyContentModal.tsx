@@ -305,8 +305,12 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
           <div
             style={{
               whiteSpace: 'pre-wrap',
-              lineHeight: 1.8,
-              color: palette.textSecondary,
+              lineHeight: 1.9,
+              color: palette.textPrimary,
+              fontSize: '1.1rem',
+              padding: '1.5rem',
+              borderRadius: '1rem',
+              background: palette.backgroundBase,
             }}
           >
             {content.content}
@@ -505,18 +509,22 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
             </div>
           )}
           {content.description ? (
-            <p
+            <div
               style={{
                 margin: 0,
-                lineHeight: 1.8,
-                color: palette.textSecondary,
+                lineHeight: 1.9,
+                color: palette.textPrimary,
                 textAlign: 'center',
-                maxWidth: '600px',
+                maxWidth: '700px',
                 whiteSpace: 'pre-wrap',
+                fontSize: '1.1rem',
+                padding: '1.5rem',
+                borderRadius: '1rem',
+                background: palette.backgroundBase,
               }}
             >
               {content.description}
-            </p>
+            </div>
           ) : (
             <p
               style={{
@@ -526,6 +534,7 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
                 textAlign: 'center',
                 maxWidth: '600px',
                 fontStyle: 'italic',
+                fontSize: '1rem',
               }}
             >
               {isArabic ? 'لا يوجد وصف متاح' : 'No description available'}
@@ -552,18 +561,22 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
             </div>
           )}
           {content.description ? (
-            <p
+            <div
               style={{
                 margin: 0,
-                lineHeight: 1.8,
-                color: palette.textSecondary,
+                lineHeight: 1.9,
+                color: palette.textPrimary,
                 textAlign: 'center',
-                maxWidth: '600px',
+                maxWidth: '700px',
                 whiteSpace: 'pre-wrap',
+                fontSize: '1.1rem',
+                padding: '1.5rem',
+                borderRadius: '1rem',
+                background: palette.backgroundBase,
               }}
             >
               {content.description}
-            </p>
+            </div>
           ) : (
             <p
               style={{
@@ -573,6 +586,7 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
                 textAlign: 'center',
                 maxWidth: '600px',
                 fontStyle: 'italic',
+                fontSize: '1rem',
               }}
             >
               {isArabic ? 'لا يوجد وصف متاح' : 'No description available'}
@@ -584,11 +598,21 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
               target="_blank"
               rel="noopener noreferrer"
               style={{
-                fontSize: '1rem',
+                fontSize: '1.1rem',
                 color: palette.brandPrimaryStrong,
                 textDecoration: 'none',
                 fontWeight: 600,
                 marginTop: '0.5rem',
+                padding: '0.75rem 1.5rem',
+                borderRadius: '0.75rem',
+                background: `${palette.brandPrimaryStrong}10`,
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = `${palette.brandPrimaryStrong}20`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = `${palette.brandPrimaryStrong}10`;
               }}
             >
               {isArabic ? 'زيارة الموقع' : 'Visit Website'} →
@@ -602,31 +626,39 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
       modalContent = (
         <div>
           {content.description && (
-            <p
+            <div
               style={{
                 margin: 0,
-                marginBottom: '1rem',
-                lineHeight: 1.8,
-                color: palette.textSecondary,
+                marginBottom: '1.5rem',
+                lineHeight: 1.9,
+                color: palette.textPrimary,
+                fontSize: '1.1rem',
+                padding: '1.5rem',
+                borderRadius: '1rem',
+                background: palette.backgroundBase,
+                whiteSpace: 'pre-wrap',
               }}
             >
               {content.description}
-            </p>
+            </div>
           )}
           {content.value !== null && (
             <div
               style={{
-                padding: '1.5rem',
+                padding: '2rem',
                 borderRadius: '1rem',
-                background: palette.backgroundBase,
+                background: `linear-gradient(135deg, ${palette.brandPrimaryStrong}15, ${palette.brandSecondarySoft}10)`,
                 marginTop: '1rem',
+                textAlign: 'center',
+                border: `2px solid ${palette.brandPrimaryStrong}30`,
               }}
             >
               <div
                 style={{
-                  fontSize: '2rem',
+                  fontSize: '2.5rem',
                   fontWeight: 700,
                   color: palette.brandPrimaryStrong,
+                  marginBottom: '0.5rem',
                 }}
               >
                 {new Intl.NumberFormat(isArabic ? 'ar-SA' : 'en-US', {
@@ -645,16 +677,20 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
       modalContent = (
         <div>
           {content.description && (
-            <p
+            <div
               style={{
                 margin: 0,
-                lineHeight: 1.8,
-                color: palette.textSecondary,
+                lineHeight: 1.9,
+                color: palette.textPrimary,
                 whiteSpace: 'pre-wrap',
+                fontSize: '1.1rem',
+                padding: '1.5rem',
+                borderRadius: '1rem',
+                background: palette.backgroundBase,
               }}
             >
               {content.description}
-            </p>
+            </div>
           )}
         </div>
       );
@@ -666,9 +702,13 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
           <div
             style={{
               whiteSpace: 'pre-wrap',
-              lineHeight: 1.8,
-              color: palette.textSecondary,
+              lineHeight: 1.9,
+              color: palette.textPrimary,
               marginBottom: '2rem',
+              fontSize: '1.1rem',
+              padding: '1.5rem',
+              borderRadius: '1rem',
+              background: palette.backgroundBase,
             }}
           >
             {content.content}
@@ -678,9 +718,9 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
               <h4
                 style={{
                   margin: 0,
-                  marginBottom: '1rem',
-                  fontSize: '1.25rem',
-                  fontWeight: 600,
+                  marginBottom: '1.5rem',
+                  fontSize: '1.5rem',
+                  fontWeight: 700,
                   color: palette.textPrimary,
                 }}
               >
@@ -692,15 +732,20 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
                   margin: 0,
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '1rem',
+                  gap: '1.25rem',
                 }}
               >
                 {content.steps.map((step, index) => (
                   <li
                     key={index}
                     style={{
-                      lineHeight: 1.8,
-                      color: palette.textSecondary,
+                      lineHeight: 1.9,
+                      color: palette.textPrimary,
+                      fontSize: '1.05rem',
+                      padding: '1rem',
+                      borderRadius: '0.75rem',
+                      background: palette.backgroundBase,
+                      listStylePosition: 'outside',
                     }}
                   >
                     {step}
@@ -814,31 +859,38 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
       modalContent = (
         <div>
           {content.description && (
-            <p
+            <div
               style={{
                 margin: 0,
                 marginBottom: formattedTargetDate ? '1.5rem' : 0,
-                lineHeight: 1.8,
-                color: palette.textSecondary,
+                lineHeight: 1.9,
+                color: palette.textPrimary,
                 whiteSpace: 'pre-wrap',
+                fontSize: '1.1rem',
+                padding: '1.5rem',
+                borderRadius: '1rem',
+                background: palette.backgroundBase,
               }}
             >
               {content.description}
-            </p>
+            </div>
           )}
           {formattedTargetDate && (
             <div
               style={{
-                padding: '1rem',
-                borderRadius: '0.75rem',
-                background: palette.backgroundBase,
+                padding: '1.5rem',
+                borderRadius: '1rem',
+                background: `linear-gradient(135deg, ${palette.brandPrimaryStrong}15, ${palette.brandSecondarySoft}10)`,
                 marginTop: '1rem',
+                border: `2px solid ${palette.brandPrimaryStrong}30`,
               }}
             >
-              <strong style={{ color: palette.textPrimary }}>
+              <strong style={{ color: palette.textPrimary, fontSize: '1.1rem' }}>
                 {isArabic ? 'التاريخ المستهدف: ' : 'Target Date: '}
               </strong>
-              <span style={{ color: palette.textSecondary }}>{formattedTargetDate}</span>
+              <span style={{ color: palette.textPrimary, fontSize: '1.1rem', fontWeight: 600 }}>
+                {formattedTargetDate}
+              </span>
             </div>
           )}
         </div>
