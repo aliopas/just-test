@@ -30,6 +30,91 @@ interface ContentSection {
   displayOrder: number;
 }
 
+function getSectionIcon(sectionId: string, color: string): JSX.Element | null {
+  const iconProps = {
+    width: 72,
+    height: 72,
+    viewBox: '0 0 64 64',
+    fill: 'none',
+    xmlns: 'http://www.w3.org/2000/svg',
+    stroke: color,
+    strokeWidth: 3,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+  } as const;
+
+  switch (sectionId) {
+    case 'company-profile':
+      return (
+        <svg {...iconProps}>
+          <circle cx="32" cy="20" r="10" fill={`${color}20`} stroke="none" />
+          <path d="M16 52C16 42 24 36 32 36C40 36 48 42 48 52" />
+          <circle cx="17" cy="24" r="4" />
+          <circle cx="47" cy="24" r="4" />
+        </svg>
+      );
+    case 'business-model':
+      return (
+        <svg {...iconProps}>
+          <rect x="12" y="30" width="10" height="22" />
+          <rect x="28" y="20" width="10" height="32" />
+          <rect x="44" y="10" width="10" height="42" />
+          <path d="M12 14L30 6L52 14" />
+        </svg>
+      );
+    case 'resources':
+      return (
+        <svg {...iconProps}>
+          <path d="M14 24H50V48C50 52.4183 46.4183 56 42 56H22C17.5817 56 14 52.4183 14 48V24Z" />
+          <path d="M22 16H42L50 24H14L22 16Z" />
+          <path d="M26 34H38" />
+          <path d="M26 42H38" />
+        </svg>
+      );
+    case 'strengths':
+      return (
+        <svg {...iconProps}>
+          <path d="M12 36L28 50L52 14" />
+          <path d="M20 40L28 32" />
+          <path d="M40 24L48 16" />
+        </svg>
+      );
+    case 'partnership':
+      return (
+        <svg {...iconProps}>
+          <path d="M20 50L32 38L44 50" />
+          <circle cx="32" cy="24" r="10" />
+          <path d="M12 18C12 14.6863 14.6863 12 18 12H22" />
+          <path d="M52 18C52 14.6863 49.3137 12 46 12H42" />
+        </svg>
+      );
+    case 'market-value':
+      return (
+        <svg {...iconProps}>
+          <path d="M14 44L26 32L38 40L50 22" />
+          <path d="M10 54H54" />
+          <path d="M14 30V14" />
+          <path d="M26 24V10" />
+          <path d="M38 28V12" />
+          <path d="M50 18V8" />
+        </svg>
+      );
+    case 'goals':
+      return (
+        <svg {...iconProps}>
+          <circle cx="32" cy="32" r="20" />
+          <circle cx="32" cy="32" r="10" />
+          <path d="M32 12V6" />
+          <path d="M32 58V52" />
+          <path d="M12 32H6" />
+          <path d="M58 32H52" />
+        </svg>
+      );
+    default:
+      return null;
+  }
+}
+
 export function CompanyContentSection() {
   const { language, direction } = useLanguage();
   const isArabic = language === 'ar';
@@ -365,6 +450,23 @@ export function CompanyContentSection() {
             position: 'relative',
           }}
         >
+          <div
+            style={{
+              width: '96px',
+              height: '96px',
+              margin: '0 auto 2rem',
+              borderRadius: '24px',
+              background: `${palette.brandSecondarySoft}20`,
+              border: `2px solid ${palette.brandSecondarySoft}50`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            aria-label={section.title}
+          >
+            {getSectionIcon(section.id, palette.brandPrimaryStrong)}
+          </div>
+
           <div
             style={{
               display: 'grid',
