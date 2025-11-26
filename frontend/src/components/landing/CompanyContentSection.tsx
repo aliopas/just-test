@@ -32,82 +32,137 @@ interface ContentSection {
 
 function getSectionIcon(sectionId: string, color: string): JSX.Element | null {
   const iconProps = {
-    width: 72,
-    height: 72,
+    width: 80,
+    height: 80,
     viewBox: '0 0 64 64',
     fill: 'none',
     xmlns: 'http://www.w3.org/2000/svg',
     stroke: color,
-    strokeWidth: 3,
+    strokeWidth: 2.5,
     strokeLinecap: 'round',
     strokeLinejoin: 'round',
+    style: {
+      filter: 'drop-shadow(0 2px 4px rgba(45, 111, 163, 0.15))',
+      transition: 'all 0.3s ease',
+    },
   } as const;
 
   switch (sectionId) {
     case 'company-profile':
       return (
         <svg {...iconProps}>
-          <circle cx="32" cy="20" r="10" fill={`${color}20`} stroke="none" />
-          <path d="M16 52C16 42 24 36 32 36C40 36 48 42 48 52" />
-          <circle cx="17" cy="24" r="4" />
-          <circle cx="47" cy="24" r="4" />
+          <defs>
+            <linearGradient id={`${sectionId}-gradient`} x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={color} stopOpacity="0.3" />
+              <stop offset="100%" stopColor={color} stopOpacity="0.1" />
+            </linearGradient>
+          </defs>
+          <circle cx="32" cy="20" r="10" fill={`url(#${sectionId}-gradient)`} stroke={color} strokeWidth="2" />
+          <path d="M16 52C16 42 24 36 32 36C40 36 48 42 48 52" stroke={color} strokeWidth="2.5" />
+          <circle cx="17" cy="24" r="4" fill={color} opacity="0.6" />
+          <circle cx="47" cy="24" r="4" fill={color} opacity="0.6" />
         </svg>
       );
     case 'business-model':
       return (
         <svg {...iconProps}>
-          <rect x="12" y="30" width="10" height="22" />
-          <rect x="28" y="20" width="10" height="32" />
-          <rect x="44" y="10" width="10" height="42" />
-          <path d="M12 14L30 6L52 14" />
+          <defs>
+            <linearGradient id={`${sectionId}-gradient`} x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={color} stopOpacity="0.25" />
+              <stop offset="100%" stopColor={color} stopOpacity="0.1" />
+            </linearGradient>
+          </defs>
+          <rect x="12" y="30" width="10" height="22" fill={`url(#${sectionId}-gradient)`} stroke={color} strokeWidth="2.5" rx="2" />
+          <rect x="28" y="20" width="10" height="32" fill={`url(#${sectionId}-gradient)`} stroke={color} strokeWidth="2.5" rx="2" />
+          <rect x="44" y="10" width="10" height="42" fill={`url(#${sectionId}-gradient)`} stroke={color} strokeWidth="2.5" rx="2" />
+          <path d="M12 14L30 6L52 14" stroke={color} strokeWidth="2.5" fill="none" />
         </svg>
       );
     case 'resources':
       return (
         <svg {...iconProps}>
-          <path d="M14 24H50V48C50 52.4183 46.4183 56 42 56H22C17.5817 56 14 52.4183 14 48V24Z" />
-          <path d="M22 16H42L50 24H14L22 16Z" />
-          <path d="M26 34H38" />
-          <path d="M26 42H38" />
+          <defs>
+            <linearGradient id={`${sectionId}-gradient`} x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={color} stopOpacity="0.25" />
+              <stop offset="100%" stopColor={color} stopOpacity="0.1" />
+            </linearGradient>
+          </defs>
+          <path d="M14 24H50V48C50 52.4183 46.4183 56 42 56H22C17.5817 56 14 52.4183 14 48V24Z" fill={`url(#${sectionId}-gradient)`} stroke={color} strokeWidth="2.5" />
+          <path d="M22 16H42L50 24H14L22 16Z" fill={`url(#${sectionId}-gradient)`} stroke={color} strokeWidth="2.5" />
+          <path d="M26 34H38" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M26 42H38" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
         </svg>
       );
     case 'strengths':
       return (
         <svg {...iconProps}>
-          <path d="M12 36L28 50L52 14" />
-          <path d="M20 40L28 32" />
-          <path d="M40 24L48 16" />
+          <defs>
+            <linearGradient id={`${sectionId}-gradient`} x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={color} stopOpacity="0.3" />
+              <stop offset="100%" stopColor={color} stopOpacity="0.15" />
+            </linearGradient>
+          </defs>
+          <circle cx="32" cy="32" r="24" fill={`url(#${sectionId}-gradient)`} opacity="0.3" />
+          <path d="M12 36L28 50L52 14" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M20 40L28 32" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M40 24L48 16" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
         </svg>
       );
     case 'partnership':
       return (
         <svg {...iconProps}>
-          <path d="M20 50L32 38L44 50" />
-          <circle cx="32" cy="24" r="10" />
-          <path d="M12 18C12 14.6863 14.6863 12 18 12H22" />
-          <path d="M52 18C52 14.6863 49.3137 12 46 12H42" />
+          <defs>
+            <linearGradient id={`${sectionId}-gradient`} x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={color} stopOpacity="0.3" />
+              <stop offset="100%" stopColor={color} stopOpacity="0.15" />
+            </linearGradient>
+          </defs>
+          <path d="M20 50L32 38L44 50" fill={`url(#${sectionId}-gradient)`} stroke={color} strokeWidth="2.5" strokeLinejoin="round" />
+          <circle cx="32" cy="24" r="10" fill={`url(#${sectionId}-gradient)`} stroke={color} strokeWidth="2.5" />
+          <path d="M12 18C12 14.6863 14.6863 12 18 12H22" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M52 18C52 14.6863 49.3137 12 46 12H42" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
         </svg>
       );
     case 'market-value':
       return (
         <svg {...iconProps}>
-          <path d="M14 44L26 32L38 40L50 22" />
-          <path d="M10 54H54" />
-          <path d="M14 30V14" />
-          <path d="M26 24V10" />
-          <path d="M38 28V12" />
-          <path d="M50 18V8" />
+          <defs>
+            <linearGradient id={`${sectionId}-gradient`} x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={color} stopOpacity="0.3" />
+              <stop offset="100%" stopColor={color} stopOpacity="0.15" />
+            </linearGradient>
+          </defs>
+          <path d="M14 44L26 32L38 40L50 22" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          <circle cx="14" cy="44" r="3" fill={color} opacity="0.7" />
+          <circle cx="26" cy="32" r="3" fill={color} opacity="0.7" />
+          <circle cx="38" cy="40" r="3" fill={color} opacity="0.7" />
+          <circle cx="50" cy="22" r="3" fill={color} opacity="0.7" />
+          <path d="M10 54H54" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M14 30V14" stroke={color} strokeWidth="2" strokeLinecap="round" />
+          <path d="M26 24V10" stroke={color} strokeWidth="2" strokeLinecap="round" />
+          <path d="M38 28V12" stroke={color} strokeWidth="2" strokeLinecap="round" />
+          <path d="M50 18V8" stroke={color} strokeWidth="2" strokeLinecap="round" />
         </svg>
       );
     case 'goals':
       return (
         <svg {...iconProps}>
-          <circle cx="32" cy="32" r="20" />
-          <circle cx="32" cy="32" r="10" />
-          <path d="M32 12V6" />
-          <path d="M32 58V52" />
-          <path d="M12 32H6" />
-          <path d="M58 32H52" />
+          <defs>
+            <linearGradient id={`${sectionId}-gradient`} x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={color} stopOpacity="0.25" />
+              <stop offset="100%" stopColor={color} stopOpacity="0.1" />
+            </linearGradient>
+            <radialGradient id={`${sectionId}-radial`} cx="50%" cy="50%">
+              <stop offset="0%" stopColor={color} stopOpacity="0.2" />
+              <stop offset="100%" stopColor={color} stopOpacity="0" />
+            </radialGradient>
+          </defs>
+          <circle cx="32" cy="32" r="20" fill={`url(#${sectionId}-radial)`} stroke={color} strokeWidth="2.5" />
+          <circle cx="32" cy="32" r="10" fill={`url(#${sectionId}-gradient)`} stroke={color} strokeWidth="2.5" />
+          <path d="M32 12V6" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M32 58V52" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M12 32H6" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M58 32H52" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
         </svg>
       );
     default:
@@ -452,19 +507,75 @@ export function CompanyContentSection() {
         >
           <div
             style={{
-              width: '96px',
-              height: '96px',
-              margin: '0 auto 2rem',
-              borderRadius: '24px',
-              background: `${palette.brandSecondarySoft}20`,
-              border: `2px solid ${palette.brandSecondarySoft}50`,
+              width: '120px',
+              height: '120px',
+              margin: '0 auto 2.5rem',
+              borderRadius: '28px',
+              background: `linear-gradient(135deg, ${palette.brandPrimaryStrong}15 0%, ${palette.brandSecondarySoft}25 100%)`,
+              border: `3px solid ${palette.brandPrimaryStrong}30`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              position: 'relative',
+              transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+              boxShadow: `
+                0 8px 24px rgba(45, 111, 163, 0.12),
+                0 4px 12px rgba(45, 111, 163, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1)
+              `,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-8px) scale(1.05)';
+              e.currentTarget.style.background = `linear-gradient(135deg, ${palette.brandPrimaryStrong}25 0%, ${palette.brandSecondarySoft}35 100%)`;
+              e.currentTarget.style.borderColor = `${palette.brandPrimaryStrong}60`;
+              e.currentTarget.style.boxShadow = `
+                0 16px 40px rgba(45, 111, 163, 0.2),
+                0 8px 20px rgba(45, 111, 163, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2)
+              `;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0) scale(1)';
+              e.currentTarget.style.background = `linear-gradient(135deg, ${palette.brandPrimaryStrong}15 0%, ${palette.brandSecondarySoft}25 100%)`;
+              e.currentTarget.style.borderColor = `${palette.brandPrimaryStrong}30`;
+              e.currentTarget.style.boxShadow = `
+                0 8px 24px rgba(45, 111, 163, 0.12),
+                0 4px 12px rgba(45, 111, 163, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1)
+              `;
             }}
             aria-label={section.title}
           >
-            {getSectionIcon(section.id, palette.brandPrimaryStrong)}
+            <div
+              style={{
+                position: 'relative',
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {getSectionIcon(section.id, palette.brandPrimaryStrong)}
+              {/* Decorative glow effect */}
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: '-4px',
+                  borderRadius: '32px',
+                  background: `radial-gradient(circle at center, ${palette.brandPrimaryStrong}20 0%, transparent 70%)`,
+                  opacity: 0,
+                  transition: 'opacity 0.4s ease',
+                  pointerEvents: 'none',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.opacity = '1';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.opacity = '0';
+                }}
+              />
+            </div>
           </div>
 
           <div
