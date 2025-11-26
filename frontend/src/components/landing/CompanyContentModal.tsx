@@ -206,6 +206,45 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
     goalsData,
   ]);
 
+  // Get icon URL - handle different content types (must be before any conditional returns)
+  const iconUrl = useMemo(() => {
+    if (!content) return null;
+    if ((content.type === 'client' || content.type === 'partner') && 'logoKey' in content && content.logoKey) {
+      return getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, content.logoKey);
+    }
+    if ('iconKey' in content && content.iconKey) {
+      return getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, content.iconKey);
+    }
+    return null;
+  }, [content]);
+
+  // Get title - must be before any conditional returns
+  const title = useMemo(() => {
+    if (!content) return '';
+    switch (content.type) {
+      case 'profile':
+        return content.title;
+      case 'partner':
+        return content.name;
+      case 'client':
+        return content.name;
+      case 'partners-clients':
+        return isArabic ? 'عملائنا وشركائنا' : 'Our Partners & Clients';
+      case 'resource':
+        return content.title;
+      case 'strength':
+        return content.title;
+      case 'partnership':
+        return content.title;
+      case 'market-value':
+        return isArabic ? 'القيمة السوقية المعتمدة' : 'Verified Market Value';
+      case 'goal':
+        return content.title;
+      default:
+        return '';
+    }
+  }, [content, isArabic]);
+
   if (!isOpen) {
     return null;
   }
@@ -283,18 +322,6 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
       container
     );
   }
-
-  // Get icon URL - handle different content types
-  const iconUrl = useMemo(() => {
-    if (!content) return null;
-    if ((content.type === 'client' || content.type === 'partner') && 'logoKey' in content && content.logoKey) {
-      return getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, content.logoKey);
-    }
-    if ('iconKey' in content && content.iconKey) {
-      return getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, content.iconKey);
-    }
-    return null;
-  }, [content]);
 
   let modalContent: React.ReactNode = null;
 
@@ -897,32 +924,6 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
       );
       break;
   }
-
-  const title = useMemo(() => {
-    if (!content) return '';
-    switch (content.type) {
-      case 'profile':
-        return content.title;
-      case 'partner':
-        return content.name;
-      case 'client':
-        return content.name;
-      case 'partners-clients':
-        return isArabic ? 'عملائنا وشركائنا' : 'Our Partners & Clients';
-      case 'resource':
-        return content.title;
-      case 'strength':
-        return content.title;
-      case 'partnership':
-        return content.title;
-      case 'market-value':
-        return isArabic ? 'القيمة السوقية المعتمدة' : 'Verified Market Value';
-      case 'goal':
-        return content.title;
-      default:
-        return '';
-    }
-  }, [content, isArabic]);
 
   return createPortal(
     <div
