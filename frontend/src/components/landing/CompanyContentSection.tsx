@@ -365,21 +365,6 @@ export function CompanyContentSection() {
             position: 'relative',
           }}
         >
-          <h2
-            style={{
-              margin: 0,
-              marginBottom: '3rem',
-              fontSize: '2.5rem',
-              fontWeight: 800,
-              color: palette.textPrimary,
-              textAlign: 'center',
-              letterSpacing: '-0.03em',
-              lineHeight: 1.2,
-            }}
-          >
-            {section.title}
-          </h2>
-
           <div
             style={{
               display: 'grid',
