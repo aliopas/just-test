@@ -54,12 +54,15 @@ export const adminRequestController = {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
       const errorStack = error instanceof Error ? error.stack : undefined;
+      const errorName = error instanceof Error ? error.name : 'Unknown';
       console.error('Error details:', {
+        errorName,
         errorMessage,
         errorStack,
         query: req.query,
         actorId: req.user?.id,
         nodeEnv: process.env.NODE_ENV,
+        hasSupabaseServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
       });
       return res.status(500).json({
         error: {

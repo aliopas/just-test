@@ -361,7 +361,16 @@ export async function listAdminRequests(params: {
       .select('*')
       .in('user_id', userIds);
 
-    if (!profilesError && profiles) {
+    if (profilesError) {
+      console.error('Failed to fetch investor profiles:', {
+        error: profilesError.message,
+        code: profilesError.code,
+        details: profilesError.details,
+        hint: profilesError.hint,
+        userIds: userIds.length,
+      });
+      // Don't throw - continue without profiles data
+    } else if (profiles) {
       profiles.forEach(profile => {
         profilesMap[profile.user_id as string] = {
           full_name: profile.full_name ?? null,
