@@ -9,11 +9,19 @@ import { UploadDropzone } from './UploadDropzone';
 
 const partnershipFormSchema = z.object({
   projectId: z
-    .union([
-      z.string().trim().uuid('Invalid project ID format (must be UUID)'),
-      z.literal(''),
-    ])
-    .transform((val) => (val === '' ? undefined : val))
+    .string()
+    .trim()
+    .refine(
+      (val) => {
+        // Allow empty string or valid UUID
+        if (!val || val === '') return true;
+        return z.string().uuid().safeParse(val).success;
+      },
+      {
+        message: 'Invalid project ID format (must be UUID)',
+      }
+    )
+    .transform((val) => (val === '' || !val ? undefined : val))
     .optional(),
   proposedAmount: z
     .union([
@@ -21,6 +29,7 @@ const partnershipFormSchema = z.object({
         .number()
         .positive('Proposed amount must be greater than zero'),
       z.literal(''),
+      z.undefined(),
     ])
     .transform((val) => (val === '' ? undefined : val))
     .optional(),
@@ -30,11 +39,10 @@ const partnershipFormSchema = z.object({
     .min(50, 'Partnership plan must be at least 50 characters')
     .max(5000, 'Partnership plan must be 5000 characters or fewer'),
   notes: z
-    .union([
-      z.string().trim().max(1000, 'Notes must be 1000 characters or fewer'),
-      z.literal(''),
-    ])
-    .transform((val) => (val === '' ? undefined : val))
+    .string()
+    .trim()
+    .max(1000, 'Notes must be 1000 characters or fewer')
+    .transform((val) => (val === '' || !val ? undefined : val))
     .optional(),
 });
 
