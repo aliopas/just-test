@@ -11,9 +11,11 @@ import type {
 function serializeFilters(filters: AdminRequestFilters) {
   const params = new URLSearchParams();
 
-  if (filters.page && filters.page > 1) {
-    params.set('page', String(filters.page));
-  }
+  // Always send page and limit parameters
+  const page = filters.page ?? 1;
+  const limit = 25; // Default limit
+  params.set('page', String(page));
+  params.set('limit', String(limit));
 
   if (filters.status && filters.status !== 'all') {
     params.set('status', filters.status);
