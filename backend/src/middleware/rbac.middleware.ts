@@ -44,10 +44,27 @@ export const requirePermission = (permissionSlug: string | string[]) => {
 
       return next();
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      
+      console.error('RBAC middleware error:', {
+        error: errorMessage,
+        stack: errorStack,
+        userId: req.user?.id,
+        requiredPermission: permissionSlug,
+        hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      });
+      
       return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An unexpected error occurred',
+          details:
+            process.env.NODE_ENV === 'development' ||
+            process.env.NODE_ENV === 'production'
+              ? errorMessage
+              : undefined,
         },
       });
     }
@@ -91,10 +108,27 @@ export const requireRole = (roleSlug: string | string[]) => {
 
       return next();
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      
+      console.error('RBAC middleware error (requireRole):', {
+        error: errorMessage,
+        stack: errorStack,
+        userId: req.user?.id,
+        requiredRole: roleSlug,
+        hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      });
+      
       return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An unexpected error occurred',
+          details:
+            process.env.NODE_ENV === 'development' ||
+            process.env.NODE_ENV === 'production'
+              ? errorMessage
+              : undefined,
         },
       });
     }
