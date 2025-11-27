@@ -5,6 +5,9 @@ import type { CompanyClient } from '../../../hooks/useAdminCompanyContent';
 import { getStoragePublicUrl, COMPANY_CONTENT_IMAGES_BUCKET } from '../../../utils/supabase-storage';
 import { OptimizedImage } from '../../OptimizedImage';
 import { OrderControls } from './OrderControls';
+import { DraggableTableRow } from './DraggableTableRow';
+import { useDragAndDropOrder } from './useDragAndDropOrder';
+import { TableSkeleton } from './TableSkeleton';
 
 interface CompanyClientsTableProps {
   clients: CompanyClient[];
@@ -32,12 +35,10 @@ export function CompanyClientsTable({
     return [...clients].sort((a, b) => a.displayOrder - b.displayOrder);
   }, [clients]);
 
+  const { draggedId, handleDragStart, handleDragEnd } = useDragAndDropOrder(clients, onOrderChange);
+
   if (isLoading) {
-    return (
-      <div style={stateStyle}>
-        <span>{isArabic ? 'جاري التحميل...' : 'Loading...'}</span>
-      </div>
-    );
+    return <TableSkeleton rows={5} columns={6} />;
   }
 
   if (isError) {
@@ -97,17 +98,37 @@ export function CompanyClientsTable({
               : null;
 
             return (
-              <tr key={client.id} style={trStyle}>
+              <DraggableTableRow
+                key={client.id}
+                id={client.id}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+                isDragging={draggedId === client.id}
+                style={trStyle}
+              >
                 <td style={tdStyle}>
-                  {logoUrl ? (
-                    <OptimizedImage
-                      src={logoUrl}
-                      alt={name}
-                      style={{ width: '60px', height: '60px', objectFit: 'contain' }}
-                    />
-                  ) : (
-                    <span style={{ color: palette.textSecondary }}>—</span>
-                  )}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span
+                      style={{
+                        fontSize: '1.2rem',
+                        color: palette.textSecondary,
+                        cursor: 'move',
+                        userSelect: 'none',
+                      }}
+                      title={isArabic ? 'اسحب لإعادة الترتيب' : 'Drag to reorder'}
+                    >
+                      ⋮⋮
+                    </span>
+                    {logoUrl ? (
+                      <OptimizedImage
+                        src={logoUrl}
+                        alt={name}
+                        style={{ width: '60px', height: '60px', objectFit: 'contain' }}
+                      />
+                    ) : (
+                      <span style={{ color: palette.textSecondary }}>—</span>
+                    )}
+                  </div>
                 </td>
                 <td style={tdStyle}>
                   <strong style={{ color: palette.textPrimary }}>{name}</strong>
@@ -164,7 +185,7 @@ export function CompanyClientsTable({
                     </button>
                   </div>
                 </td>
-              </tr>
+              </DraggableTableRow>
             );
           })}
         </tbody>
@@ -223,7 +244,7 @@ const thStyle: React.CSSProperties = {
 
 const trStyle: React.CSSProperties = {
   borderBottom: `1px solid ${palette.neutralBorderSoft}`,
-  transition: 'background 0.2s ease',
+  transition: 'background-color 0.2s ease, transform 0.1s ease',
 };
 
 const tdStyle: React.CSSProperties = {
@@ -239,7 +260,7 @@ const actionButtonStyle: React.CSSProperties = {
   background: 'transparent',
   cursor: 'pointer',
   fontSize: '1.2rem',
-  transition: 'transform 0.2s ease',
+  transition: 'transform 0.15s ease, background-color 0.15s ease, opacity 0.15s ease',
   minWidth: '36px',
   minHeight: '36px',
   display: 'flex',

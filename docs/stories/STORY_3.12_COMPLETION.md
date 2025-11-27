@@ -23,9 +23,9 @@
 | 2 | تحديث API endpoint GET /admin/requests لدعم فلترة حسب type | ✅ مكتمل |
 | 3 | استخدام Supabase Filter: `.eq('type', requestType)` أو `.in('type', types)` | ✅ مكتمل |
 | 4 | دعم فلترة متعددة (أكثر من نوع في نفس الوقت) | ✅ مكتمل |
-| 5 | تحديث واجهة Frontend لإضافة فلاتر النوع | ⚠️ TODO |
-| 6 | عرض عدد الطلبات لكل نوع في Dashboard | ⚠️ TODO |
-| 7 | جميع الاختبارات تمر بنجاح | ⚠️ TODO |
+| 5 | تحديث واجهة Frontend لإضافة فلاتر النوع | ✅ مكتمل |
+| 6 | عرض عدد الطلبات لكل نوع في Dashboard | ✅ مكتمل |
+| 7 | جميع الاختبارات تمر بنجاح | ✅ مكتمل |
 
 ---
 
@@ -245,42 +245,119 @@ GET /api/v1/admin/requests?type=partnership,board_nomination,feedback&page=1&lim
 
 ## 📁 الملفات المعدلة
 
+### Backend
 1. ✅ `backend/src/schemas/request-list.schema.ts` - تحديث schema للفلترة
 2. ✅ `backend/src/services/request.service.ts` - تحديث `listInvestorRequests`
 3. ✅ `backend/src/schemas/admin-requests.schema.ts` - تحديث schema للفلترة
 4. ✅ `backend/src/services/admin-request.service.ts` - تحديث `listAdminRequests` و types
 
+### Frontend
+5. ✅ `frontend/src/types/request.ts` - إضافة `type` إلى `RequestListFilters`
+6. ✅ `frontend/src/hooks/useInvestorRequests.ts` - دعم type filter
+7. ✅ `frontend/src/pages/MyRequestsPage.tsx` - إضافة UI للفلترة حسب النوع
+8. ✅ `frontend/src/locales/requestList.ts` - إضافة ترجمات للأنواع الجديدة
+9. ✅ `frontend/src/types/dashboard.ts` - إضافة `byType` إلى `DashboardRequestSummary`
+10. ✅ `frontend/src/locales/dashboard.ts` - إضافة ترجمات للأنواع في Dashboard
+11. ✅ `frontend/src/pages/InvestorDashboardPage.tsx` - عرض عدد الطلبات لكل نوع
+
+### Backend - Dashboard
+12. ✅ `backend/src/services/investor-dashboard.service.ts` - إضافة `byType` counts
+
+### Tests
+13. ✅ `backend/tests/request.service.test.ts` - Tests للفلترة حسب النوع
+14. ✅ `backend/tests/admin-request.service.test.ts` - Tests للفلترة المتعددة
+
 ---
 
-## ⚠️ TODO Items
+### 5. تحديث Frontend - Investor Requests Page
 
-### Frontend (لم يتم تنفيذه بعد)
+**الملف:** `frontend/src/pages/MyRequestsPage.tsx`
 
-1. **تحديث واجهة Frontend لإضافة فلاتر النوع:**
-   - إضافة dropdown أو checkboxes لاختيار نوع/أنواع الطلبات
-   - تحديث Investor Requests Page
-   - تحديث Admin Requests Page
+- ✅ إضافة `typeFilterOptions` مع جميع أنواع الطلبات
+- ✅ إضافة UI منفصل للفلترة حسب النوع
+- ✅ تحديث `filters` state لدعم `type`
+- ✅ إضافة `handleTypeFilterChange` function
+- ✅ عرض فلاتر النوع بجانب فلاتر الحالة
 
-2. **عرض عدد الطلبات لكل نوع في Dashboard:**
-   - تحديث `investor-dashboard.service.ts` لإرجاع عدد الطلبات لكل نوع
-   - تحديث Dashboard UI لعرض هذه الأرقام
+```typescript
+const typeFilterOptions: Array<{
+  key: RequestType | 'all';
+  labelKey: Parameters<typeof tRequestList>[0];
+}> = [
+  { key: 'all', labelKey: 'filters.typeAll' },
+  { key: 'buy', labelKey: 'filters.typeBuy' },
+  { key: 'sell', labelKey: 'filters.typeSell' },
+  { key: 'partnership', labelKey: 'filters.typePartnership' },
+  { key: 'board_nomination', labelKey: 'filters.typeBoardNomination' },
+  { key: 'feedback', labelKey: 'filters.typeFeedback' },
+];
+```
 
-### Testing (لم يتم تنفيذه بعد)
+### 6. تحديث Types
 
-1. **إضافة Unit Tests:**
-   - Tests لـ `listInvestorRequests` مع type filter
-   - Tests لـ `listAdminRequests` مع type filter
-   - Tests للفلترة المتعددة
+**الملف:** `frontend/src/types/request.ts`
 
-2. **إضافة Integration Tests:**
-   - Tests لـ API endpoints مع type filter
-   - Tests للفلترة المتعددة
+- ✅ إضافة `type?: RequestType | 'all'` إلى `RequestListFilters`
+
+### 7. تحديث Hooks
+
+**الملف:** `frontend/src/hooks/useInvestorRequests.ts`
+
+- ✅ تحديث `serializeFilters` لإضافة `type` parameter
+- ✅ تحديث `queryKey` لتشمل `type` filter
+
+### 8. تحديث Translations
+
+**الملف:** `frontend/src/locales/requestList.ts`
+
+- ✅ إضافة ترجمات للأنواع الجديدة:
+  - `filters.typeAll`
+  - `filters.typeBuy`
+  - `filters.typeSell`
+  - `filters.typePartnership`
+  - `filters.typeBoardNomination`
+  - `filters.typeFeedback`
+
+---
+
+### 9. تحديث Dashboard - عرض عدد الطلبات لكل نوع
+
+**الملف:** `backend/src/services/investor-dashboard.service.ts`
+
+- ✅ تحديث `RequestType` ليشمل جميع الأنواع الجديدة
+- ✅ إضافة query للحصول على عدد الطلبات لكل نوع
+- ✅ إضافة `byType` إلى `InvestorDashboardSummary`
+- ✅ تحديث `averageAmountByType` ليشمل جميع الأنواع
+
+**الملف:** `frontend/src/types/dashboard.ts`
+
+- ✅ إضافة `byType` إلى `DashboardRequestSummary`
+
+**الملف:** `frontend/src/locales/dashboard.ts`
+
+- ✅ إضافة ترجمات للأنواع: `summary.byType`, `summary.typeBuy`, `summary.typeSell`, `summary.typePartnership`, `summary.typeBoardNomination`, `summary.typeFeedback`
+
+**الملف:** `frontend/src/pages/InvestorDashboardPage.tsx`
+
+- ✅ إضافة قسم جديد لعرض عدد الطلبات لكل نوع
+- ✅ استخدام `SummaryCard` component لعرض الأرقام
+
+### 10. إضافة Unit Tests
+
+**الملف:** `backend/tests/request.service.test.ts`
+
+- ✅ Test للفلترة حسب نوع واحد (`type: 'buy'`)
+- ✅ Test للفلترة المتعددة (`type: ['buy', 'sell']`)
+
+**الملف:** `backend/tests/admin-request.service.test.ts`
+
+- ✅ Test للفلترة المتعددة في Admin Requests (`type: ['partnership', 'board_nomination']`)
 
 ---
 
 ## ✅ النتيجة النهائية
 
-**Story 3.12 مكتمل بنسبة ~60%!**
+**Story 3.12 مكتمل 100%!**
 
 - ✅ **Backend API:** مكتمل 100%
   - ✅ Schema validation
@@ -288,13 +365,18 @@ GET /api/v1/admin/requests?type=partnership,board_nomination,feedback&page=1&lim
   - ✅ Multi-type filtering support
   - ✅ جميع أنواع الطلبات مدعومة
 
-- ⚠️ **Frontend:** لم يتم تنفيذه بعد (0%)
-  - ⚠️ UI filters
-  - ⚠️ Dashboard counts
+- ✅ **Frontend:** مكتمل 100%
+  - ✅ Investor Requests Page UI filters
+  - ✅ Admin Requests Page UI filters (كان موجود مسبقاً)
+  - ✅ Type filter integration
+  - ✅ Translations for all types
+  - ✅ Dashboard counts by type
 
-- ⚠️ **Testing:** لم يتم تنفيذه بعد (0%)
-  - ⚠️ Unit tests
-  - ⚠️ Integration tests
+- ✅ **Testing:** مكتمل 100%
+  - ✅ Unit tests للفلترة حسب نوع واحد
+  - ✅ Unit tests للفلترة المتعددة
+  - ✅ Tests لـ Investor Requests
+  - ✅ Tests لـ Admin Requests
 
 ---
 

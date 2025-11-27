@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { NewRequestFormValues } from '../../schemas/newRequestSchema';
@@ -15,11 +15,15 @@ interface NewRequestFormProps {
   quickAmounts?: number[];
   isQuickAmountsLoading?: boolean;
   suggestedCurrency?: never; // Removed
+  defaultType?: 'buy' | 'sell';
+  hideTypeSelector?: boolean;
 }
 
 export function NewRequestForm({
   quickAmounts = [],
   isQuickAmountsLoading = false,
+  defaultType = 'buy',
+  hideTypeSelector = false,
 }: NewRequestFormProps) {
   const { language, direction } = useLanguage();
   const { pushToast } = useToast();
@@ -35,7 +39,7 @@ export function NewRequestForm({
   } = useForm<NewRequestFormValues>({
     resolver: zodResolver(newRequestFormSchema),
     defaultValues: {
-      type: 'buy',
+      type: defaultType,
       numberOfShares: 1,
       notes: '',
       documents: [],
@@ -48,11 +52,13 @@ export function NewRequestForm({
     return calculateTotalAmount(numberOfShares);
   }, [numberOfShares]);
 
+  const [createdRequestId, setCreatedRequestId] = useState<string | null>(null);
+
   const onSubmit = handleSubmit(async values => {
     try {
       const calculatedAmount = calculateTotalAmount(values.numberOfShares);
       
-      await createRequest.mutateAsync({
+      const result = await createRequest.mutateAsync({
         type: values.type as RequestType,
         amount: calculatedAmount,
         currency: 'SAR', // Fixed currency
@@ -60,6 +66,9 @@ export function NewRequestForm({
         expiryAt: undefined,
         notes: values.notes ?? undefined,
       });
+
+      // Set requestId to enable file uploads
+      setCreatedRequestId(result.requestId);
 
       analytics.track('request_created', {
         type: values.type,
@@ -71,12 +80,9 @@ export function NewRequestForm({
         message: tRequest('status.success', language),
         variant: 'success',
       });
-      reset({
-        type: values.type,
-        numberOfShares: 1,
-        notes: '',
-        documents: [],
-      });
+
+      // Don't reset form yet - wait for file uploads
+      // Files will be uploaded automatically via UploadDropzone
     } catch (error: unknown) {
       const message =
         typeof error === 'object' && error && 'message' in error
@@ -155,16 +161,18 @@ export function NewRequestForm({
       </div>
 
       <div style={gridStyle}>
-        <Field label={tRequest('form.type', language)} error={errors.type?.message}>
-          <select
-            {...register('type')}
-            style={selectStyle}
-            aria-label={tRequest('form.type', language)}
-          >
-            <option value="buy">{language === 'ar' ? 'شراء' : 'Buy'}</option>
-            <option value="sell">{language === 'ar' ? 'بيع' : 'Sell'}</option>
-          </select>
-        </Field>
+        {!hideTypeSelector && (
+          <Field label={tRequest('form.type', language)} error={errors.type?.message}>
+            <select
+              {...register('type')}
+              style={selectStyle}
+              aria-label={tRequest('form.type', language)}
+            >
+              <option value="buy">{language === 'ar' ? 'شراء' : 'Buy'}</option>
+              <option value="sell">{language === 'ar' ? 'بيع' : 'Sell'}</option>
+            </select>
+          </Field>
+        )}
 
         <Field
           label={language === 'ar' ? 'عدد الأسهم' : 'Number of Shares'}
@@ -180,6 +188,9 @@ export function NewRequestForm({
           />
         </Field>
       </div>
+
+      {/* Hidden input to maintain form type when hideTypeSelector is true */}
+      {hideTypeSelector && <input type="hidden" {...register('type')} />}
 
       {/* Display calculated total amount */}
       {numberOfShares > 0 && (
@@ -232,8 +243,19 @@ export function NewRequestForm({
       </Field>
 
       <UploadDropzone
+        requestId={createdRequestId}
         onFilesChange={files => {
           setValue('documents', files, { shouldDirty: true });
+        }}
+        onUploadComplete={() => {
+          // After files are uploaded, reset form
+          reset({
+            type: watch('type'),
+            numberOfShares: 1,
+            notes: '',
+            documents: [],
+          });
+          setCreatedRequestId(null);
         }}
       />
 

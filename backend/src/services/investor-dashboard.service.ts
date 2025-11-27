@@ -12,10 +12,14 @@ type RequestRow = {
   updated_at?: string;
 };
 
-type RequestType = 'buy' | 'sell';
+type RequestType = 'buy' | 'sell' | 'partnership' | 'board_nomination' | 'feedback';
 
 type StatusRow = {
   status: string | null;
+};
+
+type TypeRow = {
+  type: string | null;
 };
 
 type PendingRow = {
@@ -32,6 +36,7 @@ type NotificationCount = {
 export interface InvestorDashboardSummary {
   total: number;
   byStatus: Record<RequestStatus, number>;
+  byType: Record<RequestType, number>;
 }
 
 export interface InvestorDashboardResponse {
@@ -95,6 +100,11 @@ export async function getInvestorDashboard(params: {
     .select('status')
     .eq('user_id', params.userId);
 
+  const typePromise = adminClient
+    .from('requests')
+    .select('type')
+    .eq('user_id', params.userId);
+
   const recentPromise = adminClient
     .from('requests')
     .select(
@@ -142,8 +152,11 @@ export async function getInvestorDashboard(params: {
       .maybeSingle<{ average: number | null }>()
   );
 
+  const allRequestTypes: RequestType[] = ['buy', 'sell', 'partnership', 'board_nomination', 'feedback'];
+
   const [
     statusResult,
+    typeResult,
     recentResult,
     pendingResult,
     unreadResult,
@@ -152,6 +165,7 @@ export async function getInvestorDashboard(params: {
     averageSellResult,
   ] = await Promise.all([
     statusPromise,
+    typePromise,
     recentPromise,
     pendingInfoPromise,
     unreadPromise as unknown as Promise<NotificationCount>,
@@ -163,6 +177,12 @@ export async function getInvestorDashboard(params: {
   if (statusResult.error) {
     throw new Error(
       `FAILED_STATUS_SUMMARY:${statusResult.error.message ?? 'unknown'}`
+    );
+  }
+
+  if (typeResult.error) {
+    throw new Error(
+      `FAILED_TYPE_SUMMARY:${typeResult.error.message ?? 'unknown'}`
     );
   }
 
@@ -198,6 +218,14 @@ export async function getInvestorDashboard(params: {
       : Number(averageSellResult.data.average ?? 0);
 
   const statusCounts = initialiseStatusMap();
+  const typeCounts: Record<RequestType, number> = {
+    buy: 0,
+    sell: 0,
+    partnership: 0,
+    board_nomination: 0,
+    feedback: 0,
+  };
+  
   let total = 0;
   for (const row of (statusResult.data ?? []) as StatusRow[]) {
     if (!row?.status) {
@@ -209,9 +237,23 @@ export async function getInvestorDashboard(params: {
     total += 1;
   }
 
+  for (const row of (typeResult.data ?? []) as TypeRow[]) {
+    if (!row?.type) {
+      continue;
+    }
+    const type = row.type as RequestType;
+    if (allRequestTypes.includes(type)) {
+      typeCounts[type] = (typeCounts[type] ?? 0) + 1;
+    }
+  }
+
   const recentRequests = ((recentResult.data ?? []) as RequestRow[]).map(
     row => {
-      const normalizedType: RequestType = row.type === 'sell' ? 'sell' : 'buy';
+      // Normalize type: if null or unknown, default to 'buy'
+      const normalizedType: RequestType = 
+        row.type && allRequestTypes.includes(row.type as RequestType)
+          ? (row.type as RequestType)
+          : 'buy';
 
       return {
         id: row.id,
@@ -240,6 +282,9 @@ export async function getInvestorDashboard(params: {
   const averageAmountByType: Record<RequestType, number> = {
     buy: averageBuy,
     sell: averageSell,
+    partnership: 0, // Partnership requests may not have amount
+    board_nomination: 0, // Board nomination requests don't have amount
+    feedback: 0, // Feedback requests don't have amount
   };
 
   const rolling30DayVolume = rollingVolume;
@@ -248,6 +293,7 @@ export async function getInvestorDashboard(params: {
     requestSummary: {
       total,
       byStatus: statusCounts,
+      byType: typeCounts,
     },
     recentRequests,
     pendingActions: {

@@ -353,6 +353,142 @@ describe('listInvestorRequests', () => {
     expect(result.requests).toHaveLength(0);
     expect(result.meta.total).toBe(0);
   });
+
+  it('applies type filter for single type', async () => {
+    handlers['v_request_workflow'] = async context => {
+      if (context.filters.user_id !== 'user-1') {
+        return { data: [], error: null, count: 0 };
+      }
+
+      const data = [
+        {
+          id: 'req-1',
+          request_number: 'INV-2025-000001',
+          type: 'buy',
+          amount: '1500.00',
+          currency: 'SAR',
+          target_price: null,
+          expiry_at: null,
+          status: 'draft',
+          created_at: '2025-01-01T00:00:00Z',
+          updated_at: '2025-01-01T00:00:00Z',
+          last_event: null,
+        },
+        {
+          id: 'req-2',
+          request_number: 'INV-2025-000002',
+          type: 'sell',
+          amount: '2000.00',
+          currency: 'SAR',
+          target_price: null,
+          expiry_at: null,
+          status: 'draft',
+          created_at: '2025-01-02T00:00:00Z',
+          updated_at: '2025-01-02T00:00:00Z',
+          last_event: null,
+        },
+      ];
+
+      // Filter by type if specified
+      if (context.filters.type === 'buy') {
+        return {
+          data: [data[0]],
+          error: null,
+          count: 1,
+        };
+      }
+
+      return {
+        data,
+        error: null,
+        count: 2,
+      };
+    };
+
+    const result = await listInvestorRequests({
+      userId: 'user-1',
+      query: { type: 'buy' },
+    });
+
+    expect(result.requests).toHaveLength(1);
+    expect(result.requests[0].type).toBe('buy');
+    expect(result.meta.total).toBe(1);
+  });
+
+  it('applies type filter for multiple types', async () => {
+    handlers['v_request_workflow'] = async context => {
+      if (context.filters.user_id !== 'user-1') {
+        return { data: [], error: null, count: 0 };
+      }
+
+      const data = [
+        {
+          id: 'req-1',
+          request_number: 'INV-2025-000001',
+          type: 'buy',
+          amount: '1500.00',
+          currency: 'SAR',
+          target_price: null,
+          expiry_at: null,
+          status: 'draft',
+          created_at: '2025-01-01T00:00:00Z',
+          updated_at: '2025-01-01T00:00:00Z',
+          last_event: null,
+        },
+        {
+          id: 'req-2',
+          request_number: 'INV-2025-000002',
+          type: 'sell',
+          amount: '2000.00',
+          currency: 'SAR',
+          target_price: null,
+          expiry_at: null,
+          status: 'draft',
+          created_at: '2025-01-02T00:00:00Z',
+          updated_at: '2025-01-02T00:00:00Z',
+          last_event: null,
+        },
+        {
+          id: 'req-3',
+          request_number: 'INV-2025-000003',
+          type: 'partnership',
+          amount: null,
+          currency: null,
+          target_price: null,
+          expiry_at: null,
+          status: 'submitted',
+          created_at: '2025-01-03T00:00:00Z',
+          updated_at: '2025-01-03T00:00:00Z',
+          last_event: null,
+        },
+      ];
+
+      // Filter by multiple types if specified
+      if (Array.isArray(context.filters.type)) {
+        const types = context.filters.type as string[];
+        const filtered = data.filter(r => types.includes(r.type));
+        return {
+          data: filtered,
+          error: null,
+          count: filtered.length,
+        };
+      }
+
+      return {
+        data,
+        error: null,
+        count: 3,
+      };
+    };
+
+    const result = await listInvestorRequests({
+      userId: 'user-1',
+      query: { type: ['buy', 'sell'] },
+    });
+
+    expect(result.requests.length).toBeGreaterThan(0);
+    expect(result.requests.every(r => ['buy', 'sell'].includes(r.type))).toBe(true);
+  });
 });
 
 describe('getInvestorRequestDetail', () => {

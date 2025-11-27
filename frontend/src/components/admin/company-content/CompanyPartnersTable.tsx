@@ -3,6 +3,7 @@ import { palette } from '../../../styles/theme';
 import type { CompanyPartner } from '../../../hooks/useAdminCompanyContent';
 import { getStoragePublicUrl, COMPANY_CONTENT_IMAGES_BUCKET } from '../../../utils/supabase-storage';
 import { OptimizedImage } from '../../OptimizedImage';
+import { TableSkeleton } from './TableSkeleton';
 
 interface CompanyPartnersTableProps {
   partners: CompanyPartner[];
@@ -25,11 +26,7 @@ export function CompanyPartnersTable({
   const isArabic = language === 'ar';
 
   if (isLoading) {
-    return (
-      <div style={stateStyle}>
-        <span>{isArabic ? 'جاري التحميل...' : 'Loading...'}</span>
-      </div>
-    );
+    return <TableSkeleton rows={5} columns={5} />;
   }
 
   if (isError) {
@@ -207,7 +204,7 @@ const thStyle: React.CSSProperties = {
 
 const trStyle: React.CSSProperties = {
   borderBottom: `1px solid ${palette.neutralBorderSoft}`,
-  transition: 'background 0.2s ease',
+  transition: 'background-color 0.2s ease, transform 0.1s ease',
 };
 
 const tdStyle: React.CSSProperties = {
@@ -223,7 +220,7 @@ const actionButtonStyle: React.CSSProperties = {
   background: 'transparent',
   cursor: 'pointer',
   fontSize: '1.2rem',
-  transition: 'transform 0.2s ease',
+  transition: 'transform 0.15s ease, background-color 0.15s ease, opacity 0.15s ease',
   minWidth: '36px',
   minHeight: '36px',
   display: 'flex',

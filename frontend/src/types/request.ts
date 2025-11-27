@@ -72,6 +72,7 @@ export interface RequestListResponse {
 export interface RequestListFilters {
   page?: number;
   status?: RequestStatus | 'all';
+  type?: RequestType | 'all';
 }
 
 export interface RequestAttachment {

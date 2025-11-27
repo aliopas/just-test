@@ -9,12 +9,12 @@ import { ToastStack } from '../components/ToastStack';
 import { useInvestorRequests } from '../hooks/useInvestorRequests';
 import { RequestList } from '../components/request/RequestList';
 import { RequestDetailsDrawer } from '../components/request/RequestDetailsDrawer';
-import type { InvestorRequest, RequestListFilters } from '../types/request';
+import type { InvestorRequest, RequestListFilters, RequestType } from '../types/request';
 import { tRequestList } from '../locales/requestList';
 
 const queryClient = new QueryClient();
 
-const filterOptions: Array<{
+const statusFilterOptions: Array<{
   key: RequestListFilters['status'];
   labelKey: Parameters<typeof tRequestList>[0];
 }> = [
@@ -30,12 +30,25 @@ const filterOptions: Array<{
   { key: 'rejected', labelKey: 'filters.rejected' },
 ];
 
+const typeFilterOptions: Array<{
+  key: RequestType | 'all';
+  labelKey: Parameters<typeof tRequestList>[0];
+}> = [
+  { key: 'all', labelKey: 'filters.typeAll' },
+  { key: 'buy', labelKey: 'filters.typeBuy' },
+  { key: 'sell', labelKey: 'filters.typeSell' },
+  { key: 'partnership', labelKey: 'filters.typePartnership' },
+  { key: 'board_nomination', labelKey: 'filters.typeBoardNomination' },
+  { key: 'feedback', labelKey: 'filters.typeFeedback' },
+];
+
 function MyRequestsPageInner() {
   const { language, direction } = useLanguage();
   const { pushToast } = useToast();
   const [filters, setFilters] = useState<RequestListFilters>({
     page: 1,
     status: 'all',
+    type: 'all',
   });
   const [selectedRequest, setSelectedRequest] = useState<InvestorRequest | null>(
     null
@@ -63,9 +76,19 @@ function MyRequestsPageInner() {
     }
   }, [requests, selectedRequest]);
 
-  const handleFilterChange = (status: RequestListFilters['status']) => {
+  const handleStatusFilterChange = (status: RequestListFilters['status']) => {
     setFilters(current => ({
+      ...current,
       status,
+      page: 1,
+    }));
+    setSelectedRequest(null);
+  };
+
+  const handleTypeFilterChange = (type: RequestType | 'all') => {
+    setFilters(current => ({
+      ...current,
+      type,
       page: 1,
     }));
     setSelectedRequest(null);
@@ -141,32 +164,105 @@ function MyRequestsPageInner() {
         <div
           style={{
             display: 'flex',
-            flexWrap: 'wrap',
-            gap: '0.75rem',
+            flexDirection: 'column',
+            gap: '1rem',
           }}
         >
-          {filterOptions.map(option => (
-            <button
-              key={option.key ?? 'all'}
-              type='button'
-              onClick={() => handleFilterChange(option.key)}
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '0.75rem',
+              alignItems: 'center',
+            }}
+          >
+            <span
               style={{
-                padding: '0.55rem 1.1rem',
-                borderRadius: '999px',
-                border:
-                  filters.status === option.key
-                    ? '1px solid var(--color-brand-primary-strong)'
-                    : '1px solid var(--color-brand-secondary-soft)',
-                background:
-                  filters.status === option.key ? 'var(--color-brand-primary-strong)' : '#FFFFFF',
-                color: filters.status === option.key ? '#FFFFFF' : 'var(--color-brand-accent-deep)',
+                fontSize: '0.9rem',
                 fontWeight: 600,
-                cursor: 'pointer',
+                color: 'var(--color-text-secondary)',
+                marginInlineEnd: '0.5rem',
               }}
             >
-              {tRequestList(option.labelKey, language)}
-            </button>
-          ))}
+              {language === 'ar' ? 'الحالة:' : 'Status:'}
+            </span>
+            {statusFilterOptions.map(option => (
+              <button
+                key={option.key ?? 'all'}
+                type='button'
+                onClick={() => handleStatusFilterChange(option.key)}
+                style={{
+                  padding: '0.55rem 1.1rem',
+                  borderRadius: '999px',
+                  border:
+                    filters.status === option.key
+                      ? '1px solid var(--color-brand-primary-strong)'
+                      : '1px solid var(--color-brand-secondary-soft)',
+                  background:
+                    filters.status === option.key
+                      ? 'var(--color-brand-primary-strong)'
+                      : '#FFFFFF',
+                  color:
+                    filters.status === option.key
+                      ? '#FFFFFF'
+                      : 'var(--color-brand-accent-deep)',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                {tRequestList(option.labelKey, language)}
+              </button>
+            ))}
+          </div>
+
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '0.75rem',
+              alignItems: 'center',
+            }}
+          >
+            <span
+              style={{
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                color: 'var(--color-text-secondary)',
+                marginInlineEnd: '0.5rem',
+              }}
+            >
+              {language === 'ar' ? 'النوع:' : 'Type:'}
+            </span>
+            {typeFilterOptions.map(option => (
+              <button
+                key={option.key ?? 'all'}
+                type='button'
+                onClick={() => handleTypeFilterChange(option.key)}
+                style={{
+                  padding: '0.55rem 1.1rem',
+                  borderRadius: '999px',
+                  border:
+                    filters.type === option.key
+                      ? '1px solid var(--color-brand-primary-strong)'
+                      : '1px solid var(--color-brand-secondary-soft)',
+                  background:
+                    filters.type === option.key
+                      ? 'var(--color-brand-primary-strong)'
+                      : '#FFFFFF',
+                  color:
+                    filters.type === option.key
+                      ? '#FFFFFF'
+                      : 'var(--color-brand-accent-deep)',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                {tRequestList(option.labelKey, language)}
+              </button>
+            ))}
+          </div>
         </div>
 
         <RequestList

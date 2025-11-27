@@ -17,7 +17,8 @@
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "test:story-3.4": "jest backend/tests/request.controller.test.ts --testNamePattern=presignAttachment"
   },
   "keywords": [],
   "author": "Bacura Technologies Team",

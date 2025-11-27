@@ -17,6 +17,9 @@ function serializeFilters(filters: RequestListFilters) {
   if (filters.status && filters.status !== 'all') {
     params.set('status', filters.status);
   }
+  if (filters.type && filters.type !== 'all') {
+    params.set('type', filters.type);
+  }
   return params.toString();
 }
 
@@ -31,9 +34,10 @@ export function useInvestorRequests(filters: RequestListFilters) {
     () => [
       ...QUERY_KEY,
       filters.status ?? 'all',
+      filters.type ?? 'all',
       filters.page ?? 1,
     ],
-    [filters.status, filters.page]
+    [filters.status, filters.type, filters.page]
   );
 
   const query = useQuery<RequestListResponse>({

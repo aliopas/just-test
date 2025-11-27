@@ -13,6 +13,12 @@ type MessageKey =
   | 'filters.settling'
   | 'filters.completed'
   | 'filters.rejected'
+  | 'filters.typeAll'
+  | 'filters.typeBuy'
+  | 'filters.typeSell'
+  | 'filters.typePartnership'
+  | 'filters.typeBoardNomination'
+  | 'filters.typeFeedback'
   | 'emptyState.title'
   | 'emptyState.subtitle'
   | 'emptyState.cta'
@@ -56,6 +62,12 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'filters.settling': 'Settling',
     'filters.completed': 'Completed',
     'filters.rejected': 'Rejected',
+    'filters.typeAll': 'All types',
+    'filters.typeBuy': 'Buy',
+    'filters.typeSell': 'Sell',
+    'filters.typePartnership': 'Partnership',
+    'filters.typeBoardNomination': 'Board nomination',
+    'filters.typeFeedback': 'Feedback',
     'emptyState.title': 'No requests yet',
     'emptyState.subtitle': 'Submit your first request to see it tracked here.',
     'emptyState.cta': 'Create new request',
@@ -96,6 +108,12 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'filters.settling': 'قيد التسوية',
     'filters.completed': 'مكتملة',
     'filters.rejected': 'مرفوضة',
+    'filters.typeAll': 'جميع الأنواع',
+    'filters.typeBuy': 'شراء',
+    'filters.typeSell': 'بيع',
+    'filters.typePartnership': 'شراكة',
+    'filters.typeBoardNomination': 'ترشيح مجلس',
+    'filters.typeFeedback': 'ملاحظات',
     'emptyState.title': 'لا توجد طلبات بعد',
     'emptyState.subtitle': 'قدّم طلبك الأول ليظهر تلقائياً هنا.',
     'emptyState.cta': 'إنشاء طلب جديد',

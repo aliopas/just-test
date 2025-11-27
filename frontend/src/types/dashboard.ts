@@ -3,6 +3,7 @@ import type { RequestStatus, RequestType } from './request';
 export interface DashboardRequestSummary {
   total: number;
   byStatus: Record<RequestStatus, number>;
+  byType: Record<RequestType, number>;
 }
 
 export interface DashboardRecentRequest {

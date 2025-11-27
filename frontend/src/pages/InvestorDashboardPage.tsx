@@ -273,6 +273,52 @@ function InvestorDashboardPageInner() {
               ))}
         </section>
 
+        {data?.requestSummary.byType && (
+          <section
+            style={{
+              background: palette.backgroundSurface,
+              borderRadius: '1.25rem',
+              border: `1px solid ${palette.neutralBorder}`,
+              padding: '1.75rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1.25rem',
+            }}
+          >
+            <h2
+              style={{
+                margin: 0,
+                fontSize: '1.35rem',
+                fontWeight: 700,
+                color: palette.textPrimary,
+              }}
+            >
+              {tDashboard('summary.byType', language)}
+            </h2>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                gap: '1rem',
+              }}
+            >
+              {[
+                { key: 'buy' as const, labelKey: 'summary.typeBuy' as const },
+                { key: 'sell' as const, labelKey: 'summary.typeSell' as const },
+                { key: 'partnership' as const, labelKey: 'summary.typePartnership' as const },
+                { key: 'board_nomination' as const, labelKey: 'summary.typeBoardNomination' as const },
+                { key: 'feedback' as const, labelKey: 'summary.typeFeedback' as const },
+              ].map(({ key, labelKey }) => (
+                <SummaryCard
+                  key={key}
+                  label={tDashboard(labelKey, language)}
+                  value={data.requestSummary.byType[key] ?? 0}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+
         <section
           style={{
             display: 'grid',

@@ -17,6 +17,12 @@ type MessageKey =
   | 'summary.complianceReview'
   | 'summary.submitted'
   | 'summary.draft'
+  | 'summary.byType'
+  | 'summary.typeBuy'
+  | 'summary.typeSell'
+  | 'summary.typePartnership'
+  | 'summary.typeBoardNomination'
+  | 'summary.typeFeedback'
   | 'notifications.unreadLabel'
   | 'updatedAt'
   | 'viewRequest';
@@ -42,6 +48,12 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'summary.complianceReview': 'Compliance review',
     'summary.submitted': 'Submitted',
     'summary.draft': 'Drafts',
+    'summary.byType': 'By type',
+    'summary.typeBuy': 'Buy',
+    'summary.typeSell': 'Sell',
+    'summary.typePartnership': 'Partnership',
+    'summary.typeBoardNomination': 'Board nomination',
+    'summary.typeFeedback': 'Feedback',
     'notifications.unreadLabel': 'Unread notifications',
     updatedAt: 'Updated',
     viewRequest: 'View request',
@@ -64,6 +76,12 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'summary.complianceReview': 'مراجعة التزام',
     'summary.submitted': 'طلبات مرسلة',
     'summary.draft': 'مسودات',
+    'summary.byType': 'حسب النوع',
+    'summary.typeBuy': 'شراء',
+    'summary.typeSell': 'بيع',
+    'summary.typePartnership': 'شراكة',
+    'summary.typeBoardNomination': 'ترشيح مجلس',
+    'summary.typeFeedback': 'ملاحظات',
     'notifications.unreadLabel': 'الإشعارات غير المقروءة',
     updatedAt: 'آخر تحديث',
     viewRequest: 'عرض الطلب',

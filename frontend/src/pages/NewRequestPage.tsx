@@ -1,6 +1,6 @@
 ﻿import { useMemo } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { NewRequestForm } from '../components/request/NewRequestForm';
+import { DynamicRequestForm } from '../components/request/DynamicRequestForm';
 import { tRequest } from '../locales/newRequest';
 import { useInvestorDashboard } from '../hooks/useInvestorDashboard';
 
@@ -104,7 +104,7 @@ function NewRequestPageInner() {
           <span>{tRequest('summary.autoSubmit', language)}</span>
         </div>
 
-        <NewRequestForm
+        <DynamicRequestForm
           quickAmounts={quickAmounts}
           isQuickAmountsLoading={isDashboardLoading || isDashboardFetching}
         />

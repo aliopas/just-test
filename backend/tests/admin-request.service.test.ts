@@ -245,6 +245,87 @@ describe('listAdminRequests', () => {
     expect(chain.range).toHaveBeenCalledWith(5, 9);
   });
 
+  it('applies type filter for multiple types', async () => {
+    const chain = {
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      in: jest.fn().mockReturnThis(),
+      gte: jest.fn().mockReturnThis(),
+      lte: jest.fn().mockReturnThis(),
+      or: jest.fn().mockReturnThis(),
+      order: jest.fn().mockReturnThis(),
+      range: jest.fn().mockResolvedValue({
+        data: [
+          {
+            id: 'req-1',
+            request_number: 'INV-2025-000001',
+            status: 'submitted',
+            type: 'partnership',
+            amount: null,
+            currency: null,
+            target_price: null,
+            expiry_at: null,
+            created_at: '2025-01-01T00:00:00Z',
+            updated_at: '2025-01-02T00:00:00Z',
+            users: {
+              id: 'user-1',
+              email: 'user@example.com',
+              profile: {
+                full_name: 'Investor One',
+                preferred_name: 'Investor',
+                language: 'ar',
+              },
+            },
+          },
+          {
+            id: 'req-2',
+            request_number: 'INV-2025-000002',
+            status: 'submitted',
+            type: 'board_nomination',
+            amount: null,
+            currency: null,
+            target_price: null,
+            expiry_at: null,
+            created_at: '2025-01-02T00:00:00Z',
+            updated_at: '2025-01-03T00:00:00Z',
+            users: {
+              id: 'user-2',
+              email: 'user2@example.com',
+              profile: {
+                full_name: 'Investor Two',
+                preferred_name: 'Investor2',
+                language: 'en',
+              },
+            },
+          },
+        ],
+        count: 2,
+        error: null,
+      }),
+    };
+
+    mockRequireSupabaseAdmin.mockReturnValue({
+      from: jest.fn().mockReturnValue(chain),
+    });
+
+    const filterQuery: AdminRequestListQuery = {
+      page: 1,
+      limit: 10,
+      type: ['partnership', 'board_nomination'] as any,
+      sortBy: 'created_at',
+      order: 'desc',
+    };
+
+    const result = await listAdminRequests({
+      actorId: 'admin-1',
+      query: filterQuery,
+    });
+
+    expect(chain.in).toHaveBeenCalledWith('type', ['partnership', 'board_nomination']);
+    expect(result.requests).toHaveLength(2);
+    expect(result.requests.every(r => ['partnership', 'board_nomination'].includes(r.type))).toBe(true);
+  });
+
   it('throws when supabase returns error', async () => {
     const chain = {
       select: jest.fn().mockReturnThis(),
