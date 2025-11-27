@@ -77,11 +77,24 @@ export type RequestAttachmentPresignInput = z.infer<
 
 // Schema for partnership request
 export const createPartnershipRequestSchema = z.object({
-  projectId: z.string().uuid('Invalid project ID format').optional(),
+  projectId: z
+    .string()
+    .trim()
+    .optional()
+    .refine(
+      (val) => {
+        if (!val || val === '') return true;
+        return z.string().uuid().safeParse(val).success;
+      },
+      'Invalid project ID format (must be UUID)'
+    )
+    .transform((val) => (val === '' || !val ? undefined : val)),
   proposedAmount: z.coerce
     .number()
     .positive('Proposed amount must be greater than zero')
-    .optional(),
+    .optional()
+    .or(z.literal(''))
+    .transform((val) => (val === '' ? undefined : val)),
   partnershipPlan: z
     .string()
     .trim()
@@ -89,8 +102,11 @@ export const createPartnershipRequestSchema = z.object({
     .max(5000, 'Partnership plan must be 5000 characters or fewer'),
   notes: z
     .string()
+    .trim()
     .max(1000, 'Notes must be 1000 characters or fewer')
-    .optional(),
+    .optional()
+    .or(z.literal(''))
+    .transform((val) => (val === '' || !val ? undefined : val)),
 });
 
 export type CreatePartnershipRequestInput = z.infer<

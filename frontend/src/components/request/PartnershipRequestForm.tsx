@@ -10,12 +10,16 @@ import { UploadDropzone } from './UploadDropzone';
 const partnershipFormSchema = z.object({
   projectId: z
     .string()
+    .trim()
     .optional()
     .refine(
-      (val) => !val || val === '' || z.string().uuid().safeParse(val).success,
+      (val) => {
+        if (!val || val === '') return true;
+        return z.string().uuid().safeParse(val).success;
+      },
       'Invalid project ID format (must be UUID)'
     )
-    .transform((val) => (val === '' ? undefined : val)),
+    .transform((val) => (val === '' || !val ? undefined : val)),
   proposedAmount: z
     .union([
       z.coerce
@@ -32,9 +36,10 @@ const partnershipFormSchema = z.object({
     .max(5000, 'Partnership plan must be 5000 characters or fewer'),
   notes: z
     .string()
+    .trim()
     .max(1000, 'Notes must be 1000 characters or fewer')
     .optional()
-    .transform((val) => (val === '' ? undefined : val)),
+    .transform((val) => (val === '' || !val ? undefined : val)),
 });
 
 type PartnershipFormValues = z.infer<typeof partnershipFormSchema>;
