@@ -64,16 +64,26 @@ export const adminRequestController = {
         nodeEnv: process.env.NODE_ENV,
         hasSupabaseServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
       });
-      return res.status(500).json({
+      // Always include error details in response for debugging
+      const errorResponse: {
+        error: {
+          code: string;
+          message: string;
+          details?: string;
+          errorName?: string;
+          hasSupabaseServiceKey?: boolean;
+        };
+      } = {
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to list admin requests',
-          details:
-            process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'production'
-              ? errorMessage
-              : undefined,
+          details: errorMessage,
+          errorName,
+          hasSupabaseServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
         },
-      });
+      };
+
+      return res.status(500).json(errorResponse);
     }
   },
 
