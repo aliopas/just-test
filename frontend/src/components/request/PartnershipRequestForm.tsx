@@ -67,10 +67,10 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
   const onSubmit = handleSubmit(async values => {
     try {
       const result = await createPartnership.mutateAsync({
-        projectId: values.projectId || undefined,
-        proposedAmount: values.proposedAmount || undefined,
-        partnershipPlan: values.partnershipPlan,
-        notes: values.notes || undefined,
+        projectId: values.projectId?.trim() || undefined,
+        proposedAmount: values.proposedAmount ?? undefined,
+        partnershipPlan: values.partnershipPlan.trim(),
+        notes: values.notes?.trim() || undefined,
       });
 
       setCreatedRequestId(result.requestId);

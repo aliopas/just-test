@@ -90,12 +90,18 @@ export async function createPartnershipRequest(params: {
     }
   }
 
-  // Build metadata object
-  const metadata = {
-    projectId: params.payload.projectId ?? null,
-    proposedAmount: params.payload.proposedAmount ?? null,
+  // Build metadata object - only include defined values
+  const metadata: Record<string, unknown> = {
     partnershipPlan: params.payload.partnershipPlan,
   };
+  
+  if (params.payload.projectId) {
+    metadata.projectId = params.payload.projectId;
+  }
+  
+  if (params.payload.proposedAmount != null) {
+    metadata.proposedAmount = params.payload.proposedAmount;
+  }
 
   const requestPayload = {
     user_id: params.userId,
@@ -107,7 +113,7 @@ export async function createPartnershipRequest(params: {
     expiry_at: null,
     status: 'draft',
     notes: params.payload.notes ?? null,
-    metadata,
+    metadata: metadata as Record<string, unknown>,
   };
 
   const { data, error } = await adminClient
