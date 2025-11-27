@@ -25,6 +25,18 @@ export const requirePermission = (permissionSlug: string | string[]) => {
         });
       }
 
+      // Early check for Supabase service key before calling RBAC service
+      if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        console.error('SUPABASE_SERVICE_ROLE_KEY is missing - RBAC check will fail');
+        return res.status(500).json({
+          error: {
+            code: 'CONFIGURATION_ERROR',
+            message: 'Server configuration error: Missing Supabase service role key',
+            details: 'SUPABASE_SERVICE_ROLE_KEY environment variable is not set. This is required for permission checks.',
+          },
+        });
+      }
+
       const hasPermission =
         required.length === 1
           ? await rbacService.hasPermission(req.user.id, required[0])
