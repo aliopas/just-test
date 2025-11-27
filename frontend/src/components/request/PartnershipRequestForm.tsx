@@ -8,18 +8,33 @@ import { useCreatePartnershipRequest } from '../../hooks/useCreatePartnershipReq
 import { UploadDropzone } from './UploadDropzone';
 
 const partnershipFormSchema = z.object({
-  projectId: z.string().uuid('Invalid project ID').optional().or(z.literal('')),
-  proposedAmount: z.coerce
-    .number()
-    .positive('Proposed amount must be greater than zero')
+  projectId: z
+    .string()
     .optional()
-    .or(z.literal('')),
+    .refine(
+      (val) => !val || val === '' || z.string().uuid().safeParse(val).success,
+      'Invalid project ID format (must be UUID)'
+    )
+    .transform((val) => (val === '' ? undefined : val)),
+  proposedAmount: z
+    .union([
+      z.coerce
+        .number()
+        .positive('Proposed amount must be greater than zero'),
+      z.literal(''),
+    ])
+    .optional()
+    .transform((val) => (val === '' ? undefined : val)),
   partnershipPlan: z
     .string()
     .trim()
     .min(50, 'Partnership plan must be at least 50 characters')
     .max(5000, 'Partnership plan must be 5000 characters or fewer'),
-  notes: z.string().max(1000, 'Notes must be 1000 characters or fewer').optional(),
+  notes: z
+    .string()
+    .max(1000, 'Notes must be 1000 characters or fewer')
+    .optional()
+    .transform((val) => (val === '' ? undefined : val)),
 });
 
 type PartnershipFormValues = z.infer<typeof partnershipFormSchema>;
@@ -69,12 +84,41 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
         variant: 'success',
       });
     } catch (error: unknown) {
-      const message =
-        typeof error === 'object' && error && 'message' in error
-          ? String((error as { message: unknown }).message)
-          : language === 'ar'
-          ? 'فشل إنشاء طلب الشراكة'
-          : 'Failed to create partnership request';
+      console.error('Failed to create partnership request:', error);
+      
+      let message: string;
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'message' in error
+      ) {
+        const errorObj = error as { message: unknown; details?: unknown };
+        message = String(errorObj.message);
+        
+        // Check if it's a validation error with details
+        if (
+          errorObj.details &&
+          typeof errorObj.details === 'object' &&
+          Array.isArray(errorObj.details)
+        ) {
+          const details = errorObj.details as Array<{
+            field?: string;
+            message?: string;
+          }>;
+          const fieldMessages = details
+            .map(d => d.message || d.field)
+            .filter(Boolean)
+            .join(', ');
+          if (fieldMessages) {
+            message = `${message}: ${fieldMessages}`;
+          }
+        }
+      } else {
+        message =
+          language === 'ar'
+            ? 'فشل إنشاء طلب الشراكة. يرجى التحقق من البيانات والمحاولة مرة أخرى.'
+            : 'Failed to create partnership request. Please check your data and try again.';
+      }
 
       pushToast({
         message,

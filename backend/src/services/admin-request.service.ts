@@ -204,9 +204,7 @@ export async function listAdminRequests(params: {
       { count: 'exact' }
     );
 
-    // Apply ordering early to avoid issues with complex filters
-    queryBuilder = queryBuilder.order(validSortField, { ascending: order });
-
+  // Apply filters first
   if (params.query.status) {
     queryBuilder = queryBuilder.eq('status', params.query.status);
   }
@@ -248,10 +246,12 @@ export async function listAdminRequests(params: {
     queryBuilder = queryBuilder.ilike('request_number', pattern);
   }
 
-  // Apply pagination last
+  // Apply ordering and pagination last (matching pattern from other services)
   let result;
   try {
-    result = await queryBuilder.range(offset, offset + limit - 1);
+    result = await queryBuilder
+      .order(validSortField, { ascending: order })
+      .range(offset, offset + limit - 1);
   } catch (queryError) {
     console.error('Failed to execute admin requests query - Exception:', {
       queryError,

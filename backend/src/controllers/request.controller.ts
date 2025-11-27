@@ -454,10 +454,17 @@ export const requestController = {
       }
 
       console.error('Failed to create partnership request:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to create partnership request',
+          details:
+            process.env.NODE_ENV === 'development' ||
+            process.env.NODE_ENV === 'production'
+              ? errorMessage
+              : undefined,
         },
       });
     }
