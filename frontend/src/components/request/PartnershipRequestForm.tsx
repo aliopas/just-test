@@ -11,15 +11,17 @@ const partnershipFormSchema = z.object({
   projectId: z
     .string()
     .trim()
-    .optional()
     .refine(
       (val) => {
         if (!val || val === '') return true;
         return z.string().uuid().safeParse(val).success;
       },
-      'Invalid project ID format (must be UUID)'
+      {
+        message: 'Invalid project ID format (must be UUID)',
+      }
     )
-    .transform((val) => (val === '' || !val ? undefined : val)),
+    .transform((val) => (val === '' || !val ? undefined : val))
+    .optional(),
   proposedAmount: z
     .union([
       z.coerce
@@ -27,8 +29,8 @@ const partnershipFormSchema = z.object({
         .positive('Proposed amount must be greater than zero'),
       z.literal(''),
     ])
-    .optional()
-    .transform((val) => (val === '' ? undefined : val)),
+    .transform((val) => (val === '' ? undefined : val))
+    .optional(),
   partnershipPlan: z
     .string()
     .trim()
@@ -38,8 +40,8 @@ const partnershipFormSchema = z.object({
     .string()
     .trim()
     .max(1000, 'Notes must be 1000 characters or fewer')
-    .optional()
-    .transform((val) => (val === '' || !val ? undefined : val)),
+    .transform((val) => (val === '' || !val ? undefined : val))
+    .optional(),
 });
 
 type PartnershipFormValues = z.infer<typeof partnershipFormSchema>;
@@ -72,10 +74,10 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
   const onSubmit = handleSubmit(async values => {
     try {
       const result = await createPartnership.mutateAsync({
-        projectId: values.projectId?.trim() || undefined,
-        proposedAmount: values.proposedAmount ?? undefined,
-        partnershipPlan: values.partnershipPlan.trim(),
-        notes: values.notes?.trim() || undefined,
+        projectId: values.projectId,
+        proposedAmount: values.proposedAmount,
+        partnershipPlan: values.partnershipPlan,
+        notes: values.notes,
       });
 
       setCreatedRequestId(result.requestId);

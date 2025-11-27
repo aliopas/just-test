@@ -80,21 +80,26 @@ export const createPartnershipRequestSchema = z.object({
   projectId: z
     .string()
     .trim()
-    .optional()
     .refine(
       (val) => {
         if (!val || val === '') return true;
         return z.string().uuid().safeParse(val).success;
       },
-      'Invalid project ID format (must be UUID)'
+      {
+        message: 'Invalid project ID format (must be UUID)',
+      }
     )
-    .transform((val) => (val === '' || !val ? undefined : val)),
-  proposedAmount: z.coerce
-    .number()
-    .positive('Proposed amount must be greater than zero')
-    .optional()
-    .or(z.literal(''))
-    .transform((val) => (val === '' ? undefined : val)),
+    .transform((val) => (val === '' || !val ? undefined : val))
+    .optional(),
+  proposedAmount: z
+    .union([
+      z.coerce
+        .number()
+        .positive('Proposed amount must be greater than zero'),
+      z.literal(''),
+    ])
+    .transform((val) => (val === '' ? undefined : val))
+    .optional(),
   partnershipPlan: z
     .string()
     .trim()
@@ -104,9 +109,8 @@ export const createPartnershipRequestSchema = z.object({
     .string()
     .trim()
     .max(1000, 'Notes must be 1000 characters or fewer')
-    .optional()
-    .or(z.literal(''))
-    .transform((val) => (val === '' || !val ? undefined : val)),
+    .transform((val) => (val === '' || !val ? undefined : val))
+    .optional(),
 });
 
 export type CreatePartnershipRequestInput = z.infer<
