@@ -146,7 +146,21 @@ export async function listAdminRequests(params: {
   actorId: string;
   query: AdminRequestListQuery;
 }) {
-  const adminClient = requireSupabaseAdmin();
+  let adminClient;
+  try {
+    adminClient = requireSupabaseAdmin();
+  } catch (initError) {
+    console.error('Failed to initialize Supabase admin client:', {
+      error: initError instanceof Error ? initError.message : String(initError),
+      hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+    });
+    throw new Error(
+      `Failed to initialize database connection: ${
+        initError instanceof Error ? initError.message : 'Unknown error'
+      }`
+    );
+  }
+
   const page = params.query.page ?? 1;
   const limit = params.query.limit ?? 25;
   const offset = (page - 1) * limit;
@@ -235,10 +249,29 @@ export async function listAdminRequests(params: {
   }
 
   // Apply pagination last
-  const { data, count, error } = await queryBuilder.range(
-    offset,
-    offset + limit - 1
-  );
+  let result;
+  try {
+    result = await queryBuilder.range(offset, offset + limit - 1);
+  } catch (queryError) {
+    console.error('Failed to execute admin requests query - Exception:', {
+      queryError,
+      errorMessage:
+        queryError instanceof Error ? queryError.message : String(queryError),
+      errorStack: queryError instanceof Error ? queryError.stack : undefined,
+      sortField: validSortField,
+      order,
+      offset,
+      limit,
+      query: params.query,
+    });
+    throw new Error(
+      `Failed to execute query: ${
+        queryError instanceof Error ? queryError.message : 'Unknown error'
+      }`
+    );
+  }
+
+  const { data, count, error } = result;
 
   if (error) {
     console.error('Failed to list admin requests - Supabase error:', {
