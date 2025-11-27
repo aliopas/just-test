@@ -41,7 +41,6 @@ export function useRequestAttachmentPresign(requestId: string | null) {
       }
       return presignAttachment(requestId, input);
     },
-    enabled: !!requestId,
   });
 }
 
