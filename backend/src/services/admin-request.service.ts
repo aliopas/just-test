@@ -151,6 +151,14 @@ export async function listAdminRequests(params: {
   const limit = params.query.limit ?? 25;
   const offset = (page - 1) * limit;
 
+  // Validate page and limit
+  if (page < 1) {
+    throw new Error('Page must be greater than 0');
+  }
+  if (limit < 1 || limit > 100) {
+    throw new Error('Limit must be between 1 and 100');
+  }
+
   // Determine sort field and order first
   const sortField = params.query.sortBy ?? 'created_at';
   const order = (params.query.order ?? 'desc') === 'asc' ? true : false;
@@ -165,7 +173,7 @@ export async function listAdminRequests(params: {
 
   // Get requests without relations first to avoid Supabase query issues
   let queryBuilder = adminClient.from('requests').select(
-    `
+      `
         id,
         request_number,
         status,
@@ -179,11 +187,11 @@ export async function listAdminRequests(params: {
         updated_at,
         user_id
       `,
-    { count: 'exact' }
-  );
+      { count: 'exact' }
+    );
 
-  // Apply ordering early to avoid issues with complex filters
-  queryBuilder = queryBuilder.order(validSortField, { ascending: order });
+    // Apply ordering early to avoid issues with complex filters
+    queryBuilder = queryBuilder.order(validSortField, { ascending: order });
 
   if (params.query.status) {
     queryBuilder = queryBuilder.eq('status', params.query.status);

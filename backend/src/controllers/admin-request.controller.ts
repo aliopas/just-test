@@ -66,7 +66,9 @@ export const adminRequestController = {
           code: 'INTERNAL_ERROR',
           message: 'Failed to list admin requests',
           details:
-            process.env.NODE_ENV === 'development' ? errorMessage : undefined,
+            process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'production'
+              ? errorMessage
+              : undefined,
         },
       });
     }
