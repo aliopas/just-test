@@ -125,7 +125,7 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
         projectId: values.projectId && values.projectId.trim() !== '' ? values.projectId : undefined,
         proposedAmount: values.proposedAmount,
         partnershipPlan: values.partnershipPlan,
-        notes: values.notes,
+        notes: values.notes && values.notes.trim() !== '' ? values.notes.trim() : undefined,
       });
 
       setCreatedRequestId(result.requestId);

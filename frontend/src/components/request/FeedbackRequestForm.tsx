@@ -20,7 +20,12 @@ const feedbackFormSchema = z.object({
     .min(50, 'Description must be at least 50 characters')
     .max(5000, 'Description must be 5000 characters or fewer'),
   priority: z.enum(['low', 'medium', 'high']),
-  notes: z.string().max(1000, 'Notes must be 1000 characters or fewer').optional(),
+  notes: z
+    .string()
+    .trim()
+    .max(1000, 'Notes must be 1000 characters or fewer')
+    .optional()
+    .transform((val) => (!val || val.trim() === '' ? undefined : val.trim())),
 });
 
 type FeedbackFormValues = z.infer<typeof feedbackFormSchema>;
@@ -58,7 +63,7 @@ export function FeedbackRequestForm({ onSuccess }: FeedbackRequestFormProps) {
         category: values.category,
         description: values.description,
         priority: values.priority || 'medium',
-        notes: values.notes || undefined,
+        notes: values.notes && values.notes.trim() !== '' ? values.notes.trim() : undefined,
       });
 
       setCreatedRequestId(result.requestId);
