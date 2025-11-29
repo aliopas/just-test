@@ -456,13 +456,24 @@ export const requestController = {
       console.error('Failed to create partnership request:', error);
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
+      
+      // Check for database constraint violations
+      const isConstraintError =
+        errorMessage.includes('violates check constraint') ||
+        errorMessage.includes('violates not-null constraint') ||
+        errorMessage.includes('invalid input value for enum') ||
+        errorMessage.includes('type IN');
+      
       return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
-          message: 'Failed to create partnership request',
+          message: isConstraintError
+            ? 'Database schema mismatch. Please ensure all migrations have been applied.'
+            : 'Failed to create partnership request',
           details:
             process.env.NODE_ENV === 'development' ||
-            process.env.NODE_ENV === 'production'
+            process.env.NODE_ENV === 'production' ||
+            isConstraintError
               ? errorMessage
               : undefined,
         },

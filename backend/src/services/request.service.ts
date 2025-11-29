@@ -123,8 +123,19 @@ export async function createPartnershipRequest(params: {
     .single<{ id: string }>();
 
   if (error || !data) {
+    const errorMessage = error?.message ?? 'unknown';
+    const errorDetails = error?.details ?? '';
+    const errorHint = error?.hint ?? '';
+    
+    // Provide more context for constraint violations
+    if (errorMessage.includes('violates check constraint')) {
+      throw new Error(
+        `Database constraint violation: ${errorMessage}. ${errorDetails} ${errorHint}. This may indicate that database migrations need to be applied.`
+      );
+    }
+    
     throw new Error(
-      `Failed to create partnership request: ${error?.message ?? 'unknown'}`
+      `Failed to create partnership request: ${errorMessage}${errorDetails ? ` (${errorDetails})` : ''}${errorHint ? ` Hint: ${errorHint}` : ''}`
     );
   }
 

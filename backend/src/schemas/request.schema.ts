@@ -83,19 +83,20 @@ export const createPartnershipRequestSchema = z.object({
       z.string().trim(),
     ])
     .transform((val) => (val === '' ? undefined : val))
-    .optional()
     .refine(
       (val) => {
         // If empty or undefined, it's valid (optional field)
-        if (!val || val.trim() === '') return true;
+        if (!val || (typeof val === 'string' && val.trim() === '')) return true;
         // If has value, must be valid UUID
+        if (typeof val !== 'string') return false;
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         return uuidRegex.test(val.trim());
       },
       {
         message: 'Invalid project ID format (must be UUID)',
       }
-    ),
+    )
+    .optional(),
   proposedAmount: z
     .union([
       z.literal(''),
