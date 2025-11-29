@@ -34,7 +34,10 @@ const partnershipFormSchema = z.object({
     .transform((val) => {
       if (val === '' || val === undefined || val === null) return undefined;
       if (typeof val === 'string' && val.trim() === '') return undefined;
-      return typeof val === 'number' ? val : undefined;
+      if (typeof val === 'number') return val;
+      // Try to parse string to number
+      const parsed = Number.parseFloat(String(val));
+      return Number.isNaN(parsed) ? undefined : parsed;
     }),
   partnershipPlan: z
     .string()
@@ -50,6 +53,14 @@ const partnershipFormSchema = z.object({
 
 type PartnershipFormValues = z.infer<typeof partnershipFormSchema>;
 
+// Form input type (before transformation)
+type PartnershipFormInput = {
+  projectId?: string;
+  proposedAmount?: string | number;
+  partnershipPlan?: string;
+  notes?: string;
+};
+
 export function PartnershipRequestForm() {
   const { language, direction } = useLanguage();
   const { pushToast } = useToast();
@@ -62,7 +73,7 @@ export function PartnershipRequestForm() {
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<PartnershipFormValues>({
+  } = useForm<PartnershipFormInput>({
     resolver: zodResolver(partnershipFormSchema),
     defaultValues: {
       projectId: '',
@@ -75,11 +86,14 @@ export function PartnershipRequestForm() {
   const onSubmit = handleSubmit(
     async (values) => {
       try {
+        // Parse the form values through the schema to get the transformed values
+        const parsed = partnershipFormSchema.parse(values);
+        
         const result = await createPartnership.mutateAsync({
-          projectId: values.projectId,
-          proposedAmount: values.proposedAmount,
-          partnershipPlan: values.partnershipPlan,
-          notes: values.notes && values.notes.trim() !== '' ? values.notes.trim() : undefined,
+          projectId: parsed.projectId,
+          proposedAmount: parsed.proposedAmount,
+          partnershipPlan: parsed.partnershipPlan,
+          notes: parsed.notes,
         });
 
         setCreatedRequestId(result.requestId);
