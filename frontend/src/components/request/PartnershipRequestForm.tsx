@@ -11,18 +11,20 @@ const partnershipFormSchema = z.object({
   projectId: z
     .string()
     .trim()
+    .optional()
     .refine(
       (val) => {
-        // Allow empty string or valid UUID
-        if (!val || val === '') return true;
-        return z.string().uuid().safeParse(val).success;
+        // If empty or undefined, it's valid (optional field)
+        if (!val || val.trim() === '') return true;
+        // If has value, must be valid UUID
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        return uuidRegex.test(val.trim());
       },
       {
         message: 'Invalid project ID format (must be UUID)',
       }
     )
-    .transform((val) => (!val || val.trim() === '' ? undefined : val.trim()))
-    .optional(),
+    .transform((val) => (!val || val.trim() === '' ? undefined : val.trim())),
   proposedAmount: z
     .union([
       z.literal(''),
@@ -70,6 +72,15 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
       errorMap: (issue: ZodIssue, ctx: { defaultError: string }) => {
         // Custom error messages
         if (issue.code === z.ZodIssueCode.custom) {
+          // Handle projectId errors specifically
+          if (issue.path[0] === 'projectId') {
+            return {
+              message:
+                language === 'ar'
+                  ? 'صيغة معرف المشروع غير صحيحة (يجب أن يكون UUID)'
+                  : 'Invalid project ID format (must be UUID)',
+            };
+          }
           return { message: issue.message || ctx.defaultError };
         }
         if (issue.code === z.ZodIssueCode.too_small) {
@@ -220,15 +231,21 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
         >
           <input
             type="text"
-            {...register('projectId')}
+            {...register('projectId', {
+              setValueAs: (value: string) => {
+                // Clean the value: trim and return empty string if empty
+                const trimmed = value?.trim() || '';
+                return trimmed === '' ? '' : trimmed;
+              },
+            })}
             style={{
               ...inputStyle,
               borderColor: errors.projectId ? '#DC2626' : undefined,
             }}
             placeholder={
               language === 'ar'
-                ? 'معرف المشروع (UUID)'
-                : 'Project ID (UUID)'
+                ? 'معرف المشروع (UUID) - اختياري'
+                : 'Project ID (UUID) - Optional'
             }
           />
         </Field>

@@ -18,7 +18,11 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:story-3.4": "jest backend/tests/request.controller.test.ts --testNamePattern=presignAttachment"
+    "test:story-3.4": "jest backend/tests/request.controller.test.ts --testNamePattern=presignAttachment",
+    "clean": "npm run clean:backend && npm run clean:frontend && npm run clean:cache",
+    "clean:backend": "node -e \"require('fs').rmSync('backend/dist', {recursive: true, force: true}); require('fs').rmSync('backend/.tsbuildinfo', {force: true})\"",
+    "clean:frontend": "npm run clean --workspace frontend",
+    "clean:cache": "node -e \"const fs=require('fs'); ['node_modules/.cache', 'frontend/node_modules/.vite', 'frontend/dist', '.vite'].forEach(p=>fs.rmSync(p,{recursive:true,force:true}))\""
   },
   "keywords": [],
   "author": "Bacura Technologies Team",
