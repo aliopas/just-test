@@ -41,8 +41,7 @@ const partnershipFormSchema = z.object({
   partnershipPlan: z
     .string()
     .trim()
-    .min(50, 'Partnership plan must be at least 50 characters')
-    .max(5000, 'Partnership plan must be 5000 characters or fewer'),
+    .optional(),
   notes: z
     .string()
     .trim()
@@ -124,7 +123,7 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
       const result = await createPartnership.mutateAsync({
         projectId: values.projectId && values.projectId.trim() !== '' ? values.projectId : undefined,
         proposedAmount: values.proposedAmount,
-        partnershipPlan: values.partnershipPlan,
+        partnershipPlan: values.partnershipPlan || undefined,
         notes: values.notes && values.notes.trim() !== '' ? values.notes.trim() : undefined,
       });
 
@@ -292,18 +291,8 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
       </div>
 
       <Field
-        label={language === 'ar' ? 'خطة الشراكة *' : 'Partnership Plan *'}
-        error={
-          errors.partnershipPlan?.message
-            ? language === 'ar'
-              ? errors.partnershipPlan.message.includes('at least')
-                ? 'خطة الشراكة يجب أن تكون 50 حرف على الأقل'
-                : errors.partnershipPlan.message.includes('5000')
-                ? 'خطة الشراكة يجب أن تكون 5000 حرف أو أقل'
-                : errors.partnershipPlan.message
-              : errors.partnershipPlan.message
-            : undefined
-        }
+        label={language === 'ar' ? 'خطة الشراكة (اختياري)' : 'Partnership Plan (Optional)'}
+        error={errors.partnershipPlan?.message}
       >
         <textarea
           {...register('partnershipPlan')}
@@ -315,22 +304,10 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
           }}
           placeholder={
             language === 'ar'
-              ? 'اكتب خطة الشراكة بالتفصيل (50 حرف على الأقل)'
-              : 'Describe your partnership plan in detail (at least 50 characters)'
+              ? 'اكتب خطة الشراكة بالتفصيل (اختياري)'
+              : 'Describe your partnership plan in detail (optional)'
           }
-          required
         />
-        <div
-          style={{
-            fontSize: '0.85rem',
-            color: 'var(--color-text-muted)',
-            marginTop: '0.25rem',
-          }}
-        >
-          {language === 'ar'
-            ? 'الحد الأدنى: 50 حرف | الحد الأقصى: 5000 حرف'
-            : 'Min: 50 characters | Max: 5000 characters'}
-        </div>
       </Field>
 
       <Field

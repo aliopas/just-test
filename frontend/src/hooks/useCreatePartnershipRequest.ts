@@ -4,7 +4,7 @@ import { apiClient } from '../utils/api-client';
 export interface CreatePartnershipRequestPayload {
   projectId?: string;
   proposedAmount?: number;
-  partnershipPlan: string;
+  partnershipPlan?: string;
   notes?: string;
 }
 

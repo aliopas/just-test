@@ -36,21 +36,24 @@ export function UploadDropzone({
         throw new Error('Request ID is required');
       }
 
-      // Validate file
-      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
-      if (!allowedTypes.includes(file.type)) {
+      // Allow all image types and PDF
+      const isImage = file.type.startsWith('image/');
+      const isPdf = file.type === 'application/pdf';
+      
+      if (!isImage && !isPdf) {
         throw new Error(
           language === 'ar'
-            ? 'نوع الملف غير مدعوم. يُسمح فقط بـ PDF, JPG, PNG'
-            : 'File type not supported. Only PDF, JPG, PNG are allowed'
+            ? 'نوع الملف غير مدعوم. يُسمح فقط بالصور و PDF'
+            : 'File type not supported. Only images and PDF are allowed'
         );
       }
 
-      if (file.size > 10 * 1024 * 1024) {
+      // Increase file size limit to 25MB
+      if (file.size > 25 * 1024 * 1024) {
         throw new Error(
           language === 'ar'
-            ? 'حجم الملف يجب أن يكون أقل من 10MB'
-            : 'File size must be less than 10MB'
+            ? 'حجم الملف يجب أن يكون أقل من 25MB'
+            : 'File size must be less than 25MB'
         );
       }
 
@@ -203,7 +206,7 @@ export function UploadDropzone({
         <input
           id="attachments"
           type="file"
-          accept=".pdf,.jpg,.jpeg,.png"
+          accept="image/*,.pdf"
           multiple
           hidden
           disabled={disabled || !requestId}

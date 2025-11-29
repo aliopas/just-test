@@ -91,9 +91,11 @@ export async function createPartnershipRequest(params: {
   }
 
   // Build metadata object - only include defined values
-  const metadata: Record<string, unknown> = {
-    partnershipPlan: params.payload.partnershipPlan,
-  };
+  const metadata: Record<string, unknown> = {};
+  
+  if (params.payload.partnershipPlan) {
+    metadata.partnershipPlan = params.payload.partnershipPlan;
+  }
   
   if (params.payload.projectId) {
     metadata.projectId = params.payload.projectId;
@@ -341,18 +343,8 @@ export async function submitInvestorRequest(params: {
     throw new Error('REQUEST_NOT_DRAFT');
   }
 
-  const { count: attachmentCount, error: attachmentError } = await adminClient
-    .from('attachments')
-    .select('id', { count: 'exact', head: true })
-    .eq('request_id', params.requestId);
-
-  if (attachmentError) {
-    throw new Error(`Failed to verify attachments: ${attachmentError.message}`);
-  }
-
-  if (!attachmentCount || attachmentCount === 0) {
-    throw new Error('ATTACHMENTS_REQUIRED');
-  }
+  // Attachments are now optional - removed the requirement check
+  // Users can submit requests without attachments if needed
 
   const transition = await transitionRequestStatus({
     requestId: params.requestId,

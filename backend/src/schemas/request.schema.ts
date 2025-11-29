@@ -26,13 +26,7 @@ export const createRequestSchema = z.object({
 export type CreateRequestInput = z.infer<typeof createRequestSchema>;
 
 // Schema for request attachment presign
-const ALLOWED_ATTACHMENT_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png'] as const;
-const ALLOWED_MIME_TYPES = [
-  'application/pdf',
-  'image/jpeg',
-  'image/jpg',
-  'image/png',
-] as const;
+// Allow all image types and PDF
 
 export const requestAttachmentPresignSchema = z
   .object({
@@ -46,27 +40,32 @@ export const requestAttachmentPresignSchema = z
       .string()
       .trim()
       .refine(
-        value =>
-          ALLOWED_MIME_TYPES.includes(
-            value as (typeof ALLOWED_MIME_TYPES)[number]
-          ),
-        'Only PDF, JPG, or PNG files are allowed'
+        value => {
+          // Allow all image types or PDF
+          const isImage = value.startsWith('image/');
+          const isPdf = value === 'application/pdf';
+          return isImage || isPdf;
+        },
+        'Only images and PDF files are allowed'
       ),
     fileSize: z.coerce
       .number()
       .int()
       .positive('File size must be greater than zero')
-      .max(10 * 1024 * 1024, 'File size must not exceed 10MB'),
+      .max(25 * 1024 * 1024, 'File size must not exceed 25MB'),
   })
   .refine(
     value => {
       const extension = value.fileName.split('.').pop()?.toLowerCase() ?? '';
-      return ALLOWED_ATTACHMENT_EXTENSIONS.includes(
-        extension as (typeof ALLOWED_ATTACHMENT_EXTENSIONS)[number]
-      );
+      // Allow common image extensions and PDF
+      const allowedExtensions = [
+        'pdf',
+        'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'tiff', 'ico',
+      ];
+      return allowedExtensions.includes(extension);
     },
     {
-      message: 'Only PDF, JPG, JPEG, or PNG file extensions are allowed',
+      message: 'Only image files and PDF are allowed',
       path: ['fileName'],
     }
   );
@@ -109,8 +108,7 @@ export const createPartnershipRequestSchema = z.object({
   partnershipPlan: z
     .string()
     .trim()
-    .min(50, 'Partnership plan must be at least 50 characters')
-    .max(5000, 'Partnership plan must be 5000 characters or fewer'),
+    .optional(),
   notes: z
     .union([
       z.literal(''),

@@ -170,14 +170,7 @@ export const requestController = {
         });
       }
 
-      if (error instanceof Error && error.message === 'ATTACHMENTS_REQUIRED') {
-        return res.status(400).json({
-          error: {
-            code: 'ATTACHMENTS_REQUIRED',
-            message: 'Attachments are required before submitting',
-          },
-        });
-      }
+      // Attachments are now optional - removed this check
 
       console.error('Failed to submit request:', error);
       return res.status(500).json({
