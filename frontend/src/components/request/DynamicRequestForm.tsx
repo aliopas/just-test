@@ -2,9 +2,6 @@ import { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { RequestTypeSelector, type RequestTypeOption } from './RequestTypeSelector';
 import { NewRequestForm } from './NewRequestForm';
-import { PartnershipRequestForm } from './PartnershipRequestForm';
-import { BoardNominationRequestForm } from './BoardNominationRequestForm';
-import { FeedbackRequestForm } from './FeedbackRequestForm';
 
 interface DynamicRequestFormProps {
   quickAmounts?: number[];
@@ -30,12 +27,6 @@ export function DynamicRequestForm({
             hideTypeSelector={true}
           />
         );
-      case 'partnership':
-        return <PartnershipRequestForm />;
-      case 'board_nomination':
-        return <BoardNominationRequestForm />;
-      case 'feedback':
-        return <FeedbackRequestForm />;
       default:
         return null;
     }

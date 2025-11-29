@@ -5,7 +5,7 @@ import { RequestStatusBadge } from './RequestStatusBadge';
 import { RequestProgressBar } from './RequestProgressBar';
 import { tRequestList } from '../../locales/requestList';
 
-const typeLabels = {
+const typeLabels: Record<string, { en: string; ar: string }> = {
   buy: {
     en: 'Buy',
     ar: 'شراء',
@@ -13,18 +13,6 @@ const typeLabels = {
   sell: {
     en: 'Sell',
     ar: 'بيع',
-  },
-  partnership: {
-    en: 'Partnership',
-    ar: 'شراكة',
-  },
-  board_nomination: {
-    en: 'Board Nomination',
-    ar: 'ترشيح مجلس',
-  },
-  feedback: {
-    en: 'Feedback',
-    ar: 'ملاحظات',
   },
 };
 

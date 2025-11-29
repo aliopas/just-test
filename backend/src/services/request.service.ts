@@ -122,7 +122,14 @@ export async function createPartnershipRequest(params: {
       metadata: metadata, // Use metadata as-is (can be empty object)
     };
 
+    // Log all values with their lengths to identify the problematic field
     console.log('Creating partnership request with payload:', JSON.stringify(requestPayload, null, 2));
+    console.log('Field lengths:', {
+      request_number: requestPayload.request_number?.length ?? 0,
+      type: requestPayload.type?.length ?? 0,
+      currency: requestPayload.currency?.length ?? 0,
+      status: requestPayload.status?.length ?? 0,
+    });
     console.log('User ID:', params.userId);
     console.log('Request Number:', requestNumber);
 
