@@ -8,6 +8,15 @@ import { usePublicProjects } from '../../hooks/usePublicProjects';
 import { UploadDropzone } from './UploadDropzone';
 import { useState } from 'react';
 
+// Input schema (what the form provides - all strings from HTML inputs)
+const partnershipFormInputSchema = z.object({
+  projectId: z.string(),
+  proposedAmount: z.string(),
+  partnershipPlan: z.string(),
+  notes: z.string(),
+});
+
+// Output schema (what we send to the API)
 const partnershipFormSchema = z.object({
   projectId: z
     .string()
@@ -25,24 +34,23 @@ const partnershipFormSchema = z.object({
     )
     .transform((val) => (!val || val.trim() === '' ? undefined : val.trim())),
   proposedAmount: z
-    .union([
-      z.literal(''),
-      z.string().trim(),
-      z.coerce.number().positive('Proposed amount must be greater than zero'),
-    ])
+    .union([z.string(), z.number()])
     .optional()
     .transform((val) => {
       if (val === '' || val === undefined || val === null) return undefined;
-      if (typeof val === 'string' && val.trim() === '') return undefined;
-      if (typeof val === 'number') return val;
-      // Try to parse string to number
-      const parsed = Number.parseFloat(String(val));
-      return Number.isNaN(parsed) ? undefined : parsed;
+      if (typeof val === 'number') {
+        return val > 0 ? val : undefined;
+      }
+      const trimmed = String(val).trim();
+      if (trimmed === '') return undefined;
+      const parsed = Number.parseFloat(trimmed);
+      return Number.isNaN(parsed) || parsed <= 0 ? undefined : parsed;
     }),
   partnershipPlan: z
     .string()
     .trim()
-    .optional(),
+    .optional()
+    .transform((val) => (!val || val.trim() === '' ? undefined : val.trim())),
   notes: z
     .string()
     .trim()
@@ -51,15 +59,8 @@ const partnershipFormSchema = z.object({
     .transform((val) => (!val || val.trim() === '' ? undefined : val.trim())),
 });
 
+type PartnershipFormInput = z.infer<typeof partnershipFormInputSchema>;
 type PartnershipFormValues = z.infer<typeof partnershipFormSchema>;
-
-// Form input type (before transformation)
-type PartnershipFormInput = {
-  projectId?: string;
-  proposedAmount?: string | number;
-  partnershipPlan?: string;
-  notes?: string;
-};
 
 export function PartnershipRequestForm() {
   const { language, direction } = useLanguage();
@@ -74,26 +75,32 @@ export function PartnershipRequestForm() {
     reset,
     formState: { errors },
   } = useForm<PartnershipFormInput>({
-    resolver: zodResolver(partnershipFormSchema),
+    resolver: zodResolver(partnershipFormInputSchema),
     defaultValues: {
       projectId: '',
       proposedAmount: '',
       partnershipPlan: '',
       notes: '',
     },
+    mode: 'onBlur',
   });
 
   const onSubmit = handleSubmit(
     async (values) => {
       try {
-        // Parse the form values through the schema to get the transformed values
-        const parsed = partnershipFormSchema.parse(values);
+        // Transform form input values to API format
+        const transformed = partnershipFormSchema.parse({
+          projectId: values.projectId || '',
+          proposedAmount: values.proposedAmount || '',
+          partnershipPlan: values.partnershipPlan || '',
+          notes: values.notes || '',
+        });
         
         const result = await createPartnership.mutateAsync({
-          projectId: parsed.projectId,
-          proposedAmount: parsed.proposedAmount,
-          partnershipPlan: parsed.partnershipPlan,
-          notes: parsed.notes,
+          projectId: transformed.projectId,
+          proposedAmount: transformed.proposedAmount,
+          partnershipPlan: transformed.partnershipPlan,
+          notes: transformed.notes,
         });
 
         setCreatedRequestId(result.requestId);
