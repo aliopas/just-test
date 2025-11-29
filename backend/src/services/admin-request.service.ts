@@ -288,10 +288,18 @@ export async function listAdminRequests(params: {
 
   const rows = (data as AdminRequestRow[] | null) ?? [];
 
-  // No data found (this is a valid case, no logging needed)
+  // Log for debugging
+  console.log('Admin requests query result:', {
+    rowsCount: rows.length,
+    totalCount: count,
+    query: params.query,
+    types: rows.map(r => r.type),
+    statuses: rows.map(r => r.status),
+  });
 
   // If no rows, return empty result early
   if (rows.length === 0) {
+    console.log('No requests found with filters:', params.query);
     return {
       requests: [],
       meta: {
@@ -483,6 +491,14 @@ export async function listAdminRequests(params: {
 
   const total = count ?? 0;
   const pageCount = total === 0 ? 0 : Math.ceil(total / limit);
+
+  console.log('Returning admin requests:', {
+    requestsCount: requests.length,
+    total,
+    pageCount,
+    page,
+    limit,
+  });
 
   return {
     requests,

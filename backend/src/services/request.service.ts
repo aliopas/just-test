@@ -185,8 +185,19 @@ export async function createBoardNominationRequest(params: {
     .single<{ id: string }>();
 
   if (error || !data) {
+    const errorMessage = error?.message ?? 'unknown error';
+    const errorDetails = error?.details ?? '';
+    const errorHint = error?.hint ?? '';
+    
+    // Provide more context for constraint violations
+    if (errorMessage.includes('violates check constraint')) {
+      throw new Error(
+        `Database constraint violation: ${errorMessage}. ${errorDetails} ${errorHint}. This may indicate that database migrations need to be applied.`
+      );
+    }
+    
     throw new Error(
-      `Failed to create board nomination request: ${error?.message ?? 'unknown'}`
+      `Failed to create board nomination request: ${errorMessage}${errorDetails ? ` (${errorDetails})` : ''}${errorHint ? ` Hint: ${errorHint}` : ''}`
     );
   }
 
