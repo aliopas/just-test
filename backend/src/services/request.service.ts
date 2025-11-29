@@ -115,7 +115,7 @@ export async function createPartnershipRequest(params: {
     expiry_at: null,
     status: 'draft',
     notes: params.payload.notes ?? null,
-    metadata: metadata as Record<string, unknown>,
+    metadata: Object.keys(metadata).length > 0 ? metadata : {}, // Ensure metadata is always an object
   };
 
   const { data, error } = await adminClient
