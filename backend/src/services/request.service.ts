@@ -114,7 +114,7 @@ export async function createPartnershipRequest(params: {
       currency: params.payload.proposedAmount != null ? 'SAR' : null, // Only set currency if amount is provided
       target_price: null,
       expiry_at: null,
-      status: 'draft',
+      status: 'draft' as const,
       notes: params.payload.notes ?? null,
       metadata: metadata, // Use metadata as-is (can be empty object)
     };
