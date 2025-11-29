@@ -112,6 +112,15 @@ export function PartnershipRequestForm() {
               : 'Partnership request created successfully',
           variant: 'success',
         });
+
+        // Reset form immediately after successful submission (like buy/sell forms)
+        reset({
+          projectId: '',
+          proposedAmount: '',
+          partnershipPlan: '',
+          notes: '',
+        });
+        setCreatedRequestId(null);
       } catch (error: unknown) {
         console.error('Failed to create partnership request:', error);
         console.error('Error details:', JSON.stringify(error, null, 2));
@@ -308,7 +317,7 @@ export function PartnershipRequestForm() {
       <UploadDropzone
         requestId={createdRequestId}
         onUploadComplete={() => {
-          reset();
+          // Form already reset after submission, just clear requestId
           setCreatedRequestId(null);
         }}
       />

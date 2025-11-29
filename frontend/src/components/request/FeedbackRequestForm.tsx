@@ -76,6 +76,16 @@ export function FeedbackRequestForm() {
               : 'Feedback request created successfully',
           variant: 'success',
         });
+
+        // Reset form immediately after successful submission (like buy/sell forms)
+        reset({
+          subject: '',
+          category: '',
+          description: '',
+          priority: 'medium',
+          notes: '',
+        });
+        setCreatedRequestId(null);
       } catch (error: unknown) {
         console.error('Failed to create feedback request:', error);
         const message =
@@ -234,7 +244,7 @@ export function FeedbackRequestForm() {
       <UploadDropzone
         requestId={createdRequestId}
         onUploadComplete={() => {
-          reset();
+          // Form already reset after submission, just clear requestId
           setCreatedRequestId(null);
         }}
       />

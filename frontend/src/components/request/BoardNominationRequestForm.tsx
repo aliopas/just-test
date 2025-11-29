@@ -83,6 +83,16 @@ export function BoardNominationRequestForm() {
               : 'Board nomination request created successfully',
           variant: 'success',
         });
+
+        // Reset form immediately after successful submission (like buy/sell forms)
+        reset({
+          qualifications: '',
+          experience: '',
+          motivations: '',
+          cvSummary: '',
+          notes: '',
+        });
+        setCreatedRequestId(null);
       } catch (error: unknown) {
         console.error('Failed to create board nomination request:', error);
         const message =
@@ -239,7 +249,7 @@ export function BoardNominationRequestForm() {
       <UploadDropzone
         requestId={createdRequestId}
         onUploadComplete={() => {
-          reset();
+          // Form already reset after submission, just clear requestId
           setCreatedRequestId(null);
         }}
       />
