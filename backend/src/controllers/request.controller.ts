@@ -53,10 +53,12 @@ export const requestController = {
       });
     } catch (error) {
       console.error('Failed to create request:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to create request',
+          details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
         },
       });
     }

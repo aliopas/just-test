@@ -12,7 +12,13 @@ export const createRequestSchema = z.object({
     },
     z.number().positive('Amount must be greater than zero').optional()
   ),
-  currency: z.enum(validCurrencies).optional(),
+  currency: z.preprocess(
+    (val) => {
+      if (val === undefined || val === null || val === '') return undefined;
+      return val;
+    },
+    z.enum(validCurrencies).optional()
+  ),
   targetPrice: z.preprocess(
     (val) => {
       if (val === undefined || val === null || val === '') return undefined;
