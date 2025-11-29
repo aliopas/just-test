@@ -26,8 +26,8 @@ const boardNominationFormSchema = z.object({
   qualifications: z
     .string()
     .trim()
-    .max(2000, 'Qualifications must be 2000 characters or fewer')
-    .optional(),
+    .min(50, 'Qualifications must be at least 50 characters')
+    .max(2000, 'Qualifications must be 2000 characters or fewer'),
   notes: z.string().max(1000, 'Notes must be 1000 characters or fewer').optional(),
 });
 
@@ -67,7 +67,7 @@ export function BoardNominationRequestForm({
         cvSummary: values.cvSummary,
         experience: values.experience,
         motivations: values.motivations,
-        qualifications: values.qualifications || undefined,
+        qualifications: values.qualifications,
         notes: values.notes || undefined,
       });
 
@@ -188,7 +188,7 @@ export function BoardNominationRequestForm({
       </Field>
 
       <Field
-        label={language === 'ar' ? 'المؤهلات (اختياري)' : 'Qualifications (Optional)'}
+        label={language === 'ar' ? 'المؤهلات *' : 'Qualifications *'}
         error={errors.qualifications?.message}
       >
         <textarea
@@ -196,10 +196,22 @@ export function BoardNominationRequestForm({
           style={{ ...inputStyle, minHeight: '4rem', resize: 'vertical' }}
           placeholder={
             language === 'ar'
-              ? 'المؤهلات الأكاديمية والمهنية (اختياري)'
-              : 'Academic and professional qualifications (optional)'
+              ? 'المؤهلات الأكاديمية والمهنية (50 حرف على الأقل)'
+              : 'Academic and professional qualifications (at least 50 characters)'
           }
+          required
         />
+        <div
+          style={{
+            fontSize: '0.85rem',
+            color: 'var(--color-text-muted)',
+            marginTop: '0.25rem',
+          }}
+        >
+          {language === 'ar'
+            ? 'الحد الأدنى: 50 حرف | الحد الأقصى: 2000 حرف'
+            : 'Min: 50 characters | Max: 2000 characters'}
+        </div>
       </Field>
 
       <Field

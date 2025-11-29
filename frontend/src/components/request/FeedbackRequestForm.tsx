@@ -17,9 +17,9 @@ const feedbackFormSchema = z.object({
   description: z
     .string()
     .trim()
-    .min(20, 'Description must be at least 20 characters')
-    .max(2000, 'Description must be 2000 characters or fewer'),
-  priority: z.enum(['low', 'medium', 'high']).optional(),
+    .min(50, 'Description must be at least 50 characters')
+    .max(5000, 'Description must be 5000 characters or fewer'),
+  priority: z.enum(['low', 'medium', 'high']),
   notes: z.string().max(1000, 'Notes must be 1000 characters or fewer').optional(),
 });
 
@@ -57,7 +57,7 @@ export function FeedbackRequestForm({ onSuccess }: FeedbackRequestFormProps) {
         subject: values.subject,
         category: values.category,
         description: values.description,
-        priority: values.priority,
+        priority: values.priority || 'medium',
         notes: values.notes || undefined,
       });
 
@@ -141,10 +141,10 @@ export function FeedbackRequestForm({ onSuccess }: FeedbackRequestFormProps) {
         </Field>
 
         <Field
-          label={language === 'ar' ? 'الأولوية' : 'Priority'}
+          label={language === 'ar' ? 'الأولوية *' : 'Priority *'}
           error={errors.priority?.message}
         >
-          <select {...register('priority')} style={selectStyle}>
+          <select {...register('priority')} style={selectStyle} required>
             {priorityOptions.map(option => (
               <option key={option.value} value={option.value}>
                 {option.label[language]}
@@ -163,8 +163,8 @@ export function FeedbackRequestForm({ onSuccess }: FeedbackRequestFormProps) {
           style={{ ...inputStyle, minHeight: '8rem', resize: 'vertical' }}
           placeholder={
             language === 'ar'
-              ? 'اكتب وصفاً مفصلاً للملاحظة (20 حرف على الأقل)'
-              : 'Describe your feedback in detail (at least 20 characters)'
+              ? 'اكتب وصفاً مفصلاً للملاحظة (50 حرف على الأقل)'
+              : 'Describe your feedback in detail (at least 50 characters)'
           }
           required
         />
@@ -176,8 +176,8 @@ export function FeedbackRequestForm({ onSuccess }: FeedbackRequestFormProps) {
           }}
         >
           {language === 'ar'
-            ? 'الحد الأدنى: 20 حرف | الحد الأقصى: 2000 حرف'
-            : 'Min: 20 characters | Max: 2000 characters'}
+            ? 'الحد الأدنى: 50 حرف | الحد الأقصى: 5000 حرف'
+            : 'Min: 50 characters | Max: 5000 characters'}
         </div>
       </Field>
 

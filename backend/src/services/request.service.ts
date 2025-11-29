@@ -108,7 +108,7 @@ export async function createPartnershipRequest(params: {
     request_number: requestNumber,
     type: 'partnership' as const,
     amount: params.payload.proposedAmount ?? null,
-    currency: 'SAR', // Default currency for partnership requests
+    currency: params.payload.proposedAmount != null ? 'SAR' : null, // Only set currency if amount is provided
     target_price: null,
     expiry_at: null,
     status: 'draft',
@@ -269,8 +269,19 @@ export async function createFeedbackRequest(params: {
     .single<{ id: string }>();
 
   if (error || !data) {
+    const errorMessage = error?.message ?? 'unknown error';
+    const errorDetails = error?.details ?? '';
+    const errorHint = error?.hint ?? '';
+    
+    // Provide more context for constraint violations
+    if (errorMessage.includes('violates check constraint')) {
+      throw new Error(
+        `Database constraint violation: ${errorMessage}. ${errorDetails} ${errorHint}. This may indicate that database migrations need to be applied.`
+      );
+    }
+    
     throw new Error(
-      `Failed to create feedback request: ${error?.message ?? 'unknown'}`
+      `Failed to create feedback request: ${errorMessage}${errorDetails ? ` (${errorDetails})` : ''}${errorHint ? ` Hint: ${errorHint}` : ''}`
     );
   }
 
