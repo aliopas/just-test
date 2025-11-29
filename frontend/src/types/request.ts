@@ -18,8 +18,8 @@ export type RequestStatus =
 
 export interface CreateRequestPayload {
   type: RequestType;
-  amount: number;
-  currency: RequestCurrency;
+  amount?: number | null;
+  currency?: RequestCurrency | null;
   targetPrice?: number | null;
   expiryAt?: string | null;
   notes?: string | null;

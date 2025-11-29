@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { RequestTypeSelector, type RequestTypeOption } from './RequestTypeSelector';
 import { NewRequestForm } from './NewRequestForm';
+import { SimpleRequestForm } from './SimpleRequestForm';
 
 interface DynamicRequestFormProps {
   quickAmounts?: number[];
@@ -27,6 +28,10 @@ export function DynamicRequestForm({
             hideTypeSelector={true}
           />
         );
+      case 'partnership':
+      case 'board_nomination':
+      case 'feedback':
+        return <SimpleRequestForm type={selectedType} />;
       default:
         return null;
     }

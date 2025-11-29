@@ -12,7 +12,7 @@ type RequestRow = {
   updated_at?: string;
 };
 
-type RequestType = 'buy' | 'sell' | 'partnership' | 'board_nomination' | 'feedback';
+type RequestType = 'buy' | 'sell';
 
 type StatusRow = {
   status: string | null;
@@ -152,7 +152,7 @@ export async function getInvestorDashboard(params: {
       .maybeSingle<{ average: number | null }>()
   );
 
-  const allRequestTypes: RequestType[] = ['buy', 'sell', 'partnership', 'board_nomination', 'feedback'];
+  const allRequestTypes: RequestType[] = ['buy', 'sell'];
 
   const [
     statusResult,
@@ -221,9 +221,6 @@ export async function getInvestorDashboard(params: {
   const typeCounts: Record<RequestType, number> = {
     buy: 0,
     sell: 0,
-    partnership: 0,
-    board_nomination: 0,
-    feedback: 0,
   };
   
   let total = 0;
@@ -282,9 +279,6 @@ export async function getInvestorDashboard(params: {
   const averageAmountByType: Record<RequestType, number> = {
     buy: averageBuy,
     sell: averageSell,
-    partnership: 0, // Partnership requests may not have amount
-    board_nomination: 0, // Board nomination requests don't have amount
-    feedback: 0, // Feedback requests don't have amount
   };
 
   const rolling30DayVolume = rollingVolume;

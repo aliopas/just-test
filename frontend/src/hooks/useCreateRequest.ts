@@ -8,8 +8,8 @@ import type {
 async function postRequest(payload: CreateRequestPayload) {
   const body = {
     type: payload.type,
-    amount: payload.amount,
-    currency: payload.currency,
+    amount: payload.amount ?? undefined,
+    currency: payload.currency ?? undefined,
     targetPrice: payload.targetPrice ?? undefined,
     expiryAt: payload.expiryAt ?? undefined,
     notes: payload.notes ?? undefined,

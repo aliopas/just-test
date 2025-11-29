@@ -59,27 +59,6 @@ investorRouter.post(
 );
 
 investorRouter.post(
-  '/requests/partnership',
-  authenticate,
-  requirePermission('investor.requests.create'),
-  requestController.createPartnership
-);
-
-investorRouter.post(
-  '/requests/board-nomination',
-  authenticate,
-  requirePermission('investor.requests.create'),
-  requestController.createBoardNomination
-);
-
-investorRouter.post(
-  '/requests/feedback',
-  authenticate,
-  requirePermission('investor.requests.create'),
-  requestController.createFeedback
-);
-
-investorRouter.post(
   '/requests/:id/submit',
   authenticate,
   requirePermission('investor.requests.submit'),

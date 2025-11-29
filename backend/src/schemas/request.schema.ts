@@ -3,9 +3,9 @@ import { z } from 'zod';
 const validCurrencies = ['SAR', 'USD', 'EUR'] as const;
 
 export const createRequestSchema = z.object({
-  type: z.enum(['buy', 'sell']),
-  amount: z.coerce.number().positive('Amount must be greater than zero'),
-  currency: z.enum(validCurrencies).default('SAR'),
+  type: z.enum(['buy', 'sell', 'partnership', 'board_nomination', 'feedback']),
+  amount: z.coerce.number().positive('Amount must be greater than zero').optional(),
+  currency: z.enum(validCurrencies).optional(),
   targetPrice: z.number().positive('Target price must be positive').optional(),
   expiryAt: z
     .string()
@@ -21,7 +21,20 @@ export const createRequestSchema = z.object({
     .string()
     .max(500, 'Notes must be 500 characters or fewer')
     .optional(),
-});
+}).refine(
+  (data) => {
+    // For buy/sell, amount and currency are required
+    if (data.type === 'buy' || data.type === 'sell') {
+      return data.amount !== undefined && data.currency !== undefined;
+    }
+    // For other types, amount and currency are optional
+    return true;
+  },
+  {
+    message: 'Amount and currency are required for buy/sell requests',
+    path: ['amount'],
+  }
+);
 
 export type CreateRequestInput = z.infer<typeof createRequestSchema>;
 
@@ -74,106 +87,3 @@ export type RequestAttachmentPresignInput = z.infer<
   typeof requestAttachmentPresignSchema
 >;
 
-// Schema for partnership request
-export const createPartnershipRequestSchema = z.object({
-  projectId: z
-    .union([
-      z.literal(''),
-      z.string().trim(),
-    ])
-    .transform((val) => (val === '' ? undefined : val))
-    .refine(
-      (val) => {
-        // If empty or undefined, it's valid (optional field)
-        if (!val || (typeof val === 'string' && val.trim() === '')) return true;
-        // If has value, must be valid UUID
-        if (typeof val !== 'string') return false;
-        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-        return uuidRegex.test(val.trim());
-      },
-      {
-        message: 'Invalid project ID format (must be UUID)',
-      }
-    )
-    .optional(),
-  proposedAmount: z
-    .union([
-      z.literal(''),
-      z.coerce
-    .number()
-        .positive('Proposed amount must be greater than zero'),
-    ])
-    .transform((val) => (val === '' ? undefined : val))
-    .optional(),
-  partnershipPlan: z
-    .string()
-    .trim()
-    .optional(),
-  notes: z
-    .union([
-      z.literal(''),
-      z.string().trim().max(1000, 'Notes must be 1000 characters or fewer'),
-    ])
-    .transform((val) => (val === '' ? undefined : val))
-    .optional(),
-});
-
-export type CreatePartnershipRequestInput = z.infer<
-  typeof createPartnershipRequestSchema
->;
-
-// Schema for board nomination request
-export const createBoardNominationRequestSchema = z.object({
-  cvSummary: z
-    .string()
-    .trim()
-    .min(100, 'CV summary must be at least 100 characters')
-    .max(2000, 'CV summary must be 2000 characters or fewer'),
-  experience: z
-    .string()
-    .trim()
-    .min(100, 'Experience must be at least 100 characters')
-    .max(3000, 'Experience must be 3000 characters or fewer'),
-  motivations: z
-    .string()
-    .trim()
-    .min(100, 'Motivations must be at least 100 characters')
-    .max(2000, 'Motivations must be 2000 characters or fewer'),
-  qualifications: z
-    .string()
-    .trim()
-    .min(50, 'Qualifications must be at least 50 characters')
-    .max(2000, 'Qualifications must be 2000 characters or fewer'),
-  notes: z
-    .string()
-    .max(1000, 'Notes must be 1000 characters or fewer')
-    .optional(),
-});
-
-export type CreateBoardNominationRequestInput = z.infer<
-  typeof createBoardNominationRequestSchema
->;
-
-// Schema for feedback request
-export const createFeedbackRequestSchema = z.object({
-  subject: z
-    .string()
-    .trim()
-    .min(5, 'Subject must be at least 5 characters')
-    .max(200, 'Subject must be 200 characters or fewer'),
-  category: z.enum(['suggestion', 'complaint', 'question', 'other']),
-  description: z
-    .string()
-    .trim()
-    .min(50, 'Description must be at least 50 characters')
-    .max(5000, 'Description must be 5000 characters or fewer'),
-  priority: z.enum(['low', 'medium', 'high']),
-  notes: z
-    .string()
-    .max(1000, 'Notes must be 1000 characters or fewer')
-    .optional(),
-});
-
-export type CreateFeedbackRequestInput = z.infer<
-  typeof createFeedbackRequestSchema
->;

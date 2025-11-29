@@ -75,12 +75,9 @@ export function RequestDetailsDrawer({
     { dateStyle: 'medium', timeStyle: 'short' }
   );
 
-  const typeLabels = {
+  const typeLabels: Record<string, { en: string; ar: string }> = {
     buy: { en: 'Buy request', ar: 'طلب شراء' },
     sell: { en: 'Sell request', ar: 'طلب بيع' },
-    partnership: { en: 'Partnership request', ar: 'طلب شراكة' },
-    board_nomination: { en: 'Board nomination request', ar: 'طلب ترشيح مجلس' },
-    feedback: { en: 'Feedback request', ar: 'طلب ملاحظات' },
   };
 
   return createPortal(
