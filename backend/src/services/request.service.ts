@@ -106,12 +106,15 @@ export async function createPartnershipRequest(params: {
       metadata.proposedAmount = params.payload.proposedAmount;
     }
 
+    // Ensure currency is exactly 3 characters (SAR) or null
+    const currencyValue = params.payload.proposedAmount != null ? 'SAR' : null;
+    
     const requestPayload = {
       user_id: params.userId,
       request_number: requestNumber,
       type: 'partnership' as const,
       amount: params.payload.proposedAmount ?? null,
-      currency: params.payload.proposedAmount != null ? 'SAR' : null, // Only set currency if amount is provided
+      currency: currencyValue, // Only set currency if amount is provided, max 3 chars
       target_price: null,
       expiry_at: null,
       status: 'draft' as const,
