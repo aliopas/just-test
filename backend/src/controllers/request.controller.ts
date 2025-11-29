@@ -455,22 +455,17 @@ export const requestController = {
         errorMessage.includes('violates check constraint') ||
         errorMessage.includes('violates not-null constraint') ||
         errorMessage.includes('invalid input value for enum') ||
-        errorMessage.includes('type IN');
+        errorMessage.includes('type IN') ||
+        errorMessage.includes('duplicate key');
       
-      // Always show error details in development/production for debugging
-      const showDetails = 
-        process.env.NODE_ENV === 'development' ||
-        process.env.NODE_ENV === 'production' ||
-        process.env.NODE_ENV === 'test' ||
-        isConstraintError;
-      
+      // Always show error details for debugging
       return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: isConstraintError
             ? 'Database schema mismatch. Please ensure all migrations have been applied.'
             : 'Failed to create partnership request',
-          details: showDetails ? errorMessage : undefined,
+          details: errorMessage, // Always include details for debugging
         },
       });
     }
