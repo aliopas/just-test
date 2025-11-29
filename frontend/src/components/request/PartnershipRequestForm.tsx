@@ -1,12 +1,12 @@
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z, type ZodIssue } from 'zod';
+import { z } from 'zod';
 import { useLanguage } from '../../context/LanguageContext';
 import { useToast } from '../../context/ToastContext';
 import { useCreatePartnershipRequest } from '../../hooks/useCreatePartnershipRequest';
 import { usePublicProjects } from '../../hooks/usePublicProjects';
 import { UploadDropzone } from './UploadDropzone';
+import { useState } from 'react';
 
 const partnershipFormSchema = z.object({
   projectId: z
@@ -15,9 +15,7 @@ const partnershipFormSchema = z.object({
     .optional()
     .refine(
       (val) => {
-        // If empty or undefined, it's valid (optional field)
         if (!val || val.trim() === '') return true;
-        // If has value, must be valid UUID
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         return uuidRegex.test(val.trim());
       },
@@ -47,21 +45,17 @@ const partnershipFormSchema = z.object({
     .trim()
     .max(1000, 'Notes must be 1000 characters or fewer')
     .optional()
-    .transform((val) => (!val || val === '' ? undefined : val)),
+    .transform((val) => (!val || val.trim() === '' ? undefined : val.trim())),
 });
 
 type PartnershipFormValues = z.infer<typeof partnershipFormSchema>;
 
-interface PartnershipRequestFormProps {
-  onSuccess?: (requestId: string) => void;
-}
-
-export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProps) {
+export function PartnershipRequestForm() {
   const { language, direction } = useLanguage();
   const { pushToast } = useToast();
   const createPartnership = useCreatePartnershipRequest();
-  const [createdRequestId, setCreatedRequestId] = useState<string | null>(null);
   const { data: projectsData, isLoading: isLoadingProjects } = usePublicProjects();
+  const [createdRequestId, setCreatedRequestId] = useState<string | null>(null);
 
   const {
     register,
@@ -69,144 +63,79 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
     reset,
     formState: { errors },
   } = useForm<PartnershipFormValues>({
-    resolver: zodResolver(partnershipFormSchema, {
-      errorMap: (issue: ZodIssue, ctx: { defaultError: string }) => {
-        // Custom error messages
-        if (issue.code === z.ZodIssueCode.custom) {
-          // Handle projectId errors specifically
-          if (issue.path[0] === 'projectId') {
-            return {
-              message:
-                language === 'ar'
-                  ? 'صيغة معرف المشروع غير صحيحة (يجب أن يكون UUID)'
-                  : 'Invalid project ID format (must be UUID)',
-            };
-          }
-          return { message: issue.message || ctx.defaultError };
-        }
-        if (issue.code === z.ZodIssueCode.too_small) {
-          if (issue.path[0] === 'partnershipPlan') {
-            return {
-              message:
-                language === 'ar'
-                  ? 'خطة الشراكة يجب أن تكون 50 حرف على الأقل'
-                  : 'Partnership plan must be at least 50 characters',
-            };
-          }
-        }
-        if (issue.code === z.ZodIssueCode.too_big) {
-          if (issue.path[0] === 'partnershipPlan') {
-            return {
-              message:
-                language === 'ar'
-                  ? 'خطة الشراكة يجب أن تكون 5000 حرف أو أقل'
-                  : 'Partnership plan must be 5000 characters or fewer',
-            };
-          }
-        }
-        return { message: ctx.defaultError };
-      },
-    }),
-    mode: 'onSubmit', // Only validate on submit to reduce errors while typing
-    reValidateMode: 'onChange', // Re-validate on change after first submit
+    resolver: zodResolver(partnershipFormSchema),
     defaultValues: {
       projectId: '',
-      proposedAmount: undefined,
+      proposedAmount: '',
       partnershipPlan: '',
       notes: '',
     },
   });
 
   const onSubmit = handleSubmit(
-    async values => {
-    try {
-      const result = await createPartnership.mutateAsync({
-        projectId: values.projectId && values.projectId.trim() !== '' ? values.projectId : undefined,
-        proposedAmount: values.proposedAmount,
-        partnershipPlan: values.partnershipPlan || undefined,
-        notes: values.notes && values.notes.trim() !== '' ? values.notes.trim() : undefined,
-      });
+    async (values) => {
+      try {
+        const result = await createPartnership.mutateAsync({
+          projectId: values.projectId,
+          proposedAmount: values.proposedAmount,
+          partnershipPlan: values.partnershipPlan,
+          notes: values.notes && values.notes.trim() !== '' ? values.notes.trim() : undefined,
+        });
 
-      setCreatedRequestId(result.requestId);
-      onSuccess?.(result.requestId);
+        setCreatedRequestId(result.requestId);
 
-      pushToast({
-        message:
-          language === 'ar'
-            ? 'تم إنشاء طلب الشراكة بنجاح'
-            : 'Partnership request created successfully',
-        variant: 'success',
-      });
-    } catch (error: unknown) {
-      console.error('Failed to create partnership request:', error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
-      
-      let message: string;
-      
-      // Check if it's an ApiError with payload
-      if (
-        typeof error === 'object' &&
-        error !== null &&
-        'payload' in error &&
-        typeof (error as { payload: unknown }).payload === 'object' &&
-        (error as { payload: unknown }).payload !== null
-      ) {
-        const apiError = error as { message: string; payload?: { error?: { message?: string; details?: string } } };
-        const errorPayload = apiError.payload?.error;
+        pushToast({
+          message:
+            language === 'ar'
+              ? 'تم إنشاء طلب الشراكة بنجاح'
+              : 'Partnership request created successfully',
+          variant: 'success',
+        });
+      } catch (error: unknown) {
+        console.error('Failed to create partnership request:', error);
+        console.error('Error details:', JSON.stringify(error, null, 2));
         
-        // Prioritize details if available
-        if (errorPayload?.details) {
-          message = `${errorPayload.message || apiError.message || 'Error'}: ${errorPayload.details}`;
-        } else if (errorPayload?.message) {
-          message = errorPayload.message;
-        } else {
-          message = apiError.message || 'Failed to create partnership request';
-        }
-      } else if (
-        typeof error === 'object' &&
-        error !== null &&
-        'message' in error
-      ) {
-        const errorObj = error as { message: unknown; details?: unknown };
-        message = String(errorObj.message);
+        let message: string;
         
-        // Check if it's a validation error with details
         if (
-          errorObj.details &&
-          typeof errorObj.details === 'object' &&
-          Array.isArray(errorObj.details)
+          typeof error === 'object' &&
+          error !== null &&
+          'payload' in error &&
+          typeof (error as { payload: unknown }).payload === 'object' &&
+          (error as { payload: unknown }).payload !== null
         ) {
-          const details = errorObj.details as Array<{
-            field?: string;
-            message?: string;
-          }>;
-          const fieldMessages = details
-            .map(d => d.message || d.field)
-            .filter(Boolean)
-            .join(', ');
-          if (fieldMessages) {
-            message = `${message}: ${fieldMessages}`;
+          const apiError = error as { message: string; payload?: { error?: { message?: string; details?: string } } };
+          const errorPayload = apiError.payload?.error;
+          
+          if (errorPayload?.details) {
+            message = `${errorPayload.message || apiError.message || 'Error'}: ${errorPayload.details}`;
+          } else if (errorPayload?.message) {
+            message = errorPayload.message;
+          } else {
+            message = apiError.message || 'Failed to create partnership request';
           }
+        } else if (
+          typeof error === 'object' &&
+          error !== null &&
+          'message' in error
+        ) {
+          message = String((error as { message: unknown }).message);
+        } else {
+          message =
+            language === 'ar'
+              ? 'فشل إنشاء طلب الشراكة. يرجى التحقق من البيانات والمحاولة مرة أخرى.'
+              : 'Failed to create partnership request. Please check your data and try again.';
         }
-      } else {
-        message =
-          language === 'ar'
-            ? 'فشل إنشاء طلب الشراكة. يرجى التحقق من البيانات والمحاولة مرة أخرى.'
-            : 'Failed to create partnership request. Please check your data and try again.';
-      }
 
-      pushToast({
-        message,
-        variant: 'error',
-      });
-    }
+        pushToast({
+          message,
+          variant: 'error',
+        });
+      }
     },
     (validationErrors) => {
-      // Handle validation errors from react-hook-form
-      // Errors are already displayed in the form fields, so we just need to guide the user
       const errorFields = Object.keys(validationErrors);
       if (errorFields.length > 0) {
-        // Scroll to first error field after a short delay to ensure DOM is updated
         setTimeout(() => {
           const firstErrorField = errorFields[0];
           const errorElement = document.querySelector(
@@ -218,7 +147,6 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
           }
         }, 100);
 
-        // Show a general toast message
         pushToast({
           message:
             language === 'ar'
@@ -254,7 +182,6 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
           <select
             {...register('projectId', {
               setValueAs: (value: string) => {
-                // Clean the value: trim and return empty string if empty
                 const trimmed = value?.trim() || '';
                 return trimmed === '' ? '' : trimmed;
               },

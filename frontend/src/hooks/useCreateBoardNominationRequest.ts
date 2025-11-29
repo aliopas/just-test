@@ -2,10 +2,10 @@ import { useMutation } from '@tanstack/react-query';
 import { apiClient } from '../utils/api-client';
 
 export interface CreateBoardNominationRequestPayload {
-  cvSummary: string;
-  experience: string;
-  motivations: string;
-  qualifications?: string;
+  qualifications: string;
+  experience?: string;
+  motivations?: string;
+  cvSummary?: string;
   notes?: string;
 }
 

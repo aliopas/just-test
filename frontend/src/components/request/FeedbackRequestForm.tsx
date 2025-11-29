@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -6,14 +5,19 @@ import { useLanguage } from '../../context/LanguageContext';
 import { useToast } from '../../context/ToastContext';
 import { useCreateFeedbackRequest } from '../../hooks/useCreateFeedbackRequest';
 import { UploadDropzone } from './UploadDropzone';
+import { useState } from 'react';
 
 const feedbackFormSchema = z.object({
   subject: z
     .string()
     .trim()
-    .min(5, 'Subject must be at least 5 characters')
+    .min(3, 'Subject must be at least 3 characters')
     .max(200, 'Subject must be 200 characters or fewer'),
-  category: z.enum(['suggestion', 'complaint', 'question', 'other']),
+  category: z
+    .string()
+    .trim()
+    .min(3, 'Category must be at least 3 characters')
+    .max(100, 'Category must be 100 characters or fewer'),
   description: z
     .string()
     .trim()
@@ -30,11 +34,7 @@ const feedbackFormSchema = z.object({
 
 type FeedbackFormValues = z.infer<typeof feedbackFormSchema>;
 
-interface FeedbackRequestFormProps {
-  onSuccess?: (requestId: string) => void;
-}
-
-export function FeedbackRequestForm({ onSuccess }: FeedbackRequestFormProps) {
+export function FeedbackRequestForm() {
   const { language, direction } = useLanguage();
   const { pushToast } = useToast();
   const createFeedback = useCreateFeedbackRequest();
@@ -49,60 +49,74 @@ export function FeedbackRequestForm({ onSuccess }: FeedbackRequestFormProps) {
     resolver: zodResolver(feedbackFormSchema),
     defaultValues: {
       subject: '',
-      category: 'suggestion',
+      category: '',
       description: '',
       priority: 'medium',
       notes: '',
     },
   });
 
-  const onSubmit = handleSubmit(async values => {
-    try {
-      const result = await createFeedback.mutateAsync({
-        subject: values.subject,
-        category: values.category,
-        description: values.description,
-        priority: values.priority || 'medium',
-        notes: values.notes && values.notes.trim() !== '' ? values.notes.trim() : undefined,
-      });
+  const onSubmit = handleSubmit(
+    async (values) => {
+      try {
+        const result = await createFeedback.mutateAsync({
+          subject: values.subject,
+          category: values.category,
+          description: values.description,
+          priority: values.priority,
+          notes: values.notes && values.notes.trim() !== '' ? values.notes.trim() : undefined,
+        });
 
-      setCreatedRequestId(result.requestId);
-      onSuccess?.(result.requestId);
+        setCreatedRequestId(result.requestId);
 
-      pushToast({
-        message:
-          language === 'ar'
-            ? 'تم إرسال الملاحظات بنجاح'
-            : 'Feedback submitted successfully',
-        variant: 'success',
-      });
-    } catch (error: unknown) {
-      const message =
-        typeof error === 'object' && error && 'message' in error
-          ? String((error as { message: unknown }).message)
-          : language === 'ar'
-          ? 'فشل إرسال الملاحظات'
-          : 'Failed to submit feedback';
+        pushToast({
+          message:
+            language === 'ar'
+              ? 'تم إنشاء طلب الملاحظات بنجاح'
+              : 'Feedback request created successfully',
+          variant: 'success',
+        });
+      } catch (error: unknown) {
+        console.error('Failed to create feedback request:', error);
+        const message =
+          typeof error === 'object' &&
+          error !== null &&
+          'message' in error
+            ? String((error as { message: unknown }).message)
+            : language === 'ar'
+            ? 'فشل إنشاء طلب الملاحظات. يرجى التحقق من البيانات والمحاولة مرة أخرى.'
+            : 'Failed to create feedback request. Please check your data and try again.';
 
-      pushToast({
-        message,
-        variant: 'error',
-      });
+        pushToast({
+          message,
+          variant: 'error',
+        });
+      }
+    },
+    (validationErrors) => {
+      const errorFields = Object.keys(validationErrors);
+      if (errorFields.length > 0) {
+        setTimeout(() => {
+          const firstErrorField = errorFields[0];
+          const errorElement = document.querySelector(
+            `[name="${firstErrorField}"]`
+          ) as HTMLElement;
+          if (errorElement) {
+            errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            errorElement.focus();
+          }
+        }, 100);
+
+        pushToast({
+          message:
+            language === 'ar'
+              ? 'يرجى التحقق من البيانات المدخلة وإصلاح الأخطاء المميزة باللون الأحمر'
+              : 'Please check the entered data and fix the errors highlighted in red',
+          variant: 'error',
+        });
+      }
     }
-  });
-
-  const categoryOptions = [
-    { value: 'suggestion', label: { ar: 'اقتراح', en: 'Suggestion' } },
-    { value: 'complaint', label: { ar: 'شكوى', en: 'Complaint' } },
-    { value: 'question', label: { ar: 'سؤال', en: 'Question' } },
-    { value: 'other', label: { ar: 'أخرى', en: 'Other' } },
-  ];
-
-  const priorityOptions = [
-    { value: 'low', label: { ar: 'منخفضة', en: 'Low' } },
-    { value: 'medium', label: { ar: 'متوسطة', en: 'Medium' } },
-    { value: 'high', label: { ar: 'عالية', en: 'High' } },
-  ];
+  );
 
   return (
     <form
@@ -122,11 +136,14 @@ export function FeedbackRequestForm({ onSuccess }: FeedbackRequestFormProps) {
           <input
             type="text"
             {...register('subject')}
-            style={inputStyle}
+            style={{
+              ...inputStyle,
+              borderColor: errors.subject ? '#DC2626' : undefined,
+            }}
             placeholder={
               language === 'ar'
-                ? 'موضوع الملاحظة (5-200 حرف)'
-                : 'Feedback subject (5-200 characters)'
+                ? 'أدخل موضوع الملاحظات'
+                : 'Enter feedback subject'
             }
             required
           />
@@ -136,25 +153,39 @@ export function FeedbackRequestForm({ onSuccess }: FeedbackRequestFormProps) {
           label={language === 'ar' ? 'الفئة *' : 'Category *'}
           error={errors.category?.message}
         >
-          <select {...register('category')} style={selectStyle} required>
-            {categoryOptions.map(option => (
-              <option key={option.value} value={option.value}>
-                {option.label[language]}
-              </option>
-            ))}
-          </select>
+          <input
+            type="text"
+            {...register('category')}
+            style={{
+              ...inputStyle,
+              borderColor: errors.category ? '#DC2626' : undefined,
+            }}
+            placeholder={
+              language === 'ar'
+                ? 'أدخل فئة الملاحظات'
+                : 'Enter feedback category'
+            }
+            required
+          />
         </Field>
+      </div>
 
+      <div style={gridStyle}>
         <Field
           label={language === 'ar' ? 'الأولوية *' : 'Priority *'}
           error={errors.priority?.message}
         >
-          <select {...register('priority')} style={selectStyle} required>
-            {priorityOptions.map(option => (
-              <option key={option.value} value={option.value}>
-                {option.label[language]}
-              </option>
-            ))}
+          <select
+            {...register('priority')}
+            style={{
+              ...inputStyle,
+              borderColor: errors.priority ? '#DC2626' : undefined,
+            }}
+            required
+          >
+            <option value="low">{language === 'ar' ? 'منخفضة' : 'Low'}</option>
+            <option value="medium">{language === 'ar' ? 'متوسطة' : 'Medium'}</option>
+            <option value="high">{language === 'ar' ? 'عالية' : 'High'}</option>
           </select>
         </Field>
       </div>
@@ -165,25 +196,19 @@ export function FeedbackRequestForm({ onSuccess }: FeedbackRequestFormProps) {
       >
         <textarea
           {...register('description')}
-          style={{ ...inputStyle, minHeight: '8rem', resize: 'vertical' }}
+          style={{
+            ...inputStyle,
+            minHeight: '8rem',
+            resize: 'vertical',
+            borderColor: errors.description ? '#DC2626' : undefined,
+          }}
           placeholder={
             language === 'ar'
-              ? 'اكتب وصفاً مفصلاً للملاحظة (50 حرف على الأقل)'
+              ? 'اكتب وصفاً مفصلاً للملاحظات (50 حرف على الأقل)'
               : 'Describe your feedback in detail (at least 50 characters)'
           }
           required
         />
-        <div
-          style={{
-            fontSize: '0.85rem',
-            color: 'var(--color-text-muted)',
-            marginTop: '0.25rem',
-          }}
-        >
-          {language === 'ar'
-            ? 'الحد الأدنى: 50 حرف | الحد الأقصى: 5000 حرف'
-            : 'Min: 50 characters | Max: 5000 characters'}
-        </div>
       </Field>
 
       <Field
@@ -192,7 +217,12 @@ export function FeedbackRequestForm({ onSuccess }: FeedbackRequestFormProps) {
       >
         <textarea
           {...register('notes')}
-          style={{ ...inputStyle, minHeight: '4rem', resize: 'vertical' }}
+          style={{
+            ...inputStyle,
+            minHeight: '4rem',
+            resize: 'vertical',
+            borderColor: errors.notes ? '#DC2626' : undefined,
+          }}
           placeholder={
             language === 'ar'
               ? 'ملاحظات إضافية (اختياري)'
@@ -293,10 +323,5 @@ const inputStyle: React.CSSProperties = {
   background: 'var(--color-background-surface)',
   color: 'var(--color-text-primary)',
   fontSize: '0.95rem',
-};
-
-const selectStyle: React.CSSProperties = {
-  ...inputStyle,
-  appearance: 'none',
 };
 
