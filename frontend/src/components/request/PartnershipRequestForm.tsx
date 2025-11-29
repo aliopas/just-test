@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { z, type ZodIssue } from 'zod';
 import { useLanguage } from '../../context/LanguageContext';
 import { useToast } from '../../context/ToastContext';
 import { useCreatePartnershipRequest } from '../../hooks/useCreatePartnershipRequest';
@@ -12,34 +12,40 @@ const partnershipFormSchema = z.object({
     .string()
     .trim()
     .refine(
-      (val) => val === '' || z.string().uuid().safeParse(val).success,
+      (val) => {
+        // Allow empty string or valid UUID
+        if (!val || val === '') return true;
+        return z.string().uuid().safeParse(val).success;
+      },
       {
         message: 'Invalid project ID format (must be UUID)',
       }
     )
-    .transform((val) => (val === '' ? undefined : val))
+    .transform((val) => (!val || val.trim() === '' ? undefined : val.trim()))
     .optional(),
   proposedAmount: z
     .union([
       z.literal(''),
-      z.coerce
-        .number()
-        .positive('Proposed amount must be greater than zero'),
+      z.string().trim(),
+      z.coerce.number().positive('Proposed amount must be greater than zero'),
     ])
-    .transform((val) => (val === '' ? undefined : val))
-    .optional(),
+    .optional()
+    .transform((val) => {
+      if (val === '' || val === undefined || val === null) return undefined;
+      if (typeof val === 'string' && val.trim() === '') return undefined;
+      return typeof val === 'number' ? val : undefined;
+    }),
   partnershipPlan: z
     .string()
     .trim()
     .min(50, 'Partnership plan must be at least 50 characters')
     .max(5000, 'Partnership plan must be 5000 characters or fewer'),
   notes: z
-    .union([
-      z.literal(''),
-      z.string().trim().max(1000, 'Notes must be 1000 characters or fewer'),
-    ])
-    .transform((val) => (val === '' ? undefined : val))
-    .optional(),
+    .string()
+    .trim()
+    .max(1000, 'Notes must be 1000 characters or fewer')
+    .optional()
+    .transform((val) => (!val || val === '' ? undefined : val)),
 });
 
 type PartnershipFormValues = z.infer<typeof partnershipFormSchema>;
@@ -60,8 +66,37 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
     reset,
     formState: { errors },
   } = useForm<PartnershipFormValues>({
-    resolver: zodResolver(partnershipFormSchema),
-    mode: 'onBlur', // Validate on blur for better UX
+    resolver: zodResolver(partnershipFormSchema, {
+      errorMap: (issue: ZodIssue, ctx: { defaultError: string }) => {
+        // Custom error messages
+        if (issue.code === z.ZodIssueCode.custom) {
+          return { message: issue.message || ctx.defaultError };
+        }
+        if (issue.code === z.ZodIssueCode.too_small) {
+          if (issue.path[0] === 'partnershipPlan') {
+            return {
+              message:
+                language === 'ar'
+                  ? 'خطة الشراكة يجب أن تكون 50 حرف على الأقل'
+                  : 'Partnership plan must be at least 50 characters',
+            };
+          }
+        }
+        if (issue.code === z.ZodIssueCode.too_big) {
+          if (issue.path[0] === 'partnershipPlan') {
+            return {
+              message:
+                language === 'ar'
+                  ? 'خطة الشراكة يجب أن تكون 5000 حرف أو أقل'
+                  : 'Partnership plan must be 5000 characters or fewer',
+            };
+          }
+        }
+        return { message: ctx.defaultError };
+      },
+    }),
+    mode: 'onSubmit', // Only validate on submit to reduce errors while typing
+    reValidateMode: 'onChange', // Re-validate on change after first submit
     defaultValues: {
       projectId: '',
       proposedAmount: undefined,
@@ -133,26 +168,29 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
       });
     }
     },
-    (validationErrors: Record<string, { message?: string }>) => {
+    (validationErrors) => {
       // Handle validation errors from react-hook-form
-      console.error('Form validation errors:', validationErrors);
-      
-      // Show toast with first error
-      const firstError = Object.values(validationErrors)[0];
-      if (firstError?.message) {
+      // Errors are already displayed in the form fields, so we just need to guide the user
+      const errorFields = Object.keys(validationErrors);
+      if (errorFields.length > 0) {
+        // Scroll to first error field after a short delay to ensure DOM is updated
+        setTimeout(() => {
+          const firstErrorField = errorFields[0];
+          const errorElement = document.querySelector(
+            `[name="${firstErrorField}"]`
+          ) as HTMLElement;
+          if (errorElement) {
+            errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            errorElement.focus();
+          }
+        }, 100);
+
+        // Show a general toast message
         pushToast({
           message:
             language === 'ar'
-              ? `خطأ في التحقق: ${firstError.message}`
-              : `Validation error: ${firstError.message}`,
-          variant: 'error',
-        });
-      } else {
-        pushToast({
-          message:
-            language === 'ar'
-              ? 'يرجى التحقق من البيانات المدخلة وإصلاح الأخطاء'
-              : 'Please check the entered data and fix the errors',
+              ? 'يرجى التحقق من البيانات المدخلة وإصلاح الأخطاء المميزة باللون الأحمر'
+              : 'Please check the entered data and fix the errors highlighted in red',
           variant: 'error',
         });
       }
