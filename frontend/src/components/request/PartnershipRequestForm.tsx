@@ -5,6 +5,7 @@ import { z, type ZodIssue } from 'zod';
 import { useLanguage } from '../../context/LanguageContext';
 import { useToast } from '../../context/ToastContext';
 import { useCreatePartnershipRequest } from '../../hooks/useCreatePartnershipRequest';
+import { usePublicProjects } from '../../hooks/usePublicProjects';
 import { UploadDropzone } from './UploadDropzone';
 
 const partnershipFormSchema = z.object({
@@ -61,6 +62,7 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
   const { pushToast } = useToast();
   const createPartnership = useCreatePartnershipRequest();
   const [createdRequestId, setCreatedRequestId] = useState<string | null>(null);
+  const { data: projectsData, isLoading: isLoadingProjects } = usePublicProjects();
 
   const {
     register,
@@ -229,8 +231,7 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
               : undefined
           }
         >
-          <input
-            type="text"
+          <select
             {...register('projectId', {
               setValueAs: (value: string) => {
                 // Clean the value: trim and return empty string if empty
@@ -241,13 +242,27 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
             style={{
               ...inputStyle,
               borderColor: errors.projectId ? '#DC2626' : undefined,
+              cursor: isLoadingProjects ? 'wait' : 'pointer',
             }}
-            placeholder={
-              language === 'ar'
-                ? 'معرف المشروع (UUID) - اختياري'
-                : 'Project ID (UUID) - Optional'
-            }
-          />
+            disabled={isLoadingProjects}
+          >
+            <option value="">
+              {isLoadingProjects
+                ? language === 'ar'
+                  ? 'جاري تحميل المشاريع...'
+                  : 'Loading projects...'
+                : language === 'ar'
+                ? 'اختر مشروع (اختياري)'
+                : 'Select a project (optional)'}
+            </option>
+            {projectsData?.projects.map((project) => (
+              <option key={project.id} value={project.id}>
+                {language === 'ar' && project.nameAr
+                  ? project.nameAr
+                  : project.name}
+              </option>
+            ))}
+          </select>
         </Field>
 
         <Field
