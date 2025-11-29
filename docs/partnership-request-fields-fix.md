@@ -196,3 +196,269 @@ if (params.payload.proposedAmount != null) {
 
 جميع البيانات تُحفظ بشكل صحيح في عمود `metadata` في قاعدة البيانات.
 
+---
+
+## مشاكل المصادقة (Authentication Issues)
+
+### المشاكل المكتشفة
+
+#### 1. خطأ 401 (Unauthorized) عند الوصول إلى `/api/v1/investor/dashboard`
+
+**الخطأ:**
+```
+GET https://investor-bacura.netlify.app/api/v1/investor/dashboard 401 (Unauthorized)
+```
+
+**الأسباب المحتملة:**
+1. **Token غير موجود أو منتهي الصلاحية:**
+   - المستخدم لم يسجل الدخول
+   - Token منتهي الصلاحية
+   - Token غير صحيح
+
+2. **مشكلة في إرسال Token:**
+   - الـ Authorization header غير موجود
+   - Token غير مُرسل بشكل صحيح من الـ frontend
+
+3. **مشكلة في التحقق من Token:**
+   - Supabase لا يمكنه التحقق من Token
+   - Token غير صالح
+
+**الحلول المقترحة:**
+
+1. **التحقق من Token في Frontend:**
+   ```typescript
+   // في api-client.ts
+   const token = await getAccessToken();
+   if (!token) {
+     // إعادة توجيه إلى صفحة تسجيل الدخول
+     window.location.href = '/login';
+   }
+   ```
+
+2. **التحقق من Token في Backend:**
+   ```typescript
+   // في auth.middleware.ts
+   const token = getAccessToken(req);
+   if (!token) {
+     return res.status(401).json({
+       error: {
+         code: 'UNAUTHORIZED',
+         message: 'Missing or invalid access token',
+       },
+     });
+   }
+   ```
+
+3. **إضافة Refresh Token:**
+   - عند انتهاء صلاحية Token، يجب تحديثه تلقائيًا
+   - استخدام Refresh Token للحصول على Token جديد
+
+#### 2. خطأ 401 ثم 500 عند إنشاء طلب شراكة
+
+**الخطأ:**
+```
+POST https://investor-bacura.netlify.app/api/v1/investor/requests/partnership 401 (Unauthorized)
+POST https://investor-bacura.netlify.app/api/v1/investor/requests/partnership 500 (Internal Server Error)
+```
+
+**الأسباب المحتملة:**
+
+1. **مشكلة في المصادقة:**
+   - Token غير صالح عند أول محاولة (401)
+   - بعد تحديث Token، يحدث خطأ في الـ server (500)
+
+2. **مشكلة في الـ Backend:**
+   - خطأ في معالجة الطلب بعد التحقق من المصادقة
+   - مشكلة في حفظ البيانات في قاعدة البيانات
+   - خطأ في الـ validation schema
+
+3. **مشكلة في الـ Permissions:**
+   - المستخدم لا يملك الصلاحيات المطلوبة
+   - `requirePermission` يرفض الطلب
+
+**الحلول المقترحة:**
+
+1. **التحقق من الصلاحيات:**
+   ```typescript
+   // في investor.routes.ts
+   investorRouter.post(
+     '/requests/partnership',
+     authenticate,
+     requirePermission(['investor.requests.create']),
+     requestController.createPartnership
+   );
+   ```
+
+2. **تحسين معالجة الأخطاء:**
+   ```typescript
+   // في request.controller.ts
+   async createPartnership(req: AuthenticatedRequest, res: Response) {
+     try {
+       const userId = req.user?.id;
+       if (!userId) {
+         return res.status(401).json({
+           error: {
+             code: 'UNAUTHORIZED',
+             message: 'User not authenticated',
+           },
+         });
+       }
+       // ... باقي الكود
+     } catch (error) {
+       console.error('Failed to create partnership request:', error);
+       return res.status(500).json({
+         error: {
+           code: 'INTERNAL_ERROR',
+           message: 'Failed to create partnership request',
+           details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+         },
+       });
+     }
+   }
+   ```
+
+3. **التحقق من البيانات المرسلة:**
+   - التأكد من أن جميع الحقول المطلوبة موجودة
+   - التحقق من صحة البيانات قبل الإرسال
+
+### التحقق من المصادقة
+
+#### في Frontend:
+
+1. **التحقق من Token:**
+   ```typescript
+   // في api-client.ts
+   const token = await getAccessToken();
+   if (!token) {
+     throw new Error('No access token available');
+   }
+   ```
+
+2. **إضافة Token إلى Headers:**
+   ```typescript
+   headers: {
+     'Authorization': `Bearer ${token}`,
+     'Content-Type': 'application/json',
+   }
+   ```
+
+#### في Backend:
+
+1. **التحقق من Token:**
+   ```typescript
+   // في auth.middleware.ts
+   const token = getAccessToken(req);
+   if (!token) {
+     return res.status(401).json({
+       error: {
+         code: 'UNAUTHORIZED',
+         message: 'Missing or invalid access token',
+       },
+     });
+   }
+   ```
+
+2. **التحقق من المستخدم:**
+   ```typescript
+   const { data, error } = await supabase.auth.getUser(token);
+   if (error || !data.user) {
+     return res.status(401).json({
+       error: {
+         code: 'UNAUTHORIZED',
+         message: 'Invalid or expired token',
+       },
+     });
+   }
+   ```
+
+### خطوات التشخيص
+
+1. **التحقق من Token في Browser:**
+   - فتح Developer Tools
+   - الذهاب إلى Application/Storage
+   - التحقق من وجود Token في LocalStorage/SessionStorage
+
+2. **التحقق من Network Requests:**
+   - فتح Network tab في Developer Tools
+   - التحقق من Request Headers
+   - التأكد من وجود Authorization header
+
+3. **التحقق من Backend Logs:**
+   - فحص server logs للبحث عن أخطاء
+   - التحقق من رسائل الخطأ المفصلة
+
+4. **اختبار API مباشرة:**
+   - استخدام Postman أو curl لاختبار API
+   - إرسال Token يدويًا للتحقق من المشكلة
+
+### الحلول الموصى بها
+
+1. **إضافة Error Handling أفضل:**
+   - معالجة أخطاء المصادقة بشكل أفضل
+   - إعادة توجيه المستخدم إلى صفحة تسجيل الدخول عند انتهاء Token
+
+2. **إضافة Token Refresh:**
+   - تحديث Token تلقائيًا قبل انتهاء صلاحيته
+   - استخدام Refresh Token للحصول على Token جديد
+
+3. **تحسين Logging:**
+   - تسجيل جميع محاولات المصادقة
+   - تسجيل أسباب فشل المصادقة
+
+4. **إضافة Retry Logic:**
+   - إعادة المحاولة تلقائيًا عند فشل المصادقة
+   - تحديث Token وإعادة المحاولة
+
+### ملاحظات مهمة
+
+- **Netlify Functions:**
+  - التأكد من أن الـ environment variables موجودة في Netlify
+  - التحقق من أن الـ functions تعمل بشكل صحيح
+
+- **CORS:**
+  - التأكد من أن CORS مُعد بشكل صحيح
+  - السماح بالـ credentials في CORS
+
+- **Supabase Configuration:**
+  - التحقق من أن Supabase URL و Keys صحيحة
+  - التأكد من أن RLS policies صحيحة
+
+---
+
+## ملخص جميع المشاكل والحلول
+
+### مشاكل التحقق من صحة البيانات (Validation)
+- ✅ `projectId` - تم الحل باستخدام `z.union()` مع `z.literal('')`
+- ✅ `proposedAmount` - تم الحل باستخدام `z.union()` مع `z.literal('')`
+- ✅ `partnershipPlan` - يعمل بشكل صحيح
+- ✅ `notes` - تم الحل باستخدام `z.union()` مع `z.literal('')`
+
+### مشاكل المصادقة (Authentication)
+- ⚠️ 401 Unauthorized عند الوصول إلى `/api/v1/investor/dashboard`
+- ⚠️ 401 ثم 500 عند إنشاء طلب شراكة
+- 🔍 تحتاج إلى فحص Token و Permissions
+
+### قاعدة البيانات
+- ✅ عمود `metadata` موجود ويعمل بشكل صحيح
+- ✅ البيانات تُحفظ بشكل صحيح في Supabase
+
+---
+
+## الخطوات التالية
+
+1. **فحص Token في Frontend:**
+   - التحقق من أن Token موجود وصالح
+   - إضافة refresh token logic
+
+2. **فحص Permissions:**
+   - التأكد من أن المستخدم لديه الصلاحيات المطلوبة
+   - التحقق من RBAC policies
+
+3. **فحص Backend Logs:**
+   - البحث عن أخطاء مفصلة
+   - التحقق من أسباب 500 error
+
+4. **اختبار API:**
+   - استخدام Postman لاختبار API مباشرة
+   - التحقق من أن كل شيء يعمل بشكل صحيح
+

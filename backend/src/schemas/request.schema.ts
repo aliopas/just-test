@@ -88,7 +88,7 @@ export const createPartnershipRequestSchema = z.object({
     .union([
       z.literal(''),
       z.coerce
-        .number()
+    .number()
         .positive('Proposed amount must be greater than zero'),
     ])
     .transform((val) => (val === '' ? undefined : val))

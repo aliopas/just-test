@@ -9,10 +9,14 @@ import { UploadDropzone } from './UploadDropzone';
 
 const partnershipFormSchema = z.object({
   projectId: z
-    .union([
-      z.literal(''),
-      z.string().trim().uuid('Invalid project ID format (must be UUID)'),
-    ])
+    .string()
+    .trim()
+    .refine(
+      (val) => val === '' || z.string().uuid().safeParse(val).success,
+      {
+        message: 'Invalid project ID format (must be UUID)',
+      }
+    )
     .transform((val) => (val === '' ? undefined : val))
     .optional(),
   proposedAmount: z
@@ -57,6 +61,7 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
     formState: { errors },
   } = useForm<PartnershipFormValues>({
     resolver: zodResolver(partnershipFormSchema),
+    mode: 'onBlur', // Validate on blur for better UX
     defaultValues: {
       projectId: '',
       proposedAmount: undefined,
@@ -65,7 +70,8 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
     },
   });
 
-  const onSubmit = handleSubmit(async values => {
+  const onSubmit = handleSubmit(
+    async values => {
     try {
       const result = await createPartnership.mutateAsync({
         projectId: values.projectId,
@@ -126,7 +132,32 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
         variant: 'error',
       });
     }
-  });
+    },
+    (validationErrors: Record<string, { message?: string }>) => {
+      // Handle validation errors from react-hook-form
+      console.error('Form validation errors:', validationErrors);
+      
+      // Show toast with first error
+      const firstError = Object.values(validationErrors)[0];
+      if (firstError?.message) {
+        pushToast({
+          message:
+            language === 'ar'
+              ? `خطأ في التحقق: ${firstError.message}`
+              : `Validation error: ${firstError.message}`,
+          variant: 'error',
+        });
+      } else {
+        pushToast({
+          message:
+            language === 'ar'
+              ? 'يرجى التحقق من البيانات المدخلة وإصلاح الأخطاء'
+              : 'Please check the entered data and fix the errors',
+          variant: 'error',
+        });
+      }
+    }
+  );
 
   return (
     <form
@@ -141,12 +172,21 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
       <div style={gridStyle}>
         <Field
           label={language === 'ar' ? 'المشروع (اختياري)' : 'Project (Optional)'}
-          error={errors.projectId?.message}
+          error={
+            errors.projectId?.message
+              ? language === 'ar'
+                ? 'صيغة معرف المشروع غير صحيحة (يجب أن يكون UUID)'
+                : errors.projectId.message
+              : undefined
+          }
         >
           <input
             type="text"
             {...register('projectId')}
-            style={inputStyle}
+            style={{
+              ...inputStyle,
+              borderColor: errors.projectId ? '#DC2626' : undefined,
+            }}
             placeholder={
               language === 'ar'
                 ? 'معرف المشروع (UUID)'
@@ -159,14 +199,23 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
           label={
             language === 'ar' ? 'المبلغ المقترح (اختياري)' : 'Proposed Amount (Optional)'
           }
-          error={errors.proposedAmount?.message}
+          error={
+            errors.proposedAmount?.message
+              ? language === 'ar'
+                ? 'المبلغ المقترح يجب أن يكون أكبر من الصفر'
+                : errors.proposedAmount.message
+              : undefined
+          }
         >
           <input
             type="number"
             min="0"
             step="0.01"
             {...register('proposedAmount')}
-            style={inputStyle}
+            style={{
+              ...inputStyle,
+              borderColor: errors.proposedAmount ? '#DC2626' : undefined,
+            }}
             placeholder={language === 'ar' ? 'المبلغ بالريال' : 'Amount in SAR'}
           />
         </Field>
@@ -174,11 +223,26 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
 
       <Field
         label={language === 'ar' ? 'خطة الشراكة *' : 'Partnership Plan *'}
-        error={errors.partnershipPlan?.message}
+        error={
+          errors.partnershipPlan?.message
+            ? language === 'ar'
+              ? errors.partnershipPlan.message.includes('at least')
+                ? 'خطة الشراكة يجب أن تكون 50 حرف على الأقل'
+                : errors.partnershipPlan.message.includes('5000')
+                ? 'خطة الشراكة يجب أن تكون 5000 حرف أو أقل'
+                : errors.partnershipPlan.message
+              : errors.partnershipPlan.message
+            : undefined
+        }
       >
         <textarea
           {...register('partnershipPlan')}
-          style={{ ...inputStyle, minHeight: '8rem', resize: 'vertical' }}
+          style={{
+            ...inputStyle,
+            minHeight: '8rem',
+            resize: 'vertical',
+            borderColor: errors.partnershipPlan ? '#DC2626' : undefined,
+          }}
           placeholder={
             language === 'ar'
               ? 'اكتب خطة الشراكة بالتفصيل (50 حرف على الأقل)'
@@ -201,11 +265,22 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
 
       <Field
         label={language === 'ar' ? 'ملاحظات (اختياري)' : 'Notes (Optional)'}
-        error={errors.notes?.message}
+        error={
+          errors.notes?.message
+            ? language === 'ar'
+              ? 'الملاحظات يجب أن تكون 1000 حرف أو أقل'
+              : errors.notes.message
+            : undefined
+        }
       >
         <textarea
           {...register('notes')}
-          style={{ ...inputStyle, minHeight: '4rem', resize: 'vertical' }}
+          style={{
+            ...inputStyle,
+            minHeight: '4rem',
+            resize: 'vertical',
+            borderColor: errors.notes ? '#DC2626' : undefined,
+          }}
           placeholder={
             language === 'ar'
               ? 'ملاحظات إضافية (اختياري)'

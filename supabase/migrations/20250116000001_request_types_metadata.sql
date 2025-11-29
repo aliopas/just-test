@@ -18,6 +18,10 @@ ALTER TABLE requests
   CHECK (type IN ('buy', 'sell', 'partnership', 'board_nomination', 'feedback'));
 
 -- Update amount constraint to allow NULL for non-financial request types
+-- First, make the amount column nullable
+ALTER TABLE requests
+  ALTER COLUMN amount DROP NOT NULL;
+
 -- Drop existing constraint
 ALTER TABLE requests
   DROP CONSTRAINT IF EXISTS requests_amount_check;
