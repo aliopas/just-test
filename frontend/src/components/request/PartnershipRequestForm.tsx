@@ -122,7 +122,7 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
     async values => {
     try {
       const result = await createPartnership.mutateAsync({
-        projectId: values.projectId,
+        projectId: values.projectId && values.projectId.trim() !== '' ? values.projectId : undefined,
         proposedAmount: values.proposedAmount,
         partnershipPlan: values.partnershipPlan,
         notes: values.notes,
