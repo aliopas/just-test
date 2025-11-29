@@ -7,14 +7,26 @@ import type {
 
 async function createAndSubmitRequest(payload: CreateRequestPayload) {
   // First create the request
-  const createBody = {
+  const createBody: Record<string, unknown> = {
     type: payload.type,
-    amount: payload.amount,
-    currency: payload.currency,
-    targetPrice: payload.targetPrice ?? undefined,
-    expiryAt: payload.expiryAt ?? undefined,
-    notes: payload.notes ?? undefined,
   };
+  
+  // Only include amount and currency if they are defined
+  if (payload.amount !== undefined && payload.amount !== null) {
+    createBody.amount = payload.amount;
+  }
+  if (payload.currency !== undefined && payload.currency !== null) {
+    createBody.currency = payload.currency;
+  }
+  if (payload.targetPrice !== undefined && payload.targetPrice !== null) {
+    createBody.targetPrice = payload.targetPrice;
+  }
+  if (payload.expiryAt !== undefined && payload.expiryAt !== null) {
+    createBody.expiryAt = payload.expiryAt;
+  }
+  if (payload.notes !== undefined && payload.notes !== null) {
+    createBody.notes = payload.notes;
+  }
 
   const createResult = await apiClient<CreateRequestResponse>('/investor/requests', {
     method: 'POST',

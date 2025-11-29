@@ -4,9 +4,23 @@ const validCurrencies = ['SAR', 'USD', 'EUR'] as const;
 
 export const createRequestSchema = z.object({
   type: z.enum(['buy', 'sell', 'partnership', 'board_nomination', 'feedback']),
-  amount: z.coerce.number().positive('Amount must be greater than zero').optional(),
+  amount: z.preprocess(
+    (val) => {
+      if (val === undefined || val === null || val === '') return undefined;
+      const num = typeof val === 'number' ? val : Number(val);
+      return Number.isNaN(num) ? undefined : num;
+    },
+    z.number().positive('Amount must be greater than zero').optional()
+  ),
   currency: z.enum(validCurrencies).optional(),
-  targetPrice: z.number().positive('Target price must be positive').optional(),
+  targetPrice: z.preprocess(
+    (val) => {
+      if (val === undefined || val === null || val === '') return undefined;
+      const num = typeof val === 'number' ? val : Number(val);
+      return Number.isNaN(num) ? undefined : num;
+    },
+    z.number().positive('Target price must be positive').optional()
+  ),
   expiryAt: z
     .string()
     .optional()
