@@ -116,10 +116,12 @@ export async function createPartnershipRequest(params: {
       expiry_at: null,
       status: 'draft',
       notes: params.payload.notes ?? null,
-      metadata: Object.keys(metadata).length > 0 ? metadata : {}, // Ensure metadata is always an object
+      metadata: metadata, // Use metadata as-is (can be empty object)
     };
 
     console.log('Creating partnership request with payload:', JSON.stringify(requestPayload, null, 2));
+    console.log('User ID:', params.userId);
+    console.log('Request Number:', requestNumber);
 
     const { data, error } = await adminClient
       .from('requests')
@@ -138,13 +140,22 @@ export async function createPartnershipRequest(params: {
         errorDetails,
         errorHint,
         errorCode,
-        fullError: error,
+        errorCodePostgres: error?.code,
+        fullError: JSON.stringify(error, null, 2),
+        requestPayload: JSON.stringify(requestPayload, null, 2),
       });
       
       // Provide more context for constraint violations
       if (errorMessage.includes('violates check constraint')) {
         throw new Error(
           `Database constraint violation: ${errorMessage}. ${errorDetails} ${errorHint}. This may indicate that database migrations need to be applied.`
+        );
+      }
+      
+      // Check for duplicate key errors
+      if (errorCode === '23505' || errorMessage.includes('duplicate key')) {
+        throw new Error(
+          `Duplicate request number: ${requestNumber}. This may indicate a race condition. Please try again.`
         );
       }
       

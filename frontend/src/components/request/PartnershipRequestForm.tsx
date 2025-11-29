@@ -139,6 +139,7 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
       });
     } catch (error: unknown) {
       console.error('Failed to create partnership request:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
       
       let message: string;
       
@@ -153,10 +154,13 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
         const apiError = error as { message: string; payload?: { error?: { message?: string; details?: string } } };
         const errorPayload = apiError.payload?.error;
         
+        // Prioritize details if available
         if (errorPayload?.details) {
-          message = `${errorPayload.message || apiError.message}: ${errorPayload.details}`;
+          message = `${errorPayload.message || apiError.message || 'Error'}: ${errorPayload.details}`;
+        } else if (errorPayload?.message) {
+          message = errorPayload.message;
         } else {
-          message = errorPayload?.message || apiError.message || 'Failed to create partnership request';
+          message = apiError.message || 'Failed to create partnership request';
         }
       } else if (
         typeof error === 'object' &&
