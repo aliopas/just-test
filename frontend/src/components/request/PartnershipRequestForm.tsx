@@ -141,7 +141,24 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
       console.error('Failed to create partnership request:', error);
       
       let message: string;
+      
+      // Check if it's an ApiError with payload
       if (
+        typeof error === 'object' &&
+        error !== null &&
+        'payload' in error &&
+        typeof (error as { payload: unknown }).payload === 'object' &&
+        (error as { payload: unknown }).payload !== null
+      ) {
+        const apiError = error as { message: string; payload?: { error?: { message?: string; details?: string } } };
+        const errorPayload = apiError.payload?.error;
+        
+        if (errorPayload?.details) {
+          message = `${errorPayload.message || apiError.message}: ${errorPayload.details}`;
+        } else {
+          message = errorPayload?.message || apiError.message || 'Failed to create partnership request';
+        }
+      } else if (
         typeof error === 'object' &&
         error !== null &&
         'message' in error

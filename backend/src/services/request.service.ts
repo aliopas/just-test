@@ -74,93 +74,117 @@ export async function createPartnershipRequest(params: {
   userId: string;
   payload: CreatePartnershipRequestInput;
 }): Promise<{ id: string; requestNumber: string }> {
-  const adminClient = requireSupabaseAdmin();
-  const requestNumber = await generateRequestNumber();
+  try {
+    const adminClient = requireSupabaseAdmin();
+    const requestNumber = await generateRequestNumber();
 
-  // Verify project exists if projectId is provided
-  if (params.payload.projectId) {
-    const { data: project, error: projectError } = await adminClient
-      .from('projects')
-      .select('id')
-      .eq('id', params.payload.projectId)
-      .single();
+    // Verify project exists if projectId is provided
+    if (params.payload.projectId) {
+      const { data: project, error: projectError } = await adminClient
+        .from('projects')
+        .select('id')
+        .eq('id', params.payload.projectId)
+        .single();
 
-    if (projectError || !project) {
-      throw new Error('PROJECT_NOT_FOUND');
+      if (projectError || !project) {
+        throw new Error('PROJECT_NOT_FOUND');
+      }
     }
-  }
 
-  // Build metadata object - only include defined values
-  const metadata: Record<string, unknown> = {};
-  
-  if (params.payload.partnershipPlan) {
-    metadata.partnershipPlan = params.payload.partnershipPlan;
-  }
-  
-  if (params.payload.projectId) {
-    metadata.projectId = params.payload.projectId;
-  }
-  
-  if (params.payload.proposedAmount != null) {
-    metadata.proposedAmount = params.payload.proposedAmount;
-  }
-
-  const requestPayload = {
-    user_id: params.userId,
-    request_number: requestNumber,
-    type: 'partnership' as const,
-    amount: params.payload.proposedAmount ?? null,
-    currency: params.payload.proposedAmount != null ? 'SAR' : null, // Only set currency if amount is provided
-    target_price: null,
-    expiry_at: null,
-    status: 'draft',
-    notes: params.payload.notes ?? null,
-    metadata: Object.keys(metadata).length > 0 ? metadata : {}, // Ensure metadata is always an object
-  };
-
-  const { data, error } = await adminClient
-    .from('requests')
-    .insert(requestPayload)
-    .select('id')
-    .single<{ id: string }>();
-
-  if (error || !data) {
-    const errorMessage = error?.message ?? 'unknown';
-    const errorDetails = error?.details ?? '';
-    const errorHint = error?.hint ?? '';
+    // Build metadata object - only include defined values
+    const metadata: Record<string, unknown> = {};
     
-    // Provide more context for constraint violations
-    if (errorMessage.includes('violates check constraint')) {
+    if (params.payload.partnershipPlan) {
+      metadata.partnershipPlan = params.payload.partnershipPlan;
+    }
+    
+    if (params.payload.projectId) {
+      metadata.projectId = params.payload.projectId;
+    }
+    
+    if (params.payload.proposedAmount != null) {
+      metadata.proposedAmount = params.payload.proposedAmount;
+    }
+
+    const requestPayload = {
+      user_id: params.userId,
+      request_number: requestNumber,
+      type: 'partnership' as const,
+      amount: params.payload.proposedAmount ?? null,
+      currency: params.payload.proposedAmount != null ? 'SAR' : null, // Only set currency if amount is provided
+      target_price: null,
+      expiry_at: null,
+      status: 'draft',
+      notes: params.payload.notes ?? null,
+      metadata: Object.keys(metadata).length > 0 ? metadata : {}, // Ensure metadata is always an object
+    };
+
+    console.log('Creating partnership request with payload:', JSON.stringify(requestPayload, null, 2));
+
+    const { data, error } = await adminClient
+      .from('requests')
+      .insert(requestPayload)
+      .select('id')
+      .single<{ id: string }>();
+
+    if (error || !data) {
+      const errorMessage = error?.message ?? 'unknown';
+      const errorDetails = error?.details ?? '';
+      const errorHint = error?.hint ?? '';
+      const errorCode = error?.code ?? '';
+      
+      console.error('Database error creating partnership request:', {
+        errorMessage,
+        errorDetails,
+        errorHint,
+        errorCode,
+        fullError: error,
+      });
+      
+      // Provide more context for constraint violations
+      if (errorMessage.includes('violates check constraint')) {
+        throw new Error(
+          `Database constraint violation: ${errorMessage}. ${errorDetails} ${errorHint}. This may indicate that database migrations need to be applied.`
+        );
+      }
+      
       throw new Error(
-        `Database constraint violation: ${errorMessage}. ${errorDetails} ${errorHint}. This may indicate that database migrations need to be applied.`
+        `Failed to create partnership request: ${errorMessage}${errorDetails ? ` (${errorDetails})` : ''}${errorHint ? ` Hint: ${errorHint}` : ''}${errorCode ? ` Code: ${errorCode}` : ''}`
       );
     }
+
+    const { error: eventError } = await adminClient
+      .from('request_events')
+      .insert({
+        request_id: data.id,
+        from_status: null,
+        to_status: 'draft',
+        actor_id: params.userId,
+        note: 'Partnership request created',
+      });
+
+    if (eventError) {
+      console.error('Failed to log initial request event:', eventError);
+      throw new Error(
+        `Failed to log initial request event: ${eventError.message}`
+      );
+    }
+
+    return {
+      id: data.id,
+      requestNumber,
+    };
+  } catch (error) {
+    // Re-throw known errors
+    if (error instanceof Error && error.message === 'PROJECT_NOT_FOUND') {
+      throw error;
+    }
     
-    throw new Error(
-      `Failed to create partnership request: ${errorMessage}${errorDetails ? ` (${errorDetails})` : ''}${errorHint ? ` Hint: ${errorHint}` : ''}`
-    );
+    // Log and wrap unknown errors
+    console.error('Unexpected error in createPartnershipRequest:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    throw new Error(`Failed to create partnership request: ${errorMessage}`);
   }
-
-  const { error: eventError } = await adminClient
-    .from('request_events')
-    .insert({
-      request_id: data.id,
-      from_status: null,
-      to_status: 'draft',
-      actor_id: params.userId,
-      note: 'Partnership request created',
-    });
-
-  if (eventError) {
-    throw new Error(
-      `Failed to log initial request event: ${eventError.message}`
-    );
-  }
-
-  return {
-    id: data.id,
-    requestNumber,
-  };
 }
 
 export async function createBoardNominationRequest(params: {
