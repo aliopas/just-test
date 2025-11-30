@@ -54,6 +54,8 @@ const nextConfig = {
   // For Netlify deployment with Next.js App Router
   // We use dynamic rendering for all pages to avoid SSR issues with React Router components
   // The ClientOnly wrapper ensures components only render on the client
+  // The root layout has 'export const dynamic = "force-dynamic"' to prevent static generation
+  // All page files should also have 'export const dynamic = "force-dynamic"' for safety
 };
 
 module.exports = nextConfig;
