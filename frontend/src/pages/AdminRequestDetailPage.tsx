@@ -228,53 +228,6 @@ function AdminRequestDetailPageInner() {
       case 'sell':
         // Buy and sell requests don't have special metadata display
         break;
-            complaint: language === 'ar' ? 'شكوى' : 'Complaint',
-            question: language === 'ar' ? 'سؤال' : 'Question',
-            other: language === 'ar' ? 'أخرى' : 'Other',
-          }[String(metadata.category)] || String(metadata.category);
-          items.push({
-            label: language === 'ar' ? 'الفئة' : 'Category',
-            value: categoryLabel,
-          });
-        }
-        if ('priority' in metadata && metadata.priority) {
-          const priorityLabel = {
-            low: language === 'ar' ? 'منخفضة' : 'Low',
-            medium: language === 'ar' ? 'متوسطة' : 'Medium',
-            high: language === 'ar' ? 'عالية' : 'High',
-          }[String(metadata.priority)] || String(metadata.priority);
-          items.push({
-            label: language === 'ar' ? 'الأولوية' : 'Priority',
-            value: priorityLabel,
-          });
-        }
-        if ('description' in metadata && metadata.description) {
-          const description = String(metadata.description);
-          return (
-            <Card key="metadata">
-              <CardTitle>{language === 'ar' ? 'تفاصيل الملاحظات' : 'Feedback Details'}</CardTitle>
-              <InfoGrid items={items} />
-              <div style={{ marginTop: '1rem' }}>
-                <strong style={{ color: 'var(--color-text-primary)', fontSize: '0.9rem', display: 'block', marginBottom: '0.5rem' }}>
-                  {language === 'ar' ? 'الوصف' : 'Description'}
-                </strong>
-                <div
-                  style={{
-                    background: 'var(--color-background-surface)',
-                    borderRadius: '0.85rem',
-                    padding: '0.75rem 1rem',
-                    color: 'var(--color-text-secondary)',
-                    lineHeight: 1.6,
-                    whiteSpace: 'pre-wrap',
-                  }}
-                >
-                  {description}
-                </div>
-              </div>
-            </Card>
-          );
-        }
-        break;
     }
 
     return items.length > 0 ? (
