@@ -24,9 +24,8 @@ export async function createInvestorRequest(params: {
   const requestNumber = await generateRequestNumber();
 
   // Ensure metadata is properly handled
-  // If metadata is provided and has keys, use it
-  // Otherwise, use null to let database use default '{}'::jsonb
-  let metadataValue: Record<string, unknown> | null = null;
+  // Always send an object (even if empty) - database default is '{}'::jsonb
+  let metadataValue: Record<string, unknown> = {};
   if (params.payload.metadata && typeof params.payload.metadata === 'object') {
     const keys = Object.keys(params.payload.metadata);
     if (keys.length > 0) {

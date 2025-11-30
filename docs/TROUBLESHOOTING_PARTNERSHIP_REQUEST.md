@@ -303,6 +303,77 @@ Database insert error: {
 
 ---
 
+---
+
+## 🔥 خطأ 500 من Netlify
+## 500 Error from Netlify
+
+إذا كنت تحصل على خطأ 500 من Netlify (`investor-bacura.netlify.app`):
+
+### 1️⃣ تحقق من Netlify Function Logs:
+
+1. **اذهب إلى Netlify Dashboard:**
+   - https://app.netlify.com/
+   - اختر موقعك `investor-bacura`
+   - اذهب إلى **Functions** → **server** → **Logs**
+
+2. **ابحث عن:**
+   - `Request body received:`
+   - `Validation failed:`
+   - `Database insert error:`
+   - `Failed to create request:`
+   - أي أخطاء (خطأ باللون الأحمر)
+
+### 2️⃣ الأخطاء الشائعة في Netlify:
+
+#### ❌ **خطأ: "Failed to generate request number"**
+```
+Failed to generate request number: [error message] - Code: [error code]
+```
+
+**الحل:**
+- تحقق من أن `SUPABASE_SERVICE_ROLE_KEY` موجود في Netlify Environment Variables
+- تحقق من أن دالة `generate_request_number()` موجودة في قاعدة البيانات
+
+#### ❌ **خطأ: "Database insert error"**
+```
+Database insert error: {
+  code: "23505",  // أو أي كود آخر
+  message: "...",
+  ...
+}
+```
+
+**الحل:**
+- راجع الكود في رسالة الخطأ
+- تحقق من القيود في قاعدة البيانات
+
+#### ❌ **خطأ: "Request body received:" لكن لا يوجد response**
+
+**الحل:**
+- تحقق من أن جميع الحقول المطلوبة موجودة
+- تحقق من أن metadata يحتوي على البيانات الصحيحة
+
+### 3️⃣ التحقق من Environment Variables في Netlify:
+
+1. **اذهب إلى Netlify Dashboard:**
+   - **Site settings** → **Environment variables**
+
+2. **تأكد من وجود:**
+   - `SUPABASE_URL`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `SUPABASE_ANON_KEY`
+   - أي متغيرات أخرى مطلوبة
+
+### 4️⃣ إعادة النشر (إذا لزم الأمر):
+
+إذا قمت بتغيير الكود مؤخراً:
+- ادفع التغييرات إلى Git
+- Netlify سيقوم بإعادة النشر تلقائياً
+- أو اذهب إلى **Deploys** → **Trigger deploy** → **Deploy site**
+
+---
+
 **آخر تحديث:** 2025-01-30
 **Last Updated:** 2025-01-30
 
