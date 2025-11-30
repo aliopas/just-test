@@ -20,8 +20,8 @@ function getSupabaseProjectUrl(): string | null {
     }
   }
 
-  const buildTime =
-    import.meta.env?.VITE_SUPABASE_URL ?? import.meta.env?.SUPABASE_URL ?? null;
+  // Next.js environment variable
+  const buildTime = process.env.NEXT_PUBLIC_SUPABASE_URL ?? null;
 
   return buildTime ? sanitizeBaseUrl(buildTime) : null;
 }
@@ -34,10 +34,8 @@ function getStorageBaseUrl(): string | null {
     }
   }
 
-  const buildTime =
-    import.meta.env?.VITE_SUPABASE_STORAGE_URL ??
-    import.meta.env?.SUPABASE_STORAGE_URL ??
-    null;
+  // Next.js environment variable
+  const buildTime = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_URL ?? null;
 
   if (buildTime) {
     return sanitizeBaseUrl(buildTime);

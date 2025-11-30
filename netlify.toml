@@ -1,7 +1,7 @@
 [build]
-  command = "npm install && npm run build"
+  command = "cd frontend && npm install && npm run build"
   functions = "netlify/functions"
-  publish = "frontend/dist"
+  publish = "frontend/.next"
 
 [build.environment]
   NODE_VERSION = "22"
@@ -44,10 +44,11 @@
     Content-Type = "application/manifest+json"
     Cache-Control = "public, max-age=3600"
 
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# Next.js handles routing, so we don't need catch-all redirect
+# [[redirects]]
+#   from = "/*"
+#   to = "/index.html"
+#   status = 200
 
 [functions]
   node_bundler = "esbuild"

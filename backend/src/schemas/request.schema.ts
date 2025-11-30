@@ -49,14 +49,7 @@ const financialRequestSchema = z.object({
 const nonFinancialRequestSchema = z.object({
   ...baseRequestSchema,
   type: z.enum(['partnership', 'board_nomination', 'feedback']),
-  amount: z.preprocess(
-    (val) => {
-      if (val === undefined || val === null || val === '') return undefined;
-      const num = typeof val === 'number' ? val : Number(val);
-      return Number.isNaN(num) ? undefined : num;
-    },
-    z.number().positive('Amount must be greater than zero').optional()
-  ).optional(),
+  amount: z.number().positive('Amount must be greater than zero').optional(),
   currency: z.enum(validCurrencies).optional(),
 });
 

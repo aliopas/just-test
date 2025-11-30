@@ -12,6 +12,13 @@ dist/
 build/
 *.tsbuildinfo
 
+# Next.js
+.next/
+out/
+.next/
+frontend/.next/
+frontend/out/
+
 # Environment variables
 .env
 .env.local

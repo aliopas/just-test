@@ -10,21 +10,20 @@ function resolveSupabaseConfig() {
   // Try multiple sources for environment variables
   const env = window.__ENV__ ?? {};
   
-  // Priority: window.__ENV__ > import.meta.env (for Vite)
-  const url = env.SUPABASE_URL ?? import.meta.env.VITE_SUPABASE_URL ?? import.meta.env.SUPABASE_URL;
-  const key = env.SUPABASE_ANON_KEY ?? import.meta.env.VITE_SUPABASE_ANON_KEY ?? import.meta.env.SUPABASE_ANON_KEY;
+  // Priority: window.__ENV__ > process.env.NEXT_PUBLIC_* (for Next.js)
+  const url = env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = env.SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   // Debug logging (always in development, or when config is missing)
-  if (import.meta.env.DEV || (!url || !key)) {
+  if (process.env.NODE_ENV === 'development' || (!url || !key)) {
     console.warn('[Supabase Config Debug]', {
       hasWindowEnv: !!window.__ENV__,
       windowEnvUrl: env.SUPABASE_URL ? 'set' : 'missing',
       windowEnvKey: env.SUPABASE_ANON_KEY ? 'set' : 'missing',
-      viteEnvUrl: import.meta.env.VITE_SUPABASE_URL ? 'set' : 'missing',
-      viteEnvKey: import.meta.env.VITE_SUPABASE_ANON_KEY ? 'set' : 'missing',
+      nextEnvUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'set' : 'missing',
+      nextEnvKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'set' : 'missing',
       resolvedUrl: url ? 'found' : 'missing',
       resolvedKey: key ? 'found' : 'missing',
-      allEnvKeys: Object.keys(import.meta.env).filter(k => k.startsWith('VITE_')),
     });
   }
 
@@ -44,7 +43,7 @@ export function getSupabaseBrowserClient(): SupabaseClient | null {
     
     console.error(
       `[Supabase] Missing configuration: ${missing.join(', ')}. ` +
-      `Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your environment variables.`
+      `Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment variables.`
     );
     return null;
   }

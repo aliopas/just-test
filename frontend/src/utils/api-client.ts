@@ -41,7 +41,8 @@ function getBaseUrl(): string {
   if (typeof window !== 'undefined') {
     return window.__ENV__?.API_BASE_URL ?? '/api/v1';
   }
-  return import.meta.env.VITE_API_BASE_URL ?? '/api/v1';
+  // Next.js environment variable
+  return process.env.NEXT_PUBLIC_API_BASE_URL ?? '/api/v1';
 }
 
 type RefreshResponse = {
@@ -132,7 +133,7 @@ async function refreshAccessToken(): Promise<boolean> {
 
 function resolveAccessToken(): string | undefined {
   if (typeof window === 'undefined') {
-    return import.meta.env.VITE_TEST_ACCESS_TOKEN;
+    return process.env.NEXT_PUBLIC_TEST_ACCESS_TOKEN;
   }
   return getStoredAccessToken();
 }
