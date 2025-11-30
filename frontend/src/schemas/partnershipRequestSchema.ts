@@ -6,9 +6,7 @@ export const partnershipRequestSchema = z.object({
     .string()
     .min(2, 'اسم الشركة يجب أن يكون على الأقل حرفين')
     .max(100, 'اسم الشركة يجب أن يكون 100 حرف أو أقل'),
-  partnershipType: z.enum(['strategic', 'financial', 'technical', 'other'], {
-    errorMap: () => ({ message: 'يجب اختيار نوع الشراكة' }),
-  }),
+  partnershipType: z.enum(['strategic', 'financial', 'technical', 'other']),
   investmentAmount: z.coerce
     .number()
     .positive('المبلغ يجب أن يكون أكبر من صفر')

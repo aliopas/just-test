@@ -2,9 +2,7 @@ import { z } from 'zod';
 
 export const feedbackRequestSchema = z.object({
   type: z.literal('feedback'),
-  feedbackType: z.enum(['suggestion', 'complaint', 'question', 'other'], {
-    errorMap: () => ({ message: 'يجب اختيار نوع الملاحظة' }),
-  }),
+  feedbackType: z.enum(['suggestion', 'complaint', 'question', 'other']),
   subject: z
     .string()
     .min(5, 'الموضوع يجب أن يكون على الأقل 5 أحرف')
