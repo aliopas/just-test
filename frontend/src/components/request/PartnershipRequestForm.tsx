@@ -36,21 +36,41 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
 
   const onSubmit = handleSubmit(async values => {
     try {
-      // Build metadata object
-      const metadata: Record<string, unknown> = {
-        companyName: values.companyName.trim(),
-        partnershipType: values.partnershipType,
-        contactPerson: values.contactPerson.trim(),
-        contactEmail: values.contactEmail.trim(),
-      };
+      // Build metadata object - ensure all required fields have values
+      const metadata: Record<string, unknown> = {};
       
-      // Add optional fields only if they have values
+      // Required fields
+      if (values.companyName?.trim()) {
+        metadata.companyName = values.companyName.trim();
+      }
+      if (values.partnershipType) {
+        metadata.partnershipType = values.partnershipType;
+      }
+      if (values.contactPerson?.trim()) {
+        metadata.contactPerson = values.contactPerson.trim();
+      }
+      if (values.contactEmail?.trim()) {
+        metadata.contactEmail = values.contactEmail.trim();
+      }
+      
+      // Optional fields
       if (values.partnershipDetails && values.partnershipDetails.trim()) {
         metadata.partnershipDetails = values.partnershipDetails.trim();
       }
       
       if (values.contactPhone && values.contactPhone.trim() !== '') {
         metadata.contactPhone = values.contactPhone.trim();
+      }
+
+      // Ensure metadata has required fields
+      if (!metadata.companyName || !metadata.partnershipType || !metadata.contactPerson || !metadata.contactEmail) {
+        pushToast({
+          message: language === 'ar' 
+            ? 'يرجى ملء جميع الحقول المطلوبة' 
+            : 'Please fill in all required fields',
+          variant: 'error',
+        });
+        return;
       }
 
       const result = await createRequest.mutateAsync({

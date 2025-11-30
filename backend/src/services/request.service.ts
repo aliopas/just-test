@@ -24,13 +24,25 @@ export async function createInvestorRequest(params: {
   const requestNumber = await generateRequestNumber();
 
   // Ensure metadata is properly handled
-  // For partnership/board_nomination/feedback, metadata should be an object (even if empty)
-  // Convert empty objects to null to use database default
-  const metadataValue = params.payload.metadata 
-    ? (Object.keys(params.payload.metadata).length > 0 
-        ? params.payload.metadata 
-        : null)
-    : null;
+  // If metadata is provided and has keys, use it
+  // Otherwise, use null to let database use default '{}'::jsonb
+  let metadataValue: Record<string, unknown> | null = null;
+  if (params.payload.metadata && typeof params.payload.metadata === 'object') {
+    const keys = Object.keys(params.payload.metadata);
+    if (keys.length > 0) {
+      // Only include non-empty values
+      const cleanedMetadata: Record<string, unknown> = {};
+      for (const key of keys) {
+        const value = params.payload.metadata[key];
+        if (value !== null && value !== undefined && value !== '') {
+          cleanedMetadata[key] = value;
+        }
+      }
+      if (Object.keys(cleanedMetadata).length > 0) {
+        metadataValue = cleanedMetadata;
+      }
+    }
+  }
 
   const requestPayload = {
     user_id: params.userId,
@@ -45,6 +57,17 @@ export async function createInvestorRequest(params: {
     metadata: metadataValue,
   };
 
+  // Log payload for debugging (sanitize sensitive data)
+  console.log('Creating request with payload:', {
+    user_id: params.userId,
+    request_number: requestNumber,
+    type: params.payload.type,
+    amount: params.payload.amount,
+    currency: params.payload.currency,
+    has_metadata: !!metadataValue,
+    metadata_keys: metadataValue ? Object.keys(metadataValue) : [],
+  });
+
   const { data, error } = await adminClient
     .from('requests')
     .insert(requestPayload)
@@ -52,7 +75,15 @@ export async function createInvestorRequest(params: {
     .single<{ id: string }>();
 
   if (error || !data) {
-    throw new Error(`Failed to create request: ${error?.message ?? 'unknown'}`);
+    console.error('Database insert error:', {
+      error: error,
+      code: error?.code,
+      message: error?.message,
+      details: error?.details,
+      hint: error?.hint,
+      payload: requestPayload,
+    });
+    throw new Error(`Failed to create request: ${error?.message ?? 'unknown'} - Code: ${error?.code ?? 'N/A'}`);
   }
 
   const { error: eventError } = await adminClient

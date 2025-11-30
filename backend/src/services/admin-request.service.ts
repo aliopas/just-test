@@ -250,11 +250,23 @@ export async function listAdminRequests(params: {
   }
 
   // Apply ordering and pagination last (matching pattern from other services)
+  // For amount sorting, we need to handle NULL values properly to ensure non-financial requests are included
+  // Use post-processing for amount sorting to handle NULL values correctly
+  const shouldUsePostProcessingSort = validSortField === 'amount';
+  
   let result;
   try {
-    result = await queryBuilder
-      .order(validSortField, { ascending: order })
-      .range(offset, offset + limit - 1);
+    if (shouldUsePostProcessingSort) {
+      // For amount sorting, first get all requests without ordering by amount
+      // We'll sort by created_at as secondary sort, then post-process
+      result = await queryBuilder
+        .order('created_at', { ascending: false })
+        .range(0, 10000); // Get a larger set to sort properly
+    } else {
+      result = await queryBuilder
+        .order(validSortField, { ascending: order })
+        .range(offset, offset + limit - 1);
+    }
   } catch (queryError) {
     console.error('Failed to execute admin requests query - Exception:', {
       queryError,
@@ -290,6 +302,31 @@ export async function listAdminRequests(params: {
   }
 
   let rows = (data as AdminRequestRow[] | null) ?? [];
+
+  // Apply post-processing sort for amount field to handle NULL values properly
+  if (shouldUsePostProcessingSort) {
+    rows.sort((a, b) => {
+      const aAmount = a.amount == null ? null : (typeof a.amount === 'string' ? Number.parseFloat(a.amount) : a.amount);
+      const bAmount = b.amount == null ? null : (typeof b.amount === 'string' ? Number.parseFloat(b.amount) : b.amount);
+      
+      // NULL values (non-financial requests) always go last
+      if (aAmount == null && bAmount == null) {
+        // Both NULL, sort by created_at descending
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+      // For descending (order = false), NULL values go to the end (positive value)
+      // For ascending (order = true), NULL values go to the end (positive value)
+      if (aAmount == null) return 1; // NULL always goes last
+      if (bAmount == null) return -1; // NULL always goes last
+      
+      // Both have values, compare normally
+      const diff = (aAmount as number) - (bAmount as number);
+      return order ? diff : -diff;
+    });
+    
+    // Apply pagination after sorting
+    rows = rows.slice(offset, offset + limit);
+  }
 
   // Apply amount filters in post-processing to properly handle NULL values
   // This ensures requests without amount (non-financial) are always included
@@ -340,6 +377,7 @@ export async function listAdminRequests(params: {
     query: params.query,
     types: rows.map(r => r.type),
     statuses: rows.map(r => r.status),
+    requestNumbers: rows.map(r => r.request_number),
   });
 
   // If no rows, return empty result early
