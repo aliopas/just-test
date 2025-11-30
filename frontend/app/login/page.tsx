@@ -1,9 +1,14 @@
 'use client';
 
 import { LoginPage } from '@/pages/LoginPage';
+import { ClientOnly } from '../components/ClientOnly';
 
 export const dynamic = 'force-dynamic';
 
 export default function Login() {
-  return <LoginPage />;
+  return (
+    <ClientOnly>
+      <LoginPage />
+    </ClientOnly>
+  );
 }

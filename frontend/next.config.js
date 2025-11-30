@@ -46,6 +46,15 @@ const nextConfig = {
       },
     ];
   },
+  // Skip static generation for pages that use client-side features
+  // This prevents SSR errors during build
+  experimental: {
+    missingSuspenseWithCSRBailout: false,
+  },
+  // Disable static optimization to prevent SSR errors with client-side features
+  // Use 'export' for static export (Netlify compatible) but ensure pages are dynamic
+  // Remove output setting to allow Next.js to handle routing properly
+  // output: 'standalone',
 };
 
 module.exports = nextConfig;

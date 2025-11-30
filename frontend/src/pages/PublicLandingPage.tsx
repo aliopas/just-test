@@ -586,7 +586,9 @@ interface SectionModalProps {
 
 function SectionModal({ section, isOpen, onClose, isArabic }: SectionModalProps) {
   const { direction } = useLanguage();
-  const container = document.getElementById('drawer-root') ?? document.body;
+  const container = typeof document !== 'undefined' 
+    ? (document.getElementById('drawer-root') ?? document.body)
+    : null;
 
   if (!isOpen || !section) {
     return null;
@@ -609,6 +611,8 @@ function SectionModal({ section, isOpen, onClose, isArabic }: SectionModalProps)
     <DefaultSectionIcon type={section.type} />
   );
 
+  if (!container) return null;
+  
   return createPortal(
     <div
       role="dialog"
@@ -1350,9 +1354,11 @@ export function PublicLandingPage() {
               href={`#${item.id}`}
               onClick={(e) => {
                 e.preventDefault();
-                const element = document.getElementById(item.id);
-                if (element) {
-                  element.scrollIntoView({ behavior: 'smooth' });
+                if (typeof document !== 'undefined') {
+                  const element = document.getElementById(item.id);
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth' });
+                  }
                 }
               }}
               style={{

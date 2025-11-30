@@ -1,9 +1,14 @@
 'use client';
 
 import { PublicLandingPage } from '@/pages/PublicLandingPage';
+import { ClientOnly } from './components/ClientOnly';
 
 export const dynamic = 'force-dynamic';
 
 export default function RootPage() {
-  return <PublicLandingPage />;
+  return (
+    <ClientOnly>
+      <PublicLandingPage />
+    </ClientOnly>
+  );
 }
