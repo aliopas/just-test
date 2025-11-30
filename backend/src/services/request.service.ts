@@ -20,28 +20,29 @@ export async function createInvestorRequest(params: {
   userId: string;
   payload: CreateRequestInput;
 }): Promise<{ id: string; requestNumber: string }> {
-  const adminClient = requireSupabaseAdmin();
-  const requestNumber = await generateRequestNumber();
+  try {
+    const adminClient = requireSupabaseAdmin();
+    const requestNumber = await generateRequestNumber();
 
-  // Ensure metadata is properly handled
-  // Always send an object (even if empty) - database default is '{}'::jsonb
-  let metadataValue: Record<string, unknown> = {};
-  if (params.payload.metadata && typeof params.payload.metadata === 'object') {
-    const keys = Object.keys(params.payload.metadata);
-    if (keys.length > 0) {
-      // Only include non-empty values
-      const cleanedMetadata: Record<string, unknown> = {};
-      for (const key of keys) {
-        const value = params.payload.metadata[key];
-        if (value !== null && value !== undefined && value !== '') {
-          cleanedMetadata[key] = value;
+    // Ensure metadata is properly handled
+    // Always send an object (even if empty) - database default is '{}'::jsonb
+    let metadataValue: Record<string, unknown> = {};
+    if (params.payload.metadata && typeof params.payload.metadata === 'object') {
+      const keys = Object.keys(params.payload.metadata);
+      if (keys.length > 0) {
+        // Only include non-empty values
+        const cleanedMetadata: Record<string, unknown> = {};
+        for (const key of keys) {
+          const value = params.payload.metadata[key];
+          if (value !== null && value !== undefined && value !== '') {
+            cleanedMetadata[key] = value;
+          }
+        }
+        if (Object.keys(cleanedMetadata).length > 0) {
+          metadataValue = cleanedMetadata;
         }
       }
-      if (Object.keys(cleanedMetadata).length > 0) {
-        metadataValue = cleanedMetadata;
-      }
     }
-  }
 
   const requestPayload = {
     user_id: params.userId,
@@ -53,19 +54,19 @@ export async function createInvestorRequest(params: {
     expiry_at: params.payload.expiryAt ?? null,
     status: 'draft',
     notes: params.payload.notes ?? null,
-    metadata: metadataValue,
-  };
+      metadata: metadataValue,
+    };
 
-  // Log payload for debugging (sanitize sensitive data)
-  console.log('Creating request with payload:', {
-    user_id: params.userId,
-    request_number: requestNumber,
-    type: params.payload.type,
-    amount: params.payload.amount,
-    currency: params.payload.currency,
-    has_metadata: !!metadataValue,
-    metadata_keys: metadataValue ? Object.keys(metadataValue) : [],
-  });
+    // Log payload for debugging (sanitize sensitive data)
+    console.log('Creating request with payload:', {
+      user_id: params.userId,
+      request_number: requestNumber,
+      type: params.payload.type,
+      amount: params.payload.amount,
+      currency: params.payload.currency,
+      has_metadata: !!metadataValue,
+      metadata_keys: metadataValue ? Object.keys(metadataValue) : [],
+    });
 
   const { data, error } = await adminClient
     .from('requests')
@@ -74,15 +75,15 @@ export async function createInvestorRequest(params: {
     .single<{ id: string }>();
 
   if (error || !data) {
-    console.error('Database insert error:', {
-      error: error,
-      code: error?.code,
-      message: error?.message,
-      details: error?.details,
-      hint: error?.hint,
-      payload: requestPayload,
-    });
-    throw new Error(`Failed to create request: ${error?.message ?? 'unknown'} - Code: ${error?.code ?? 'N/A'}`);
+      console.error('Database insert error:', {
+        error: error,
+        code: error?.code,
+        message: error?.message,
+        details: error?.details,
+        hint: error?.hint,
+        payload: requestPayload,
+      });
+      throw new Error(`Failed to create request: ${error?.message ?? 'unknown'} - Code: ${error?.code ?? 'N/A'}`);
   }
 
   const { error: eventError } = await adminClient
@@ -105,6 +106,19 @@ export async function createInvestorRequest(params: {
     id: data.id,
     requestNumber,
   };
+  } catch (error) {
+    // Log error with full context
+    console.error('Error in createInvestorRequest:', {
+      error: error,
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      userId: params.userId,
+      requestType: params.payload.type,
+      hasMetadata: !!params.payload.metadata,
+    });
+    // Re-throw to let controller handle it
+    throw error;
+  }
 }
 
 type RequestRecord = {
