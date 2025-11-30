@@ -223,27 +223,14 @@ export async function listAdminRequests(params: {
 
   // Filter by amount - handle NULL values properly
   // For requests without amount (non-financial), they should still be included
-  // Only apply amount filters if both min and max are provided, otherwise skip
-  // to avoid excluding NULL amounts unintentionally
-  if (params.query.minAmount !== undefined && params.query.maxAmount !== undefined) {
-    // When both filters are provided, include NULL amounts OR amounts in range
-    queryBuilder = queryBuilder.or(
-      `amount.is.null,and(amount.gte.${params.query.minAmount},amount.lte.${params.query.maxAmount})`,
-      { foreignTable: undefined }
-    );
-  } else if (params.query.minAmount !== undefined) {
-    // Only minAmount: include NULL amounts OR amounts >= minAmount
-    queryBuilder = queryBuilder.or(
-      `amount.is.null,amount.gte.${params.query.minAmount}`,
-      { foreignTable: undefined }
-    );
-  } else if (params.query.maxAmount !== undefined) {
-    // Only maxAmount: include NULL amounts OR amounts <= maxAmount
-    queryBuilder = queryBuilder.or(
-      `amount.is.null,amount.lte.${params.query.maxAmount}`,
-      { foreignTable: undefined }
-    );
-  }
+  // Note: Supabase .gte() and .lte() exclude NULL values by default
+  // We'll apply amount filters in post-processing to properly handle NULL values
+  // This ensures requests without amount are always included
+  // Store amount filters for post-processing
+  const amountFilters = {
+    minAmount: params.query.minAmount,
+    maxAmount: params.query.maxAmount,
+  };
 
   if (params.query.createdFrom) {
     queryBuilder = queryBuilder.gte('created_at', params.query.createdFrom);
@@ -302,7 +289,49 @@ export async function listAdminRequests(params: {
     throw new Error(`Failed to list admin requests: ${error.message}`);
   }
 
-  const rows = (data as AdminRequestRow[] | null) ?? [];
+  let rows = (data as AdminRequestRow[] | null) ?? [];
+
+  // Apply amount filters in post-processing to properly handle NULL values
+  // This ensures requests without amount (non-financial) are always included
+  if (amountFilters.minAmount !== undefined || amountFilters.maxAmount !== undefined) {
+    const originalCount = rows.length;
+    rows = rows.filter(row => {
+      // Always include NULL amounts (non-financial requests)
+      if (row.amount == null) {
+        return true;
+      }
+      
+      const amountValue = typeof row.amount === 'string' 
+        ? Number.parseFloat(row.amount) 
+        : row.amount;
+      
+      if (typeof amountValue !== 'number' || !Number.isFinite(amountValue)) {
+        return true; // Include invalid amounts to be safe
+      }
+      
+      // Check minAmount
+      if (amountFilters.minAmount !== undefined) {
+        if (amountValue < amountFilters.minAmount) {
+          return false;
+        }
+      }
+      
+      // Check maxAmount
+      if (amountFilters.maxAmount !== undefined) {
+        if (amountValue > amountFilters.maxAmount) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+    
+    console.log('Amount filter applied:', {
+      originalCount,
+      filteredCount: rows.length,
+      amountFilters,
+    });
+  }
 
   // Log for debugging
   console.log('Admin requests query result:', {
