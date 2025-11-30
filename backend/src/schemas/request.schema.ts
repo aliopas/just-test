@@ -35,6 +35,7 @@ export const createRequestSchema = z.object({
     .string()
     .max(500, 'Notes must be 500 characters or fewer')
     .optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export type CreateRequestInput = z.infer<typeof createRequestSchema>;

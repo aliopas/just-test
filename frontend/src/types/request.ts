@@ -23,6 +23,7 @@ export interface CreateRequestPayload {
   targetPrice?: number | null;
   expiryAt?: string | null;
   notes?: string | null;
+  metadata?: Record<string, unknown>; // Additional data for specific request types
   documents?: File[];
 }
 

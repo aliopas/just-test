@@ -13,6 +13,7 @@ async function postRequest(payload: CreateRequestPayload) {
     targetPrice: payload.targetPrice ?? undefined,
     expiryAt: payload.expiryAt ?? undefined,
     notes: payload.notes ?? undefined,
+    metadata: payload.metadata ?? undefined,
   };
 
   return apiClient<CreateRequestResponse>('/investor/requests', {

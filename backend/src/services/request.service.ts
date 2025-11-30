@@ -33,6 +33,7 @@ export async function createInvestorRequest(params: {
     expiry_at: params.payload.expiryAt ?? null,
     status: 'draft',
     notes: params.payload.notes ?? null,
+    metadata: params.payload.metadata ?? null,
   };
 
   const { data, error } = await adminClient
