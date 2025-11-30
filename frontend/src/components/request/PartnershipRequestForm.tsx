@@ -36,19 +36,35 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
 
   const onSubmit = handleSubmit(async values => {
     try {
+      // Build metadata object
+      const metadata: Record<string, unknown> = {
+        companyName: values.companyName.trim(),
+        partnershipType: values.partnershipType,
+        contactPerson: values.contactPerson.trim(),
+        contactEmail: values.contactEmail.trim(),
+      };
+      
+      // Add optional fields only if they have values
+      if (values.partnershipDetails && values.partnershipDetails.trim()) {
+        metadata.partnershipDetails = values.partnershipDetails.trim();
+      }
+      
+      if (values.contactPhone && values.contactPhone.trim() !== '') {
+        metadata.contactPhone = values.contactPhone.trim();
+      }
+
       const result = await createRequest.mutateAsync({
         type: 'partnership' as RequestType,
-        amount: values.investmentAmount,
-        currency: 'SAR',
-        metadata: {
-          companyName: values.companyName,
-          partnershipType: values.partnershipType,
-          partnershipDetails: values.partnershipDetails,
-          contactPerson: values.contactPerson,
-          contactEmail: values.contactEmail,
-          contactPhone: values.contactPhone,
-        },
-        notes: values.partnershipDetails,
+        // For partnership requests, amount and currency are optional
+        // Only include them if investmentAmount is provided and valid
+        ...(values.investmentAmount && values.investmentAmount > 0
+          ? {
+              amount: values.investmentAmount,
+              currency: 'SAR' as const,
+            }
+          : {}),
+        metadata: Object.keys(metadata).length > 0 ? metadata : {},
+        notes: values.partnershipDetails || undefined,
       });
 
       setCreatedRequestId(result.requestId);
