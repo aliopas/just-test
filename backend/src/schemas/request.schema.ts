@@ -3,22 +3,16 @@ import { z } from 'zod';
 const validCurrencies = ['SAR', 'USD', 'EUR'] as const;
 
 export const createRequestSchema = z.object({
-  type: z.enum(['buy', 'sell', 'partnership', 'board_nomination', 'feedback']),
+  type: z.enum(['buy', 'sell']),
   amount: z.preprocess(
     (val) => {
       if (val === undefined || val === null || val === '') return undefined;
       const num = typeof val === 'number' ? val : Number(val);
       return Number.isNaN(num) ? undefined : num;
     },
-    z.number().positive('Amount must be greater than zero').optional()
+    z.number().positive('Amount must be greater than zero')
   ),
-  currency: z.preprocess(
-    (val) => {
-      if (val === undefined || val === null || val === '') return undefined;
-      return val;
-    },
-    z.enum(validCurrencies).optional()
-  ),
+  currency: z.enum(validCurrencies),
   targetPrice: z.preprocess(
     (val) => {
       if (val === undefined || val === null || val === '') return undefined;
@@ -41,20 +35,7 @@ export const createRequestSchema = z.object({
     .string()
     .max(500, 'Notes must be 500 characters or fewer')
     .optional(),
-}).refine(
-  (data) => {
-    // For buy/sell, amount and currency are required
-    if (data.type === 'buy' || data.type === 'sell') {
-      return data.amount !== undefined && data.currency !== undefined;
-    }
-    // For other types, amount and currency are optional
-    return true;
-  },
-  {
-    message: 'Amount and currency are required for buy/sell requests',
-    path: ['amount'],
-  }
-);
+});
 
 export type CreateRequestInput = z.infer<typeof createRequestSchema>;
 

@@ -1,6 +1,6 @@
 import { useLanguage } from '../../context/LanguageContext';
 
-export type RequestTypeOption = 'buy' | 'sell' | 'partnership' | 'board_nomination' | 'feedback';
+export type RequestTypeOption = 'buy' | 'sell';
 
 interface RequestTypeSelectorProps {
   value: RequestTypeOption;
@@ -18,9 +18,6 @@ export function RequestTypeSelector({
   const options: Array<{ value: RequestTypeOption; label: { ar: string; en: string } }> = [
     { value: 'buy', label: { ar: 'شراء', en: 'Buy' } },
     { value: 'sell', label: { ar: 'بيع', en: 'Sell' } },
-    { value: 'partnership', label: { ar: 'شراكة', en: 'Partnership' } },
-    { value: 'board_nomination', label: { ar: 'ترشيح مجلس', en: 'Board Nomination' } },
-    { value: 'feedback', label: { ar: 'ملاحظات', en: 'Feedback' } },
   ];
 
   return (

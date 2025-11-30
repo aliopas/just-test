@@ -19,35 +19,6 @@ function formatAmountOrSubject(
   request: AdminRequest,
   language: 'ar' | 'en'
 ): string {
-  if (request.type === 'feedback') {
-    const metadata = request.metadata;
-    if (metadata && typeof metadata === 'object' && 'subject' in metadata) {
-      return String(metadata.subject || '—');
-    }
-    return '—';
-  }
-
-  if (request.type === 'partnership') {
-    const metadata = request.metadata;
-    if (metadata && typeof metadata === 'object' && 'proposedAmount' in metadata) {
-      const amount = metadata.proposedAmount;
-      if (typeof amount === 'number') {
-        // Use currency from request if available, otherwise default to SAR
-        const currency = request.currency || 'SAR';
-        return new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
-          style: 'currency',
-          currency: currency,
-        }).format(amount);
-      }
-    }
-    return '—';
-  }
-
-  if (request.type === 'board_nomination') {
-    // For board nomination, we can show a simple label
-    return language === 'ar' ? 'ترشيح مجلس' : 'Board Nomination';
-  }
-
   // For buy/sell, show formatted amount
   if (request.amount != null && request.currency) {
     try {
@@ -207,13 +178,7 @@ export function AdminRequestsTable({
                       background:
                         request.type === 'buy'
                           ? 'var(--color-success)'
-                          : request.type === 'sell'
-                            ? 'var(--color-warning)'
-                            : request.type === 'partnership'
-                              ? '#3B82F6'
-                              : request.type === 'board_nomination'
-                                ? '#8B5CF6'
-                                : '#EC4899',
+                          : 'var(--color-warning)',
                       color: '#FFFFFF',
                       fontSize: '0.85rem',
                       fontWeight: 600,

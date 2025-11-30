@@ -224,104 +224,10 @@ function AdminRequestDetailPageInner() {
     const items: Array<{ label: string; value: string }> = [];
 
     switch (request.type) {
-      case 'partnership':
-        if ('projectId' in metadata && metadata.projectId) {
-          items.push({
-            label: language === 'ar' ? 'معرف المشروع' : 'Project ID',
-            value: String(metadata.projectId),
-          });
-        }
-        if ('proposedAmount' in metadata && metadata.proposedAmount) {
-          const amount = typeof metadata.proposedAmount === 'number' 
-            ? metadata.proposedAmount 
-            : Number.parseFloat(String(metadata.proposedAmount));
-          if (!Number.isNaN(amount)) {
-            items.push({
-              label: language === 'ar' ? 'المبلغ المقترح' : 'Proposed Amount',
-              value: new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
-                style: 'currency',
-                currency: request.currency || 'SAR',
-              }).format(amount),
-            });
-          }
-        }
-        if ('partnershipPlan' in metadata && metadata.partnershipPlan) {
-          return (
-            <Card key="metadata">
-              <CardTitle>{language === 'ar' ? 'تفاصيل الشراكة' : 'Partnership Details'}</CardTitle>
-              <InfoGrid items={items} />
-              <div style={{ marginTop: '1rem' }}>
-                <strong style={{ color: 'var(--color-text-primary)', fontSize: '0.9rem', display: 'block', marginBottom: '0.5rem' }}>
-                  {language === 'ar' ? 'خطة الشراكة' : 'Partnership Plan'}
-                </strong>
-                <div
-                  style={{
-                    background: 'var(--color-background-surface)',
-                    borderRadius: '0.85rem',
-                    padding: '0.75rem 1rem',
-                    color: 'var(--color-text-secondary)',
-                    lineHeight: 1.6,
-                    whiteSpace: 'pre-wrap',
-                  }}
-                >
-                  {String(metadata.partnershipPlan)}
-                </div>
-              </div>
-            </Card>
-          );
-        }
+      case 'buy':
+      case 'sell':
+        // Buy and sell requests don't have special metadata display
         break;
-
-      case 'board_nomination':
-        if ('cvSummary' in metadata && metadata.cvSummary) {
-          items.push({
-            label: language === 'ar' ? 'ملخص السيرة الذاتية' : 'CV Summary',
-            value: String(metadata.cvSummary),
-          });
-        }
-        if ('experience' in metadata && metadata.experience) {
-          items.push({
-            label: language === 'ar' ? 'الخبرات' : 'Experience',
-            value: String(metadata.experience),
-          });
-        }
-        if ('motivations' in metadata && metadata.motivations) {
-          items.push({
-            label: language === 'ar' ? 'الدوافع' : 'Motivations',
-            value: String(metadata.motivations),
-          });
-        }
-        if ('qualifications' in metadata && metadata.qualifications) {
-          items.push({
-            label: language === 'ar' ? 'المؤهلات' : 'Qualifications',
-            value: String(metadata.qualifications),
-          });
-        }
-        if (items.length > 0) {
-          return (
-            <Card key="metadata">
-              <CardTitle>{language === 'ar' ? 'تفاصيل الترشيح للمجلس' : 'Board Nomination Details'}</CardTitle>
-              <InfoGrid items={items.map(item => ({
-                label: item.label,
-                value: item.value.length > 200 
-                  ? `${item.value.slice(0, 200)}...`
-                  : item.value,
-              }))} />
-            </Card>
-          );
-        }
-        break;
-
-      case 'feedback':
-        if ('subject' in metadata && metadata.subject) {
-          items.push({
-            label: language === 'ar' ? 'الموضوع' : 'Subject',
-            value: String(metadata.subject),
-          });
-        }
-        if ('category' in metadata && metadata.category) {
-          const categoryLabel = {
-            suggestion: language === 'ar' ? 'اقتراح' : 'Suggestion',
             complaint: language === 'ar' ? 'شكوى' : 'Complaint',
             question: language === 'ar' ? 'سؤال' : 'Question',
             other: language === 'ar' ? 'أخرى' : 'Other',

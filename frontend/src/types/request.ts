@@ -3,7 +3,7 @@
   NotificationType,
 } from './notification';
 
-export type RequestType = 'buy' | 'sell' | 'partnership' | 'board_nomination' | 'feedback';
+export type RequestType = 'buy' | 'sell';
 export type RequestCurrency = 'SAR' | 'USD' | 'EUR';
 export type RequestStatus =
   | 'draft'
@@ -18,8 +18,8 @@ export type RequestStatus =
 
 export interface CreateRequestPayload {
   type: RequestType;
-  amount?: number | null;
-  currency?: RequestCurrency | null;
+  amount: number;
+  currency: RequestCurrency;
   targetPrice?: number | null;
   expiryAt?: string | null;
   notes?: string | null;

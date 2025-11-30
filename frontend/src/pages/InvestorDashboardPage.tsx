@@ -305,9 +305,6 @@ function InvestorDashboardPageInner() {
               {[
                 { key: 'buy' as const, labelKey: 'summary.typeBuy' as const },
                 { key: 'sell' as const, labelKey: 'summary.typeSell' as const },
-                { key: 'partnership' as const, labelKey: 'summary.typePartnership' as const },
-                { key: 'board_nomination' as const, labelKey: 'summary.typeBoardNomination' as const },
-                { key: 'feedback' as const, labelKey: 'summary.typeFeedback' as const },
               ].map(({ key, labelKey }) => (
                 <SummaryCard
                   key={key}

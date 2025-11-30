@@ -12,9 +12,6 @@ const statusEnum = z.enum([...REQUEST_STATUSES] as [
 const requestTypes = [
   'buy',
   'sell',
-  'partnership',
-  'board_nomination',
-  'feedback',
 ] as const;
 
 export const requestListQuerySchema = z.object({

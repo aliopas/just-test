@@ -29,9 +29,6 @@ type MessageKey =
   | 'type.all'
   | 'type.buy'
   | 'type.sell'
-  | 'type.partnership'
-  | 'type.board_nomination'
-  | 'type.feedback'
   | 'table.requestNumber'
   | 'table.type'
   | 'table.investor'
@@ -122,9 +119,6 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'type.all': 'All',
     'type.buy': 'Buy',
     'type.sell': 'Sell',
-    'type.partnership': 'Partnership',
-    'type.board_nomination': 'Board Nomination',
-    'type.feedback': 'Feedback',
     'table.requestNumber': 'Request #',
     'table.type': 'Type',
     'table.investor': 'Investor',
@@ -213,9 +207,6 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'type.all': 'الكل',
     'type.buy': 'شراء',
     'type.sell': 'بيع',
-    'type.partnership': 'شراكة',
-    'type.board_nomination': 'ترشيح مجلس',
-    'type.feedback': 'ملاحظات',
     'table.requestNumber': 'رقم الطلب',
     'table.type': 'النوع',
     'table.investor': 'المستثمر',
