@@ -11,7 +11,7 @@ import { AdminRequestsFilterBar } from '../components/admin/requests/AdminReques
 import { AdminRequestsTable } from '../components/admin/requests/AdminRequestsTable';
 import { AdminRequestsPagination } from '../components/admin/requests/AdminRequestsPagination';
 import { useAdminRequests } from '../hooks/useAdminRequests';
-import type { AdminRequestFilters } from '../types/admin';
+import type { AdminRequestFilters, RequestCategory } from '../types/admin';
 import { tAdminRequests } from '../locales/adminRequests';
 
 // Create QueryClient outside component to avoid recreating it on every render
@@ -28,6 +28,7 @@ const defaultFilters: AdminRequestFilters = {
   page: 1,
   status: 'all',
   type: 'all',
+  category: 'all',
   sortBy: 'created_at',
   order: 'desc',
 };
@@ -37,6 +38,16 @@ function AdminRequestsInboxPageInner() {
   const { pushToast } = useToast();
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState<AdminRequestFilters>(defaultFilters);
+  const [activeCategory, setActiveCategory] = useState<RequestCategory>('all');
+
+  // Update filters when category changes
+  useEffect(() => {
+    setFilters(prev => ({
+      ...prev,
+      category: activeCategory,
+      page: 1, // Reset to first page when category changes
+    }));
+  }, [activeCategory]);
 
   const { requests, meta, isLoading, isFetching, isError, error, refetch } =
     useAdminRequests(filters);
@@ -101,13 +112,45 @@ function AdminRequestsInboxPageInner() {
         </p>
       </header>
 
+      {/* Category Tabs */}
+      <div
+        style={{
+          display: 'flex',
+          gap: '1rem',
+          borderBottom: '2px solid var(--color-neutral-border)',
+          background: 'var(--color-background-surface)',
+          borderRadius: '1.5rem 1.5rem 0 0',
+          padding: '0 1.5rem',
+          direction,
+        }}
+      >
+        <CategoryTab
+          category="all"
+          activeCategory={activeCategory}
+          onClick={() => setActiveCategory('all')}
+          language={language}
+        />
+        <CategoryTab
+          category="financial"
+          activeCategory={activeCategory}
+          onClick={() => setActiveCategory('financial')}
+          language={language}
+        />
+        <CategoryTab
+          category="non-financial"
+          activeCategory={activeCategory}
+          onClick={() => setActiveCategory('non-financial')}
+          language={language}
+        />
+      </div>
+
       <section
         style={{
           display: 'flex',
           flexDirection: 'column',
           gap: '1.5rem',
           background: 'var(--color-background-surface)',
-          borderRadius: '1.5rem',
+          borderRadius: '0 0 1.5rem 1.5rem',
           padding: '1.5rem',
           boxShadow: '0 24px 48px rgba(15, 23, 42, 0.08)',
         }}
@@ -150,6 +193,49 @@ export function AdminRequestsInboxPage() {
         </ToastProvider>
       </LanguageProvider>
     </QueryClientProvider>
+  );
+}
+
+interface CategoryTabProps {
+  category: RequestCategory;
+  activeCategory: RequestCategory;
+  onClick: () => void;
+  language: 'ar' | 'en';
+}
+
+function CategoryTab({ category, activeCategory, onClick, language }: CategoryTabProps) {
+  const isActive = activeCategory === category;
+  
+  const labels: Record<RequestCategory, { ar: string; en: string }> = {
+    'all': { ar: 'الكل', en: 'All' },
+    'financial': { ar: 'الطلبات المالية', en: 'Financial Requests' },
+    'non-financial': { ar: 'الطلبات غير المالية', en: 'Non-Financial Requests' },
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        padding: '1rem 1.5rem',
+        border: 'none',
+        background: 'transparent',
+        color: isActive
+          ? 'var(--color-brand-primary-strong)'
+          : 'var(--color-text-secondary)',
+        fontWeight: isActive ? 700 : 600,
+        fontSize: '1rem',
+        cursor: 'pointer',
+        borderBottom: isActive
+          ? '3px solid var(--color-brand-primary-strong)'
+          : '3px solid transparent',
+        marginBottom: '-2px',
+        transition: 'all 0.2s ease',
+        position: 'relative',
+      }}
+    >
+      {labels[category][language]}
+    </button>
   );
 }
 

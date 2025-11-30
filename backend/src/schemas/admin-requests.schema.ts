@@ -51,6 +51,10 @@ export const adminRequestListQuerySchema = z.object({
     )
     .default(25),
   status: statusEnum.optional(),
+  category: z
+    .enum(['all', 'financial', 'non-financial'])
+    .optional()
+    .default('all'),
   isNew: z
     .preprocess(
       value => {

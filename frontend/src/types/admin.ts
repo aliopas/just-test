@@ -110,11 +110,26 @@ export interface AdminRequestDetail {
 
 export type AdminRequestSortField = 'created_at' | 'amount' | 'status';
 export type AdminRequestSortOrder = 'asc' | 'desc';
+export type RequestCategory = 'all' | 'financial' | 'non-financial';
+
+// Helper functions to categorize requests
+export function isFinancialRequest(type: RequestType): boolean {
+  return type === 'buy' || type === 'sell';
+}
+
+export function isNonFinancialRequest(type: RequestType): boolean {
+  return type === 'partnership' || type === 'board_nomination' || type === 'feedback';
+}
+
+export function getRequestCategory(type: RequestType): 'financial' | 'non-financial' {
+  return isFinancialRequest(type) ? 'financial' : 'non-financial';
+}
 
 export interface AdminRequestFilters {
   page?: number;
   status?: RequestStatus | 'all';
   type?: RequestType | 'all';
+  category?: RequestCategory; // Filter by request category (financial/non-financial)
   isNew?: boolean; // Filter for new requests (unread by any admin)
   minAmount?: number | null;
   maxAmount?: number | null;

@@ -209,6 +209,10 @@ export async function listAdminRequests(params: {
     queryBuilder = queryBuilder.eq('status', params.query.status);
   }
 
+  // Filter by category (financial/non-financial)
+  // Store this filter for post-processing since we need to check request types
+  const categoryFilter = params.query.category ?? 'all';
+  
   // Filter by isNew (unread by any admin)
   // Store this filter for post-processing since we need to check admin_request_views
   const isNewFilter = params.query.isNew;
@@ -445,6 +449,23 @@ export async function listAdminRequests(params: {
         newStatusMap[id] = true;
       });
     }
+  }
+
+  // Helper function to check if request type matches category
+  const matchesCategory = (type: string): boolean => {
+    if (categoryFilter === 'all') return true;
+    if (categoryFilter === 'financial') {
+      return type === 'buy' || type === 'sell';
+    }
+    if (categoryFilter === 'non-financial') {
+      return type === 'partnership' || type === 'board_nomination' || type === 'feedback';
+    }
+    return true;
+  };
+
+  // Apply category filter if specified
+  if (categoryFilter !== 'all') {
+    rows = rows.filter(row => matchesCategory(row.type));
   }
 
   // Apply isNew filter if specified
