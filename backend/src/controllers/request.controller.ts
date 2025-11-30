@@ -33,6 +33,10 @@ export const requestController = {
       const validation = createRequestSchema.safeParse(req.body);
       if (!validation.success) {
         console.error('Validation failed:', JSON.stringify(validation.error.issues, null, 2));
+        console.error('Validation error details:', {
+          issues: validation.error.issues,
+          formatted: validation.error.format(),
+        });
         return res.status(400).json({
           error: {
             code: 'VALIDATION_ERROR',
@@ -40,6 +44,7 @@ export const requestController = {
             details: validation.error.issues.map(issue => ({
               field: issue.path.join('.'),
               message: issue.message,
+              code: issue.code,
             })),
           },
         });
@@ -70,10 +75,17 @@ export const requestController = {
         userId: req.user?.id,
       });
       
+      // Check if it's a database constraint error
+      const isDatabaseError = errorMessage.includes('constraint') || 
+                             errorMessage.includes('violates') ||
+                             errorMessage.includes('check constraint');
+      
       return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
-          message: 'Failed to create request',
+          message: isDatabaseError 
+            ? 'Database constraint violation. Please check your request data.'
+            : 'Failed to create request',
           details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
         },
       });

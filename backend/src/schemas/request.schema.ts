@@ -56,7 +56,7 @@ const nonFinancialRequestSchema = z.object({
       return Number.isNaN(num) ? undefined : num;
     },
     z.number().positive('Amount must be greater than zero').optional()
-  ),
+  ).optional(),
   currency: z.enum(validCurrencies).optional(),
 });
 
