@@ -37,6 +37,9 @@ const typeFilterOptions: Array<{
   { key: 'all', labelKey: 'filters.typeAll' },
   { key: 'buy', labelKey: 'filters.typeBuy' },
   { key: 'sell', labelKey: 'filters.typeSell' },
+  { key: 'partnership', labelKey: 'filters.typePartnership' },
+  { key: 'board_nomination', labelKey: 'filters.typeBoardNomination' },
+  { key: 'feedback', labelKey: 'filters.typeFeedback' },
 ];
 
 function MyRequestsPageInner() {

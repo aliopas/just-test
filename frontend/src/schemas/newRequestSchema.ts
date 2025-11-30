@@ -3,7 +3,7 @@
 const SHARE_PRICE = 50000; // قيمة السهم الواحد بالريال السعودي
 
 export const newRequestFormSchema = z.object({
-  type: z.enum(['buy', 'sell']),
+  type: z.enum(['buy', 'sell', 'partnership', 'board_nomination', 'feedback']),
   numberOfShares: z.coerce
     .number()
     .int('عدد الأسهم يجب أن يكون رقماً صحيحاً')

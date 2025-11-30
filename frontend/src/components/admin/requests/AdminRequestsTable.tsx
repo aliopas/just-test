@@ -178,7 +178,13 @@ export function AdminRequestsTable({
                       background:
                         request.type === 'buy'
                           ? 'var(--color-success)'
-                          : 'var(--color-warning)',
+                          : request.type === 'sell'
+                            ? 'var(--color-warning)'
+                            : request.type === 'partnership'
+                              ? '#3B82F6'
+                              : request.type === 'board_nomination'
+                                ? '#8B5CF6'
+                                : '#EC4899',
                       color: '#FFFFFF',
                       fontSize: '0.85rem',
                       fontWeight: 600,

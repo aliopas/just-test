@@ -31,6 +31,9 @@ export function AdminRequestsFilterBar({ filters, onChange, onReset }: Props) {
       { value: 'all', label: tAdminRequests('type.all', language) },
       { value: 'buy', label: tAdminRequests('type.buy', language) },
       { value: 'sell', label: tAdminRequests('type.sell', language) },
+      { value: 'partnership', label: tAdminRequests('type.partnership', language) },
+      { value: 'board_nomination', label: tAdminRequests('type.board_nomination', language) },
+      { value: 'feedback', label: tAdminRequests('type.feedback', language) },
     ] as Array<{ value: AdminRequestFilters['type']; label: string }>;
   }, [language]);
 

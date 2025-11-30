@@ -14,6 +14,9 @@ const orderDirections = ['asc', 'desc'] as const;
 const requestTypes = [
   'buy',
   'sell',
+  'partnership',
+  'board_nomination',
+  'feedback',
 ] as const;
 
 const toNumber = (value: unknown) => {

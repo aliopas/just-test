@@ -21,7 +21,7 @@ type AdminRequestRow = {
   id: string;
   request_number: string;
   status: string;
-  type: 'buy' | 'sell';
+  type: 'buy' | 'sell' | 'partnership' | 'board_nomination' | 'feedback';
   amount: number | string | null;
   currency: string | null;
   target_price: number | string | null;
@@ -517,7 +517,7 @@ type AdminRequestDetailRow = {
   request_number: string;
   user_id: string;
   status: RequestStatus;
-  type: 'buy' | 'sell';
+  type: 'buy' | 'sell' | 'partnership' | 'board_nomination' | 'feedback';
   amount: number | string | null;
   currency: string | null;
   target_price: number | string | null;

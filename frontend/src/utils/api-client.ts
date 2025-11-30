@@ -63,15 +63,19 @@ async function refreshAccessToken(): Promise<boolean> {
       try {
         const baseUrl = getBaseUrl();
         const storedRefreshToken = getStoredRefreshToken();
+        
+        if (!storedRefreshToken) {
+          console.warn('No refresh token available for refresh');
+          return false;
+        }
+        
         const response = await fetch(`${baseUrl}/auth/refresh`, {
           method: 'POST',
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: storedRefreshToken
-            ? JSON.stringify({ refresh_token: storedRefreshToken })
-            : undefined,
+          body: JSON.stringify({ refresh_token: storedRefreshToken }),
         });
 
         if (!response.ok) {

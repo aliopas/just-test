@@ -15,7 +15,7 @@ interface NewRequestFormProps {
   quickAmounts?: number[];
   isQuickAmountsLoading?: boolean;
   suggestedCurrency?: never; // Removed
-  defaultType?: 'buy' | 'sell';
+  defaultType?: 'buy' | 'sell' | 'partnership' | 'board_nomination' | 'feedback';
   hideTypeSelector?: boolean;
 }
 
@@ -45,6 +45,11 @@ export function NewRequestForm({
       documents: [],
     },
   });
+
+  // Update type when defaultType changes
+  useEffect(() => {
+    setValue('type', defaultType);
+  }, [defaultType, setValue]);
 
   const numberOfShares = watch('numberOfShares');
   const totalAmount = useMemo(() => {

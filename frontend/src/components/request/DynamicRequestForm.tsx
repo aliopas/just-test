@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { RequestTypeSelector, type RequestTypeOption } from './RequestTypeSelector';
 import { NewRequestForm } from './NewRequestForm';
@@ -14,6 +14,12 @@ export function DynamicRequestForm({
 }: DynamicRequestFormProps) {
   const { language } = useLanguage();
   const [selectedType, setSelectedType] = useState<RequestTypeOption>('buy');
+  const [key, setKey] = useState(0);
+
+  // Reset form when type changes
+  useEffect(() => {
+    setKey(prev => prev + 1);
+  }, [selectedType]);
 
   return (
     <div
@@ -26,6 +32,7 @@ export function DynamicRequestForm({
       <RequestTypeSelector value={selectedType} onChange={setSelectedType} />
 
       <NewRequestForm
+        key={key}
         quickAmounts={quickAmounts}
         isQuickAmountsLoading={isQuickAmountsLoading}
         defaultType={selectedType}

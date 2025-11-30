@@ -3,7 +3,7 @@ import { z } from 'zod';
 const validCurrencies = ['SAR', 'USD', 'EUR'] as const;
 
 export const createRequestSchema = z.object({
-  type: z.enum(['buy', 'sell']),
+  type: z.enum(['buy', 'sell', 'partnership', 'board_nomination', 'feedback']),
   amount: z.preprocess(
     (val) => {
       if (val === undefined || val === null || val === '') return undefined;
