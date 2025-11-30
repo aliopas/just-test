@@ -36,12 +36,9 @@ export function FeedbackRequestForm({ onSuccess }: FeedbackRequestFormProps) {
 
   const onSubmit = handleSubmit(async values => {
     try {
-      // For feedback, we use a fixed amount (1) as it's not a financial request
-      // But the schema requires amount > 0, so we use 1
+      // For feedback, amount and currency are optional
       const result = await createRequest.mutateAsync({
         type: 'feedback' as RequestType,
-        amount: 1, // Fixed amount for non-financial requests
-        currency: 'SAR',
         metadata: {
           feedbackType: values.feedbackType,
           subject: values.subject,

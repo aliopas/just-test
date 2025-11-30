@@ -2,17 +2,9 @@ import { z } from 'zod';
 
 const validCurrencies = ['SAR', 'USD', 'EUR'] as const;
 
-export const createRequestSchema = z.object({
+// Base schema with common fields
+const baseRequestSchema = {
   type: z.enum(['buy', 'sell', 'partnership', 'board_nomination', 'feedback']),
-  amount: z.preprocess(
-    (val) => {
-      if (val === undefined || val === null || val === '') return undefined;
-      const num = typeof val === 'number' ? val : Number(val);
-      return Number.isNaN(num) ? undefined : num;
-    },
-    z.number().positive('Amount must be greater than zero')
-  ),
-  currency: z.enum(validCurrencies),
   targetPrice: z.preprocess(
     (val) => {
       if (val === undefined || val === null || val === '') return undefined;
@@ -33,10 +25,46 @@ export const createRequestSchema = z.object({
     ),
   notes: z
     .string()
-    .max(500, 'Notes must be 500 characters or fewer')
+    .max(5000, 'Notes must be 5000 characters or fewer')
     .optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
+};
+
+// Schema for financial requests (buy, sell)
+const financialRequestSchema = z.object({
+  ...baseRequestSchema,
+  type: z.enum(['buy', 'sell']),
+  amount: z.preprocess(
+    (val) => {
+      if (val === undefined || val === null || val === '') return undefined;
+      const num = typeof val === 'number' ? val : Number(val);
+      return Number.isNaN(num) ? undefined : num;
+    },
+    z.number().positive('Amount must be greater than zero')
+  ),
+  currency: z.enum(validCurrencies),
 });
+
+// Schema for non-financial requests (partnership, board_nomination, feedback)
+const nonFinancialRequestSchema = z.object({
+  ...baseRequestSchema,
+  type: z.enum(['partnership', 'board_nomination', 'feedback']),
+  amount: z.preprocess(
+    (val) => {
+      if (val === undefined || val === null || val === '') return undefined;
+      const num = typeof val === 'number' ? val : Number(val);
+      return Number.isNaN(num) ? undefined : num;
+    },
+    z.number().positive('Amount must be greater than zero').optional()
+  ),
+  currency: z.enum(validCurrencies).optional(),
+});
+
+// Combined schema using discriminated union
+export const createRequestSchema = z.discriminatedUnion('type', [
+  financialRequestSchema,
+  nonFinancialRequestSchema,
+]);
 
 export type CreateRequestInput = z.infer<typeof createRequestSchema>;
 

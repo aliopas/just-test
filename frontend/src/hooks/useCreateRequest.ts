@@ -6,15 +6,31 @@ import type {
 } from '../types/request';
 
 async function postRequest(payload: CreateRequestPayload) {
-  const body = {
+  const body: Record<string, unknown> = {
     type: payload.type,
-    amount: payload.amount,
-    currency: payload.currency,
-    targetPrice: payload.targetPrice ?? undefined,
-    expiryAt: payload.expiryAt ?? undefined,
-    notes: payload.notes ?? undefined,
-    metadata: payload.metadata ?? undefined,
   };
+
+  // Only include amount and currency if they are provided
+  if (payload.amount !== undefined && payload.amount !== null) {
+    body.amount = payload.amount;
+  }
+  if (payload.currency !== undefined && payload.currency !== null) {
+    body.currency = payload.currency;
+  }
+
+  // Include optional fields only if they are provided
+  if (payload.targetPrice !== undefined && payload.targetPrice !== null) {
+    body.targetPrice = payload.targetPrice;
+  }
+  if (payload.expiryAt !== undefined && payload.expiryAt !== null) {
+    body.expiryAt = payload.expiryAt;
+  }
+  if (payload.notes !== undefined && payload.notes !== null) {
+    body.notes = payload.notes;
+  }
+  if (payload.metadata !== undefined && payload.metadata !== null) {
+    body.metadata = payload.metadata;
+  }
 
   return apiClient<CreateRequestResponse>('/investor/requests', {
     method: 'POST',
