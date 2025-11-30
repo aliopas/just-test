@@ -27,8 +27,12 @@ export const requestController = {
         });
       }
 
+      // Log request body for debugging
+      console.log('Request body received:', JSON.stringify(req.body, null, 2));
+
       const validation = createRequestSchema.safeParse(req.body);
       if (!validation.success) {
+        console.error('Validation failed:', JSON.stringify(validation.error.issues, null, 2));
         return res.status(400).json({
           error: {
             code: 'VALIDATION_ERROR',
@@ -40,6 +44,8 @@ export const requestController = {
           },
         });
       }
+
+      console.log('Validation successful, validated data:', JSON.stringify(validation.data, null, 2));
 
       const { id, requestNumber } = await createInvestorRequest({
         userId,

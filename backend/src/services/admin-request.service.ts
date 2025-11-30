@@ -252,6 +252,7 @@ export async function listAdminRequests(params: {
   // Apply ordering and pagination last (matching pattern from other services)
   // For amount sorting, we need to handle NULL values properly to ensure non-financial requests are included
   // Use post-processing for amount sorting to handle NULL values correctly
+  // Also use post-processing when we need secondary sort (amount + created_at)
   const shouldUsePostProcessingSort = validSortField === 'amount';
   
   let result;
@@ -581,6 +582,8 @@ export async function listAdminRequests(params: {
     pageCount,
     page,
     limit,
+    requestTypes: requests.map(r => r.type),
+    requestNumbers: requests.map(r => r.requestNumber),
   });
 
   return {
