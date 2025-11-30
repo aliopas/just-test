@@ -7,8 +7,6 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: false,
   },
-  // Enable standalone output for better deployment
-  output: 'standalone',
   // Transpile packages if needed
   transpilePackages: [],
   // Environment variables
