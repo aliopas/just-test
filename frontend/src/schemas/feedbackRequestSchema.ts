@@ -5,12 +5,12 @@ export const feedbackRequestSchema = z.object({
   feedbackType: z.enum(['suggestion', 'complaint', 'question', 'other']),
   subject: z
     .string()
-    .min(5, 'الموضوع يجب أن يكون على الأقل 5 أحرف')
-    .max(200, 'الموضوع يجب أن يكون 200 حرف أو أقل'),
+    .min(1, 'الموضوع مطلوب')
+    .max(500, 'الموضوع يجب أن يكون 500 حرف أو أقل'),
   message: z
     .string()
-    .min(20, 'الرسالة يجب أن تكون على الأقل 20 حرف')
-    .max(2000, 'الرسالة يجب أن تكون 2000 حرف أو أقل'),
+    .min(1, 'الرسالة مطلوبة')
+    .max(5000, 'الرسالة يجب أن تكون 5000 حرف أو أقل'),
   priority: z.enum(['low', 'medium', 'high']).default('medium'),
   documents: z.array(z.instanceof(File)).optional(),
 });

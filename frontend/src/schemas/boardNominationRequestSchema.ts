@@ -4,25 +4,27 @@ export const boardNominationRequestSchema = z.object({
   type: z.literal('board_nomination'),
   nomineeName: z
     .string()
-    .min(2, 'اسم المرشح يجب أن يكون على الأقل حرفين')
-    .max(100, 'اسم المرشح يجب أن يكون 100 حرف أو أقل'),
+    .min(1, 'اسم المرشح مطلوب')
+    .max(200, 'اسم المرشح يجب أن يكون 200 حرف أو أقل'),
   nomineePosition: z
     .string()
-    .min(2, 'المنصب المقترح يجب أن يكون على الأقل حرفين')
-    .max(100, 'المنصب المقترح يجب أن يكون 100 حرف أو أقل'),
+    .min(1, 'المنصب المقترح مطلوب')
+    .max(200, 'المنصب المقترح يجب أن يكون 200 حرف أو أقل'),
   nomineeQualifications: z
     .string()
-    .min(20, 'المؤهلات يجب أن تكون على الأقل 20 حرف')
-    .max(2000, 'المؤهلات يجب أن تكون 2000 حرف أو أقل'),
+    .min(1, 'المؤهلات مطلوبة')
+    .max(5000, 'المؤهلات يجب أن تكون 5000 حرف أو أقل')
+    .optional(),
   nominationReason: z
     .string()
-    .min(20, 'سبب الترشيح يجب أن يكون على الأقل 20 حرف')
-    .max(1000, 'سبب الترشيح يجب أن يكون 1000 حرف أو أقل'),
-  nomineeEmail: z.string().email('البريد الإلكتروني غير صحيح').optional(),
+    .min(1, 'سبب الترشيح مطلوب')
+    .max(5000, 'سبب الترشيح يجب أن يكون 5000 حرف أو أقل')
+    .optional(),
+  nomineeEmail: z.string().email('البريد الإلكتروني غير صحيح').optional().or(z.literal('')),
   nomineePhone: z
     .string()
-    .regex(/^\+966[0-9]{9}$/, 'رقم الهاتف يجب أن يكون بصيغة +966xxxxxxxxx')
-    .optional(),
+    .optional()
+    .or(z.literal('')),
   documents: z.array(z.instanceof(File)).optional(),
 });
 
