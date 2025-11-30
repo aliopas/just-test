@@ -209,6 +209,10 @@ export async function listAdminRequests(params: {
     queryBuilder = queryBuilder.eq('status', params.query.status);
   }
 
+  // Filter by isNew (unread by any admin)
+  // Store this filter for post-processing since we need to check admin_request_views
+  const isNewFilter = params.query.isNew;
+
   // Filter by type(s) - support multiple types
   if (params.query.type) {
     const types = Array.isArray(params.query.type)
@@ -399,8 +403,10 @@ export async function listAdminRequests(params: {
   // Get read status for all requests by this admin
   const requestIds = rows.map(row => row.id);
   let readStatusMap: Record<string, boolean> = {};
+  let newStatusMap: Record<string, boolean> = {}; // Track if request is new (unread by any admin)
 
   if (requestIds.length > 0) {
+    // Get views by current admin (for isRead flag)
     const { data: readViews, error: readError } = await adminClient
       .from('admin_request_views')
       .select('request_id')
@@ -416,6 +422,37 @@ export async function listAdminRequests(params: {
         {} as Record<string, boolean>
       );
     }
+
+    // Get all views to determine new requests (unread by any admin)
+    const { data: allViews, error: allViewsError } = await adminClient
+      .from('admin_request_views')
+      .select('request_id')
+      .in('request_id', requestIds);
+
+    if (!allViewsError && allViews) {
+      // Create a set of all viewed request IDs
+      const viewedRequestIds = new Set(
+        allViews.map(v => v.request_id as string)
+      );
+      
+      // Mark requests as new if they haven't been viewed by any admin
+      requestIds.forEach(id => {
+        newStatusMap[id] = !viewedRequestIds.has(id);
+      });
+    } else {
+      // If error or no views, all requests are new
+      requestIds.forEach(id => {
+        newStatusMap[id] = true;
+      });
+    }
+  }
+
+  // Apply isNew filter if specified
+  if (isNewFilter !== undefined) {
+    rows = rows.filter(row => {
+      const isNew = newStatusMap[row.id] ?? true;
+      return isNew === isNewFilter;
+    });
   }
 
   // Get all user IDs from requests

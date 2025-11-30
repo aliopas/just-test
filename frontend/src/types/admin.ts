@@ -115,6 +115,7 @@ export interface AdminRequestFilters {
   page?: number;
   status?: RequestStatus | 'all';
   type?: RequestType | 'all';
+  isNew?: boolean; // Filter for new requests (unread by any admin)
   minAmount?: number | null;
   maxAmount?: number | null;
   createdFrom?: string | null;

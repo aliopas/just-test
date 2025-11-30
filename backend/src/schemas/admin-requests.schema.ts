@@ -51,6 +51,20 @@ export const adminRequestListQuerySchema = z.object({
     )
     .default(25),
   status: statusEnum.optional(),
+  isNew: z
+    .preprocess(
+      value => {
+        if (value === undefined || value === null || value === '') {
+          return undefined;
+        }
+        if (typeof value === 'string') {
+          return value === 'true' || value === '1';
+        }
+        return Boolean(value);
+      },
+      z.boolean().optional()
+    )
+    .optional(),
   type: z.preprocess(
     value => {
       if (value === undefined || value === null || value === '') {

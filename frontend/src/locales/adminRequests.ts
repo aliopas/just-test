@@ -9,6 +9,7 @@ type MessageKey =
   | 'filters.dateTo'
   | 'filters.minAmount'
   | 'filters.maxAmount'
+  | 'filters.newRequests'
   | 'filters.searchPlaceholder'
   | 'filters.reset'
   | 'filters.apply'
@@ -102,6 +103,7 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'filters.dateTo': 'To date',
     'filters.minAmount': 'Min amount',
     'filters.maxAmount': 'Max amount',
+    'filters.newRequests': 'New requests only',
     'filters.searchPlaceholder': 'Search by number or investor name…',
     'filters.reset': 'Reset',
     'filters.apply': 'Apply',
@@ -193,6 +195,7 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'filters.dateTo': 'إلى تاريخ',
     'filters.minAmount': 'الحد الأدنى للمبلغ',
     'filters.maxAmount': 'الحد الأعلى للمبلغ',
+    'filters.newRequests': 'الطلبات الجديدة فقط',
     'filters.searchPlaceholder': 'ابحث برقم الطلب أو اسم المستثمر…',
     'filters.reset': 'إعادة تعيين',
     'filters.apply': 'تطبيق',

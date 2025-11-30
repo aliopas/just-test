@@ -104,6 +104,26 @@ export function AdminRequestsFilterBar({ filters, onChange, onReset }: Props) {
         </select>
       </div>
 
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', justifyContent: 'flex-end' }}>
+        <label style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={filters.isNew === true}
+            onChange={event =>
+              update({
+                isNew: event.target.checked ? true : undefined,
+              })
+            }
+            style={{
+              width: '1.25rem',
+              height: '1.25rem',
+              cursor: 'pointer',
+            }}
+          />
+          <span>{tAdminRequests('filters.newRequests', language)}</span>
+        </label>
+      </div>
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
         <label style={labelStyle}>{tAdminRequests('filters.dateFrom', language)}</label>
         <input

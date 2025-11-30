@@ -25,6 +25,10 @@ function serializeFilters(filters: AdminRequestFilters) {
     params.set('type', filters.type);
   }
 
+  if (filters.isNew !== undefined) {
+    params.set('isNew', String(filters.isNew));
+  }
+
   if (filters.minAmount != null) {
     params.set('minAmount', String(filters.minAmount));
   }
@@ -69,6 +73,7 @@ export function useAdminRequests(filters: AdminRequestFilters) {
       filters.page ?? 1,
       filters.status ?? 'all',
       filters.type ?? 'all',
+      filters.isNew ?? null,
       filters.minAmount ?? null,
       filters.maxAmount ?? null,
       filters.createdFrom ?? null,
@@ -81,6 +86,7 @@ export function useAdminRequests(filters: AdminRequestFilters) {
       filters.page,
       filters.status,
       filters.type,
+      filters.isNew,
       filters.minAmount,
       filters.maxAmount,
       filters.createdFrom,
