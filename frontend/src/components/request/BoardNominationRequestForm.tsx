@@ -35,12 +35,10 @@ export function BoardNominationRequestForm({ onSuccess }: BoardNominationRequest
 
   const onSubmit = handleSubmit(async values => {
     try {
-      // For board nomination, we use a fixed amount (0 or 1) as it's not a financial request
-      // But the schema requires amount > 0, so we use 1
+      // For board nomination, amount and currency are optional (non-financial request)
       const result = await createRequest.mutateAsync({
         type: 'board_nomination' as RequestType,
-        amount: 1, // Fixed amount for non-financial requests
-        currency: 'SAR',
+        // Do not send amount or currency for non-financial requests
         metadata: {
           nomineeName: values.nomineeName,
           nomineePosition: values.nomineePosition,

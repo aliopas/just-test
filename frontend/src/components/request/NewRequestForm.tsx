@@ -175,6 +175,7 @@ export function NewRequestForm({
             >
               <option value="buy">{language === 'ar' ? 'شراء' : 'Buy'}</option>
               <option value="sell">{language === 'ar' ? 'بيع' : 'Sell'}</option>
+              {/* Note: Other types (partnership, board_nomination, feedback) are handled by DynamicRequestForm */}
             </select>
           </Field>
         )}
