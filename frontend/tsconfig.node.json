@@ -7,6 +7,6 @@
     "isolatedModules": true,
     "types": ["node"]
   },
-  "include": ["vite.config.ts"]
+  "include": []
 }
 
