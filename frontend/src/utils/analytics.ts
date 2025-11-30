@@ -7,7 +7,8 @@
 // Placeholder analytics adapter until Segment (or similar) is wired.
 class AnalyticsClient {
   track(event: AnalyticsEventName | string, payload?: Record<string, unknown>) {
-    if (import.meta.env.MODE === 'test') {
+    // Skip analytics in test mode (Next.js uses NODE_ENV)
+    if (process.env.NODE_ENV === 'test') {
       return;
     }
     // eslint-disable-next-line no-console
