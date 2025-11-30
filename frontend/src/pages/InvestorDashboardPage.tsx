@@ -1121,3 +1121,5 @@ export function InvestorDashboardPage() {
   );
 }
 
+// Default export for Next.js page validation (not used, App Router uses named export)
+export default InvestorDashboardPage;

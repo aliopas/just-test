@@ -1168,5 +1168,5 @@ export function AdminRequestDetailPage() {
   );
 }
 
-
-
+// Default export for Next.js page validation (not used, App Router uses named export)
+export default AdminRequestDetailPage;

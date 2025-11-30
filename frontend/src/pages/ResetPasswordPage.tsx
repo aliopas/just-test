@@ -609,3 +609,5 @@ export function ResetPasswordPage() {
   );
 }
 
+// Default export for Next.js page validation (not used, App Router uses named export)
+export default ResetPasswordPage;

@@ -722,3 +722,5 @@ export function AdminProjectsPage() {
   );
 }
 
+// Default export for Next.js page validation (not used, App Router uses named export)
+export default AdminProjectsPage;

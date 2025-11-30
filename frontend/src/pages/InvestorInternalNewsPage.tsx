@@ -357,6 +357,8 @@ export function InvestorInternalNewsPage() {
   );
 }
 
+// Default export for Next.js page validation (not used, App Router uses named export)
+export default InvestorInternalNewsPage;
 const stateCardStyle: CSSProperties = {
   padding: '2rem',
   borderRadius: '1rem',
