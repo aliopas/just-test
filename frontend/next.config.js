@@ -51,10 +51,9 @@ const nextConfig = {
   experimental: {
     missingSuspenseWithCSRBailout: false,
   },
-  // Disable static optimization to prevent SSR errors with client-side features
-  // Use 'export' for static export (Netlify compatible) but ensure pages are dynamic
-  // Remove output setting to allow Next.js to handle routing properly
-  // output: 'standalone',
+  // For Netlify deployment with Next.js App Router
+  // We use dynamic rendering for all pages to avoid SSR issues with React Router components
+  // The ClientOnly wrapper ensures components only render on the client
 };
 
 module.exports = nextConfig;
