@@ -54,6 +54,16 @@ export const requestController = {
     } catch (error) {
       console.error('Failed to create request:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      
+      // Log full error details for debugging
+      console.error('Error details:', {
+        message: errorMessage,
+        stack: errorStack,
+        body: req.body,
+        userId: req.user?.id,
+      });
+      
       return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',

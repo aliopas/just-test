@@ -23,6 +23,15 @@ export async function createInvestorRequest(params: {
   const adminClient = requireSupabaseAdmin();
   const requestNumber = await generateRequestNumber();
 
+  // Ensure metadata is properly handled
+  // For partnership/board_nomination/feedback, metadata should be an object (even if empty)
+  // Convert empty objects to null to use database default
+  const metadataValue = params.payload.metadata 
+    ? (Object.keys(params.payload.metadata).length > 0 
+        ? params.payload.metadata 
+        : null)
+    : null;
+
   const requestPayload = {
     user_id: params.userId,
     request_number: requestNumber,
@@ -33,7 +42,7 @@ export async function createInvestorRequest(params: {
     expiry_at: params.payload.expiryAt ?? null,
     status: 'draft',
     notes: params.payload.notes ?? null,
-    metadata: params.payload.metadata ?? null,
+    metadata: metadataValue,
   };
 
   const { data, error } = await adminClient

@@ -63,7 +63,7 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
               currency: 'SAR' as const,
             }
           : {}),
-        metadata: Object.keys(metadata).length > 0 ? metadata : {},
+        metadata: metadata,
         notes: values.partnershipDetails || undefined,
       });
 
