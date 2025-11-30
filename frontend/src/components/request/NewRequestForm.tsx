@@ -48,7 +48,7 @@ export function NewRequestForm({
 
   // Update type when defaultType changes
   useEffect(() => {
-    setValue('type', defaultType);
+    setValue('type', defaultType, { shouldValidate: false });
   }, [defaultType, setValue]);
 
   const numberOfShares = watch('numberOfShares');
@@ -195,7 +195,13 @@ export function NewRequestForm({
       </div>
 
       {/* Hidden input to maintain form type when hideTypeSelector is true */}
-      {hideTypeSelector && <input type="hidden" {...register('type')} />}
+      {hideTypeSelector && (
+        <input 
+          type="hidden" 
+          {...register('type')} 
+          value={defaultType}
+        />
+      )}
 
       {/* Display calculated total amount */}
       {numberOfShares > 0 && (
