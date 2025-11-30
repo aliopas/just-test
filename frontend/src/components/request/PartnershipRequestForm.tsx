@@ -1,10 +1,8 @@
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { PartnershipRequestFormValues } from '../../schemas/partnershipRequestSchema';
 import { partnershipRequestSchema } from '../../schemas/partnershipRequestSchema';
 import { useLanguage } from '../../context/LanguageContext';
-import { UploadDropzone } from './UploadDropzone';
 import { useToast } from '../../context/ToastContext';
 import { useCreateRequest } from '../../hooks/useCreateRequest';
 import { analytics } from '../../utils/analytics';
@@ -31,8 +29,6 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
       partnershipType: 'strategic',
     },
   });
-
-  const [createdRequestId, setCreatedRequestId] = useState<string | null>(null);
 
   const onSubmit = handleSubmit(async values => {
     try {
@@ -86,8 +82,6 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
         metadata: metadata,
         notes: values.partnershipDetails || undefined,
       });
-
-      setCreatedRequestId(result.requestId);
 
       analytics.track('request_created', {
         type: 'partnership',
@@ -242,10 +236,6 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
           style={inputStyle}
           placeholder={language === 'ar' ? '+966xxxxxxxxx' : '+966xxxxxxxxx'}
         />
-      </Field>
-
-      <Field label={language === 'ar' ? 'المرفقات' : 'Attachments'}>
-        <UploadDropzone requestId={createdRequestId} />
       </Field>
 
       <div

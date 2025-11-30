@@ -1,10 +1,8 @@
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { BoardNominationRequestFormValues } from '../../schemas/boardNominationRequestSchema';
 import { boardNominationRequestSchema } from '../../schemas/boardNominationRequestSchema';
 import { useLanguage } from '../../context/LanguageContext';
-import { UploadDropzone } from './UploadDropzone';
 import { useToast } from '../../context/ToastContext';
 import { useCreateRequest } from '../../hooks/useCreateRequest';
 import { analytics } from '../../utils/analytics';
@@ -31,8 +29,6 @@ export function BoardNominationRequestForm({ onSuccess }: BoardNominationRequest
     },
   });
 
-  const [createdRequestId, setCreatedRequestId] = useState<string | null>(null);
-
   const onSubmit = handleSubmit(async values => {
     try {
       // For board nomination, amount and currency are optional (non-financial request)
@@ -49,8 +45,6 @@ export function BoardNominationRequestForm({ onSuccess }: BoardNominationRequest
         },
         notes: values.nominationReason,
       });
-
-      setCreatedRequestId(result.requestId);
 
       analytics.track('request_created', {
         type: 'board_nomination',
@@ -184,10 +178,6 @@ export function BoardNominationRequestForm({ onSuccess }: BoardNominationRequest
           style={inputStyle}
           placeholder={language === 'ar' ? '+966xxxxxxxxx' : '+966xxxxxxxxx'}
         />
-      </Field>
-
-      <Field label={language === 'ar' ? 'المرفقات' : 'Attachments'}>
-        <UploadDropzone requestId={createdRequestId} />
       </Field>
 
       <div

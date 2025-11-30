@@ -1,11 +1,10 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { NewRequestFormValues } from '../../schemas/newRequestSchema';
 import { newRequestFormSchema, calculateTotalAmount, SHARE_PRICE } from '../../schemas/newRequestSchema';
 import { useLanguage } from '../../context/LanguageContext';
 import { tRequest } from '../../locales/newRequest';
-import { UploadDropzone } from './UploadDropzone';
 import { useToast } from '../../context/ToastContext';
 import { useCreateRequest } from '../../hooks/useCreateRequest';
 import { analytics } from '../../utils/analytics';
@@ -57,8 +56,6 @@ export function NewRequestForm({
     return calculateTotalAmount(numberOfShares);
   }, [numberOfShares]);
 
-  const [createdRequestId, setCreatedRequestId] = useState<string | null>(null);
-
   const onSubmit = handleSubmit(async values => {
     try {
       const calculatedAmount = calculateTotalAmount(values.numberOfShares);
@@ -72,9 +69,6 @@ export function NewRequestForm({
         notes: values.notes ?? undefined,
       });
 
-      // Set requestId to enable file uploads
-      setCreatedRequestId(result.requestId);
-
       analytics.track('request_created', {
         type: values.type,
         amount: calculatedAmount,
@@ -86,8 +80,13 @@ export function NewRequestForm({
         variant: 'success',
       });
 
-      // Don't reset form yet - wait for file uploads
-      // Files will be uploaded automatically via UploadDropzone
+      // Reset form after successful submission
+      reset({
+        type: watch('type'),
+        numberOfShares: 1,
+        notes: '',
+        documents: [],
+      });
     } catch (error: unknown) {
       const message =
         typeof error === 'object' && error && 'message' in error
@@ -254,22 +253,6 @@ export function NewRequestForm({
         />
       </Field>
 
-      <UploadDropzone
-        requestId={createdRequestId}
-        onFilesChange={files => {
-          setValue('documents', files, { shouldDirty: true });
-        }}
-        onUploadComplete={() => {
-          // After files are uploaded, reset form
-          reset({
-            type: watch('type'),
-            numberOfShares: 1,
-            notes: '',
-            documents: [],
-          });
-          setCreatedRequestId(null);
-        }}
-      />
 
       <div
         style={{

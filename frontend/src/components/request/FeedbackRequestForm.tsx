@@ -1,10 +1,8 @@
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { FeedbackRequestFormValues } from '../../schemas/feedbackRequestSchema';
 import { feedbackRequestSchema } from '../../schemas/feedbackRequestSchema';
 import { useLanguage } from '../../context/LanguageContext';
-import { UploadDropzone } from './UploadDropzone';
 import { useToast } from '../../context/ToastContext';
 import { useCreateRequest } from '../../hooks/useCreateRequest';
 import { analytics } from '../../utils/analytics';
@@ -32,8 +30,6 @@ export function FeedbackRequestForm({ onSuccess }: FeedbackRequestFormProps) {
     },
   });
 
-  const [createdRequestId, setCreatedRequestId] = useState<string | null>(null);
-
   const onSubmit = handleSubmit(async values => {
     try {
       // For feedback, amount and currency are optional
@@ -46,8 +42,6 @@ export function FeedbackRequestForm({ onSuccess }: FeedbackRequestFormProps) {
         },
         notes: values.message,
       });
-
-      setCreatedRequestId(result.requestId);
 
       analytics.track('request_created', {
         type: 'feedback',
@@ -162,10 +156,6 @@ export function FeedbackRequestForm({ onSuccess }: FeedbackRequestFormProps) {
           style={{ ...inputStyle, minHeight: '150px', resize: 'vertical' }}
           placeholder={language === 'ar' ? 'أدخل رسالتك' : 'Enter your message'}
         />
-      </Field>
-
-      <Field label={language === 'ar' ? 'المرفقات' : 'Attachments'}>
-        <UploadDropzone requestId={createdRequestId} />
       </Field>
 
       <div
