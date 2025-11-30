@@ -221,12 +221,28 @@ export async function listAdminRequests(params: {
     }
   }
 
-  if (params.query.minAmount !== undefined) {
-    queryBuilder = queryBuilder.gte('amount', params.query.minAmount);
-  }
-
-  if (params.query.maxAmount !== undefined) {
-    queryBuilder = queryBuilder.lte('amount', params.query.maxAmount);
+  // Filter by amount - handle NULL values properly
+  // For requests without amount (non-financial), they should still be included
+  // Only apply amount filters if both min and max are provided, otherwise skip
+  // to avoid excluding NULL amounts unintentionally
+  if (params.query.minAmount !== undefined && params.query.maxAmount !== undefined) {
+    // When both filters are provided, include NULL amounts OR amounts in range
+    queryBuilder = queryBuilder.or(
+      `amount.is.null,and(amount.gte.${params.query.minAmount},amount.lte.${params.query.maxAmount})`,
+      { foreignTable: undefined }
+    );
+  } else if (params.query.minAmount !== undefined) {
+    // Only minAmount: include NULL amounts OR amounts >= minAmount
+    queryBuilder = queryBuilder.or(
+      `amount.is.null,amount.gte.${params.query.minAmount}`,
+      { foreignTable: undefined }
+    );
+  } else if (params.query.maxAmount !== undefined) {
+    // Only maxAmount: include NULL amounts OR amounts <= maxAmount
+    queryBuilder = queryBuilder.or(
+      `amount.is.null,amount.lte.${params.query.maxAmount}`,
+      { foreignTable: undefined }
+    );
   }
 
   if (params.query.createdFrom) {
