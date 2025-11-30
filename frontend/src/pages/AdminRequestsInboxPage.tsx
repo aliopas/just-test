@@ -2,6 +2,7 @@
 import {
   QueryClient,
   QueryClientProvider,
+  useQueryClient,
 } from '@tanstack/react-query';
 import { LanguageProvider, useLanguage } from '../context/LanguageContext';
 import { ToastProvider, useToast } from '../context/ToastContext';
@@ -34,10 +35,22 @@ const defaultFilters: AdminRequestFilters = {
 function AdminRequestsInboxPageInner() {
   const { language, direction } = useLanguage();
   const { pushToast } = useToast();
+  const queryClient = useQueryClient();
   const [filters, setFilters] = useState<AdminRequestFilters>(defaultFilters);
 
   const { requests, meta, isLoading, isFetching, isError, error, refetch } =
     useAdminRequests(filters);
+
+  // Clear cache on mount to ensure fresh data
+  useEffect(() => {
+    // Clear all admin requests cache
+    queryClient.removeQueries({ queryKey: ['adminRequests'] });
+    // Force refetch after a short delay to ensure cache is cleared
+    const timeoutId = setTimeout(() => {
+      refetch();
+    }, 100);
+    return () => clearTimeout(timeoutId);
+  }, [queryClient, refetch]); // Run once on mount
 
   useEffect(() => {
     if (!isError) return;

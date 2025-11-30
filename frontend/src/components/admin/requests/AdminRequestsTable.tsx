@@ -31,6 +31,26 @@ function formatAmountOrSubject(
     }
   }
 
+  // For non-financial requests, show subject/title from metadata
+  if (request.metadata) {
+    if (request.type === 'partnership') {
+      const companyName = request.metadata.companyName as string | undefined;
+      if (companyName) {
+        return companyName;
+      }
+    } else if (request.type === 'board_nomination') {
+      const nomineeName = request.metadata.nomineeName as string | undefined;
+      if (nomineeName) {
+        return nomineeName;
+      }
+    } else if (request.type === 'feedback') {
+      const subject = request.metadata.subject as string | undefined;
+      if (subject) {
+        return subject;
+      }
+    }
+  }
+
   return '—';
 }
 
