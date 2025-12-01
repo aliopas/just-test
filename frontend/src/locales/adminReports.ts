@@ -13,6 +13,9 @@ type MessageKey =
   | 'filters.type.all'
   | 'filters.type.buy'
   | 'filters.type.sell'
+  | 'filters.type.partnership'
+  | 'filters.type.board_nomination'
+  | 'filters.type.feedback'
   | 'filters.apply'
   | 'filters.reset'
   | 'actions.download'
@@ -46,6 +49,9 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'filters.type.all': 'All types',
     'filters.type.buy': 'Buy requests',
     'filters.type.sell': 'Sell requests',
+    'filters.type.partnership': 'Partnership requests',
+    'filters.type.board_nomination': 'Board nomination requests',
+    'filters.type.feedback': 'Feedback requests',
     'filters.apply': 'Apply filters',
     'filters.reset': 'Reset',
     'actions.download': 'Download CSV',
@@ -76,6 +82,9 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'filters.type.all': 'كل الأنواع',
     'filters.type.buy': 'طلبات شراء',
     'filters.type.sell': 'طلبات بيع',
+    'filters.type.partnership': 'طلبات شراكة',
+    'filters.type.board_nomination': 'طلبات ترشيح مجلس الإدارة',
+    'filters.type.feedback': 'طلبات ملاحظات',
     'filters.apply': 'تطبيق الفلاتر',
     'filters.reset': 'إعادة التعيين',
     'actions.download': 'تنزيل CSV',

@@ -112,7 +112,6 @@ function InvestorSidebarNav(): JSX.Element {
   const { language, direction } = useLanguage();
   const logout = useLogout();
   const location = useLocation();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const companyLogoUrl = useCompanyLogoUrl();
   const portalName =
     language === 'ar' ? 'شركاء باكورة التقنيات' : 'Bacura Technologies Partners';
@@ -138,77 +137,10 @@ function InvestorSidebarNav(): JSX.Element {
     },
   ];
 
-  // Close sidebar on route change
-  useEffect(() => {
-    setIsSidebarOpen(false);
-  }, [location.pathname]);
-
-  // Close sidebar on escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isSidebarOpen) {
-        setIsSidebarOpen(false);
-      }
-    };
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, [isSidebarOpen]);
-
   return (
     <>
-      {/* Mobile menu button */}
-      <button
-        type="button"
-        onClick={() => setIsSidebarOpen(true)}
-        className="mobile-menu-button"
-        aria-label={language === 'ar' ? 'فتح القائمة' : 'Open menu'}
-        aria-expanded={isSidebarOpen}
-        style={{
-          position: 'fixed',
-          top: '1rem',
-          left: direction === 'rtl' ? 'auto' : '1rem',
-          right: direction === 'rtl' ? '1rem' : 'auto',
-          zIndex: 1001,
-          display: 'none',
-          padding: '0.75rem',
-          borderRadius: '0.5rem',
-          border: `1px solid ${palette.neutralBorderSoft}`,
-          background: palette.backgroundSurface,
-          color: palette.textPrimary,
-          cursor: 'pointer',
-          minWidth: '44px',
-          minHeight: '44px',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-        }}
-      >
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <line x1="3" y1="12" x2="21" y2="12" />
-          <line x1="3" y1="6" x2="21" y2="6" />
-          <line x1="3" y1="18" x2="21" y2="18" />
-        </svg>
-      </button>
-
-      {/* Sidebar overlay */}
-      {isSidebarOpen && (
-        <div
-          className="sidebar-overlay"
-          onClick={() => setIsSidebarOpen(false)}
-          aria-hidden="true"
-        />
-      )}
-
       <aside
         dir={isArabic ? 'rtl' : 'ltr'}
-        className={isSidebarOpen ? 'open' : ''}
         style={{
           background: palette.backgroundSurface,
           color: palette.textPrimary,
@@ -221,40 +153,6 @@ function InvestorSidebarNav(): JSX.Element {
           gap: '2rem',
         }}
       >
-        {/* Close button for mobile */}
-        <button
-          type="button"
-          onClick={() => setIsSidebarOpen(false)}
-          className="mobile-close-button"
-          aria-label={language === 'ar' ? 'إغلاق القائمة' : 'Close menu'}
-          style={{
-            display: 'none',
-            alignSelf: isArabic ? 'flex-start' : 'flex-end',
-            padding: '0.5rem',
-            borderRadius: '0.5rem',
-            border: `1px solid ${palette.neutralBorderSoft}`,
-            background: palette.backgroundSurface,
-            color: palette.textPrimary,
-            cursor: 'pointer',
-            minWidth: '44px',
-            minHeight: '44px',
-            marginBottom: '-1rem',
-          }}
-        >
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
         <div
           style={{
             display: 'flex',

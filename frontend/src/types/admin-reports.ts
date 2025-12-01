@@ -1,10 +1,11 @@
-import type { RequestStatus } from './request';
+import type { RequestStatus, RequestType } from './request';
 
 export interface AdminRequestReportFilters {
   from?: string;
   to?: string;
   status?: RequestStatus[] | 'all';
-  type?: 'buy' | 'sell' | 'all';
+  // Support all request types (financial and non-financial)
+  type?: RequestType | 'all';
   minAmount?: number;
   maxAmount?: number;
 }
@@ -13,7 +14,7 @@ export interface AdminRequestReportItem {
   id: string;
   requestNumber: string;
   status: RequestStatus | string;
-  type: 'buy' | 'sell';
+  type: RequestType | string;
   amount: number;
   currency: string;
   createdAt: string;

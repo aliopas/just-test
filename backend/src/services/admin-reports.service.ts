@@ -5,7 +5,10 @@ export const adminRequestReportQuerySchema = z.object({
   from: z.string().datetime().optional(),
   to: z.string().datetime().optional(),
   status: z.string().optional(),
-  type: z.enum(['buy', 'sell']).optional(),
+  // Support all request types (financial and non-financial)
+  type: z
+    .enum(['buy', 'sell', 'partnership', 'board_nomination', 'feedback'])
+    .optional(),
   minAmount: z.preprocess(
     value => (value === undefined ? undefined : Number(value)),
     z.number().nonnegative().optional()

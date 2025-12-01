@@ -20,7 +20,8 @@ type UiFilters = {
   from: string;
   to: string;
   statuses: Set<string>;
-  type: 'all' | 'buy' | 'sell';
+  // Support financial and non-financial request types
+  type: 'all' | 'buy' | 'sell' | 'partnership' | 'board_nomination' | 'feedback';
   minAmount: string;
   maxAmount: string;
 };
@@ -406,6 +407,15 @@ function AdminReportsPageInner() {
                   <option value="sell">
                     {tAdminReports('filters.type.sell', language)}
                   </option>
+                  <option value="partnership">
+                    {tAdminReports('filters.type.partnership', language)}
+                  </option>
+                  <option value="board_nomination">
+                    {tAdminReports('filters.type.board_nomination', language)}
+                  </option>
+                  <option value="feedback">
+                    {tAdminReports('filters.type.feedback', language)}
+                  </option>
                 </select>
               </div>
 
@@ -683,9 +693,21 @@ function AdminReportsPageInner() {
                           : request.status}
                       </td>
                       <td style={{ padding: '0.85rem 1rem', color: palette.textSecondary }}>
-                        {request.type === 'buy'
-                          ? tAdminReports('filters.type.buy', language)
-                          : tAdminReports('filters.type.sell', language)}
+                        {request.type === 'buy' &&
+                          tAdminReports('filters.type.buy', language)}
+                        {request.type === 'sell' &&
+                          tAdminReports('filters.type.sell', language)}
+                        {request.type === 'partnership' &&
+                          tAdminReports('filters.type.partnership', language)}
+                        {request.type === 'board_nomination' &&
+                          tAdminReports('filters.type.board_nomination', language)}
+                        {request.type === 'feedback' &&
+                          tAdminReports('filters.type.feedback', language)}
+                        {!(request.type === 'buy' ||
+                          request.type === 'sell' ||
+                          request.type === 'partnership' ||
+                          request.type === 'board_nomination' ||
+                          request.type === 'feedback') && request.type}
                       </td>
                       <td style={{ padding: '0.85rem 1rem', color: palette.textSecondary }}>
                         {formatCurrency(request.amount, request.currency, language)}
