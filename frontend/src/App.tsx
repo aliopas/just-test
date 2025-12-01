@@ -28,6 +28,7 @@ import { AdminAuditLogPage } from './pages/AdminAuditLogPage';
 import { AdminInvestorsPage } from './pages/AdminInvestorsPage';
 import { InvestorDashboardPage } from './pages/InvestorDashboardPage';
 import { MyRequestsPage } from './pages/MyRequestsPage';
+import { NonFinancialRequestsPage } from './pages/NonFinancialRequestsPage';
 import { AdminSignupRequestsPage } from './pages/AdminSignupRequestsPage';
 import { InvestorInternalNewsPage } from './pages/InvestorInternalNewsPage';
 import { AdminProjectsPage } from './pages/AdminProjectsPage';
@@ -125,9 +126,22 @@ function InvestorSidebarNav(): JSX.Element {
   const navItems = [
     { to: '/home', labelAr: 'الرئيسية', labelEn: 'Home' },
     { to: '/requests', labelAr: 'طلباتي', labelEn: 'My Requests' },
+    {
+      to: '/non-financial-requests',
+      labelAr: 'طلبات غير مالية',
+      labelEn: 'Non-Financial Requests',
+    },
     { to: '/requests/new', labelAr: 'طلب استثماري', labelEn: 'New Request' },
-    { to: '/internal-news', labelAr: 'الأخبار الداخلية', labelEn: 'Internal News' },
-    { to: '/profile', labelAr: 'الملف الاستثماري', labelEn: 'Investor Profile' },
+    {
+      to: '/internal-news',
+      labelAr: 'الأخبار الداخلية',
+      labelEn: 'Internal News',
+    },
+    {
+      to: '/profile',
+      labelAr: 'الملف الاستثماري',
+      labelEn: 'Investor Profile',
+    },
   ];
 
   // Close sidebar on route change
@@ -378,9 +392,22 @@ function HeaderNav(): JSX.Element {
   const navItems = [
     { to: '/home', labelAr: 'الرئيسية', labelEn: 'Home' },
     { to: '/requests', labelAr: 'طلباتي', labelEn: 'My Requests' },
+    {
+      to: '/non-financial-requests',
+      labelAr: 'طلبات غير مالية',
+      labelEn: 'Non-Financial Requests',
+    },
     { to: '/requests/new', labelAr: 'طلب استثماري', labelEn: 'New Request' },
-    { to: '/internal-news', labelAr: 'الأخبار الداخلية', labelEn: 'Internal News' },
-    { to: '/profile', labelAr: 'الملف الاستثماري', labelEn: 'Investor Profile' },
+    {
+      to: '/internal-news',
+      labelAr: 'الأخبار الداخلية',
+      labelEn: 'Internal News',
+    },
+    {
+      to: '/profile',
+      labelAr: 'الملف الاستثماري',
+      labelEn: 'Investor Profile',
+    },
   ];
 
   return (
@@ -1016,6 +1043,10 @@ function InvestorApp(): JSX.Element {
             <Route path="/dashboard" element={<InvestorDashboardPage />} />
             <Route path="/home" element={<HomePage />} />
             <Route path="/requests" element={<MyRequestsPage />} />
+            <Route
+              path="/non-financial-requests"
+              element={<NonFinancialRequestsPage />}
+            />
             <Route path="/requests/new" element={<NewRequestPage />} />
             <Route path="/internal-news" element={<InvestorInternalNewsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
