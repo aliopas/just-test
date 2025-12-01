@@ -126,11 +126,6 @@ function InvestorSidebarNav(): JSX.Element {
   const navItems = [
     { to: '/home', labelAr: 'الرئيسية', labelEn: 'Home' },
     { to: '/requests', labelAr: 'طلباتي', labelEn: 'My Requests' },
-    {
-      to: '/non-financial-requests',
-      labelAr: 'طلبات غير مالية',
-      labelEn: 'Non-Financial Requests',
-    },
     { to: '/requests/new', labelAr: 'طلب استثماري', labelEn: 'New Request' },
     {
       to: '/internal-news',
@@ -392,11 +387,6 @@ function HeaderNav(): JSX.Element {
   const navItems = [
     { to: '/home', labelAr: 'الرئيسية', labelEn: 'Home' },
     { to: '/requests', labelAr: 'طلباتي', labelEn: 'My Requests' },
-    {
-      to: '/non-financial-requests',
-      labelAr: 'طلبات غير مالية',
-      labelEn: 'Non-Financial Requests',
-    },
     { to: '/requests/new', labelAr: 'طلب استثماري', labelEn: 'New Request' },
     {
       to: '/internal-news',

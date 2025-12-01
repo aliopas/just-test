@@ -1,6 +1,7 @@
-﻿import { useMemo } from 'react';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+﻿import { useEffect, useMemo } from 'react';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../utils/api-client';
+import { getSupabaseBrowserClient } from '../utils/supabase-client';
 import type {
   InvestorRequest,
   RequestListFilters,
@@ -30,6 +31,8 @@ async function fetchInvestorRequests(filters: RequestListFilters) {
 }
 
 export function useInvestorRequests(filters: RequestListFilters) {
+  const queryClient = useQueryClient();
+
   const queryKey = useMemo(
     () => [
       ...QUERY_KEY,
@@ -44,8 +47,34 @@ export function useInvestorRequests(filters: RequestListFilters) {
     queryKey,
     queryFn: () => fetchInvestorRequests(filters),
     placeholderData: keepPreviousData,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 30000, // Fallback polling every 30 seconds
   });
+
+  // Subscribe to Supabase Realtime to get near-instant updates when requests change
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+
+    const channel = supabase
+      .channel('investor-requests-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'requests',
+        },
+        () => {
+          // Invalidate all investor requests queries so they refetch with fresh data
+          queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   return {
     requests: (query.data?.requests ?? []) as InvestorRequest[],
