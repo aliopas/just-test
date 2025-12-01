@@ -1710,5 +1710,9 @@ export function PublicLandingPage() {
   );
 }
 
-// Default export for Next.js page validation (not used, App Router uses named export)
-export default PublicLandingPage;
+// Default export used only for legacy Next.js pages directory validation.
+// We export a simple stub that does not rely on React Router, React Query, or
+// any browser-only APIs so that static generation in Netlify succeeds.
+export default function PublicLandingPageStub() {
+  return null;
+}
