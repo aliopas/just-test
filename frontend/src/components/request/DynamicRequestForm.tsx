@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { RequestTypeSelector, type RequestTypeOption } from './RequestTypeSelector';
 import { NewRequestForm } from './NewRequestForm';
@@ -16,7 +17,26 @@ export function DynamicRequestForm({
   isQuickAmountsLoading,
 }: DynamicRequestFormProps) {
   const { language } = useLanguage();
-  const [selectedType, setSelectedType] = useState<RequestTypeOption>('buy');
+  const location = useLocation();
+
+  const getInitialType = (): RequestTypeOption => {
+    try {
+      const params = new URLSearchParams(location.search);
+      const typeParam = params.get('type') as RequestTypeOption | null;
+      const allowed: RequestTypeOption[] = [
+        'buy',
+        'sell',
+        'partnership',
+        'board_nomination',
+        'feedback',
+      ];
+      return typeParam && allowed.includes(typeParam) ? typeParam : 'buy';
+    } catch {
+      return 'buy';
+    }
+  };
+
+  const [selectedType, setSelectedType] = useState<RequestTypeOption>(getInitialType);
   const [key, setKey] = useState(0);
 
   // Reset form when type changes

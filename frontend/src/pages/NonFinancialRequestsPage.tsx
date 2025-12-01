@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   QueryClient,
   QueryClientProvider,
@@ -61,6 +62,7 @@ const typeFilterOptions: Array<{
 function NonFinancialRequestsPageInner() {
   const { language, direction } = useLanguage();
   const { pushToast } = useToast();
+  const navigate = useNavigate();
 
   const [filters, setFilters] = useState<RequestListFilters>({
     page: 1,
@@ -162,6 +164,19 @@ function NonFinancialRequestsPageInner() {
       ? 'تابع طلبات الشراكة، وترشيح مجلس الإدارة، والملاحظات في مساحة مستقلة عن الطلبات المالية.'
       : 'Track partnership, board nomination, and feedback requests in a space separate from financial requests.';
 
+  const handleCreateNew = () => {
+    // حدد نوع الطلب غير المالي بناءً على الفلتر الحالي إن أمكن
+    const targetType =
+      typeFilter === 'partnership' ||
+      typeFilter === 'board_nomination' ||
+      typeFilter === 'feedback'
+        ? typeFilter
+        : 'partnership';
+
+    // نستخدم نفس صفحة إنشاء الطلب لكن مع نوع غير مالي محدد في الـ query string
+    navigate(`/requests/new?type=${targetType}`);
+  };
+
   return (
     <div
       style={{
@@ -198,6 +213,31 @@ function NonFinancialRequestsPageInner() {
         >
           {pageSubtitle}
         </p>
+        <div
+          style={{
+            marginTop: '1.25rem',
+            display: 'flex',
+            justifyContent: direction === 'rtl' ? 'flex-start' : 'flex-end',
+          }}
+        >
+          <button
+            type="button"
+            onClick={handleCreateNew}
+            style={{
+              padding: '0.75rem 1.6rem',
+              borderRadius: '999px',
+              border: 'none',
+              background: 'var(--color-brand-primary-strong)',
+              color: 'var(--color-text-on-brand)',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            {language === 'ar'
+              ? 'إرسال طلب غير مالي جديد'
+              : 'Submit new non-financial request'}
+          </button>
+        </div>
       </header>
 
       <section
@@ -322,11 +362,7 @@ function NonFinancialRequestsPageInner() {
           isFetching={isFetching}
           onSelect={setSelectedRequest}
           selectedRequestId={selectedId}
-          onCreateNew={() => {
-            if (typeof window !== 'undefined') {
-              window.location.assign('/app/new-request');
-            }
-          }}
+          onCreateNew={handleCreateNew}
         />
 
         <div
