@@ -220,7 +220,10 @@ export function LoginPage() {
       });
 
       const isAdmin = response.user.role === 'admin';
-      navigate(isAdmin ? '/admin' : '/', { replace: true });
+      // After login, route admins to the admin dashboard and investors to the
+      // investor home route. These paths are handled by the React Router app
+      // mounted via the Next.js catch-all route in app/[...slug]/page.tsx.
+      navigate(isAdmin ? '/admin' : '/home', { replace: true });
     } catch (error) {
       if (error instanceof ApiError) {
         pushToast({
