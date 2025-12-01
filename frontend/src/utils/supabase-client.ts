@@ -8,8 +8,9 @@ function resolveSupabaseConfig() {
     return { url: undefined, key: undefined };
   }
 
-  // Try multiple sources for environment variables
-  const env = window.__ENV__ ?? {};
+  // Try multiple sources for environment variables.
+  // Use a loose type for window.__ENV__ to avoid compile-time issues when keys change.
+  const env = (window as any).__ENV__ ?? {};
   
   // Priority: window.__ENV__ > process.env.NEXT_PUBLIC_* (for Next.js)
   const url = env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
