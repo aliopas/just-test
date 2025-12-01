@@ -115,7 +115,7 @@ function MyRequestsPageInner() {
     <div
       style={{
         maxWidth: '1100px',
-        margin: '0 auto',
+        margin: direction === 'rtl' ? '0 0 0 auto' : '0 auto',
         padding: '2rem 1.5rem 4rem',
         minHeight: '100vh',
         background: 'var(--color-background-base)',
