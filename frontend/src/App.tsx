@@ -28,7 +28,6 @@ import { AdminAuditLogPage } from './pages/AdminAuditLogPage';
 import { AdminInvestorsPage } from './pages/AdminInvestorsPage';
 import { InvestorDashboardPage } from './pages/InvestorDashboardPage';
 import { MyRequestsPage } from './pages/MyRequestsPage';
-import { NonFinancialRequestsPage } from './pages/NonFinancialRequestsPage';
 import { AdminSignupRequestsPage } from './pages/AdminSignupRequestsPage';
 import { InvestorInternalNewsPage } from './pages/InvestorInternalNewsPage';
 import { AdminProjectsPage } from './pages/AdminProjectsPage';
@@ -1033,10 +1032,6 @@ function InvestorApp(): JSX.Element {
             <Route path="/dashboard" element={<InvestorDashboardPage />} />
             <Route path="/home" element={<HomePage />} />
             <Route path="/requests" element={<MyRequestsPage />} />
-            <Route
-              path="/non-financial-requests"
-              element={<NonFinancialRequestsPage />}
-            />
             <Route path="/requests/new" element={<NewRequestPage />} />
             <Route path="/internal-news" element={<InvestorInternalNewsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
