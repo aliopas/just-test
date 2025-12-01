@@ -76,7 +76,21 @@ export function ToastProvider({ children }: ToastProviderProps) {
 export function useToast(): ToastContextValue {
   const context = useContext(ToastContext);
   if (!context) {
-    throw new Error('useToast must be used within ToastProvider');
+    // Fallback for cases where components are rendered outside of ToastProvider,
+    // such as during static pre-rendering. In development, warn so incorrect
+    // usage can be fixed, but avoid crashing the build.
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.warn('useToast used outside of ToastProvider. Using no-op toast handlers.');
+    }
+
+    return {
+      toasts: [],
+      // No-op implementations; components rendered without a provider will not
+      // show toasts, but the app will not crash.
+      pushToast: () => {},
+      dismissToast: () => {},
+    };
   }
   return context;
 }

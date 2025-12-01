@@ -125,7 +125,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    // Fallback for cases where components are rendered outside of AuthProvider,
+    // such as during static pre-rendering. In development, warn so incorrect
+    // usage can be fixed, but avoid crashing the build.
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.warn('useAuth used outside of AuthProvider. Using unauthenticated fallback.');
+    }
+
+    return {
+      user: null,
+      isAuthenticated: false,
+      // No-op implementations; components rendered without a provider will not
+      // be able to change auth state, but the app will not crash.
+      setUser: () => {},
+      hydrate: () => {},
+    };
   }
   return context;
 }
