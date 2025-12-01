@@ -3,6 +3,10 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 let client: SupabaseClient | null = null;
 let hasLoggedMissingConfig = false;
 
+function isAbsoluteUrl(url: string): boolean {
+  return /^https?:\/\//i.test(url);
+}
+
 function resolveSupabaseConfig() {
   if (typeof window === 'undefined') {
     return { url: undefined, key: undefined };
@@ -13,7 +17,16 @@ function resolveSupabaseConfig() {
   const env = (window as any).__ENV__ ?? {};
   
   // Priority: window.__ENV__ > process.env.NEXT_PUBLIC_* (for Next.js)
-  const url = env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const rawUrl: string | undefined =
+    env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+  // Normalize URL: ensure it is a proper HTTP/HTTPS URL for supabase-js.
+  const url =
+    rawUrl && rawUrl.trim().length > 0
+      ? isAbsoluteUrl(rawUrl)
+        ? rawUrl
+        : `https://${rawUrl}`
+      : undefined;
 
   // Prefer explicit anon key; fall back to publishable default key if needed
   let key =

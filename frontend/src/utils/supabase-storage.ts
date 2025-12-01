@@ -16,7 +16,8 @@ function getSupabaseProjectUrl(): string | null {
   if (typeof window !== 'undefined') {
     const runtime = window.__ENV__?.SUPABASE_URL;
     if (runtime) {
-      return sanitizeBaseUrl(runtime);
+      const sanitized = sanitizeBaseUrl(runtime);
+      return isAbsoluteUrl(sanitized) ? sanitized : `https://${sanitized}`;
     }
   }
 
@@ -30,7 +31,8 @@ function getStorageBaseUrl(): string | null {
   if (typeof window !== 'undefined') {
     const runtime = window.__ENV__?.SUPABASE_STORAGE_URL;
     if (runtime) {
-      return sanitizeBaseUrl(runtime);
+      const sanitized = sanitizeBaseUrl(runtime);
+      return isAbsoluteUrl(sanitized) ? sanitized : `https://${sanitized}`;
     }
   }
 
@@ -38,7 +40,8 @@ function getStorageBaseUrl(): string | null {
   const buildTime = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_URL ?? null;
 
   if (buildTime) {
-    return sanitizeBaseUrl(buildTime);
+    const sanitized = sanitizeBaseUrl(buildTime);
+    return isAbsoluteUrl(sanitized) ? sanitized : `https://${sanitized}`;
   }
 
   const supabaseUrl = getSupabaseProjectUrl();
