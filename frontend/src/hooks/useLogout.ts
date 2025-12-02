@@ -1,5 +1,7 @@
-﻿import { useMutation } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+﻿'use client';
+
+import { useMutation } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import { apiClient } from '../utils/api-client';
 import { useToast } from '../context/ToastContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -28,7 +30,7 @@ function clearAuthArtifacts() {
 }
 
 export function useLogout() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { pushToast } = useToast();
   const { language } = useLanguage();
   const { setUser } = useAuth();
@@ -45,7 +47,7 @@ export function useLogout() {
             : 'You have been signed out successfully.',
         variant: 'success',
       });
-      navigate('/');
+      router.push('/');
     },
     onError: () => {
       clearAuthArtifacts();
@@ -57,7 +59,7 @@ export function useLogout() {
             : 'Unable to reach the server. Your local session was cleared.',
         variant: 'error',
       });
-      navigate('/');
+      router.push('/');
     },
   });
 }

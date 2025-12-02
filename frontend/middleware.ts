@@ -4,26 +4,25 @@ import type { NextRequest } from 'next/server';
 // Public routes that don't require authentication
 const publicRoutes = ['/', '/login', '/register', '/verify', '/reset-password'];
 
-// Admin routes
-const adminRoutes = ['/admin'];
-
-// Investor routes
-const investorRoutes = ['/home', '/requests', '/profile', '/dashboard', '/internal-news', '/news'];
-
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Allow public routes
-  if (publicRoutes.some(route => pathname === route || pathname.startsWith(route + '/'))) {
+  if (publicRoutes.includes(pathname) || pathname.startsWith('/api/')) {
+    return NextResponse.next();
+  }
+
+  // Redirect root to appropriate page based on auth (handled client-side)
+  if (pathname === '/') {
     return NextResponse.next();
   }
 
   // Check authentication via cookie or header
-  // This is a basic check - you may want to validate JWT token properly
+  // This is a basic check - client-side will handle actual auth state
   const authCookie = request.cookies.get('auth_token');
   const sessionCookie = request.cookies.get('session');
 
-  // For now, we'll let the client-side handle auth checks
+  // For routes that require auth, let client-side handle redirects
   // In production, you might want to validate JWT here
   return NextResponse.next();
 }
