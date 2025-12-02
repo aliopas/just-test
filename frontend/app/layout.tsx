@@ -1,71 +1,8 @@
 import type { Metadata, Viewport } from 'next';
-import dynamicImport from 'next/dynamic';
+import { ProvidersWrapper } from './components/ProvidersWrapper';
 import { Inter, Noto_Sans_Arabic } from 'next/font/google';
 import '@/styles/global.css';
 import '@/styles/responsive.css';
-
-// Simple loading component for ProvidersWrapper
-function ProvidersLoadingFallback() {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        width: '100%',
-        background: '#ffffff',
-        color: '#1f2937',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-      }}
-    >
-      <div
-        style={{
-          textAlign: 'center',
-        }}
-      >
-        <div
-          style={{
-            width: '48px',
-            height: '48px',
-            border: '4px solid #e5e7eb',
-            borderTopColor: '#2563eb',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-            margin: '0 auto 1rem',
-          }}
-        />
-        <p
-          style={{
-            fontSize: '1rem',
-            color: '#6b7280',
-          }}
-        >
-          جاري التحميل...
-        </p>
-      </div>
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-            @keyframes spin {
-              from { transform: rotate(0deg); }
-              to { transform: rotate(360deg); }
-            }
-          `,
-        }}
-      />
-    </div>
-  );
-}
-
-// Dynamic import ProvidersWrapper to prevent SSR errors completely
-const ProvidersWrapper = dynamicImport(
-  () => import('./components/ProvidersWrapper').then((mod) => ({ default: mod.ProvidersWrapper })),
-  {
-    ssr: false, // Disable SSR completely for ProvidersWrapper
-    loading: () => <ProvidersLoadingFallback />, // Show loading fallback instead of null
-  }
-);
 
 // Optimize font loading
 const inter = Inter({
