@@ -1,8 +1,17 @@
 import type { Metadata, Viewport } from 'next';
-import { ProvidersWrapper } from './components/ProvidersWrapper';
+import dynamicImport from 'next/dynamic';
 import { Inter, Noto_Sans_Arabic } from 'next/font/google';
 import '@/styles/global.css';
 import '@/styles/responsive.css';
+
+// Dynamic import ProvidersWrapper to prevent SSR errors completely
+const ProvidersWrapper = dynamicImport(
+  () => import('./components/ProvidersWrapper').then((mod) => ({ default: mod.ProvidersWrapper })),
+  {
+    ssr: false, // Disable SSR completely for ProvidersWrapper
+    loading: () => null, // Return null while loading
+  }
+);
 
 // Optimize font loading
 const inter = Inter({

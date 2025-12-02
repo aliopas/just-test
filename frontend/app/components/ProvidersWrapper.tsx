@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { ReactNode } from 'react';
+import { ClientOnly } from './ClientOnly';
 
 // Dynamic import Providers to prevent SSR errors
 // This ensures Providers only loads on client-side
@@ -14,6 +15,11 @@ const Providers = dynamic(
 );
 
 export function ProvidersWrapper({ children }: { children: ReactNode }) {
-  return <Providers>{children}</Providers>;
+  // Double protection: ClientOnly + dynamic import with ssr: false
+  return (
+    <ClientOnly>
+      <Providers>{children}</Providers>
+    </ClientOnly>
+  );
 }
 
