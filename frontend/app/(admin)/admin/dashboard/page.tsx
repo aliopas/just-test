@@ -1,7 +1,7 @@
 'use client';
 
 import { AdminDashboardPage } from '@/pages/AdminDashboardPage';
-import { ClientOnly } from '@/app/components/ClientOnly';
+import { ClientOnly } from '../../../components/ClientOnly';
 
 export const dynamic = 'force-dynamic';
 

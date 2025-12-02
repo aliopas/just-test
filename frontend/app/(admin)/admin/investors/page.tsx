@@ -1,7 +1,7 @@
 'use client';
 
 import { AdminInvestorsPage } from '@/pages/AdminInvestorsPage';
-import { ClientOnly } from '@/app/components/ClientOnly';
+import { ClientOnly } from '../../../components/ClientOnly';
 
 export const dynamic = 'force-dynamic';
 

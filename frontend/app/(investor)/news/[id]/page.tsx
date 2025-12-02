@@ -1,7 +1,7 @@
 'use client';
 
 import { InvestorNewsDetailPage } from '@/pages/InvestorNewsDetailPage';
-import { ClientOnly } from '@/app/components/ClientOnly';
+import { ClientOnly } from '../../../components/ClientOnly';
 
 export const dynamic = 'force-dynamic';
 

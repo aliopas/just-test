@@ -1,7 +1,7 @@
 'use client';
 
 import { AdminAuditLogPage } from '@/pages/AdminAuditLogPage';
-import { ClientOnly } from '@/app/components/ClientOnly';
+import { ClientOnly } from '../../../components/ClientOnly';
 
 export const dynamic = 'force-dynamic';
 

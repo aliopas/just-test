@@ -1,7 +1,7 @@
 'use client';
 
 import { AdminSignupRequestsPage } from '@/pages/AdminSignupRequestsPage';
-import { ClientOnly } from '@/app/components/ClientOnly';
+import { ClientOnly } from '../../../components/ClientOnly';
 
 export const dynamic = 'force-dynamic';
 

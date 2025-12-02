@@ -1,7 +1,7 @@
 'use client';
 
 import { HomePage } from '@/pages/HomePage';
-import { ClientOnly } from '@/app/components/ClientOnly';
+import { ClientOnly } from '../../components/ClientOnly';
 
 export const dynamic = 'force-dynamic';
 
