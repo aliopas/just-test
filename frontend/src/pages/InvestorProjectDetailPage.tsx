@@ -92,7 +92,8 @@ const financialGridStyle: CSSProperties = {
 function InvestorProjectDetailPageInner() {
   const { language, direction } = useLanguage();
   const { pushToast } = useToast();
-  const { id: projectId } = useParams<{ id: string }>();
+  const params = useParams<{ id: string }>();
+  const projectId = params?.id;
 
   const { data, isLoading, isError } = usePublicProjectDetail(projectId ?? null);
 
