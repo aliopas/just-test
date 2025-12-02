@@ -15,11 +15,29 @@ const nextConfig = {
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
-  // Rewrite API calls to backend (only for local development)
-  // In production on Netlify, use netlify.toml redirects instead
+  // ⚠️ IMPORTANT: Next.js rewrites DO NOT WORK in Netlify production builds
+  // All API routing must be handled by Netlify redirects in netlify.toml
+  // This rewrites() function only works in local development
   async rewrites() {
-    // Only apply rewrites in local development
-    if (process.env.NODE_ENV === 'development') {
+    // Check if we're running on Netlify (production, preview, or branch deploy)
+    const isNetlify = 
+      process.env.NETLIFY === 'true' || 
+      process.env.CONTEXT === 'production' || 
+      process.env.CONTEXT === 'deploy-preview' || 
+      process.env.CONTEXT === 'branch-deploy';
+    
+    // Check if we're in development mode locally
+    const isLocalDevelopment = 
+      process.env.NODE_ENV === 'development' && 
+      !isNetlify;
+    
+    // In Netlify builds, ALWAYS return empty array - rely on netlify.toml redirects
+    if (isNetlify) {
+      return [];
+    }
+    
+    // Only in local development: use Next.js rewrites to proxy to local backend
+    if (isLocalDevelopment) {
       return [
         {
           source: '/api/v1/:path*',
@@ -27,7 +45,8 @@ const nextConfig = {
         },
       ];
     }
-    // In production, Netlify redirects handle this
+    
+    // Fallback: no rewrites (for safety)
     return [];
   },
   // Headers configuration
