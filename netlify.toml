@@ -10,7 +10,7 @@
   package = "@netlify/plugin-nextjs"
 
 [[redirects]]
-  from = "/api/*"
+  from = "/api/v1/*"
   to = "/.netlify/functions/server/:splat"
   status = 200
 
