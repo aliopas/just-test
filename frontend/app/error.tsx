@@ -11,13 +11,8 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log error details to console for debugging
-    console.error('=== APPLICATION ERROR ===');
-    console.error('Error Message:', error.message);
-    console.error('Error Stack:', error.stack);
-    console.error('Error Digest:', error.digest);
-    console.error('Full Error Object:', error);
-    console.error('==========================');
+    // Log error to error reporting service
+    console.error('Application error:', error);
   }, [error]);
 
   return (

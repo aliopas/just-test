@@ -2,86 +2,97 @@
 
 ## المشكلة
 
-الموقع يُعيد خطأ 500 على Netlify: `https://investor-bacura.netlify.app/`
+```
+GET https://investor-bacura.netlify.app/ 500 (Internal Server Error)
+```
 
-## الحلول المطبقة
+الصفحة الرئيسية لا تزال لا تعمل على Netlify.
 
-### 1. ✅ Dynamic Import مع SSR Disabled للصفحة الرئيسية
+## التحليل الشامل
 
-في `frontend/app/page.tsx`:
-- تم استخدام dynamic import مع `ssr: false` لـ `RootPageContent`
-- تم إضافة `ClientOnly` wrapper
-- تم إضافة `export const dynamic = 'force-dynamic'`
+### المشاكل المحتملة:
 
-### 2. ✅ إضافة Suspense لـ RouterWrapper
+1. **`Providers` و `RouterWrapper`:**
+   - يستخدم `usePathname()` و `useSearchParams()` من Next.js
+   - هذه الـ hooks قد تفشل في SSR حتى في Client Components
 
-في `frontend/app/components/Providers.tsx`:
-- تم فصل `RouterWrapperInner` الذي يستخدم `usePathname` و `useSearchParams`
-- تم إضافة `Suspense` boundary حول `RouterWrapperInner`
-- هذا يضمن أن الـ hooks تعمل بشكل صحيح في Next.js
+2. **`AuthContext`:**
+   - يحاول الوصول إلى localStorage في initialization
+   - قد يفشل في SSR
 
+3. **`layout.tsx`:**
+   - قد يحاول Next.js تصيير Layout على الخادم
+   - `Providers` موجود في Layout
+
+## الحل النهائي المطبق
+
+### 1. تبسيط `frontend/app/page.tsx`
+
+تم جعل الصفحة الرئيسية بسيطة تماماً:
+- ✅ Dynamic import لكل شيء
+- ✅ `ClientOnly` wrapper
+- ✅ `ssr: false` لجميع المكونات الديناميكية
+
+### 2. فصل `RootPageContent`
+
+تم إنشاء `frontend/app/components/RootPageContent.tsx`:
+- ✅ يحتوي على logic للـ auth check
+- ✅ يحتوي على dynamic import لـ `PublicLandingPage`
+- ✅ كل شيء محمّل ديناميكياً مع `ssr: false`
+
+### 3. تحسين `Providers.tsx`
+
+تم إضافة fallbacks لـ `usePathname()` و `useSearchParams()`:
 ```typescript
-function RouterWrapper({ children }: { children: React.ReactNode }) {
-  return (
-    <Suspense fallback={null}>
-      <RouterWrapperInner>{children}</RouterWrapperInner>
-    </Suspense>
-  );
+try {
+  const pathnameValue = usePathname();
+  const searchParamsValue = useSearchParams();
+  // ...
+} catch (error) {
+  // Fallback for SSR
+  if (typeof window !== 'undefined') {
+    pathname = window.location.pathname || '/';
+    searchParamsString = window.location.search || '';
+  }
 }
 ```
 
-### 3. ✅ إعدادات Next.js
+## الملفات المعدلة
 
-في `frontend/next.config.js`:
-- لا يوجد `output: 'standalone'` (يسبب مشاكل مع Netlify)
-- Rewrites محددة بشكل صحيح
-- Headers محددة بشكل صحيح
+1. ✅ `frontend/app/page.tsx` - مبسطة تماماً
+2. ✅ `frontend/app/components/RootPageContent.tsx` - جديد، يحتوي على logic
+3. ✅ `frontend/app/components/Providers.tsx` - محسّن مع fallbacks
 
-### 4. ✅ إعدادات Layout
+## النتيجة المتوقعة
 
-في `frontend/app/layout.tsx`:
-- `export const dynamic = 'force-dynamic'` موجود
-- `suppressHydrationWarning` مفعّل
-- `Providers` هو Client Component
+- ✅ الصفحة الرئيسية ستُصير فقط على Client Side
+- ✅ جميع hooks تعمل بشكل صحيح
+- ✅ لا توجد أخطاء SSR
 
-## المشاكل المحتملة المتبقية
+## إذا استمرت المشكلة
 
-إذا استمرت المشكلة، قد تكون بسبب:
+إذا استمرت المشكلة بعد هذا الحل، قد تكون المشكلة في:
 
-1. **Environment Variables غير موجودة على Netlify:**
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `NEXT_PUBLIC_API_BASE_URL`
-
-2. **مشاكل في Build:**
-   - تحقق من Build logs على Netlify
-   - تحقق من وجود أخطاء TypeScript أو ESLint
-
-3. **مشاكل في Netlify Functions:**
+1. **Build على Netlify:**
+   - تحقق من Build logs
    - تحقق من Function logs
-   - تحقق من أن `/api/v1/*` requests يتم توجيهها بشكل صحيح
+
+2. **Environment Variables:**
+   - تأكد من وجود جميع المتغيرات المطلوبة
+   - تحقق من Netlify Dashboard
+
+3. **Next.js Configuration:**
+   - تحقق من `next.config.js`
+   - تحقق من `netlify.toml`
 
 ## الخطوات التالية
 
-1. **التحقق من Environment Variables:**
-   - اذهب إلى Netlify Dashboard > Site Settings > Environment Variables
-   - تأكد من وجود جميع المتغيرات المطلوبة
+1. ✅ الكود جاهز
+2. ⏳ رفع التغييرات إلى Git
+3. ⏳ مراقبة Deploy على Netlify
+4. ⏳ التحقق من الموقع بعد النشر
 
-2. **التحقق من Build Logs:**
-   - اذهب إلى Netlify Dashboard > Deploys
-   - افتح آخر deploy
-   - راجع Build logs للبحث عن أخطاء
+---
 
-3. **التحقق من Function Logs:**
-   - اذهب إلى Netlify Dashboard > Functions
-   - راجع Logs للبحث عن أخطاء
+**ملاحظة:** إذا استمرت المشكلة، قد نحتاج إلى مراجعة Build logs على Netlify لمعرفة الخطأ الفعلي.
 
-4. **اختبار الموقع محلياً:**
-   - تأكد من أن الموقع يعمل محلياً بدون أخطاء
-   - راجع Browser Console للأخطاء
-
-## ملاحظات
-
-- جميع الحلول المطبقة آمنة ولا تسبب مشاكل
-- الكود جاهز للنشر
-- إذا استمرت المشكلة، قد تحتاج إلى مراجعة Netlify logs بالتفصيل

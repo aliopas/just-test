@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { ProvidersWrapper } from './components/ProvidersWrapper';
+import { Providers } from './components/Providers';
 import { Inter, Noto_Sans_Arabic } from 'next/font/google';
 import '@/styles/global.css';
 import '@/styles/responsive.css';
@@ -80,7 +80,7 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <ProvidersWrapper>{children}</ProvidersWrapper>
+        <Providers>{children}</Providers>
         <div id="drawer-root"></div>
       </body>
     </html>

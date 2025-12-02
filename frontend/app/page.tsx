@@ -1,7 +1,6 @@
 'use client';
 
 import dynamicImport from 'next/dynamic'; // Renamed to avoid conflict with export const dynamic
-import { ClientOnly } from './components/ClientOnly';
 import { palette } from '@/styles/theme';
 
 export const dynamic = 'force-dynamic';
@@ -43,9 +42,5 @@ function LoadingFallback() {
 }
 
 export default function RootPage() {
-  return (
-    <ClientOnly>
-      <RootPageContent />
-    </ClientOnly>
-  );
+  return <RootPageContent />;
 }

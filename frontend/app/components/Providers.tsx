@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, Suspense } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Router } from 'react-router-dom';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -20,16 +20,13 @@ const queryClient = new QueryClient({
 });
 
 // Router wrapper that provides React Router context using Next.js routing
-// Wrapped in Suspense to handle usePathname and useSearchParams properly
-function RouterWrapperInner({ children }: { children: React.ReactNode }) {
-  // These hooks must be called unconditionally
+function RouterWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   
   // Create location object based on Next.js route
   const location = useMemo(() => {
     const search = searchParams?.toString() || '';
-    
     return {
       pathname: pathname || '/',
       search: search ? `?${search}` : '',
@@ -62,15 +59,6 @@ function RouterWrapperInner({ children }: { children: React.ReactNode }) {
     <Router location={location} navigator={navigator} basename={undefined}>
       {children}
     </Router>
-  );
-}
-
-// Wrap RouterWrapperInner in Suspense to handle Next.js navigation hooks
-function RouterWrapper({ children }: { children: React.ReactNode }) {
-  return (
-    <Suspense fallback={null}>
-      <RouterWrapperInner>{children}</RouterWrapperInner>
-    </Suspense>
   );
 }
 
