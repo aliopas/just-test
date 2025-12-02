@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { useMemo, useState, useEffect, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { useLanguage } from '../context/LanguageContext';
@@ -1399,7 +1399,7 @@ export function PublicLandingPage() {
             {languageToggleLabel}
           </button>
           <Link
-            to="/register"
+            href="/register"
             style={{
               padding: '0.75rem 1.5rem',
               borderRadius: '0.875rem',
@@ -1427,7 +1427,7 @@ export function PublicLandingPage() {
             {primaryCtaLabel}
           </Link>
           <Link
-            to="/login"
+            href="/login"
             style={{
               padding: '0.75rem 1.5rem',
               borderRadius: '0.875rem',
@@ -1557,7 +1557,7 @@ export function PublicLandingPage() {
             {languageToggleLabel}
           </button>
           <Link
-            to="/register"
+            href="/register"
             onClick={() => setIsMobileMenuOpen(false)}
             style={{
               ...navLinkStyle,
@@ -1573,7 +1573,7 @@ export function PublicLandingPage() {
             {primaryCtaLabel}
           </Link>
           <Link
-            to="/login"
+            href="/login"
             onClick={() => setIsMobileMenuOpen(false)}
             style={{
               ...navLinkStyle,
@@ -1656,18 +1656,7 @@ export function PublicLandingPage() {
                 }}
               >
                 {column.links.map((link) =>
-                  link.href.startsWith('/') ? (
-                    <Link
-                      key={link.label}
-                      to={link.href}
-                      style={{
-                        color: palette.textSecondary,
-                        textDecoration: 'none',
-                      }}
-                    >
-                      {link.label}
-                    </Link>
-                  ) : (
+                  link.href.startsWith('mailto:') || link.href.startsWith('#') ? (
                     <a
                       key={link.label}
                       href={link.href}
@@ -1678,6 +1667,17 @@ export function PublicLandingPage() {
                     >
                       {link.label}
                     </a>
+                  ) : (
+                    <Link
+                      key={link.label}
+                      href={link.href}
+                      style={{
+                        color: palette.textSecondary,
+                        textDecoration: 'none',
+                      }}
+                    >
+                      {link.label}
+                    </Link>
                   )
                 )}
               </div>

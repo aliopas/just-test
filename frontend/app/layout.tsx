@@ -1,8 +1,14 @@
 import type { Metadata, Viewport } from 'next';
-import { Providers } from './components/Providers';
+import dynamic from 'next/dynamic';
 import { Inter, Noto_Sans_Arabic } from 'next/font/google';
 import '@/styles/global.css';
 import '@/styles/responsive.css';
+
+// Load Providers dynamically on client side only - no SSR
+const Providers = dynamic(
+  () => import('./components/Providers').then((mod) => ({ default: mod.Providers })),
+  { ssr: false }
+);
 
 // Optimize font loading
 const inter = Inter({
