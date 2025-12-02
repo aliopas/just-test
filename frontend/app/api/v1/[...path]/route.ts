@@ -17,6 +17,9 @@ export async function GET(
   context: { params: Promise<{ path: string[] }> | { path: string[] } }
 ) {
   const params = await Promise.resolve(context.params);
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[API Proxy] GET request received:', request.nextUrl.pathname);
+  }
   return proxyRequest(request, params);
 }
 
@@ -81,6 +84,11 @@ async function proxyRequest(
       ? `${backendUrl}?${searchParams}`
       : backendUrl;
 
+    // Log for debugging in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[API Proxy] ${request.method} ${request.nextUrl.pathname} -> ${fullUrl}`);
+    }
+
     // Get request body if present
     let body: BodyInit | undefined;
     const contentType = request.headers.get('content-type');
@@ -113,13 +121,25 @@ async function proxyRequest(
     });
 
     // Make the request to the backend
-    const response = await fetch(fullUrl, {
-      method: request.method,
-      headers,
-      body,
-      // Forward credentials if present
-      credentials: 'include',
-    });
+    let response: Response;
+    try {
+      response = await fetch(fullUrl, {
+        method: request.method,
+        headers,
+        body,
+        // Forward credentials if present
+        credentials: 'include',
+      });
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[API Proxy] Response: ${response.status} ${response.statusText} from ${fullUrl}`);
+      }
+    } catch (fetchError) {
+      console.error('[API Proxy] Fetch error:', fetchError);
+      throw new Error(
+        `Failed to connect to backend at ${fullUrl}. Is the backend server running on ${BACKEND_URL}?`
+      );
+    }
 
     // Get response body
     const responseText = await response.text();
@@ -154,13 +174,30 @@ async function proxyRequest(
 
     return proxiedResponse;
   } catch (error) {
-    console.error('API Proxy Error:', error);
+    console.error('[API Proxy] Error:', error);
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : 'Failed to proxy request to backend';
+    
+    // Check if it's a connection error
+    if (errorMessage.includes('Failed to connect')) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 'BACKEND_CONNECTION_ERROR',
+            message: `Cannot connect to backend server at ${BACKEND_URL}. Please ensure the backend is running.`,
+          },
+        },
+        { status: 503 } // Service Unavailable
+      );
+    }
+
     return NextResponse.json(
       {
         error: {
           code: 'PROXY_ERROR',
-          message:
-            error instanceof Error ? error.message : 'Failed to proxy request to backend',
+          message: errorMessage,
         },
       },
       { status: 500 }
