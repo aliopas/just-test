@@ -1,10 +1,13 @@
 'use client';
 
-import dynamicImport from 'next/dynamic'; // Renamed to avoid conflict with export const dynamic
+import { useEffect } from 'react';
+import dynamicImport from 'next/dynamic';
+import { useRouter } from 'next/navigation';
 import { ClientOnly } from './components/ClientOnly';
+import { useAuth } from '@/context/AuthContext';
 import { palette } from '@/styles/theme';
 
-export const dynamic = 'force-dynamic';
+// No SSR configuration - render only on client side
 
 function LoadingFallback() {
   return (
@@ -32,12 +35,11 @@ function LoadingFallback() {
   );
 }
 
-// Dynamic import with SSR disabled - loads entire page content client-side only
-// This prevents all SSR issues with hooks, contexts, and react-router-dom
-const RootPageContent = dynamicImport(
-  () => import('./components/RootPageContent').then((mod) => ({ default: mod.RootPageContent })),
+// Load entire page dynamically on client side only - no SSR
+const RootPageClient = dynamicImport(
+  () => import('./components/RootPageClient').then((mod) => ({ default: mod.RootPageClient })),
   {
-    ssr: false, // Disable SSR completely to prevent server-side errors
+    ssr: false,
     loading: () => <LoadingFallback />,
   }
 );
@@ -45,7 +47,7 @@ const RootPageContent = dynamicImport(
 export default function RootPage() {
   return (
     <ClientOnly>
-      <RootPageContent />
+      <RootPageClient />
     </ClientOnly>
   );
 }

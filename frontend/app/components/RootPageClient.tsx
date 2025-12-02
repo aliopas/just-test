@@ -6,17 +6,38 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { palette } from '@/styles/theme';
 
-// Dynamic import with SSR disabled to prevent 500 errors on Netlify
-// PublicLandingPage uses react-router-dom and React Query hooks that don't work in SSR
+// Dynamic import with SSR disabled
 const PublicLandingPage = dynamicImport(
   () => import('@/pages/PublicLandingPage').then((mod) => ({ default: mod.PublicLandingPage })),
   {
-    ssr: false, // Disable SSR completely to prevent server-side errors
-    loading: () => <LoadingFallback />,
+    ssr: false,
+    loading: () => (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100vh',
+          width: '100%',
+          background: palette.backgroundBase,
+        }}
+      >
+        <div
+          className="spinner"
+          style={{
+            width: '48px',
+            height: '48px',
+            border: `4px solid ${palette.neutralBorder}`,
+            borderTopColor: palette.brandPrimaryStrong,
+            borderRadius: '50%',
+          }}
+        />
+      </div>
+    ),
   }
 );
 
-function LoadingFallback() {
+function LoadingSpinner() {
   return (
     <div
       style={{
@@ -42,7 +63,7 @@ function LoadingFallback() {
   );
 }
 
-export function RootPageContent() {
+export function RootPageClient() {
   const { isAuthenticated, user } = useAuth();
   const router = useRouter();
 
@@ -57,8 +78,9 @@ export function RootPageContent() {
   }, [isAuthenticated, user, router]);
 
   if (isAuthenticated) {
-    return <LoadingFallback />; // Will redirect
+    return <LoadingSpinner />; // Will redirect
   }
 
   return <PublicLandingPage />;
 }
+

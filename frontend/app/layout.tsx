@@ -52,10 +52,7 @@ export const viewport: Viewport = {
   themeColor: '#2563eb',
 };
 
-// Force dynamic rendering for all routes to prevent static generation errors
-// with client-side only features (React Router, QueryClient, LanguageProvider, etc.)
-export const dynamic = 'force-dynamic';
-export const dynamicParams = true;
+// No SSR - all rendering happens on client side
 
 export default function RootLayout({
   children,

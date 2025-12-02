@@ -20,26 +20,21 @@ const queryClient = new QueryClient({
 });
 
 // Router wrapper that provides React Router context using Next.js routing
-// Note: Hooks must be called unconditionally (React rules)
 function RouterWrapper({ children }: { children: React.ReactNode }) {
-  // These hooks must be called unconditionally
-  // They will safely return defaults during SSR
-  const pathnameValue = usePathname();
-  const searchParamsValue = useSearchParams();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   
-  // Create location object based on Next.js route with safe fallbacks
+  // Create location object based on Next.js route
   const location = useMemo(() => {
-    const pathname = pathnameValue || (typeof window !== 'undefined' ? window.location.pathname : '/') || '/';
-    const search = searchParamsValue?.toString() || (typeof window !== 'undefined' ? window.location.search.replace('?', '') : '') || '';
-    
+    const search = searchParams?.toString() || '';
     return {
-      pathname,
+      pathname: pathname || '/',
       search: search ? `?${search}` : '',
       hash: typeof window !== 'undefined' ? window.location.hash : '',
       state: null,
       key: 'default',
     };
-  }, [pathnameValue, searchParamsValue]);
+  }, [pathname, searchParams]);
 
   // Create navigator that doesn't interfere with Next.js routing
   const navigator = useMemo(() => ({
