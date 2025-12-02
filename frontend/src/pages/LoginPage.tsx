@@ -1,5 +1,7 @@
 import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { useNextNavigate } from '../utils/next-router';
 import { useLogin } from '../hooks/useLogin';
 import { useResetPasswordRequest } from '../hooks/useResetPasswordRequest';
 import { useUpdatePassword } from '../hooks/useUpdatePassword';
@@ -24,8 +26,8 @@ export function LoginPage() {
   const loginMutation = useLogin();
   const resetPasswordMutation = useResetPasswordRequest();
   const updatePasswordMutation = useUpdatePassword();
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const navigate = useNextNavigate();
+  const searchParams = useSearchParams();
   const [requires2FA, setRequires2FA] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
@@ -1077,7 +1079,7 @@ export function LoginPage() {
             <p style={{ margin: 0 }}>
               {currentCopy.noAccount}{' '}
               <Link
-                to="/register"
+                href="/register"
                 style={{
                   color: palette.brandPrimaryStrong,
                   fontWeight: 600,

@@ -3,7 +3,7 @@ import {
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { LanguageProvider, useLanguage } from '../context/LanguageContext';
 import { ToastProvider, useToast } from '../context/ToastContext';
 import { ToastStack } from '../components/ToastStack';
@@ -436,7 +436,7 @@ function InvestorDashboardPageInner() {
                       </span>
                     </div>
                     <Link
-                      to="/requests"
+                      href="/requests"
                       style={{
                         padding: '0.55rem 1.1rem',
                         borderRadius: '999px',
@@ -908,7 +908,7 @@ function InvestorDashboardPageInner() {
                       return (
                         <Link
                           key={project.id}
-                          to={`/projects/${project.id}`}
+                          href={`/projects/${project.id}`}
                           style={{
                             textDecoration: 'none',
                             color: 'inherit',

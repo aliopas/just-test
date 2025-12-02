@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'next/navigation';
+import { useNextNavigate } from '../utils/next-router';
 import { useUpdatePasswordViaAPI } from '../hooks/useUpdatePasswordViaAPI';
 import { useResetPasswordRequest } from '../hooks/useResetPasswordRequest';
 import { useVerifyResetToken } from '../hooks/useVerifyResetToken';
@@ -19,8 +20,8 @@ export function ResetPasswordPage() {
   const updatePasswordMutation = useUpdatePasswordViaAPI();
   const resetPasswordMutation = useResetPasswordRequest();
   const verifyTokenMutation = useVerifyResetToken();
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const navigate = useNextNavigate();
+  const searchParams = useSearchParams();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isVerifying, setIsVerifying] = useState(true);

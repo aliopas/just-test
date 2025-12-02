@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNextNavigate } from '../utils/next-router';
 import {
   QueryClient,
   QueryClientProvider,
@@ -62,7 +62,7 @@ const typeFilterOptions: Array<{
 function NonFinancialRequestsPageInner() {
   const { language, direction } = useLanguage();
   const { pushToast } = useToast();
-  const navigate = useNavigate();
+  const navigate = useNextNavigate();
 
   const [filters, setFilters] = useState<RequestListFilters>({
     page: 1,

@@ -1,5 +1,5 @@
 ﻿import { useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import type { AdminRequest } from '../../../types/admin';
 import { useLanguage } from '../../../context/LanguageContext';
 import { tAdminRequests } from '../../../locales/adminRequests';
@@ -165,7 +165,7 @@ export function AdminRequestsTable({
               <tr key={request.id} style={rowStyle}>
                 <td style={cellStyle}>
                   <Link
-                    to={`/admin/requests/${request.id}`}
+                    href={`/admin/requests/${request.id}`}
                     style={{
                       color: 'var(--color-brand-primary-strong)',
                       textDecoration: 'none',

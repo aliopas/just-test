@@ -1,5 +1,6 @@
 import { ChangeEvent, FormEvent, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import Link from 'next/link';
+import { useNextNavigate } from '../utils/next-router';
 import { useRegister } from '../hooks/useRegister';
 import { useToast } from '../context/ToastContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -19,7 +20,7 @@ type RegisterFormState = {
 
 export function RegisterPage() {
   const { language } = useLanguage();
-  const navigate = useNavigate();
+  const navigate = useNextNavigate();
   const { pushToast } = useToast();
   const companyLogoUrl = useCompanyLogoUrl();
   const registerMutation = useRegister();
@@ -359,7 +360,7 @@ export function RegisterPage() {
         >
           {language === 'ar' ? 'لديك حساب بالفعل؟ ' : 'Already have an account? '}
           <Link
-            to="/"
+            href="/login"
             style={{
               color: palette.brandPrimaryStrong,
               fontWeight: 600,

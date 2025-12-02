@@ -3,7 +3,7 @@ import {
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { LanguageProvider, useLanguage } from '../context/LanguageContext';
 import { ToastProvider, useToast } from '../context/ToastContext';
 import { ToastStack } from '../components/ToastStack';
@@ -1336,7 +1336,7 @@ function AdminDashboardPageInner() {
                       <td style={{ padding: '0.75rem' }}>{item.ageHours.toFixed(1)}</td>
                       <td style={{ padding: '0.75rem' }}>
                         <Link
-                          to={`/admin/requests/${item.id}`}
+                          href={`/admin/requests/${item.id}`}
                           style={{
                             display: 'inline-flex',
                             padding: '0.45rem 1rem',

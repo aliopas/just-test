@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { useLanguage } from '../context/LanguageContext';
 import { palette } from '../styles/theme';
 import { Logo } from '../components/Logo';
@@ -114,7 +114,7 @@ export function HomePage() {
                 }}
               >
                 <Link
-                  to="/requests/new"
+                  href="/requests/new"
                   style={{
                     padding: '0.85rem 2rem',
                     background: palette.brandPrimaryStrong,
@@ -127,7 +127,7 @@ export function HomePage() {
                   {language === 'ar' ? 'ابدأ طلباً جديداً' : 'Start a new request'}
                 </Link>
                 <Link
-                  to="/profile"
+                  href="/profile"
                   style={{
                     padding: '0.85rem 2rem',
                     background: palette.backgroundSurface,
@@ -502,7 +502,7 @@ export function HomePage() {
                       return (
                         <Link
                           key={project.id}
-                          to={`/projects/${project.id}`}
+                          href={`/projects/${project.id}`}
                           style={{
                             textDecoration: 'none',
                             color: 'inherit',

@@ -1,5 +1,7 @@
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import Link from 'next/link';
+import { useSearchParams as useNextSearchParams } from 'next/navigation';
+import { useNextNavigate } from '../utils/next-router';
 import { useVerifyOtp } from '../hooks/useVerifyOtp';
 import { useConfirmEmail } from '../hooks/useConfirmEmail';
 import { useToast } from '../context/ToastContext';
@@ -16,8 +18,7 @@ type VerifyFormState = {
 
 export function VerifyOtpPage() {
   const { language } = useLanguage();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const navigate = useNextNavigate();
   const { pushToast } = useToast();
   const companyLogoUrl = useCompanyLogoUrl();
   const verifyMutation = useVerifyOtp();
@@ -30,16 +31,19 @@ export function VerifyOtpPage() {
 
   const direction = language === 'ar' ? 'rtl' : 'ltr';
 
+  const nextSearchParams = useNextSearchParams();
   const searchParams = useMemo(
-    () => new URLSearchParams(location.search),
-    [location.search]
+    () => new URLSearchParams(nextSearchParams?.toString() || ''),
+    [nextSearchParams]
   );
   const hashParams = useMemo(
-    () =>
-      new URLSearchParams(
-        location.hash.startsWith('#') ? location.hash.slice(1) : location.hash
-      ),
-    [location.hash]
+    () => {
+      const hash = typeof window !== 'undefined' ? window.location.hash : '';
+      return new URLSearchParams(
+        hash.startsWith('#') ? hash.slice(1) : hash
+      );
+    },
+    []
   );
 
   const autoEmail =
@@ -394,7 +398,7 @@ export function VerifyOtpPage() {
           >
             {language === 'ar' ? 'جاهز لتسجيل الدخول؟ ' : 'Ready to sign in? '}
             <Link
-              to="/"
+              href="/login"
               style={{
                 color: palette.brandPrimaryStrong,
                 fontWeight: 600,

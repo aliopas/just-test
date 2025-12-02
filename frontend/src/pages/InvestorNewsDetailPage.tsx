@@ -3,7 +3,8 @@ import {
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query';
-import { Link, useParams } from 'react-router-dom';
+import Link from 'next/link';
+import { useParams } from '../utils/next-router';
 import { useLanguage, LanguageProvider } from '../context/LanguageContext';
 import { ToastProvider, useToast } from '../context/ToastContext';
 import { ToastStack } from '../components/ToastStack';
@@ -217,7 +218,8 @@ const attachmentMetaStyle: CSSProperties = {
 function InvestorNewsDetailPageInner() {
   const { language, direction } = useLanguage();
   const { pushToast } = useToast();
-  const { id: newsId } = useParams<{ id: string }>();
+  const params = useParams<{ id: string }>();
+  const newsId = params?.id;
 
   const { data, isLoading, isError } = useInvestorNewsDetail(newsId ?? null);
 
@@ -269,7 +271,7 @@ function InvestorNewsDetailPageInner() {
         }}
       >
         <Link
-          to="/home"
+          href="/home"
           style={{
             display: 'inline-block',
             marginBottom: '1.5rem',
