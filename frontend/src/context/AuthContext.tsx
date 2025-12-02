@@ -7,7 +7,7 @@ import {
   useEffect,
   type ReactNode,
 } from 'react';
-import { getStoredAccessToken } from '../utils/auth-token';
+import { getStoredAccessToken, decodeJwtPayload } from '../utils/auth-token';
 
 type UserRole = 'investor' | 'admin';
 
@@ -43,24 +43,67 @@ function readStoredUser(): AuthUser | null {
     return null;
   }
 
+  // First, try to read the cached user object from localStorage
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<AuthUser>;
-    if (
-      parsed &&
-      typeof parsed.id === 'string' &&
-      typeof parsed.email === 'string' &&
-      (parsed.role === 'investor' || parsed.role === 'admin')
-    ) {
-      return {
-        id: parsed.id,
-        email: parsed.email,
-        role: parsed.role,
-      };
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<AuthUser>;
+      if (
+        parsed &&
+        typeof parsed.id === 'string' &&
+        typeof parsed.email === 'string' &&
+        (parsed.role === 'investor' || parsed.role === 'admin')
+      ) {
+        return {
+          id: parsed.id,
+          email: parsed.email,
+          role: parsed.role,
+        };
+      }
     }
   } catch (error) {
     console.warn('Failed to parse stored auth user', error);
+  }
+
+  // If we have a valid access token but no cached user, reconstruct user
+  // information directly from the JWT payload so that clearing localStorage
+  // (but keeping cookies) does not sign the user out of the app.
+  try {
+    const payload = decodeJwtPayload(existingToken);
+    if (!payload) {
+      return null;
+    }
+
+    const id =
+      (typeof payload.sub === 'string' && payload.sub) ||
+      (typeof (payload as any).user_id === 'string' && (payload as any).user_id) ||
+      (typeof (payload as any).id === 'string' && (payload as any).id) ||
+      null;
+
+    const email =
+      (typeof (payload as any).email === 'string' && (payload as any).email) ||
+      null;
+
+    const rawRole =
+      (payload as any).role ||
+      (payload as any).user_role ||
+      (payload as any).app_metadata?.role ||
+      (payload as any).user_metadata?.role ||
+      null;
+
+    const role: UserRole =
+      rawRole === 'admin'
+        ? 'admin'
+        : 'investor';
+
+    if (id && email) {
+      const user: AuthUser = { id, email, role };
+      // Persist reconstructed user so subsequent loads are faster
+      window.localStorage.setItem(STORAGE_KEY, serializeUser(user));
+      return user;
+    }
+  } catch (error) {
+    console.warn('Failed to reconstruct auth user from token payload', error);
   }
 
   return null;
