@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect } from 'react';
+import dynamicImport from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { palette } from '@/styles/theme';
-import dynamicImport from 'next/dynamic';
 
 // Dynamic import with SSR disabled to prevent 500 errors on Netlify
 // PublicLandingPage uses react-router-dom and React Query hooks that don't work in SSR
@@ -62,4 +62,3 @@ export function RootPageContent() {
 
   return <PublicLandingPage />;
 }
-

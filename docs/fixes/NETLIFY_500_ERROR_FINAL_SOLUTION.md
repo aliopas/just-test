@@ -6,108 +6,93 @@
 GET https://investor-bacura.netlify.app/ 500 (Internal Server Error)
 ```
 
-## الحل المطبق
+الصفحة الرئيسية لا تزال لا تعمل على Netlify.
 
-تم **تبسيط البنية بالكامل** وجعل كل محتوى الصفحة الرئيسية يُحمّل client-side فقط.
+## التحليل الشامل
 
-### البنية النهائية:
+### المشاكل المحتملة:
 
-```
-page.tsx (بسيط جداً)
-  └─> RootPageContent (dynamic import, ssr: false)
-      ├─> useAuth()
-      ├─> useRouter()
-      └─> PublicLandingPage (dynamic import, ssr: false)
-          ├─> React Query hooks
-          ├─> react-router-dom Link
-          └─> Other client-side features
-```
+1. **`Providers` و `RouterWrapper`:**
+   - يستخدم `usePathname()` و `useSearchParams()` من Next.js
+   - هذه الـ hooks قد تفشل في SSR حتى في Client Components
 
-### الكود النهائي:
+2. **`AuthContext`:**
+   - يحاول الوصول إلى localStorage في initialization
+   - قد يفشل في SSR
 
-#### `frontend/app/page.tsx`:
+3. **`layout.tsx`:**
+   - قد يحاول Next.js تصيير Layout على الخادم
+   - `Providers` موجود في Layout
+
+## الحل النهائي المطبق
+
+### 1. تبسيط `frontend/app/page.tsx`
+
+تم جعل الصفحة الرئيسية بسيطة تماماً:
+- ✅ Dynamic import لكل شيء
+- ✅ `ClientOnly` wrapper
+- ✅ `ssr: false` لجميع المكونات الديناميكية
+
+### 2. فصل `RootPageContent`
+
+تم إنشاء `frontend/app/components/RootPageContent.tsx`:
+- ✅ يحتوي على logic للـ auth check
+- ✅ يحتوي على dynamic import لـ `PublicLandingPage`
+- ✅ كل شيء محمّل ديناميكياً مع `ssr: false`
+
+### 3. تحسين `Providers.tsx`
+
+تم إضافة fallbacks لـ `usePathname()` و `useSearchParams()`:
 ```typescript
-'use client';
-
-import dynamicImport from 'next/dynamic';
-import { palette } from '@/styles/theme';
-
-export const dynamic = 'force-dynamic';
-
-function LoadingFallback() {
-  return (
-    <div style={{ /* loading spinner */ }}>
-      <div className="spinner" />
-    </div>
-  );
-}
-
-// Dynamic import - كل المحتوى client-side فقط
-const RootPageContent = dynamicImport(
-  () => import('./components/RootPageContent').then((mod) => ({ default: mod.RootPageContent })),
-  {
-    ssr: false, // ⚠️ مهم جداً: تعطيل SSR بالكامل
-    loading: () => <LoadingFallback />,
+try {
+  const pathnameValue = usePathname();
+  const searchParamsValue = useSearchParams();
+  // ...
+} catch (error) {
+  // Fallback for SSR
+  if (typeof window !== 'undefined') {
+    pathname = window.location.pathname || '/';
+    searchParamsString = window.location.search || '';
   }
-);
-
-export default function RootPage() {
-  return <RootPageContent />;
 }
 ```
 
-#### `frontend/app/components/RootPageContent.tsx`:
-- يحتوي على كل المنطق (`useAuth`, `useRouter`, `PublicLandingPage`)
-- كل شيء client-side فقط
+## الملفات المعدلة
 
-## الفوائد
+1. ✅ `frontend/app/page.tsx` - مبسطة تماماً
+2. ✅ `frontend/app/components/RootPageContent.tsx` - جديد، يحتوي على logic
+3. ✅ `frontend/app/components/Providers.tsx` - محسّن مع fallbacks
 
-1. ✅ **لا SSR errors:** كل شيء client-side فقط
-2. ✅ **بسيط وواضح:** طبقة واحدة فقط من dynamic import
-3. ✅ **يعمل على Netlify:** لا مشاكل مع Server-Side Rendering
+## النتيجة المتوقعة
+
+- ✅ الصفحة الرئيسية ستُصير فقط على Client Side
+- ✅ جميع hooks تعمل بشكل صحيح
+- ✅ لا توجد أخطاء SSR
+
+## إذا استمرت المشكلة
+
+إذا استمرت المشكلة بعد هذا الحل، قد تكون المشكلة في:
+
+1. **Build على Netlify:**
+   - تحقق من Build logs
+   - تحقق من Function logs
+
+2. **Environment Variables:**
+   - تأكد من وجود جميع المتغيرات المطلوبة
+   - تحقق من Netlify Dashboard
+
+3. **Next.js Configuration:**
+   - تحقق من `next.config.js`
+   - تحقق من `netlify.toml`
 
 ## الخطوات التالية
 
-1. ⏳ **نشر التغييرات:**
-   ```bash
-   git add .
-   git commit -m "Fix: Disable SSR for root page to prevent Netlify 500 errors"
-   git push
-   ```
+1. ✅ الكود جاهز
+2. ⏳ رفع التغييرات إلى Git
+3. ⏳ مراقبة Deploy على Netlify
+4. ⏳ التحقق من الموقع بعد النشر
 
-2. ⏳ **التحقق من النشر:**
-   - انتظر حتى ينتهي البناء على Netlify
-   - افتح `https://investor-bacura.netlify.app/`
-   - تحقق من عدم وجود خطأ 500
+---
 
-3. ⏳ **مراجعة Logs:**
-   - Netlify Dashboard > Functions > Logs
-   - تحقق من عدم وجود أخطاء
+**ملاحظة:** إذا استمرت المشكلة، قد نحتاج إلى مراجعة Build logs على Netlify لمعرفة الخطأ الفعلي.
 
-## ملاحظات مهمة
-
-### ⚠️ SEO Impact:
-- تعطيل SSR يعني أن محتوى الصفحة لن يكون في HTML الأولي
-- محركات البحث قد لا ترى المحتوى فوراً
-- إذا كان SEO مهماً، قد نحتاج إلى حلول أخرى لاحقاً
-
-### ⚠️ Performance:
-- Dynamic import يعني أن المحتوى سيُحمّل بعد تحميل الصفحة الأساسية
-- قد يزيد وقت التحميل الأولي قليلاً
-- لكن هذا أفضل من خطأ 500
-
-### ✅ Compatibility:
-- هذا الحل يضمن أن كل شيء يعمل
-- لا توجد مخاطر SSR errors
-- متوافق مع Netlify Next.js deployment
-
-## الملفات المتأثرة
-
-- ✅ `frontend/app/page.tsx` - تبسيط كامل
-- ✅ `frontend/app/components/RootPageContent.tsx` - يحتوي على كل المنطق
-- 📝 `docs/fixes/NETLIFY_500_ERROR_FINAL_SOLUTION.md` - هذا الملف
-
-## المراجع
-
-- [Next.js Dynamic Imports](https://nextjs.org/docs/pages/building-your-application/optimizing/lazy-loading#with-dynamic-imports)
-- [Netlify Next.js Deployment](https://docs.netlify.com/integrations/frameworks/nextjs/)

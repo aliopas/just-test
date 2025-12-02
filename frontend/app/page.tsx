@@ -1,6 +1,7 @@
 'use client';
 
 import dynamicImport from 'next/dynamic'; // Renamed to avoid conflict with export const dynamic
+import { ClientOnly } from './components/ClientOnly';
 import { palette } from '@/styles/theme';
 
 export const dynamic = 'force-dynamic';
@@ -42,5 +43,9 @@ const RootPageContent = dynamicImport(
 );
 
 export default function RootPage() {
-  return <RootPageContent />;
+  return (
+    <ClientOnly>
+      <RootPageContent />
+    </ClientOnly>
+  );
 }

@@ -21,8 +21,20 @@ const queryClient = new QueryClient({
 
 // Router wrapper that provides React Router context using Next.js routing
 function RouterWrapper({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  // Use try-catch and fallbacks for SSR compatibility
+  let pathname: string = '/';
+  let searchParams: URLSearchParams | null = null;
+  
+  try {
+    pathname = usePathname() || '/';
+    searchParams = useSearchParams();
+  } catch (error) {
+    // Fallback for SSR - use window.location if available
+    if (typeof window !== 'undefined') {
+      pathname = window.location.pathname || '/';
+      searchParams = new URLSearchParams(window.location.search);
+    }
+  }
   
   // Create location object based on Next.js route
   const location = useMemo(() => {
