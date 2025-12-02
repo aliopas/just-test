@@ -55,8 +55,8 @@ const adminNavItems = [
   },
   {
     to: '/admin/requests',
-    labelAr: 'طلبات الاستثمار الواردة',
-    labelEn: 'Incoming investment requests',
+    labelAr: 'الطلبات الواردة',
+    labelEn: 'Incoming requests',
   },
   {
     to: '/admin/news',
@@ -231,11 +231,13 @@ function InvestorSidebarNav(): JSX.Element {
           onClick={() => logout.mutate()}
           style={{
             ...adminSidebarLinkBase,
-            marginTop: 'auto',
-            justifyContent: 'center',
-            borderColor: palette.brandPrimaryStrong,
-            background: palette.brandPrimaryStrong,
-            color: palette.textOnBrand,
+          marginTop: 'auto',
+          justifyContent: 'center',
+          borderColor: palette.brandPrimaryStrong,
+          background: palette.brandPrimaryStrong,
+          color: palette.textOnBrand,
+          position: 'sticky',
+          bottom: '1.5rem',
           }}
           disabled={logout.isPending}
         >
@@ -824,6 +826,8 @@ function AdminSidebarNav(): JSX.Element {
           borderColor: palette.brandPrimaryStrong,
           background: palette.brandPrimaryStrong,
           color: palette.textOnBrand,
+          position: 'sticky',
+          bottom: '1.5rem',
         }}
         disabled={logout.isPending}
       >
