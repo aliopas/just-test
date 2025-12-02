@@ -1,13 +1,23 @@
 'use client';
 
-import { useEffect, Suspense } from 'react';
+import { useEffect } from 'react';
+import dynamicImport from 'next/dynamic'; // Renamed to avoid conflict with export const dynamic
 import { useRouter } from 'next/navigation';
-import { PublicLandingPage } from '@/pages/PublicLandingPage';
 import { ClientOnly } from './components/ClientOnly';
 import { useAuth } from '@/context/AuthContext';
 import { palette } from '@/styles/theme';
 
 export const dynamic = 'force-dynamic';
+
+// Dynamic import with SSR disabled to prevent 500 errors on Netlify
+// PublicLandingPage uses react-router-dom and React Query hooks that don't work in SSR
+const PublicLandingPage = dynamicImport(
+  () => import('@/pages/PublicLandingPage').then((mod) => ({ default: mod.PublicLandingPage })),
+  {
+    ssr: false, // Disable SSR completely to prevent server-side errors
+    loading: () => <LoadingFallback />,
+  }
+);
 
 function LoadingFallback() {
   return (
@@ -53,11 +63,7 @@ function RootPageContent() {
     return <LoadingFallback />; // Will redirect
   }
 
-  return (
-    <Suspense fallback={<LoadingFallback />}>
-      <PublicLandingPage />
-    </Suspense>
-  );
+  return <PublicLandingPage />;
 }
 
 export default function RootPage() {
