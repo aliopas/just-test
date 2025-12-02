@@ -9,10 +9,13 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
+# API redirects - must come before other redirects
+# This redirects all /api/v1/* requests to the serverless function
 [[redirects]]
   from = "/api/v1/*"
   to = "/.netlify/functions/server/:splat"
   status = 200
+  force = true
 
 # Exclude static files from SPA redirect
 [[redirects]]

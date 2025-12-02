@@ -15,14 +15,20 @@ const nextConfig = {
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
-  // Rewrite API calls to backend
+  // Rewrite API calls to backend (only for local development)
+  // In production on Netlify, use netlify.toml redirects instead
   async rewrites() {
-    return [
-      {
-        source: '/api/v1/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'}/api/v1/:path*`,
-      },
-    ];
+    // Only apply rewrites in local development
+    if (process.env.NODE_ENV === 'development') {
+      return [
+        {
+          source: '/api/v1/:path*',
+          destination: `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'}/api/v1/:path*`,
+        },
+      ];
+    }
+    // In production, Netlify redirects handle this
+    return [];
   },
   // Headers configuration
   async headers() {
