@@ -75,7 +75,39 @@ const nextConfig = {
   // This prevents SSR errors during build
   experimental: {
     missingSuspenseWithCSRBailout: false,
+    // Enable server actions
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
+    // Optimize package imports
+    optimizePackageImports: ['@tanstack/react-query', '@supabase/supabase-js'],
   },
+  // Image optimization configuration
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.supabase.co',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.supabase.in',
+      },
+    ],
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60,
+  },
+  // Compiler optimizations
+  compiler: {
+    // Remove console.log in production
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
+  },
+  // Output configuration
+  output: 'standalone',
   // For Netlify deployment with Next.js App Router
   // We use dynamic rendering for all pages to avoid SSR issues with React Router components
   // The ClientOnly wrapper ensures components only render on the client

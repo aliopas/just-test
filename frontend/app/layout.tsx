@@ -1,7 +1,22 @@
 import type { Metadata, Viewport } from 'next';
 import { Providers } from './components/Providers';
+import { Inter, Noto_Sans_Arabic } from 'next/font/google';
 import '@/styles/global.css';
 import '@/styles/responsive.css';
+
+// Optimize font loading
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+});
+
+const notoSansArabic = Noto_Sans_Arabic({
+  subsets: ['arabic'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-noto-sans-arabic',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'شركاء باكورة',
@@ -48,7 +63,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ar" dir="rtl" suppressHydrationWarning>
+    <html lang="ar" dir="rtl" suppressHydrationWarning className={`${inter.variable} ${notoSansArabic.variable}`}>
       <head>
         <script
           dangerouslySetInnerHTML={{
