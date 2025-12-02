@@ -17,23 +17,36 @@ const nextConfig = {
   },
   // ⚠️ IMPORTANT: Next.js rewrites DO NOT WORK in Netlify production builds
   // All API routing must be handled by Netlify redirects in netlify.toml
-  // In local development, we use API route handlers (app/api/v1/[...path]/route.ts)
-  // to proxy requests to the backend server
+  // This rewrites() function only works in local development
   async rewrites() {
-    // In Netlify builds, ALWAYS return empty array - rely on netlify.toml redirects
+    // Check if we're running on Netlify (production, preview, or branch deploy)
     const isNetlify = 
       process.env.NETLIFY === 'true' || 
       process.env.CONTEXT === 'production' || 
       process.env.CONTEXT === 'deploy-preview' || 
       process.env.CONTEXT === 'branch-deploy';
     
+    // Check if we're in development mode locally
+    const isLocalDevelopment = 
+      process.env.NODE_ENV === 'development' && 
+      !isNetlify;
+    
+    // In Netlify builds, ALWAYS return empty array - rely on netlify.toml redirects
     if (isNetlify) {
       return [];
     }
     
-    // In local development, API route handlers handle proxying
-    // No rewrites needed - the route handler at app/api/v1/[...path]/route.ts
-    // will intercept all /api/v1/* requests
+    // Only in local development: use Next.js rewrites to proxy to local backend
+    if (isLocalDevelopment) {
+      return [
+        {
+          source: '/api/v1/:path*',
+          destination: `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'}/api/v1/:path*`,
+        },
+      ];
+    }
+    
+    // Fallback: no rewrites (for safety)
     return [];
   },
   // Headers configuration

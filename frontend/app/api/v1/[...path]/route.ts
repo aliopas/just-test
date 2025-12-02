@@ -1,207 +1,127 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * API Proxy Route Handler for Next.js
+ * Next.js API Route Handler that proxies all /api/v1/* requests to the backend server.
+ * This works for both Server-Side and Client-Side requests.
  * 
- * This route handler proxies all API requests to the backend server.
- * It works in both development (localhost) and production (via Netlify).
- * 
- * In development: proxies to http://localhost:3001
- * In production: Netlify handles routing via netlify.toml redirects
+ * In local development: proxies to http://localhost:3001
+ * In production (Netlify): this route should not be used as Netlify redirects handle it
  */
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
-
-export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ path: string[] }> | { path: string[] } }
-) {
-  const params = await Promise.resolve(context.params);
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[API Proxy] GET request received:', request.nextUrl.pathname);
+// Extract backend base URL (without /api/v1 suffix)
+function getBackendBaseUrl(): string {
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
+  
+  // If it's a relative path or contains /api/v1, extract the base
+  if (apiBaseUrl.startsWith('/')) {
+    // Relative path - use default localhost
+    return 'http://localhost:3001';
   }
-  return proxyRequest(request, params);
+  
+  // If it contains /api/v1, remove it
+  if (apiBaseUrl.includes('/api/v1')) {
+    return apiBaseUrl.replace(/\/api\/v1\/?$/, '');
+  }
+  
+  return apiBaseUrl;
 }
 
-export async function POST(
-  request: NextRequest,
-  context: { params: Promise<{ path: string[] }> | { path: string[] } }
-) {
-  const params = await Promise.resolve(context.params);
-  return proxyRequest(request, params);
-}
+const BACKEND_BASE_URL = getBackendBaseUrl();
 
-export async function PUT(
-  request: NextRequest,
-  context: { params: Promise<{ path: string[] }> | { path: string[] } }
-) {
-  const params = await Promise.resolve(context.params);
-  return proxyRequest(request, params);
-}
-
-export async function PATCH(
-  request: NextRequest,
-  context: { params: Promise<{ path: string[] }> | { path: string[] } }
-) {
-  const params = await Promise.resolve(context.params);
-  return proxyRequest(request, params);
-}
-
-export async function DELETE(
-  request: NextRequest,
-  context: { params: Promise<{ path: string[] }> | { path: string[] } }
-) {
-  const params = await Promise.resolve(context.params);
-  return proxyRequest(request, params);
-}
-
-export async function OPTIONS() {
-  // Handle CORS preflight requests
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Max-Age': '86400',
-    },
-  });
-}
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 async function proxyRequest(
   request: NextRequest,
-  { path }: { path: string[] }
+  { params }: { params: { path: string[] } }
 ) {
   try {
-    // Build the backend URL
-    const pathSegments = path || [];
-    const apiPath = pathSegments.join('/');
-    const backendUrl = `${BACKEND_URL}/api/v1/${apiPath}`;
-
-    // Get query string from request
-    const searchParams = request.nextUrl.searchParams.toString();
-    const fullUrl = searchParams
-      ? `${backendUrl}?${searchParams}`
-      : backendUrl;
-
-    // Log for debugging in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[API Proxy] ${request.method} ${request.nextUrl.pathname} -> ${fullUrl}`);
-    }
-
-    // Get request body if present
-    let body: BodyInit | undefined;
-    const contentType = request.headers.get('content-type');
+    const pathSegments = params.path || [];
+    const path = pathSegments.join('/');
     
-    if (request.method !== 'GET' && request.method !== 'HEAD') {
-      if (contentType?.includes('application/json')) {
-        body = await request.text();
-      } else if (contentType?.includes('multipart/form-data')) {
-        body = await request.formData();
-      } else if (contentType?.includes('application/x-www-form-urlencoded')) {
-        body = await request.text();
-      } else {
-        body = await request.arrayBuffer();
-      }
-    }
+    // Get query string from original request
+    const queryString = request.nextUrl.search;
+    const backendUrl = `${BACKEND_BASE_URL}/api/v1/${path}${queryString}`;
 
-    // Prepare headers
+    // Get headers from original request
     const headers = new Headers();
     
-    // Copy relevant headers from the original request
+    // Forward relevant headers
     request.headers.forEach((value, key) => {
       // Skip headers that shouldn't be forwarded
       if (
-        !['host', 'connection', 'content-length', 'transfer-encoding'].includes(
-          key.toLowerCase()
-        )
+        key.toLowerCase() === 'host' ||
+        key.toLowerCase() === 'connection' ||
+        key.toLowerCase() === 'content-length' ||
+        key.toLowerCase() === 'transfer-encoding'
       ) {
-        headers.set(key, value);
+        return;
       }
+      headers.set(key, value);
     });
 
-    // Make the request to the backend
-    let response: Response;
-    try {
-      response = await fetch(fullUrl, {
-        method: request.method,
-        headers,
-        body,
-        // Forward credentials if present
-        credentials: 'include',
-      });
+    // Prepare request options
+    const requestOptions: RequestInit = {
+      method: request.method,
+      headers,
+      // Forward body for POST, PUT, PATCH requests
+      body: ['GET', 'HEAD'].includes(request.method)
+        ? undefined
+        : await request.text().catch(() => undefined),
+    };
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`[API Proxy] Response: ${response.status} ${response.statusText} from ${fullUrl}`);
-      }
-    } catch (fetchError) {
-      console.error('[API Proxy] Fetch error:', fetchError);
-      throw new Error(
-        `Failed to connect to backend at ${fullUrl}. Is the backend server running on ${BACKEND_URL}?`
-      );
-    }
+    // Make request to backend
+    const backendResponse = await fetch(backendUrl, requestOptions);
 
     // Get response body
-    const responseText = await response.text();
-    
+    const responseBody = await backendResponse.text();
+
     // Create response with same status and headers
-    const proxiedResponse = new NextResponse(responseText, {
-      status: response.status,
-      statusText: response.statusText,
+    const response = new NextResponse(responseBody, {
+      status: backendResponse.status,
+      statusText: backendResponse.statusText,
     });
 
-    // Copy response headers (except some that shouldn't be forwarded)
-    response.headers.forEach((value, key) => {
+    // Forward response headers
+    backendResponse.headers.forEach((value, key) => {
+      // Skip headers that shouldn't be forwarded
       if (
-        !['content-encoding', 'transfer-encoding', 'content-length'].includes(
-          key.toLowerCase()
-        )
+        key.toLowerCase() === 'content-encoding' ||
+        key.toLowerCase() === 'transfer-encoding' ||
+        key.toLowerCase() === 'connection'
       ) {
-        proxiedResponse.headers.set(key, value);
+        return;
       }
+      response.headers.set(key, value);
     });
 
-    // Set CORS headers if needed
-    proxiedResponse.headers.set('Access-Control-Allow-Origin', '*');
-    proxiedResponse.headers.set(
-      'Access-Control-Allow-Methods',
-      'GET, POST, PUT, PATCH, DELETE, OPTIONS'
-    );
-    proxiedResponse.headers.set(
-      'Access-Control-Allow-Headers',
-      'Content-Type, Authorization'
-    );
+    // Ensure CORS headers are set
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-    return proxiedResponse;
+    return response;
   } catch (error) {
-    console.error('[API Proxy] Error:', error);
-    const errorMessage =
-      error instanceof Error
-        ? error.message
-        : 'Failed to proxy request to backend';
-    
-    // Check if it's a connection error
-    if (errorMessage.includes('Failed to connect')) {
-      return NextResponse.json(
-        {
-          error: {
-            code: 'BACKEND_CONNECTION_ERROR',
-            message: `Cannot connect to backend server at ${BACKEND_URL}. Please ensure the backend is running.`,
-          },
-        },
-        { status: 503 } // Service Unavailable
-      );
-    }
-
+    console.error('Proxy error:', error);
     return NextResponse.json(
       {
         error: {
           code: 'PROXY_ERROR',
-          message: errorMessage,
+          message: 'Failed to proxy request to backend server',
+          details: error instanceof Error ? error.message : 'Unknown error',
         },
       },
       { status: 500 }
     );
   }
 }
+
+// Handle all HTTP methods
+export const GET = proxyRequest;
+export const POST = proxyRequest;
+export const PUT = proxyRequest;
+export const PATCH = proxyRequest;
+export const DELETE = proxyRequest;
+export const OPTIONS = proxyRequest;
+export const HEAD = proxyRequest;
 
