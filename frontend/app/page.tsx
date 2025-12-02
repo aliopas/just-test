@@ -5,16 +5,6 @@ import { palette } from '@/styles/theme';
 
 export const dynamic = 'force-dynamic';
 
-// Dynamic import with SSR disabled to prevent 500 errors on Netlify
-// Everything loads client-side only to avoid SSR issues
-const RootPageContent = dynamicImport(
-  () => import('./components/RootPageContent').then((mod) => ({ default: mod.RootPageContent })),
-  {
-    ssr: false, // Disable SSR completely to prevent server-side errors
-    loading: () => <LoadingFallback />,
-  }
-);
-
 function LoadingFallback() {
   return (
     <div
@@ -40,6 +30,16 @@ function LoadingFallback() {
     </div>
   );
 }
+
+// Dynamic import with SSR disabled - loads entire page content client-side only
+// This prevents all SSR issues with hooks, contexts, and react-router-dom
+const RootPageContent = dynamicImport(
+  () => import('./components/RootPageContent').then((mod) => ({ default: mod.RootPageContent })),
+  {
+    ssr: false, // Disable SSR completely to prevent server-side errors
+    loading: () => <LoadingFallback />,
+  }
+);
 
 export default function RootPage() {
   return <RootPageContent />;
