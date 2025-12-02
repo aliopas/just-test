@@ -38,13 +38,6 @@ export default function DashboardLoading() {
           جاري تحميل لوحة التحكم...
         </p>
       </div>
-      <style jsx>{`
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-      `}</style>
     </div>
   );
 }

@@ -40,13 +40,6 @@ export default function Loading() {
           جاري التحميل...
         </p>
       </div>
-      <style jsx>{`
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-      `}</style>
     </div>
   );
 }

@@ -51,13 +51,6 @@ export function SuspenseBoundary({
           {loadingText}
         </p>
       </div>
-      <style jsx>{`
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-      `}</style>
     </div>
   );
 

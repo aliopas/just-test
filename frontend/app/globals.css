@@ -5,3 +5,10 @@
 
 /* Add any global CSS here */
 
+/* Loading spinner animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+

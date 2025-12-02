@@ -17,23 +17,16 @@ function NewsLoading() {
         padding: '2rem',
       }}
     >
-      <div
-        style={{
-          width: '40px',
-          height: '40px',
-          border: '3px solid #e5e7eb',
-          borderTopColor: '#2563eb',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite',
-        }}
-      />
-      <style jsx>{`
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-      `}</style>
+        <div
+          style={{
+            width: '40px',
+            height: '40px',
+            border: '3px solid #e5e7eb',
+            borderTopColor: '#2563eb',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+          }}
+        />
     </div>
   );
 }

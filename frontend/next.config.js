@@ -107,7 +107,9 @@ const nextConfig = {
     } : false,
   },
   // Output configuration
-  output: 'standalone',
+  // Note: Removed 'standalone' output as it conflicts with Netlify plugin
+  // Netlify's @netlify/plugin-nextjs handles Next.js deployment automatically
+  // output: 'standalone', // Only needed for Docker/self-hosted deployments
   // For Netlify deployment with Next.js App Router
   // We use dynamic rendering for all pages to avoid SSR issues with React Router components
   // The ClientOnly wrapper ensures components only render on the client
