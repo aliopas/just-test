@@ -40,9 +40,13 @@ export function useNextLocation() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   
+  // useSearchParams() always returns a ReadonlyURLSearchParams, but TypeScript
+  // might infer it as nullable in strict mode, so we check to be safe
+  const searchString = searchParams?.toString() ?? '';
+  
   return {
-    pathname,
-    search: searchParams.toString() ? `?${searchParams.toString()}` : '',
+    pathname: pathname ?? '',
+    search: searchString ? `?${searchString}` : '',
     hash: '',
     state: null,
   };
