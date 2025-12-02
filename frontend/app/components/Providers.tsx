@@ -20,33 +20,26 @@ const queryClient = new QueryClient({
 });
 
 // Router wrapper that provides React Router context using Next.js routing
+// Note: Hooks must be called unconditionally (React rules)
 function RouterWrapper({ children }: { children: React.ReactNode }) {
-  // Use try-catch and fallbacks for SSR compatibility
-  let pathname: string = '/';
-  let searchParams: URLSearchParams | null = null;
+  // These hooks must be called unconditionally
+  // They will safely return defaults during SSR
+  const pathnameValue = usePathname();
+  const searchParamsValue = useSearchParams();
   
-  try {
-    pathname = usePathname() || '/';
-    searchParams = useSearchParams();
-  } catch (error) {
-    // Fallback for SSR - use window.location if available
-    if (typeof window !== 'undefined') {
-      pathname = window.location.pathname || '/';
-      searchParams = new URLSearchParams(window.location.search);
-    }
-  }
-  
-  // Create location object based on Next.js route
+  // Create location object based on Next.js route with safe fallbacks
   const location = useMemo(() => {
-    const search = searchParams?.toString() || '';
+    const pathname = pathnameValue || (typeof window !== 'undefined' ? window.location.pathname : '/') || '/';
+    const search = searchParamsValue?.toString() || (typeof window !== 'undefined' ? window.location.search.replace('?', '') : '') || '';
+    
     return {
-      pathname: pathname || '/',
+      pathname,
       search: search ? `?${search}` : '',
       hash: typeof window !== 'undefined' ? window.location.hash : '',
       state: null,
       key: 'default',
     };
-  }, [pathname, searchParams]);
+  }, [pathnameValue, searchParamsValue]);
 
   // Create navigator that doesn't interfere with Next.js routing
   const navigator = useMemo(() => ({
