@@ -1,4 +1,4 @@
-import { useMemo, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -131,6 +131,9 @@ interface Props {
 
 export function AdminInvestorCreateForm({ onSubmit, submitting }: Props) {
   const { language, direction } = useLanguage();
+  // تحكم في إظهار/إخفاء كامل نموذج إنشاء المستثمر
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [showInvestorDetails, setShowInvestorDetails] = useState(false);
 
   const schema = useMemo(
     () =>
@@ -246,35 +249,73 @@ export function AdminInvestorCreateForm({ onSubmit, submitting }: Props) {
         gap: '1.5rem',
       }}
     >
-      <header style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        <h2
-          style={{
-            margin: 0,
-            fontSize: '1.75rem',
-            color: 'var(--color-text-primary)',
-          }}
-        >
-          {tAdminUsers('form.title', language)}
-        </h2>
-        <p
-          style={{
-            margin: 0,
-            color: 'var(--color-text-secondary)',
-            fontSize: '0.95rem',
-            maxWidth: '48rem',
-          }}
-        >
-          {tAdminUsers('form.subtitle', language)}
-        </p>
-      </header>
-
-      <form
-        onSubmit={handleSubmit(onSubmitForm)}
+      <header
         style={{
-          display: 'grid',
-          gap: '1.25rem',
+          display: 'flex',
+          flexDirection: direction === 'rtl' ? 'row-reverse' : 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '1rem',
         }}
       >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <h2
+            style={{
+              margin: 0,
+              fontSize: '1.75rem',
+              color: 'var(--color-text-primary)',
+            }}
+          >
+            {tAdminUsers('form.title', language)}
+          </h2>
+          <p
+            style={{
+              margin: 0,
+              color: 'var(--color-text-secondary)',
+              fontSize: '0.95rem',
+              maxWidth: '48rem',
+            }}
+          >
+            {tAdminUsers('form.subtitle', language)}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setIsFormOpen(open => !open)}
+          style={{
+            padding: '0.65rem 1.4rem',
+            borderRadius: '999px',
+            border: '1px solid var(--color-brand-primary-strong)',
+            background: isFormOpen
+              ? 'var(--color-brand-primary-strong)'
+              : 'var(--color-background-base)',
+            color: isFormOpen
+              ? 'var(--color-text-on-brand)'
+              : 'var(--color-brand-primary-strong)',
+            fontWeight: 600,
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {language === 'ar'
+            ? isFormOpen
+              ? 'إخفاء نموذج إنشاء مستثمر'
+              : 'إظهار نموذج إنشاء مستثمر'
+            : isFormOpen
+              ? 'Hide investor form'
+              : 'Show investor form'}
+        </button>
+      </header>
+
+      {isFormOpen && (
+        <form
+          onSubmit={handleSubmit(onSubmitForm)}
+          style={{
+            display: 'grid',
+            gap: '1.25rem',
+          }}
+        >
         <div style={gridRowStyle}>
           <FormField
             label={tAdminUsers('form.email', language)}
@@ -417,120 +458,161 @@ export function AdminInvestorCreateForm({ onSubmit, submitting }: Props) {
           </small>
         </FormField>
 
-        <div style={gridRowStyle}>
-          <FormField
-            label={tAdminUsers('form.investor.idType', language)}
-            error={errors.idType?.message}
-          >
-            <select
-              {...register('idType')}
-              disabled={submitting}
-              style={inputStyle}
-              defaultValue=""
-            >
-              <option value="">
-                {language === 'ar' ? 'بدون' : 'None'}
-              </option>
-              {Object.entries(idTypeLabels).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label[language]}
-                </option>
-              ))}
-            </select>
-          </FormField>
-
-          <FormField
-            label={tAdminUsers('form.investor.idNumber', language)}
-            error={errors.idNumber?.message}
-          >
-            <input
-              type="text"
-              {...register('idNumber')}
-              disabled={submitting}
-              style={inputStyle}
-            />
-          </FormField>
-        </div>
-
-        <div style={gridRowStyle}>
-          <FormField
-            label={tAdminUsers('form.investor.nationality', language)}
-            error={errors.nationality?.message}
-          >
-            <input
-              type="text"
-              {...register('nationality')}
-              disabled={submitting}
-              style={inputStyle}
-              placeholder="SA"
-            />
-          </FormField>
-
-          <FormField
-            label={tAdminUsers('form.investor.residency', language)}
-            error={errors.residencyCountry?.message}
-          >
-            <input
-              type="text"
-              {...register('residencyCountry')}
-              disabled={submitting}
-              style={inputStyle}
-              placeholder="SA"
-            />
-          </FormField>
-        </div>
-
-        <div style={gridRowStyle}>
-          <FormField
-            label={tAdminUsers('form.investor.city', language)}
-            error={errors.city?.message}
-          >
-            <input
-              type="text"
-              {...register('city')}
-              disabled={submitting}
-              style={inputStyle}
-            />
-          </FormField>
-
-          <FormField
-            label={tAdminUsers('form.investor.kycStatus', language)}
-            error={errors.kycStatus?.message}
-          >
-            <select
-              {...register('kycStatus')}
-              disabled={submitting}
-              style={inputStyle}
-            >
-              {kycValues.map(status => (
-                <option key={status} value={status}>
-                  {tAdminUsers(`kyc.${status}` as const, language)}
-                </option>
-              ))}
-            </select>
-          </FormField>
-        </div>
-
-        <FormField
-          label={tAdminUsers('form.investor.riskProfile', language)}
-          error={errors.riskProfile?.message}
+        {/* قسم بيانات المستثمر التفصيلية - قابل للطي */}
+        <div
+          style={{
+            marginTop: '0.75rem',
+            padding: '0.85rem 1rem',
+            borderRadius: '0.9rem',
+            border: '1px solid var(--color-border)',
+            background: 'var(--color-background-base)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            cursor: 'pointer',
+          }}
+          onClick={() => setShowInvestorDetails(prev => !prev)}
         >
-          <select
-            {...register('riskProfile')}
-            disabled={submitting}
-            style={inputStyle}
-            defaultValue=""
+          <span
+            style={{
+              fontWeight: 600,
+              color: 'var(--color-text-primary)',
+              fontSize: '0.95rem',
+            }}
           >
-            <option value="">
-              {language === 'ar' ? 'غير محدد' : 'Not set'}
-            </option>
-            {riskValues.map(value => (
-              <option key={value} value={value}>
-                {tAdminUsers(`risk.${value}` as const, language)}
-              </option>
-            ))}
-          </select>
-        </FormField>
+            {language === 'ar'
+              ? 'بيانات المستثمر التفصيلية (اختيارية)'
+              : 'Detailed investor profile (optional)'}
+          </span>
+          <span
+            style={{
+              fontSize: '1.2rem',
+              transform: showInvestorDetails ? 'rotate(90deg)' : 'rotate(0deg)',
+              transition: 'transform 0.15s ease',
+            }}
+          >
+            {direction === 'rtl' ? (showInvestorDetails ? '◀' : '▶') : showInvestorDetails ? '▼' : '▶'}
+          </span>
+        </div>
+
+        {showInvestorDetails && (
+          <>
+            <div style={gridRowStyle}>
+              <FormField
+                label={tAdminUsers('form.investor.idType', language)}
+                error={errors.idType?.message}
+              >
+                <select
+                  {...register('idType')}
+                  disabled={submitting}
+                  style={inputStyle}
+                  defaultValue=""
+                >
+                  <option value="">
+                    {language === 'ar' ? 'بدون' : 'None'}
+                  </option>
+                  {Object.entries(idTypeLabels).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label[language]}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+
+              <FormField
+                label={tAdminUsers('form.investor.idNumber', language)}
+                error={errors.idNumber?.message}
+              >
+                <input
+                  type="text"
+                  {...register('idNumber')}
+                  disabled={submitting}
+                  style={inputStyle}
+                />
+              </FormField>
+            </div>
+
+            <div style={gridRowStyle}>
+              <FormField
+                label={tAdminUsers('form.investor.nationality', language)}
+                error={errors.nationality?.message}
+              >
+                <input
+                  type="text"
+                  {...register('nationality')}
+                  disabled={submitting}
+                  style={inputStyle}
+                  placeholder="SA"
+                />
+              </FormField>
+
+              <FormField
+                label={tAdminUsers('form.investor.residency', language)}
+                error={errors.residencyCountry?.message}
+              >
+                <input
+                  type="text"
+                  {...register('residencyCountry')}
+                  disabled={submitting}
+                  style={inputStyle}
+                  placeholder="SA"
+                />
+              </FormField>
+            </div>
+
+            <div style={gridRowStyle}>
+              <FormField
+                label={tAdminUsers('form.investor.city', language)}
+                error={errors.city?.message}
+              >
+                <input
+                  type="text"
+                  {...register('city')}
+                  disabled={submitting}
+                  style={inputStyle}
+                />
+              </FormField>
+
+              <FormField
+                label={tAdminUsers('form.investor.kycStatus', language)}
+                error={errors.kycStatus?.message}
+              >
+                <select
+                  {...register('kycStatus')}
+                  disabled={submitting}
+                  style={inputStyle}
+                >
+                  {kycValues.map(status => (
+                    <option key={status} value={status}>
+                      {tAdminUsers(`kyc.${status}` as const, language)}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+            </div>
+
+            <FormField
+              label={tAdminUsers('form.investor.riskProfile', language)}
+              error={errors.riskProfile?.message}
+            >
+              <select
+                {...register('riskProfile')}
+                disabled={submitting}
+                style={inputStyle}
+                defaultValue=""
+              >
+                <option value="">
+                  {language === 'ar' ? 'غير محدد' : 'Not set'}
+                </option>
+                {riskValues.map(value => (
+                  <option key={value} value={value}>
+                    {tAdminUsers(`risk.${value}` as const, language)}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+          </>
+        )}
 
         <div
           style={{
@@ -561,6 +643,7 @@ export function AdminInvestorCreateForm({ onSubmit, submitting }: Props) {
           </button>
         </div>
       </form>
+      )}
     </section>
   );
 }
