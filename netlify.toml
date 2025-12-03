@@ -76,6 +76,4 @@
     "../package.json",
     "package.json"
   ]
-  # External dependencies that should be bundled
-  external = []
 
