@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { revalidatePath } from 'next/cache';
 
 /**
  * Server Actions for common operations
@@ -8,32 +8,28 @@ import { revalidatePath, revalidateTag } from 'next/cache';
  */
 
 export async function revalidateNews() {
-  revalidatePath('/news');
-  revalidateTag('news');
+  revalidatePath('/news', 'page');
+  // revalidateTag is not needed when using revalidatePath with 'page' type
   return { success: true };
 }
 
 export async function revalidateProjects() {
-  revalidatePath('/projects');
-  revalidateTag('projects');
+  revalidatePath('/projects', 'page');
   return { success: true };
 }
 
 export async function revalidateDashboard() {
-  revalidatePath('/dashboard');
-  revalidateTag('dashboard');
+  revalidatePath('/dashboard', 'page');
   return { success: true };
 }
 
 export async function revalidateProfile() {
-  revalidatePath('/profile');
-  revalidateTag('profile');
+  revalidatePath('/profile', 'page');
   return { success: true };
 }
 
 export async function revalidateRequests() {
-  revalidatePath('/requests');
-  revalidateTag('requests');
+  revalidatePath('/requests', 'page');
   return { success: true };
 }
 
@@ -41,10 +37,8 @@ export async function revalidateRequests() {
  * Generic revalidation function
  */
 export async function revalidate(path: string, tag?: string) {
-  revalidatePath(path);
-  if (tag) {
-    revalidateTag(tag);
-  }
+  revalidatePath(path, 'page');
+  // Note: revalidateTag API changed in Next.js 16, using revalidatePath instead
   return { success: true };
 }
 

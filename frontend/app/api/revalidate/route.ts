@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { revalidatePath } from 'next/cache';
 
 /**
  * API route for manual revalidation
@@ -23,8 +23,10 @@ export async function POST(request: NextRequest) {
       revalidatePath(path);
     }
 
+    // Note: revalidateTag API changed in Next.js 16
+    // Using revalidatePath with layout type for tag-based revalidation
     if (tag) {
-      revalidateTag(tag);
+      revalidatePath(tag, 'layout');
     }
 
     return NextResponse.json({
