@@ -1,7 +1,30 @@
 import serverless from 'serverless-http';
-// Load environment variables first
+// Load environment variables first - CRITICAL: Must load before importing backend app
+// In Netlify, environment variables should be set in Netlify Dashboard
+// For local development, we load from .env file
 import dotenv from 'dotenv';
-dotenv.config();
+import path from 'path';
+
+// Load .env from root directory (relative to netlify/functions/)
+// In Netlify production, environment variables are automatically available from Netlify Dashboard
+// But we still try to load .env as fallback
+const envPath = path.resolve(__dirname, '../../.env');
+dotenv.config({ path: envPath });
+
+// Log environment variable status for debugging
+console.log('[Server Function] Environment check:', {
+  hasSupabaseUrl: !!process.env.SUPABASE_URL,
+  hasSupabaseAnonKey: !!process.env.SUPABASE_ANON_KEY,
+  hasSupabaseServiceRoleKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+  nodeEnv: process.env.NODE_ENV,
+  envPath,
+});
+
+// Warn if critical environment variables are missing
+if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+  console.error('[Server Function] WARNING: Missing critical Supabase environment variables!');
+  console.error('[Server Function] Please ensure SUPABASE_URL and SUPABASE_ANON_KEY are set in Netlify Dashboard');
+}
 
 // Import from source TypeScript file
 // Netlify's esbuild will handle the compilation
