@@ -229,6 +229,9 @@ export function LoginPage() {
       // mounted via the Next.js catch-all route in app/[...slug]/page.tsx.
       navigate(isAdmin ? '/admin' : '/home', { replace: true });
     } catch (error) {
+      // تسجيل الخطأ بالتفصيل للمساعدة في التشخيص
+      console.error('Login error:', error);
+      
       if (error instanceof ApiError) {
         pushToast({
           variant: 'error',
@@ -244,12 +247,27 @@ export function LoginPage() {
         return;
       }
 
+      // تحقق من خطأ Supabase client
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        pushToast({
+          variant: 'error',
+          message:
+            language === 'ar'
+              ? 'خطأ في إعدادات الاتصال. يرجى التحقق من إعدادات Supabase.'
+              : 'Connection configuration error. Please check Supabase settings.',
+        });
+        return;
+      }
+
+      // عرض رسالة أوضح للخطأ غير المتوقع
+      const errorMessage = error instanceof Error ? error.message : String(error);
       pushToast({
         variant: 'error',
         message:
           language === 'ar'
-            ? 'حدث خطأ غير متوقع أثناء تسجيل الدخول.'
-            : 'An unexpected error occurred during sign-in.',
+            ? `حدث خطأ أثناء تسجيل الدخول: ${errorMessage}`
+            : `An error occurred during sign-in: ${errorMessage}`,
       });
     }
   };
