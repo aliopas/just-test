@@ -2,10 +2,9 @@
 import { palette } from '../styles/theme';
 
 // Note: For Next.js, images should be in public/ folder
-// These paths expect logo.png and logo.jpg to be copied to public/
-// Run: cp src/assets/logo.png public/logo.png && cp src/assets/logo.jpg public/logo.jpg
-const primaryLogoSrc = '/logo.png';
-const legacyLogoSrc = '/logo.jpg';
+// Logo files are in public/ folder: logo.jpg (primary) and logo.png (if available)
+const primaryLogoSrc = '/logo.jpg';
+const legacyLogoSrc = '/logo.png';
 
 export interface LogoProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   size?: number; // Minimum: 96px for web, 72px for mobile (per PRD)
@@ -71,6 +70,7 @@ export function Logo({
   };
 
   // Determine which logo source to use
+  // Primary is logo.jpg, legacy is logo.png
   const logoSrc = logoUrl || (useLegacyAsset ? legacyLogoSrc : primaryLogoSrc);
 
   return (

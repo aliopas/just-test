@@ -48,7 +48,7 @@
         "./src/locales/*"
       ],
       "@/pages/*": [
-        "./src/pages-old/*"
+        "./src/pages/*"
       ]
     },
     "forceConsistentCasingInFileNames": true
@@ -65,10 +65,9 @@
     "node_modules",
     "vite.config.ts",
     "src/app",
-    "src/app-old",
-    "src/pages-old",
     "src/App.tsx",
     "src/main.tsx",
-    "src/index.html"
+    "src/index.html",
+    ".app-backup"
   ]
 }
