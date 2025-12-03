@@ -6,10 +6,10 @@
 [build.environment]
   NODE_VERSION = "22"
 
-# Plugin removed - Netlify will install the latest version automatically
-# See: https://app.netlify.com/plugins
-# [[plugins]]
-#   package = "@netlify/plugin-nextjs"
+# Next.js plugin is required for Next.js to work on Netlify
+# Netlify will automatically use the latest compatible version
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
 
 # API redirects - must come before other redirects
 # This redirects all /api/v1/* requests to the serverless function
