@@ -43,14 +43,9 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except:
-     * - api routes
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - static files (files with extensions)
-     * - public files (sw.js, manifest.json, robots.txt)
+     * Simple matcher: match all paths
+     * The middleware function itself filters out static files and API routes
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|logo\\.(jpg|png|svg)|.*\\..*|sw.js|manifest.json|robots.txt).*)',
+    '/(.*)',
   ],
 };
