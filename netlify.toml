@@ -60,5 +60,5 @@
 
 [functions]
   node_bundler = "esbuild"
-  included_files = ["backend/src/**", "backend/dist/**"]
+  included_files = ["../backend/src/**", "../backend/dist/**", "../backend/package.json"]
 
