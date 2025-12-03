@@ -15,46 +15,11 @@ const nextConfig = {
   // Next.js should automatically use app/ directory when it exists
   // Transpile packages if needed
   transpilePackages: [],
-  // Webpack configuration to resolve imports from pages/ directory
-  // When pages are moved from src/pages to pages/, imports like '../components' 
-  // need to point to 'src/components' instead of root-level 'components'
-  webpack: (config, { isServer }) => {
-    const path = require('path');
-    const originalResolve = config.resolve.resolve || config.resolve.resolve;
-    
-    // Add alias for @ imports
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@': path.resolve(__dirname, 'src'),
-    };
-    
-    // Add src to module resolution paths
-    config.resolve.modules = [
-      ...(config.resolve.modules || []),
-      path.resolve(__dirname, 'src'),
-    ];
-    
-    // Custom resolver to handle relative imports from pages/
-    const originalResolveLoader = config.resolveLoader.resolve;
-    const originalResolvePlugin = config.plugins.find(p => p.constructor.name === 'NormalModuleReplacementPlugin');
-    
-    // Override resolve to check src/ when relative imports fail
-    const originalResolveFunction = config.resolve.resolve || config.resolve;
-    config.resolve.resolve = function(context, request, callback) {
-      // If it's a relative import that starts with ../
-      if (request.startsWith('../') && !request.startsWith('../node_modules')) {
-        const srcPath = path.resolve(__dirname, 'src', request.replace(/^\.\.\//, ''));
-        const fs = require('fs');
-        if (fs.existsSync(srcPath) || fs.existsSync(srcPath + '.ts') || fs.existsSync(srcPath + '.tsx')) {
-          return callback(null, srcPath);
-        }
-      }
-      // Fall back to default resolution
-      return originalResolveFunction.call(this, context, request, callback);
-    };
-    
-    return config;
-  },
+  // Turbopack configuration (Next.js 16 uses Turbopack by default)
+  // The @ alias is already configured in tsconfig.json and works with Turbopack
+  // Note: We removed webpack config as Turbopack doesn't support it
+  // All imports should use @/ alias which is configured in tsconfig.json
+  turbopack: {},
   // Environment variables
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
