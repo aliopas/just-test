@@ -364,23 +364,39 @@ function mapCompanyGoal(row: CompanyGoalRow): CompanyGoal {
 export async function listCompanyProfiles(
   includeInactive = false
 ): Promise<CompanyProfile[]> {
-  const adminClient = requireSupabaseAdmin();
-  let query = adminClient
-    .from('company_profile')
-    .select('*')
-    .order('display_order', { ascending: true });
+  try {
+    const adminClient = requireSupabaseAdmin();
+    let query = adminClient
+      .from('company_profile')
+      .select('*')
+      .order('display_order', { ascending: true });
 
-  if (!includeInactive) {
-    query = query.eq('is_active', true);
+    if (!includeInactive) {
+      query = query.eq('is_active', true);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('[Company Content Service] Failed to list company profiles:', {
+        error: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      });
+      throw new Error(`Failed to list company profiles: ${error.message} (code: ${error.code || 'unknown'})`);
+    }
+
+    console.log(`[Company Content Service] Retrieved ${data?.length || 0} company profiles (includeInactive: ${includeInactive})`);
+    return (data ?? []).map(mapCompanyProfile);
+  } catch (error) {
+    // Re-throw with more context if it's a Supabase admin client error
+    if (error instanceof Error && error.message.includes('service role key')) {
+      console.error('[Company Content Service] Supabase Admin Client Error:', error.message);
+      throw new Error('Database access error: Service role key is required. Please set SUPABASE_SERVICE_ROLE_KEY in Netlify Dashboard.');
+    }
+    throw error;
   }
-
-  const { data, error } = await query;
-
-  if (error) {
-    throw new Error(`Failed to list company profiles: ${error.message}`);
-  }
-
-  return (data ?? []).map(mapCompanyProfile);
 }
 
 export async function getCompanyProfileById(

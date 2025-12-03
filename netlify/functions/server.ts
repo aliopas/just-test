@@ -12,18 +12,42 @@ const envPath = path.resolve(__dirname, '../../.env');
 dotenv.config({ path: envPath });
 
 // Log environment variable status for debugging
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
 console.log('[Server Function] Environment check:', {
-  hasSupabaseUrl: !!process.env.SUPABASE_URL,
-  hasSupabaseAnonKey: !!process.env.SUPABASE_ANON_KEY,
-  hasSupabaseServiceRoleKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+  hasSupabaseUrl: !!supabaseUrl,
+  hasSupabaseAnonKey: !!supabaseAnonKey,
+  hasSupabaseServiceRoleKey: !!supabaseServiceRoleKey,
   nodeEnv: process.env.NODE_ENV,
   envPath,
+  // Log first few characters to verify format (not full values for security)
+  supabaseUrlPrefix: supabaseUrl?.substring(0, 20) || 'missing',
+  supabaseAnonKeyPrefix: supabaseAnonKey?.substring(0, 20) || 'missing',
+  supabaseServiceRoleKeyPrefix: supabaseServiceRoleKey?.substring(0, 20) || 'missing',
 });
 
 // Warn if critical environment variables are missing
-if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
-  console.error('[Server Function] WARNING: Missing critical Supabase environment variables!');
-  console.error('[Server Function] Please ensure SUPABASE_URL and SUPABASE_ANON_KEY are set in Netlify Dashboard');
+if (!supabaseUrl || !supabaseAnonKey) {
+  const missing: string[] = [];
+  if (!supabaseUrl) missing.push('SUPABASE_URL');
+  if (!supabaseAnonKey) missing.push('SUPABASE_ANON_KEY');
+  
+  console.error('[Server Function] ❌ CRITICAL: Missing Supabase environment variables:', missing.join(', '));
+  console.error('[Server Function] Please ensure these are set in Netlify Dashboard:');
+  console.error('[Server Function]   1. Go to Site Settings > Environment Variables');
+  console.error('[Server Function]   2. Add SUPABASE_URL (your Supabase project URL)');
+  console.error('[Server Function]   3. Add SUPABASE_ANON_KEY (your Supabase anon/public key)');
+  console.error('[Server Function]   4. Add SUPABASE_SERVICE_ROLE_KEY (your Supabase service_role key)');
+  console.error('[Server Function]   5. Redeploy the site');
+}
+
+// Warn if service role key is missing (needed for admin operations)
+if (!supabaseServiceRoleKey) {
+  console.warn('[Server Function] ⚠️  WARNING: SUPABASE_SERVICE_ROLE_KEY is missing!');
+  console.warn('[Server Function] Some operations (like company-profile queries) require service role key.');
+  console.warn('[Server Function] Public endpoints may fail. Please add SUPABASE_SERVICE_ROLE_KEY in Netlify Dashboard.');
 }
 
 // Import from source TypeScript file
