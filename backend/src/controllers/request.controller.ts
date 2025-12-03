@@ -32,7 +32,10 @@ export const requestController = {
 
       const validation = createRequestSchema.safeParse(req.body);
       if (!validation.success) {
-        console.error('Validation failed:', JSON.stringify(validation.error.issues, null, 2));
+        console.error(
+          'Validation failed:',
+          JSON.stringify(validation.error.issues, null, 2)
+        );
         console.error('Validation error details:', {
           issues: validation.error.issues,
           formatted: validation.error.format(),
@@ -50,7 +53,10 @@ export const requestController = {
         });
       }
 
-      console.log('Validation successful, validated data:', JSON.stringify(validation.data, null, 2));
+      console.log(
+        'Validation successful, validated data:',
+        JSON.stringify(validation.data, null, 2)
+      );
 
       const { id, requestNumber } = await createInvestorRequest({
         userId,
@@ -64,9 +70,10 @@ export const requestController = {
       });
     } catch (error) {
       console.error('Failed to create request:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       const errorStack = error instanceof Error ? error.stack : undefined;
-      
+
       // Log full error details for debugging
       console.error('Error details:', {
         message: errorMessage,
@@ -74,19 +81,21 @@ export const requestController = {
         body: req.body,
         userId: req.user?.id,
       });
-      
+
       // Check if it's a database constraint error
-      const isDatabaseError = errorMessage.includes('constraint') || 
-                             errorMessage.includes('violates') ||
-                             errorMessage.includes('check constraint');
-      
+      const isDatabaseError =
+        errorMessage.includes('constraint') ||
+        errorMessage.includes('violates') ||
+        errorMessage.includes('check constraint');
+
       return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
-          message: isDatabaseError 
+          message: isDatabaseError
             ? 'Database constraint violation. Please check your request data.'
             : 'Failed to create request',
-          details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
+          details:
+            process.env.NODE_ENV === 'development' ? errorMessage : undefined,
         },
       });
     }
@@ -422,5 +431,4 @@ export const requestController = {
       });
     }
   },
-
 };

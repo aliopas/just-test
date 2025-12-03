@@ -89,10 +89,10 @@ const testRequests = {
 function testRequest(name: string, data: unknown) {
   console.log(`\n🧪 Testing: ${name}`);
   console.log('📦 Data:', JSON.stringify(data, null, 2));
-  
+
   try {
     const result = createRequestSchema.safeParse(data);
-    
+
     if (result.success) {
       console.log('✅ Validation PASSED');
       console.log('📋 Parsed data:', JSON.stringify(result.data, null, 2));
@@ -101,7 +101,9 @@ function testRequest(name: string, data: unknown) {
       console.log('❌ Validation FAILED');
       console.log('🚫 Errors:');
       result.error.issues.forEach((issue, index) => {
-        console.log(`   ${index + 1}. ${issue.path.join('.')}: ${issue.message}`);
+        console.log(
+          `   ${index + 1}. ${issue.path.join('.')}: ${issue.message}`
+        );
       });
       return false;
     }
@@ -114,39 +116,69 @@ function testRequest(name: string, data: unknown) {
 async function runTests() {
   console.log('🚀 Starting Request Schema Tests\n');
   console.log('='.repeat(60));
-  
+
   const results: Array<{ name: string; passed: boolean }> = [];
-  
+
   // Test financial requests
-  results.push({ name: 'Buy Request', passed: testRequest('Buy Request', testRequests.buy) });
-  results.push({ name: 'Sell Request', passed: testRequest('Sell Request', testRequests.sell) });
-  
+  results.push({
+    name: 'Buy Request',
+    passed: testRequest('Buy Request', testRequests.buy),
+  });
+  results.push({
+    name: 'Sell Request',
+    passed: testRequest('Sell Request', testRequests.sell),
+  });
+
   // Test partnership
-  results.push({ name: 'Partnership Request', passed: testRequest('Partnership Request', testRequests.partnership) });
-  
+  results.push({
+    name: 'Partnership Request',
+    passed: testRequest('Partnership Request', testRequests.partnership),
+  });
+
   // Test board nomination
-  results.push({ name: 'Board Nomination (with amount)', passed: testRequest('Board Nomination (with amount)', testRequests.board_nomination) });
-  results.push({ name: 'Board Nomination (without amount)', passed: testRequest('Board Nomination (without amount)', testRequests.board_nomination_no_amount) });
-  
+  results.push({
+    name: 'Board Nomination (with amount)',
+    passed: testRequest(
+      'Board Nomination (with amount)',
+      testRequests.board_nomination
+    ),
+  });
+  results.push({
+    name: 'Board Nomination (without amount)',
+    passed: testRequest(
+      'Board Nomination (without amount)',
+      testRequests.board_nomination_no_amount
+    ),
+  });
+
   // Test feedback
-  results.push({ name: 'Feedback (without amount)', passed: testRequest('Feedback (without amount)', testRequests.feedback) });
-  results.push({ name: 'Feedback (with amount)', passed: testRequest('Feedback (with amount)', testRequests.feedback_with_amount) });
-  
+  results.push({
+    name: 'Feedback (without amount)',
+    passed: testRequest('Feedback (without amount)', testRequests.feedback),
+  });
+  results.push({
+    name: 'Feedback (with amount)',
+    passed: testRequest(
+      'Feedback (with amount)',
+      testRequests.feedback_with_amount
+    ),
+  });
+
   // Summary
   console.log('\n' + '='.repeat(60));
   console.log('📊 Test Summary\n');
-  
+
   const passed = results.filter(r => r.passed).length;
   const failed = results.filter(r => !r.passed).length;
-  
+
   results.forEach(result => {
     const icon = result.passed ? '✅' : '❌';
     console.log(`${icon} ${result.name}`);
   });
-  
+
   console.log(`\n✅ Passed: ${passed}/${results.length}`);
   console.log(`❌ Failed: ${failed}/${results.length}`);
-  
+
   if (failed === 0) {
     console.log('\n🎉 All tests passed!');
     process.exit(0);
@@ -161,4 +193,3 @@ runTests().catch(error => {
   console.error('💥 Fatal error:', error);
   process.exit(1);
 });
-

@@ -222,7 +222,7 @@ export async function getInvestorDashboard(params: {
     buy: 0,
     sell: 0,
   };
-  
+
   let total = 0;
   for (const row of (statusResult.data ?? []) as StatusRow[]) {
     if (!row?.status) {
@@ -247,7 +247,7 @@ export async function getInvestorDashboard(params: {
   const recentRequests = ((recentResult.data ?? []) as RequestRow[]).map(
     row => {
       // Normalize type: if null or unknown, default to 'buy'
-      const normalizedType: RequestType = 
+      const normalizedType: RequestType =
         row.type && allRequestTypes.includes(row.type as RequestType)
           ? (row.type as RequestType)
           : 'buy';

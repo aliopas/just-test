@@ -5,14 +5,11 @@ const validCurrencies = ['SAR', 'USD', 'EUR'] as const;
 // Base schema with common fields
 const baseRequestSchema = {
   type: z.enum(['buy', 'sell', 'partnership', 'board_nomination', 'feedback']),
-  targetPrice: z.preprocess(
-    (val) => {
-      if (val === undefined || val === null || val === '') return undefined;
-      const num = typeof val === 'number' ? val : Number(val);
-      return Number.isNaN(num) ? undefined : num;
-    },
-    z.number().positive('Target price must be positive').optional()
-  ),
+  targetPrice: z.preprocess(val => {
+    if (val === undefined || val === null || val === '') return undefined;
+    const num = typeof val === 'number' ? val : Number(val);
+    return Number.isNaN(num) ? undefined : num;
+  }, z.number().positive('Target price must be positive').optional()),
   expiryAt: z
     .string()
     .optional()
@@ -34,14 +31,11 @@ const baseRequestSchema = {
 const financialRequestSchema = z.object({
   ...baseRequestSchema,
   type: z.enum(['buy', 'sell']),
-  amount: z.preprocess(
-    (val) => {
-      if (val === undefined || val === null || val === '') return undefined;
-      const num = typeof val === 'number' ? val : Number(val);
-      return Number.isNaN(num) ? undefined : num;
-    },
-    z.number().positive('Amount must be greater than zero')
-  ),
+  amount: z.preprocess(val => {
+    if (val === undefined || val === null || val === '') return undefined;
+    const num = typeof val === 'number' ? val : Number(val);
+    return Number.isNaN(num) ? undefined : num;
+  }, z.number().positive('Amount must be greater than zero')),
   currency: z.enum(validCurrencies),
 });
 
@@ -75,15 +69,12 @@ export const requestAttachmentPresignSchema = z
     fileType: z
       .string()
       .trim()
-      .refine(
-        value => {
-          // Allow all image types or PDF
-          const isImage = value.startsWith('image/');
-          const isPdf = value === 'application/pdf';
-          return isImage || isPdf;
-        },
-        'Only images and PDF files are allowed'
-      ),
+      .refine(value => {
+        // Allow all image types or PDF
+        const isImage = value.startsWith('image/');
+        const isPdf = value === 'application/pdf';
+        return isImage || isPdf;
+      }, 'Only images and PDF files are allowed'),
     fileSize: z.coerce
       .number()
       .int()
@@ -96,7 +87,15 @@ export const requestAttachmentPresignSchema = z
       // Allow common image extensions and PDF
       const allowedExtensions = [
         'pdf',
-        'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'tiff', 'ico',
+        'jpg',
+        'jpeg',
+        'png',
+        'gif',
+        'webp',
+        'bmp',
+        'svg',
+        'tiff',
+        'ico',
       ];
       return allowedExtensions.includes(extension);
     },
@@ -109,4 +108,3 @@ export const requestAttachmentPresignSchema = z
 export type RequestAttachmentPresignInput = z.infer<
   typeof requestAttachmentPresignSchema
 >;
-

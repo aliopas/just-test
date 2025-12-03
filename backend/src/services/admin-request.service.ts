@@ -187,7 +187,7 @@ export async function listAdminRequests(params: {
 
   // Get requests without relations first to avoid Supabase query issues
   let queryBuilder = adminClient.from('requests').select(
-      `
+    `
         id,
         request_number,
         status,
@@ -201,8 +201,8 @@ export async function listAdminRequests(params: {
         updated_at,
         user_id
       `,
-      { count: 'exact' }
-    );
+    { count: 'exact' }
+  );
 
   // Apply filters first
   if (params.query.status) {
@@ -212,7 +212,7 @@ export async function listAdminRequests(params: {
   // Filter by category (financial/non-financial)
   // Store this filter for post-processing since we need to check request types
   const categoryFilter = params.query.category ?? 'all';
-  
+
   // Filter by isNew (unread by any admin)
   // Store this filter for post-processing since we need to check admin_request_views
   const isNewFilter = params.query.isNew;
@@ -262,7 +262,7 @@ export async function listAdminRequests(params: {
   // Use post-processing for amount sorting to handle NULL values correctly
   // Also use post-processing when we need secondary sort (amount + created_at)
   const shouldUsePostProcessingSort = validSortField === 'amount';
-  
+
   let result;
   try {
     if (shouldUsePostProcessingSort) {
@@ -315,63 +315,79 @@ export async function listAdminRequests(params: {
   // Apply post-processing sort for amount field to handle NULL values properly
   if (shouldUsePostProcessingSort) {
     rows.sort((a, b) => {
-      const aAmount = a.amount == null ? null : (typeof a.amount === 'string' ? Number.parseFloat(a.amount) : a.amount);
-      const bAmount = b.amount == null ? null : (typeof b.amount === 'string' ? Number.parseFloat(b.amount) : b.amount);
-      
+      const aAmount =
+        a.amount == null
+          ? null
+          : typeof a.amount === 'string'
+            ? Number.parseFloat(a.amount)
+            : a.amount;
+      const bAmount =
+        b.amount == null
+          ? null
+          : typeof b.amount === 'string'
+            ? Number.parseFloat(b.amount)
+            : b.amount;
+
       // NULL values (non-financial requests) always go last
       if (aAmount == null && bAmount == null) {
         // Both NULL, sort by created_at descending
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        return (
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
       }
       // For descending (order = false), NULL values go to the end (positive value)
       // For ascending (order = true), NULL values go to the end (positive value)
       if (aAmount == null) return 1; // NULL always goes last
       if (bAmount == null) return -1; // NULL always goes last
-      
+
       // Both have values, compare normally
       const diff = (aAmount as number) - (bAmount as number);
       return order ? diff : -diff;
     });
-    
+
     // Apply pagination after sorting
     rows = rows.slice(offset, offset + limit);
   }
 
   // Apply amount filters in post-processing to properly handle NULL values
   // This ensures requests without amount (non-financial) are always included
-  if (amountFilters.minAmount !== undefined || amountFilters.maxAmount !== undefined) {
+  if (
+    amountFilters.minAmount !== undefined ||
+    amountFilters.maxAmount !== undefined
+  ) {
     const originalCount = rows.length;
     rows = rows.filter(row => {
       // Always include NULL amounts (non-financial requests)
       if (row.amount == null) {
         return true;
       }
-      
-      const amountValue = typeof row.amount === 'string' 
-        ? Number.parseFloat(row.amount) 
-        : row.amount;
-      
+
+      const amountValue =
+        typeof row.amount === 'string'
+          ? Number.parseFloat(row.amount)
+          : row.amount;
+
       if (typeof amountValue !== 'number' || !Number.isFinite(amountValue)) {
         return true; // Include invalid amounts to be safe
       }
-      
+
       // Check minAmount
       if (amountFilters.minAmount !== undefined) {
         if (amountValue < amountFilters.minAmount) {
           return false;
         }
       }
-      
+
       // Check maxAmount
       if (amountFilters.maxAmount !== undefined) {
         if (amountValue > amountFilters.maxAmount) {
           return false;
         }
       }
-      
+
       return true;
     });
-    
+
     console.log('Amount filter applied:', {
       originalCount,
       filteredCount: rows.length,
@@ -407,7 +423,7 @@ export async function listAdminRequests(params: {
   // Get read status for all requests by this admin
   const requestIds = rows.map(row => row.id);
   let readStatusMap: Record<string, boolean> = {};
-  let newStatusMap: Record<string, boolean> = {}; // Track if request is new (unread by any admin)
+  const newStatusMap: Record<string, boolean> = {}; // Track if request is new (unread by any admin)
 
   if (requestIds.length > 0) {
     // Get views by current admin (for isRead flag)
@@ -438,7 +454,7 @@ export async function listAdminRequests(params: {
       const viewedRequestIds = new Set(
         allViews.map(v => v.request_id as string)
       );
-      
+
       // Mark requests as new if they haven't been viewed by any admin
       requestIds.forEach(id => {
         newStatusMap[id] = !viewedRequestIds.has(id);
@@ -458,7 +474,11 @@ export async function listAdminRequests(params: {
       return type === 'buy' || type === 'sell';
     }
     if (categoryFilter === 'non-financial') {
-      return type === 'partnership' || type === 'board_nomination' || type === 'feedback';
+      return (
+        type === 'partnership' ||
+        type === 'board_nomination' ||
+        type === 'feedback'
+      );
     }
     return true;
   };

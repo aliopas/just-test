@@ -27,7 +27,10 @@ export async function createInvestorRequest(params: {
     // Ensure metadata is properly handled
     // Always send an object (even if empty) - database default is '{}'::jsonb
     let metadataValue: Record<string, unknown> = {};
-    if (params.payload.metadata && typeof params.payload.metadata === 'object') {
+    if (
+      params.payload.metadata &&
+      typeof params.payload.metadata === 'object'
+    ) {
       const keys = Object.keys(params.payload.metadata);
       if (keys.length > 0) {
         // Only include non-empty values
@@ -44,16 +47,16 @@ export async function createInvestorRequest(params: {
       }
     }
 
-  const requestPayload = {
-    user_id: params.userId,
-    request_number: requestNumber,
-    type: params.payload.type,
-    amount: params.payload.amount ?? null,
-    currency: params.payload.currency ?? null,
-    target_price: params.payload.targetPrice ?? null,
-    expiry_at: params.payload.expiryAt ?? null,
-    status: 'draft',
-    notes: params.payload.notes ?? null,
+    const requestPayload = {
+      user_id: params.userId,
+      request_number: requestNumber,
+      type: params.payload.type,
+      amount: params.payload.amount ?? null,
+      currency: params.payload.currency ?? null,
+      target_price: params.payload.targetPrice ?? null,
+      expiry_at: params.payload.expiryAt ?? null,
+      status: 'draft',
+      notes: params.payload.notes ?? null,
       metadata: metadataValue,
     };
 
@@ -68,13 +71,13 @@ export async function createInvestorRequest(params: {
       metadata_keys: metadataValue ? Object.keys(metadataValue) : [],
     });
 
-  const { data, error } = await adminClient
-    .from('requests')
-    .insert(requestPayload)
-    .select('id')
-    .single<{ id: string }>();
+    const { data, error } = await adminClient
+      .from('requests')
+      .insert(requestPayload)
+      .select('id')
+      .single<{ id: string }>();
 
-  if (error || !data) {
+    if (error || !data) {
       console.error('Database insert error:', {
         error: error,
         code: error?.code,
@@ -83,29 +86,31 @@ export async function createInvestorRequest(params: {
         hint: error?.hint,
         payload: requestPayload,
       });
-      throw new Error(`Failed to create request: ${error?.message ?? 'unknown'} - Code: ${error?.code ?? 'N/A'}`);
-  }
+      throw new Error(
+        `Failed to create request: ${error?.message ?? 'unknown'} - Code: ${error?.code ?? 'N/A'}`
+      );
+    }
 
-  const { error: eventError } = await adminClient
-    .from('request_events')
-    .insert({
-      request_id: data.id,
-      from_status: null,
-      to_status: 'draft',
-      actor_id: params.userId,
-      note: 'Request created',
-    });
+    const { error: eventError } = await adminClient
+      .from('request_events')
+      .insert({
+        request_id: data.id,
+        from_status: null,
+        to_status: 'draft',
+        actor_id: params.userId,
+        note: 'Request created',
+      });
 
-  if (eventError) {
-    throw new Error(
-      `Failed to log initial request event: ${eventError.message}`
-    );
-  }
+    if (eventError) {
+      throw new Error(
+        `Failed to log initial request event: ${eventError.message}`
+      );
+    }
 
-  return {
-    id: data.id,
-    requestNumber,
-  };
+    return {
+      id: data.id,
+      requestNumber,
+    };
   } catch (error) {
     // Log error with full context
     console.error('Error in createInvestorRequest:', {

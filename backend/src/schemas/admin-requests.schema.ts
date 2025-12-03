@@ -56,18 +56,15 @@ export const adminRequestListQuerySchema = z.object({
     .optional()
     .default('all'),
   isNew: z
-    .preprocess(
-      value => {
-        if (value === undefined || value === null || value === '') {
-          return undefined;
-        }
-        if (typeof value === 'string') {
-          return value === 'true' || value === '1';
-        }
-        return Boolean(value);
-      },
-      z.boolean().optional()
-    )
+    .preprocess(value => {
+      if (value === undefined || value === null || value === '') {
+        return undefined;
+      }
+      if (typeof value === 'string') {
+        return value === 'true' || value === '1';
+      }
+      return Boolean(value);
+    }, z.boolean().optional())
     .optional(),
   type: z.preprocess(
     value => {

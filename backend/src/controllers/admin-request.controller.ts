@@ -31,12 +31,16 @@ export const adminRequestController = {
 
       // Early check for Supabase service key
       if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-        console.error('SUPABASE_SERVICE_ROLE_KEY is missing in environment variables');
+        console.error(
+          'SUPABASE_SERVICE_ROLE_KEY is missing in environment variables'
+        );
         return res.status(500).json({
           error: {
             code: 'CONFIGURATION_ERROR',
-            message: 'Server configuration error: Missing Supabase service role key',
-            details: 'SUPABASE_SERVICE_ROLE_KEY environment variable is not set',
+            message:
+              'Server configuration error: Missing Supabase service role key',
+            details:
+              'SUPABASE_SERVICE_ROLE_KEY environment variable is not set',
           },
         });
       }

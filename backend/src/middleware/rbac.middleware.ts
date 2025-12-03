@@ -27,12 +27,16 @@ export const requirePermission = (permissionSlug: string | string[]) => {
 
       // Early check for Supabase service key before calling RBAC service
       if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-        console.error('SUPABASE_SERVICE_ROLE_KEY is missing - RBAC check will fail');
+        console.error(
+          'SUPABASE_SERVICE_ROLE_KEY is missing - RBAC check will fail'
+        );
         return res.status(500).json({
           error: {
             code: 'CONFIGURATION_ERROR',
-            message: 'Server configuration error: Missing Supabase service role key',
-            details: 'SUPABASE_SERVICE_ROLE_KEY environment variable is not set. This is required for permission checks.',
+            message:
+              'Server configuration error: Missing Supabase service role key',
+            details:
+              'SUPABASE_SERVICE_ROLE_KEY environment variable is not set. This is required for permission checks.',
           },
         });
       }
@@ -59,7 +63,7 @@ export const requirePermission = (permissionSlug: string | string[]) => {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       const errorStack = error instanceof Error ? error.stack : undefined;
-      
+
       console.error('RBAC middleware error:', {
         error: errorMessage,
         stack: errorStack,
@@ -67,7 +71,7 @@ export const requirePermission = (permissionSlug: string | string[]) => {
         requiredPermission: permissionSlug,
         hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
       });
-      
+
       return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
@@ -123,7 +127,7 @@ export const requireRole = (roleSlug: string | string[]) => {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       const errorStack = error instanceof Error ? error.stack : undefined;
-      
+
       console.error('RBAC middleware error (requireRole):', {
         error: errorMessage,
         stack: errorStack,
@@ -131,7 +135,7 @@ export const requireRole = (roleSlug: string | string[]) => {
         requiredRole: roleSlug,
         hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
       });
-      
+
       return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
