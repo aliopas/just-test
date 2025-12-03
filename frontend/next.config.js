@@ -74,11 +74,6 @@ const nextConfig = {
   // Skip static generation for pages that use client-side features
   // This prevents SSR errors during build
   experimental: {
-    missingSuspenseWithCSRBailout: false,
-    // Enable server actions
-    serverActions: {
-      bodySizeLimit: '2mb',
-    },
     // Optimize package imports
     optimizePackageImports: ['@tanstack/react-query', '@supabase/supabase-js'],
   },

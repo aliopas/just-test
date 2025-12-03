@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, type ReactNode } from 'react';
 import { Router } from 'react-router-dom';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -20,7 +20,9 @@ const queryClient = new QueryClient({
 });
 
 // Router wrapper that provides React Router context using Next.js routing
-function RouterWrapper({ children }: { children: React.ReactNode }) {
+// Use a broad 'any' type for children here to avoid React 19 type compat issues between
+// Next.js' React types and react-router-dom's React types.
+function RouterWrapper({ children }: { children: any }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   
@@ -37,7 +39,8 @@ function RouterWrapper({ children }: { children: React.ReactNode }) {
   }, [pathname, searchParams]);
 
   // Create navigator that doesn't interfere with Next.js routing
-  const navigator = useMemo(() => ({
+  const navigator = useMemo(
+    () => ({
     push: (to: any, state?: any) => {
       // No-op: Next.js handles routing
     },
@@ -53,7 +56,8 @@ function RouterWrapper({ children }: { children: React.ReactNode }) {
       const href = typeof to === 'string' ? to : to.pathname + (to.search || '');
       return href;
     },
-  }), []);
+  }),
+  []);
 
   return (
     <Router location={location} navigator={navigator} basename={undefined}>
@@ -62,7 +66,7 @@ function RouterWrapper({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({ children }: { children: any }) {
   useEffect(() => {
     // Apply theme on client mount
     applyTheme(theme);

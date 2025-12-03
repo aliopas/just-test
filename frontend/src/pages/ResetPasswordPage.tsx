@@ -83,7 +83,7 @@ export function ResetPasswordPage() {
 
       if (error || errorCode === 'otp_expired') {
         // Try to extract email from URL before showing error
-        const emailFromUrl = searchParams.get('email') || hashParams.get('email');
+        const emailFromUrl = searchParams?.get('email') || hashParams.get('email');
         if (emailFromUrl) {
           setExpiredEmail(emailFromUrl);
         }
@@ -99,8 +99,8 @@ export function ResetPasswordPage() {
       const type = hashParams.get('type');
       
       // Also check for token_hash (older format)
-      const tokenHash = searchParams.get('token_hash') || hashParams.get('token_hash');
-      const email = searchParams.get('email') || hashParams.get('email');
+      const tokenHash = searchParams?.get('token_hash') || hashParams.get('token_hash');
+      const email = searchParams?.get('email') || hashParams.get('email');
       
       // Save email for requesting new link if expired
       if (email) {

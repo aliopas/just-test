@@ -22,7 +22,7 @@ const defaultTagline = {
   en: 'Bacura Technologies',
 };
 
-export const Logo: React.FC<LogoProps> = ({
+export function Logo({
   size = 120, // Default 120px, minimum 96px per PRD
   variant = 'primary',
   showWordmark = true,
@@ -33,7 +33,7 @@ export const Logo: React.FC<LogoProps> = ({
   style,
   alt,
   ...imgProps
-}) => {
+}: LogoProps) {
   // Enforce minimum size per PRD: 96px for web, 72px for mobile
   const minSize = typeof window !== 'undefined' && window.innerWidth < 768 ? 72 : 96;
   const actualSize = Math.max(size, minSize);
@@ -138,9 +138,7 @@ export const Logo: React.FC<LogoProps> = ({
       )}
     </figure>
   );
-};
-
-Logo.displayName = 'Logo';
+}
 
 
 

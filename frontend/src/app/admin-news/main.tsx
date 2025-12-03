@@ -1,5 +1,4 @@
-﻿import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
+﻿import { createRoot } from 'react-dom/client';
 import { AdminNewsPage } from '../../pages/AdminNewsPage';
 
 function bootstrap() {
@@ -9,11 +8,9 @@ function bootstrap() {
   }
 
   const root = createRoot(container);
-  root.render(
-    <StrictMode>
-      <AdminNewsPage />
-    </StrictMode>
-  );
+  // React 19 type definitions can conflict across multiple React entrypoints.
+  // This legacy bootstrap does not need StrictMode, so we render the page directly.
+  root.render(<AdminNewsPage />);
 }
 
 if (document.readyState === 'loading') {
