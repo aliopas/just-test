@@ -18,9 +18,29 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('[Service Worker] Precaching assets');
-        return cache.addAll(PRECACHE_ASSETS);
+        // معالجة الأخطاء - إذا فشل cache ملف واحد، نتابع مع البقية
+        return cache.addAll(PRECACHE_ASSETS).catch((error) => {
+          console.warn('[Service Worker] Failed to cache some assets:', error);
+          // نحاول cache كل ملف على حدة
+          return Promise.allSettled(
+            PRECACHE_ASSETS.map((asset) =>
+              cache.add(asset).catch((err) => {
+                console.warn(`[Service Worker] Failed to cache ${asset}:`, err);
+                return null; // تجاهل الأخطاء الفردية
+              })
+            )
+          );
+        });
       })
-      .then(() => self.skipWaiting())
+      .then(() => {
+        console.log('[Service Worker] Installation complete');
+        return self.skipWaiting();
+      })
+      .catch((error) => {
+        console.error('[Service Worker] Installation failed:', error);
+        // نتابع التثبيت حتى لو فشل caching
+        return self.skipWaiting();
+      })
   );
 });
 
