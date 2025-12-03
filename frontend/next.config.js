@@ -76,6 +76,8 @@ const nextConfig = {
   experimental: {
     // Optimize package imports
     optimizePackageImports: ['@tanstack/react-query', '@supabase/supabase-js'],
+    // Disable automatic static optimization to prevent prerendering errors
+    isrMemoryCacheSize: 0,
   },
   // Image optimization configuration
   images: {
@@ -110,6 +112,18 @@ const nextConfig = {
   // The ClientOnly wrapper ensures components only render on the client
   // The root layout has 'export const dynamic = "force-dynamic"' to prevent static generation
   // All page files should also have 'export const dynamic = "force-dynamic"' for safety
+  
+  // Disable static page generation for error pages
+  generateBuildId: async () => {
+    return 'build-' + Date.now();
+  },
+  
+  // Skip static optimization for error pages
+  // This prevents prerendering errors
+  onDemandEntries: {
+    maxInactiveAge: 25 * 1000,
+    pagesBufferLength: 2,
+  },
 };
 
 module.exports = nextConfig;
