@@ -1,5 +1,5 @@
 [build]
-  command = "cd frontend && rm -rf node_modules package-lock.json && npm install && npm run build"
+  command = "cd frontend && rm -rf node_modules package-lock.json && mv src/app src/app-old 2>/dev/null || true && npm install && npm run build"
   functions = "netlify/functions"
   publish = "frontend/.next"
 

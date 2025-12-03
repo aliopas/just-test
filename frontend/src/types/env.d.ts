@@ -7,6 +7,7 @@ declare global {
       SUPABASE_STORAGE_URL?: string;
       SUPABASE_URL?: string;
       SUPABASE_ANON_KEY?: string;
+      SUPABASE_PUBLISHABLE_DEFAULT_KEY?: string;
     };
   }
 

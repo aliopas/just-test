@@ -4,6 +4,13 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
+  // Ignore src/app directory - only use app/ directory for App Router
+  // Next.js 16 requires app and pages directories to be in the same location
+  pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
+  // Exclude src/app from being treated as App Router
+  experimental: {
+    optimizePackageImports: ['@tanstack/react-query', '@supabase/supabase-js'],
+  },
   // Only use App Router, ignore Pages Router
   // Next.js should automatically use app/ directory when it exists
   // Transpile packages if needed
@@ -73,8 +80,6 @@ const nextConfig = {
   experimental: {
     // Optimize package imports
     optimizePackageImports: ['@tanstack/react-query', '@supabase/supabase-js'],
-    // Disable automatic static optimization to prevent prerendering errors
-    isrMemoryCacheSize: 0,
   },
   // Image optimization configuration
   images: {

@@ -5,11 +5,12 @@ import { ClientProviders } from './components/ClientProviders';
 import '@/styles/global.css';
 import '@/styles/responsive.css';
 
-// Optimize font loading
+// Optimize font loading - disable preload to prevent warnings
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
   display: 'swap',
+  preload: false,
 });
 
 const notoSansArabic = Noto_Sans_Arabic({
@@ -17,6 +18,7 @@ const notoSansArabic = Noto_Sans_Arabic({
   weight: ['400', '500', '600', '700'],
   variable: '--font-noto-sans-arabic',
   display: 'swap',
+  preload: false,
 });
 
 export const metadata: Metadata = {

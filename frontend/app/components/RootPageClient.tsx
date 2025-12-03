@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect } from 'react';
-import dynamicImport from 'next/dynamic';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { palette } from '@/styles/theme';
 
 // Dynamic import with SSR disabled
-const PublicLandingPage = dynamicImport(
+const PublicLandingPage = dynamic(
   () => import('@/pages/PublicLandingPage').then((mod) => ({ default: mod.PublicLandingPage })),
   {
     ssr: false,

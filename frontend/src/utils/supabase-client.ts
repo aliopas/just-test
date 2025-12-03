@@ -35,8 +35,8 @@ function resolveSupabaseConfig() {
     env.SUPABASE_PUBLISHABLE_DEFAULT_KEY ??
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 
-  // Debug logging (always in development, or when config is missing)
-  if (process.env.NODE_ENV === 'development' || (!url || !key)) {
+  // Debug logging (only in development, suppress in production)
+  if (process.env.NODE_ENV === 'development' && (!url || !key)) {
     console.warn('[Supabase Config Debug]', {
       hasWindowEnv: !!window.__ENV__,
       windowEnvUrl: env.SUPABASE_URL ? 'set' : 'missing',
@@ -66,12 +66,12 @@ export function getSupabaseBrowserClient(): SupabaseClient | null {
 
   const { url, key } = resolveSupabaseConfig();
   if (!url || !key) {
-    if (!hasLoggedMissingConfig) {
+    if (!hasLoggedMissingConfig && process.env.NODE_ENV === 'development') {
       const missing: string[] = [];
       if (!url) missing.push('SUPABASE_URL');
       if (!key) missing.push('SUPABASE_ANON_KEY or PUBLISHABLE_DEFAULT_KEY');
 
-      // Log a single warning instead of spamming errors in the console.
+      // Log a single warning only in development, suppress in production
       // The app will gracefully degrade by returning null here.
       // eslint-disable-next-line no-console
       console.warn(

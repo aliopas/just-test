@@ -1,10 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
-import dynamicImport from 'next/dynamic';
-import { useRouter } from 'next/navigation';
 import { ClientOnly } from './components/ClientOnly';
-import { useAuth } from '@/context/AuthContext';
+import dynamic from 'next/dynamic';
 import { palette } from '@/styles/theme';
 
 // No SSR configuration - render only on client side
@@ -36,7 +33,7 @@ function LoadingFallback() {
 }
 
 // Load entire page dynamically on client side only - no SSR
-const RootPageClient = dynamicImport(
+const RootPageClient = dynamic(
   () => import('./components/RootPageClient').then((mod) => ({ default: mod.RootPageClient })),
   {
     ssr: false,
