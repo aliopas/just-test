@@ -61,4 +61,13 @@
 [functions]
   node_bundler = "esbuild"
   included_files = ["backend/src/**", "backend/dist/**"]
+  
+# Server function specific configuration
+[functions.server]
+  included_files = [
+    "backend/src/**",
+    "backend/dist/**",
+    "package.json",
+    "package-lock.json"
+  ]
 
