@@ -1,0 +1,62 @@
+# Ignore files that don't need to be uploaded to Netlify
+# This speeds up builds by reducing upload size
+
+# Development files
+.env.local
+.env.development
+.env.test
+*.log
+*.log.*
+
+# Build artifacts (will be rebuilt)
+node_modules/.cache
+.next/cache
+dist
+build
+*.tsbuildinfo
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Test files
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+**/__tests__/
+**/tests/
+coverage/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Backend source (not needed for frontend build)
+backend/src/**/*.ts
+backend/tests/
+backend/scripts/
+!backend/package.json
+
+# Old directories
+.app-backup
+src/app-old
+src/pages-old
+

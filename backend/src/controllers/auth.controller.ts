@@ -535,10 +535,22 @@ export const authController = {
         tokenType: 'Bearer',
       });
     } catch (error) {
+      console.error('Login error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      
+      // Log full error details for debugging
+      console.error('Login error details:', {
+        message: errorMessage,
+        stack: errorStack,
+        error: error,
+      });
+      
       return res.status(500).json({
         error: {
-          code: 'INTERNAL_ERROR',
-          message: 'An unexpected error occurred',
+          code: 'LOGIN_FAILED',
+          message: errorMessage || 'An unexpected error occurred during login',
+          details: process.env.NODE_ENV === 'development' ? errorStack : undefined,
         },
       });
     }

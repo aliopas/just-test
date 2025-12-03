@@ -28,7 +28,20 @@ if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
 
 // Import from source TypeScript file
 // Netlify's esbuild will handle the compilation
-import app from '../../backend/src/app';
+// Note: If environment variables are missing, the backend will throw an error
+// during import, which we'll catch and handle gracefully
+let app: any = null;
+let appLoadError: Error | null = null;
+
+try {
+  app = require('../../backend/src/app').default;
+  console.log('[Server Function] Backend app loaded successfully');
+} catch (error) {
+  appLoadError = error instanceof Error ? error : new Error(String(error));
+  console.error('[Server Function] Failed to load backend app:', appLoadError);
+  console.error('[Server Function] Error message:', appLoadError.message);
+  console.error('[Server Function] This is likely due to missing environment variables');
+}
 
 // Wrap Express app with serverless-http
 // Netlify redirects: /api/v1/* -> /.netlify/functions/server/:splat
@@ -42,22 +55,47 @@ import app from '../../backend/src/app';
 // Initialize handler once at module load time
 let serverlessHandler: any = null;
 
-try {
-  serverlessHandler = serverless(app, {
-    binary: ['image/*', 'application/pdf', 'application/octet-stream'],
-  });
-  console.log('Serverless handler initialized successfully');
-} catch (error) {
-  console.error('Failed to initialize serverless handler:', error);
+if (app) {
+  try {
+    serverlessHandler = serverless(app, {
+      binary: ['image/*', 'application/pdf', 'application/octet-stream'],
+    });
+    console.log('[Server Function] Serverless handler initialized successfully');
+  } catch (error) {
+    console.error('[Server Function] Failed to initialize serverless handler:', error);
+  }
 }
 
 export default async (event: any, context: any) => {
   try {
-    console.log('Function invoked:', {
+    console.log('[Server Function] Invoked:', {
       path: event.path,
       rawPath: event.rawPath,
       httpMethod: event.httpMethod || event.requestContext?.http?.method,
     });
+
+    // Check if backend app failed to load (likely due to missing environment variables)
+    if (!app || appLoadError) {
+      const errorMessage = appLoadError?.message || 'Backend application failed to load';
+      console.error('[Server Function] Backend not available:', errorMessage);
+      
+      return {
+        statusCode: 503,
+        body: JSON.stringify({
+          error: {
+            code: 'SERVICE_UNAVAILABLE',
+            message: 'Backend service is not available. Please check server logs.',
+            details: errorMessage.includes('Supabase') 
+              ? 'Missing Supabase environment variables. Please add SUPABASE_URL, SUPABASE_ANON_KEY, and SUPABASE_SERVICE_ROLE_KEY in Netlify Dashboard.'
+              : errorMessage,
+            help: 'See netlify/QUICK-FIX.md for setup instructions',
+          },
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      };
+    }
 
     // When Netlify redirects /api/v1/* to /.netlify/functions/server/:splat
     // The event.path will be something like: /.netlify/functions/server/auth/login
@@ -75,19 +113,30 @@ export default async (event: any, context: any) => {
       if (event.requestContext && event.requestContext.http) {
         event.requestContext.http.path = event.path;
       }
-      console.log('Path reconstructed to:', event.path);
+      console.log('[Server Function] Path reconstructed to:', event.path);
     }
 
     if (!serverlessHandler) {
-      throw new Error('Serverless handler not initialized');
+      return {
+        statusCode: 503,
+        body: JSON.stringify({
+          error: {
+            code: 'HANDLER_NOT_INITIALIZED',
+            message: 'Serverless handler not initialized. Please check server logs.',
+          },
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      };
     }
 
     const result = await serverlessHandler(event, context);
-    console.log('Handler returned:', result?.statusCode);
+    console.log('[Server Function] Handler returned:', result?.statusCode);
     return result;
   } catch (error) {
-    console.error('Server function error:', error);
-    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    console.error('[Server Function] Error:', error);
+    console.error('[Server Function] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     return {
       statusCode: 500,
       body: JSON.stringify({
