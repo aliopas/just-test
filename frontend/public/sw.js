@@ -48,6 +48,13 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
+  // Only handle GET requests in the service worker cache logic
+  // Cache API لا يدعم put لطلبات POST، وإلا يظهر الخطأ:
+  // "Failed to execute 'put' on 'Cache': Request method 'POST' is unsupported"
+  if (request.method !== 'GET') {
+    return;
+  }
+
   // Skip cross-origin requests
   if (url.origin !== location.origin) {
     return;

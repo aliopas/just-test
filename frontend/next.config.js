@@ -4,9 +4,6 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
-  eslint: {
-    ignoreDuringBuilds: false,
-  },
   // Only use App Router, ignore Pages Router
   // Next.js should automatically use app/ directory when it exists
   // Transpile packages if needed
