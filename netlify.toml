@@ -1,7 +1,7 @@
 [build]
-  command = "cd frontend && chmod +x scripts/netlify-build.sh && bash scripts/netlify-build.sh"
-  functions = "netlify/functions"
-  publish = "frontend/.next"
+  command = "chmod +x scripts/netlify-build.sh && bash scripts/netlify-build.sh"
+  functions = "../netlify/functions"
+  publish = ".next"
   base = "frontend"
 
 [build.environment]
