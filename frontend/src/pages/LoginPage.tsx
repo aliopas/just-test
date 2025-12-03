@@ -117,6 +117,8 @@ export function LoginPage() {
 
   // Check for password reset token in URL on mount
   useEffect(() => {
+    if (!searchParams) return;
+    
     const tokenHash = searchParams.get('token_hash');
     const type = searchParams.get('type');
     const email = searchParams.get('email');
