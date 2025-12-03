@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -11,7 +15,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     "plugins": [
       {
@@ -19,18 +23,52 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"],
-      "@/components/*": ["./src/components/*"],
-      "@/hooks/*": ["./src/hooks/*"],
-      "@/utils/*": ["./src/utils/*"],
-      "@/styles/*": ["./src/styles/*"],
-      "@/context/*": ["./src/context/*"],
-      "@/types/*": ["./src/types/*"],
-      "@/locales/*": ["./src/locales/*"],
-      "@/pages/*": ["./src/pages/*"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@/components/*": [
+        "./src/components/*"
+      ],
+      "@/hooks/*": [
+        "./src/hooks/*"
+      ],
+      "@/utils/*": [
+        "./src/utils/*"
+      ],
+      "@/styles/*": [
+        "./src/styles/*"
+      ],
+      "@/context/*": [
+        "./src/context/*"
+      ],
+      "@/types/*": [
+        "./src/types/*"
+      ],
+      "@/locales/*": [
+        "./src/locales/*"
+      ],
+      "@/pages/*": [
+        "./src/pages-old/*"
+      ]
     },
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["next-env.d.ts", "types/react-validator.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "vite.config.ts", "src/app", "src/App.tsx", "src/main.tsx", "src/index.html"]
+  "include": [
+    "next-env.d.ts",
+    "types/react-validator.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "vite.config.ts",
+    "src/app",
+    "src/app-old",
+    "src/pages-old",
+    "src/App.tsx",
+    "src/main.tsx",
+    "src/index.html"
+  ]
 }

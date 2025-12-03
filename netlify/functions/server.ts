@@ -8,7 +8,11 @@ import app from '../../backend/src/app';
 // The :splat contains the path after /api/v1/
 // serverless-http automatically maps event.path to request.url
 // But we need to ensure the /api/v1 prefix is preserved for Express routes
-export const handler = async (event: any, context: any) => {
+//
+// Note: We use the legacy Lambda event/context format because serverless-http
+// requires it. This is a known limitation when wrapping Express apps.
+// For pure Netlify functions, use Request/Context from @netlify/functions instead.
+export default async (event: any, context: any) => {
   // When Netlify redirects /api/v1/* to /.netlify/functions/server/:splat
   // The event.path will be something like: /.netlify/functions/server/investor/profile
   // We need to reconstruct it to /api/v1/investor/profile for Express
