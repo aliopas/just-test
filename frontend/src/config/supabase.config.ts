@@ -17,6 +17,7 @@ export const SUPABASE_CONFIG = {
   anonKey:
     (typeof window !== 'undefined' && (window as any).__ENV__?.SUPABASE_ANON_KEY) ||
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY ||
     '',
   
   storageUrl:

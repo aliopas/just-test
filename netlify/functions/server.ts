@@ -102,18 +102,32 @@ export default async (event: any, context: any) => {
     // We need to reconstruct it to /api/v1/auth/login for Express
     if (event.path && event.path.startsWith('/.netlify/functions/server')) {
       // Extract the splat part (everything after /.netlify/functions/server)
-      const splat = event.path.replace('/.netlify/functions/server', '');
+      // Remove query string first to handle it separately
+      const [pathWithoutQuery, queryString] = event.path.split('?');
+      const splat = pathWithoutQuery.replace('/.netlify/functions/server', '') || '/';
+      
       // Reconstruct the original /api/v1 path
-      event.path = `/api/v1${splat || ''}`;
+      const reconstructedPath = `/api/v1${splat === '/' ? '' : splat}${queryString ? `?${queryString}` : ''}`;
+      event.path = reconstructedPath;
+      
       // Also update rawPath if it exists
       if (event.rawPath) {
-        event.rawPath = event.path;
+        event.rawPath = reconstructedPath;
       }
-      // Update queryStringParameters path if needed
+      
+      // Update requestContext path if it exists
       if (event.requestContext && event.requestContext.http) {
-        event.requestContext.http.path = event.path;
+        event.requestContext.http.path = reconstructedPath;
       }
-      console.log('[Server Function] Path reconstructed to:', event.path);
+      
+      // Ensure queryStringParameters are preserved
+      if (!event.queryStringParameters && queryString) {
+        const params = new URLSearchParams(queryString);
+        event.queryStringParameters = Object.fromEntries(params.entries());
+      }
+      
+      console.log('[Server Function] Path reconstructed to:', reconstructedPath);
+      console.log('[Server Function] Query params:', event.queryStringParameters);
     }
 
     if (!serverlessHandler) {
