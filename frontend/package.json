@@ -9,7 +9,7 @@
     "postbuild": "node scripts/fix-validator-types.js",
     "fix:validator": "node scripts/fix-validator-types.js",
     "start": "next start -p 3002",
-    "lint": "npx eslint@8.57.0 --no-ignore \"src\" --ext .js,.jsx,.ts,.tsx",
+    "lint": "next lint",
     "clean": "rm -rf .next out dist node_modules/.cache",
     "clean:all": "rm -rf .next out dist node_modules node_modules/.cache package-lock.json"
   },
@@ -30,7 +30,7 @@
     "@types/react-dom": "^18.3.1",
     "@types/react-router-dom": "^5.3.3",
     "typescript": "~5.3.3",
-    "eslint": "^8.57.0",
+    "eslint": "^9.0.0",
     "eslint-config-next": "^16.0.6"
   }
 }
