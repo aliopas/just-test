@@ -1,15 +1,19 @@
 [build]
+  # Use optimized build script with error handling and timeout protection
   command = "chmod +x scripts/netlify-build.sh && bash scripts/netlify-build.sh"
   functions = "../netlify/functions"
   publish = ".next"
   base = "frontend"
-  # Increase build timeout if needed (default is 15 minutes for Pro, 5 for Free)
-  # timeout = 900
+  # Increase build timeout to 20 minutes (1200 seconds) to prevent cancellation
+  # Free tier: 5 min, Pro: 15 min default, we set 20 min for safety
+  timeout = 1200
 
 [build.environment]
   NODE_VERSION = "22"
   # Cache node_modules for faster builds
   NPM_FLAGS = "--prefer-offline --no-audit --no-fund"
+  # Prevent build cancellation due to long-running processes
+  NETLIFY_BUILD_TIMEOUT = "1200"
 
 # Netlify Next.js plugin - required for Next.js routing to work
 [[plugins]]
