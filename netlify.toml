@@ -2,14 +2,14 @@
   command = "cd frontend && chmod +x scripts/netlify-build.sh && bash scripts/netlify-build.sh"
   functions = "netlify/functions"
   publish = "frontend/.next"
+  base = "frontend"
 
 [build.environment]
   NODE_VERSION = "22"
 
-# Plugin removed - Netlify will install the latest version automatically
-# See: https://app.netlify.com/plugins
-# [[plugins]]
-#   package = "@netlify/plugin-nextjs"
+# Netlify Next.js plugin - required for Next.js routing to work
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
 
 # API redirects - must come before other redirects
 # This redirects all /api/v1/* requests to the serverless function
