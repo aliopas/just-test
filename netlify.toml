@@ -1,6 +1,7 @@
 [build]
   # Use optimized build script with error handling and timeout protection
-  command = "chmod +x scripts/netlify-build.sh && bash scripts/netlify-build.sh"
+  # Install function dependencies first, then build
+  command = "cd ../netlify/functions && npm install --production && cd ../../frontend && chmod +x scripts/netlify-build.sh && bash scripts/netlify-build.sh"
   functions = "../netlify/functions"
   publish = ".next"
   base = "frontend"
@@ -72,6 +73,9 @@
     "../backend/src/**", 
     "../backend/dist/**", 
     "../backend/package.json",
-    "../package.json"
+    "../package.json",
+    "package.json"
   ]
+  # External dependencies that should be bundled
+  external = []
 
