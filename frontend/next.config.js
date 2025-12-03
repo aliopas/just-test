@@ -19,7 +19,13 @@ const nextConfig = {
   // The @ alias is already configured in tsconfig.json and works with Turbopack
   // Note: We removed webpack config as Turbopack doesn't support it
   // All imports should use @/ alias which is configured in tsconfig.json
-  turbopack: {},
+  // Special alias for pages/ directory (moved from src/pages during build)
+  turbopack: {
+    resolveAlias: {
+      '@': './src',
+      '@/pages': './pages',
+    },
+  },
   // Environment variables
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,

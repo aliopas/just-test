@@ -26,7 +26,8 @@
       "@/styles/*": ["./src/styles/*"],
       "@/context/*": ["./src/context/*"],
       "@/types/*": ["./src/types/*"],
-      "@/locales/*": ["./src/locales/*"]
+      "@/locales/*": ["./src/locales/*"],
+      "@/pages/*": ["./pages/*"]
     },
     "forceConsistentCasingInFileNames": true
   },
