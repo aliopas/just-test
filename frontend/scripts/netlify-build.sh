@@ -9,12 +9,8 @@ rm -rf node_modules package-lock.json .next
 
 # Move directories
 echo "Step 2: Moving directories..."
-if [ -d src/pages ]; then
-  mv src/pages pages
-  echo "✓ Moved src/pages to pages"
-else
-  echo "✗ src/pages not found"
-fi
+# Don't move src/pages - keep it in src/ to avoid conflicts with app/
+# Next.js doesn't allow pages/ and app/ in the same level
 
 if [ -d src/app ]; then
   mv src/app src/app-old
@@ -23,32 +19,22 @@ else
   echo "✗ src/app not found (OK)"
 fi
 
-# Update tsconfig.json paths
+# Ensure pages directory doesn't exist in root (would conflict with app/)
+if [ -d pages ]; then
+  echo "⚠ Warning: pages/ directory exists in root, removing to avoid conflict with app/"
+  rm -rf pages
+fi
+
+# Update tsconfig.json paths (keep src/pages mapping)
 echo "Step 3: Updating tsconfig.json paths..."
 node scripts/fix-build-paths.js
 
-# Fix imports in pages directory
-echo "Step 4: Fixing imports in pages/..."
-if [ -d pages ]; then
-  find pages -type f \( -name '*.tsx' -o -name '*.ts' \) -exec sed -i \
-    "s|from '\\.\\./components|from '@/components|g; \
-     s|from '\\.\\./hooks|from '@/hooks|g; \
-     s|from '\\.\\./utils|from '@/utils|g; \
-     s|from '\\.\\./styles|from '@/styles|g; \
-     s|from '\\.\\./context|from '@/context|g; \
-     s|from '\\.\\./types|from '@/types|g; \
-     s|from '\\.\\./locales|from '@/locales|g" {} \;
-  echo "✓ Fixed imports"
-else
-  echo "✗ pages directory not found"
-fi
-
 # Install dependencies
-echo "Step 5: Installing dependencies..."
+echo "Step 4: Installing dependencies..."
 npm install
 
 # Build
-echo "Step 6: Starting build..."
+echo "Step 5: Starting build..."
 npm run build
 
 echo "=== Build Complete ==="
