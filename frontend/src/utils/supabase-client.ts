@@ -1,97 +1,46 @@
+/**
+ * Supabase Client - مبسط
+ * 
+ * يستخدم الإعدادات الموحدة من config/supabase.config.ts
+ */
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { SUPABASE, validateSupabaseConfig } from '../config/supabase.config';
 
 let client: SupabaseClient | null = null;
-let hasLoggedMissingConfig = false;
-
-function isAbsoluteUrl(url: string): boolean {
-  return /^https?:\/\//i.test(url);
-}
-
-function resolveSupabaseConfig() {
-  if (typeof window === 'undefined') {
-    return { url: undefined, key: undefined };
-  }
-
-  // Try multiple sources for environment variables.
-  // Use a loose type for window.__ENV__ to avoid compile-time issues when keys change.
-  const env = (window as any).__ENV__ ?? {};
-  
-  // Priority: window.__ENV__ > process.env.NEXT_PUBLIC_* (for Next.js)
-  const rawUrl: string | undefined =
-    env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
-
-  // Normalize URL: ensure it is a proper HTTP/HTTPS URL for supabase-js.
-  const url =
-    rawUrl && rawUrl.trim().length > 0
-      ? isAbsoluteUrl(rawUrl)
-        ? rawUrl
-        : `https://${rawUrl}`
-      : undefined;
-
-  // Prefer explicit anon key; fall back to publishable default key if needed
-  let key =
-    env.SUPABASE_ANON_KEY ??
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-    env.SUPABASE_PUBLISHABLE_DEFAULT_KEY ??
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
-
-  // Debug logging (only in development, suppress in production)
-  if (process.env.NODE_ENV === 'development' && (!url || !key)) {
-    console.warn('[Supabase Config Debug]', {
-      hasWindowEnv: !!window.__ENV__,
-      windowEnvUrl: env.SUPABASE_URL ? 'set' : 'missing',
-      windowEnvKey: env.SUPABASE_ANON_KEY
-        ? 'anon'
-        : env.SUPABASE_PUBLISHABLE_DEFAULT_KEY
-          ? 'publishable_fallback'
-          : 'missing',
-      nextEnvUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'set' : 'missing',
-      nextEnvKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-        ? 'anon'
-        : process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
-          ? 'publishable_fallback'
-          : 'missing',
-      resolvedUrl: url ? 'found' : 'missing',
-      resolvedKey: key ? 'found' : 'missing',
-    });
-  }
-
-  return { url, key };
-}
+let hasLoggedWarning = false;
 
 export function getSupabaseBrowserClient(): SupabaseClient | null {
+  // إرجاع العميل الموجود إن كان موجوداً
   if (client) {
     return client;
   }
 
-  const { url, key } = resolveSupabaseConfig();
-  if (!url || !key) {
-    if (!hasLoggedMissingConfig && process.env.NODE_ENV === 'development') {
-      const missing: string[] = [];
-      if (!url) missing.push('SUPABASE_URL');
-      if (!key) missing.push('SUPABASE_ANON_KEY or PUBLISHABLE_DEFAULT_KEY');
+  // التحقق من الإعدادات
+  if (typeof window === 'undefined') {
+    return null;
+  }
 
-      // Log a single warning only in development, suppress in production
-      // The app will gracefully degrade by returning null here.
-      // eslint-disable-next-line no-console
+  const validation = validateSupabaseConfig();
+  
+  if (!validation.valid) {
+    // تحذير واحد فقط في وضع التطوير
+    if (!hasLoggedWarning && process.env.NODE_ENV === 'development') {
       console.warn(
-        `[Supabase] Skipping client initialization due to missing configuration: ${missing.join(
-          ', '
-        )}. ` +
-          `Configure NEXT_PUBLIC_SUPABASE_URL and either NEXT_PUBLIC_SUPABASE_ANON_KEY or ` +
-          `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY for full Supabase functionality.`
+        `[Supabase] إعدادات مفقودة: ${validation.missing.join(', ')}. ` +
+        `يرجى تعيين NEXT_PUBLIC_SUPABASE_URL و NEXT_PUBLIC_SUPABASE_ANON_KEY`
       );
-      hasLoggedMissingConfig = true;
+      hasLoggedWarning = true;
     }
     return null;
   }
 
+  // إنشاء العميل
   try {
-    client = createClient(url, key, {
+    client = createClient(SUPABASE.url, SUPABASE.anonKey, {
       auth: {
-        persistSession: true, // Enable session persistence for password reset
+        persistSession: true,
         autoRefreshToken: true,
-        detectSessionInUrl: true, // Detect session from URL (for password reset)
+        detectSessionInUrl: true,
       },
       realtime: {
         params: {
@@ -102,7 +51,7 @@ export function getSupabaseBrowserClient(): SupabaseClient | null {
 
     return client;
   } catch (error) {
-    console.error('[Supabase] Failed to create client:', error);
+    console.error('[Supabase] فشل في إنشاء العميل:', error);
     return null;
   }
 }

@@ -1,55 +1,21 @@
+/**
+ * Supabase Storage - مبسط
+ * 
+ * يستخدم الإعدادات الموحدة من config/supabase.config.ts
+ */
 import { getSupabaseBrowserClient } from './supabase-client';
+import { SUPABASE } from '../config/supabase.config';
 
 export const NEWS_IMAGES_BUCKET = 'news-images';
 export const PROJECT_IMAGES_BUCKET = 'project-images';
 export const COMPANY_CONTENT_IMAGES_BUCKET = 'company-content-images';
 
-function sanitizeBaseUrl(url: string): string {
-  return url.replace(/\/+$/, '');
-}
-
 function isAbsoluteUrl(path: string): boolean {
   return /^https?:\/\//i.test(path);
 }
 
-function getSupabaseProjectUrl(): string | null {
-  if (typeof window !== 'undefined') {
-    const runtime = window.__ENV__?.SUPABASE_URL;
-    if (runtime) {
-      const sanitized = sanitizeBaseUrl(runtime);
-      return isAbsoluteUrl(sanitized) ? sanitized : `https://${sanitized}`;
-    }
-  }
-
-  // Next.js environment variable
-  const buildTime = process.env.NEXT_PUBLIC_SUPABASE_URL ?? null;
-
-  return buildTime ? sanitizeBaseUrl(buildTime) : null;
-}
-
-function getStorageBaseUrl(): string | null {
-  if (typeof window !== 'undefined') {
-    const runtime = window.__ENV__?.SUPABASE_STORAGE_URL;
-    if (runtime) {
-      const sanitized = sanitizeBaseUrl(runtime);
-      return isAbsoluteUrl(sanitized) ? sanitized : `https://${sanitized}`;
-    }
-  }
-
-  // Next.js environment variable
-  const buildTime = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_URL ?? null;
-
-  if (buildTime) {
-    const sanitized = sanitizeBaseUrl(buildTime);
-    return isAbsoluteUrl(sanitized) ? sanitized : `https://${sanitized}`;
-  }
-
-  const supabaseUrl = getSupabaseProjectUrl();
-  if (supabaseUrl) {
-    return `${supabaseUrl}/storage/v1/object/public`;
-  }
-
-  return null;
+function getStorageBaseUrl(): string {
+  return SUPABASE.storageBaseUrl;
 }
 
 function stripPublicPrefix(path: string): string {
