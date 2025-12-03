@@ -3,9 +3,13 @@
   functions = "../netlify/functions"
   publish = ".next"
   base = "frontend"
+  # Increase build timeout if needed (default is 15 minutes for Pro, 5 for Free)
+  # timeout = 900
 
 [build.environment]
   NODE_VERSION = "22"
+  # Cache node_modules for faster builds
+  NPM_FLAGS = "--prefer-offline --no-audit --no-fund"
 
 # Netlify Next.js plugin - required for Next.js routing to work
 [[plugins]]
