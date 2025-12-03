@@ -616,3 +616,11 @@ export function ResetPasswordPage() {
 export default function ResetPasswordPageStub() {
   return null;
 }
+
+// Prevent static generation - this page uses client-side hooks and state
+// In Pages Router, we need to use getServerSideProps instead of export const dynamic
+export async function getServerSideProps() {
+  return {
+    props: {},
+  };
+}

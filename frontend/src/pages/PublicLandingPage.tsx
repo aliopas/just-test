@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { useMemo, useState, useEffect, memo } from 'react';
+import React, { useMemo, useState, useEffect, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { Logo } from '../components/Logo';
@@ -1162,7 +1162,7 @@ function SectionModal({ section, isOpen, onClose, isArabic }: SectionModalProps)
       </div>
     </div>,
     container
-  );
+  ) as React.ReactNode;
 }
 
 export function PublicLandingPage() {
@@ -1715,4 +1715,12 @@ export function PublicLandingPage() {
 // any browser-only APIs so that static generation in Netlify succeeds.
 export default function PublicLandingPageStub() {
   return null;
+}
+
+// Prevent static generation - this page uses client-side hooks and state
+// In Pages Router, we need to use getServerSideProps instead of export const dynamic
+export async function getServerSideProps() {
+  return {
+    props: {},
+  };
 }

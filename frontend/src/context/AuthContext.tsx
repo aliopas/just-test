@@ -1,11 +1,10 @@
-import {
+import React, {
   createContext,
   useCallback,
   useContext,
   useMemo,
   useState,
   useEffect,
-  type ReactNode,
 } from 'react';
 import { getStoredAccessToken, decodeJwtPayload } from '../utils/auth-token';
 
@@ -119,7 +118,7 @@ function serializeUser(user: AuthUser): string {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUserState] = useState<AuthUser | null>(() => readStoredUser());
 
   const setUser = useCallback((next: AuthUser | null) => {
@@ -162,7 +161,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [hydrate, setUser, user]
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return React.createElement(AuthContext.Provider, { value }, children);
 }
 
 export function useAuth() {

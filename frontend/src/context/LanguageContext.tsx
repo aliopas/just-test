@@ -1,11 +1,10 @@
-﻿import {
+﻿import React, {
   createContext,
   useCallback,
   useContext,
   useEffect,
   useMemo,
   useState,
-  type ReactNode,
 } from 'react';
 import type { InvestorLanguage } from '../types/investor';
 
@@ -21,7 +20,7 @@ const LanguageContext = createContext<LanguageContextValue | undefined>(
 
 interface LanguageProviderProps {
   initialLanguage?: InvestorLanguage;
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 const STORAGE_KEY = 'investor_language';

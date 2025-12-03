@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   QueryClient,
   QueryClientProvider,
@@ -1419,3 +1419,11 @@ export function AdminDashboardPage() {
 
 // Default export for Next.js page validation (not used, App Router uses named export)
 export default AdminDashboardPage;
+
+// Prevent static generation - this page uses client-side hooks and state
+// In Pages Router, we need to use getServerSideProps instead of export const dynamic
+export async function getServerSideProps() {
+  return {
+    props: {},
+  };
+}

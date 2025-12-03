@@ -1,4 +1,4 @@
-import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
+import React, { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useNextNavigate } from '../utils/next-router';
@@ -1108,4 +1108,12 @@ export function LoginPage() {
 // any browser-only APIs so that static generation in Netlify succeeds.
 export default function LoginPageStub() {
   return null;
+}
+
+// Prevent static generation - this page uses client-side hooks and state
+// In Pages Router, we need to use getServerSideProps instead of export const dynamic
+export async function getServerSideProps() {
+  return {
+    props: {},
+  };
 }

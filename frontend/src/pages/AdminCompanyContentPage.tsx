@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   QueryClient,
   QueryClientProvider,
@@ -1405,4 +1405,12 @@ export function AdminCompanyContentPage() {
 // Netlify succeeds.
 export default function AdminCompanyContentPageStub() {
   return null;
+}
+
+// Prevent static generation - this page uses client-side hooks and state
+// In Pages Router, we need to use getServerSideProps instead of export const dynamic
+export async function getServerSideProps() {
+  return {
+    props: {},
+  };
 }

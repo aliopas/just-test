@@ -1,3 +1,4 @@
+import React from 'react';
 import type { Metadata, Viewport } from 'next';
 import { Inter, Noto_Sans_Arabic } from 'next/font/google';
 import { ClientProviders } from './components/ClientProviders';
@@ -52,6 +53,9 @@ export const viewport: Viewport = {
   themeColor: '#2563eb',
 };
 
+// Prevent static generation - force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 // No SSR - all rendering happens on client side
 
 export default function RootLayout({
@@ -77,7 +81,7 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <ClientProviders>{children}</ClientProviders>
+        {React.createElement(ClientProviders, null, children)}
         <div id="drawer-root"></div>
       </body>
     </html>

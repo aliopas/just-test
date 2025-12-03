@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
 import { palette } from '../styles/theme';
@@ -493,4 +493,13 @@ export function AdminHomepageSectionsPage() {
 // any browser-only APIs so that static generation in Netlify succeeds.
 export default function AdminHomepageSectionsPageStub() {
   return null;
+}
+
+// Prevent static generation - this page uses client-side hooks and state
+// Prevent static generation - this page uses client-side hooks and state
+// In Pages Router, we need to use getServerSideProps instead of export const dynamic
+export async function getServerSideProps() {
+  return {
+    props: {},
+  };
 }

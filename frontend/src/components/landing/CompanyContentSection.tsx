@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { CompanyContentCard } from './CompanyContentCard';
 import { CompanyContentModal } from './CompanyContentModal';
 import { palette } from '../../styles/theme';
@@ -417,7 +417,7 @@ export function CompanyContentSection() {
   ]);
 
   if (isLoading) {
-    return <SectionSkeleton />;
+    return React.createElement(SectionSkeleton);
   }
 
   if (hasError) {

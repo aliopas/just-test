@@ -1171,3 +1171,11 @@ export function AdminRequestDetailPage() {
 
 // Default export for Next.js page validation (not used, App Router uses named export)
 export default AdminRequestDetailPage;
+
+// Prevent static generation - this page uses client-side hooks and state
+// In Pages Router, we need to use getServerSideProps instead of export const dynamic
+export async function getServerSideProps() {
+  return {
+    props: {},
+  };
+}

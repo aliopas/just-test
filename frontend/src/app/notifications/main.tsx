@@ -1,4 +1,4 @@
-import { StrictMode } from 'react';
+import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { NotificationsPage } from '../../pages/NotificationsPage';
 
@@ -10,9 +10,7 @@ function bootstrap() {
 
   const root = createRoot(container);
   root.render(
-    <StrictMode>
-      <NotificationsPage />
-    </StrictMode>
+    React.createElement(StrictMode, null, React.createElement(NotificationsPage))
   );
 }
 

@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -651,7 +651,7 @@ export function AdminInvestorCreateForm({ onSubmit, submitting }: Props) {
 interface FormFieldProps {
   label: string;
   error?: string;
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 function FormField({ label, error, children }: FormFieldProps) {

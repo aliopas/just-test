@@ -1,8 +1,9 @@
 'use client';
 
+import React from 'react';
 import { Providers } from './Providers';
 
 export function ClientProviders({ children }: { children: React.ReactNode }) {
-  return <Providers>{children}</Providers>;
+  return React.createElement(Providers, null, children);
 }
 

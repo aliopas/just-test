@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import React from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { palette } from '../../styles/theme';
 
@@ -7,7 +7,7 @@ interface FormFieldProps {
   error?: string;
   hint?: string;
   required?: boolean;
-  children: ReactNode;
+  children: React.ReactNode;
   id?: string;
 }
 

@@ -1,3 +1,4 @@
+import React from 'react';
 import type { Metadata, Viewport } from 'next';
 import { Inter, Noto_Sans_Arabic } from 'next/font/google';
 import { ClientProviders } from './components/ClientProviders';
@@ -51,6 +52,9 @@ export const viewport: Viewport = {
   maximumScale: 5,
   themeColor: '#2563eb',
 };
+
+// Prevent static generation - force dynamic rendering
+export const dynamic = 'force-dynamic';
 
 // No SSR - all rendering happens on client side
 

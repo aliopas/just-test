@@ -1,5 +1,5 @@
-﻿import { createRoot } from 'react-dom/client';
-import { StrictMode } from 'react';
+﻿import React, { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
 import { NewRequestPage } from '../../pages/NewRequestPage';
 
 function bootstrap() {
@@ -10,9 +10,7 @@ function bootstrap() {
 
   const root = createRoot(container);
   root.render(
-    <StrictMode>
-      <NewRequestPage />
-    </StrictMode>
+    React.createElement(StrictMode, null, React.createElement(NewRequestPage))
   );
 }
 

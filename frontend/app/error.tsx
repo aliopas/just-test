@@ -1,7 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { palette } from '@/styles/theme';
+
+export const dynamic = 'force-dynamic';
 
 export default function Error({
   error,

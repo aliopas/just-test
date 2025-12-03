@@ -1,12 +1,11 @@
-﻿import { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { getMessage } from '../../locales/investorProfile';
-import type { ReactNode } from 'react';
 
 interface TabConfig {
   id: string;
   label: string;
-  content: ReactNode;
+  content: React.ReactNode;
   icon?: string;
 }
 

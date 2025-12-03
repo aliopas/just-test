@@ -1,4 +1,4 @@
-﻿import { useMemo } from 'react';
+﻿import React, { useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import type { InvestorRequest } from '../../types/request';
@@ -475,7 +475,7 @@ export function RequestDetailsDrawer({
       </aside>
     </div>,
     container
-  );
+  ) as React.ReactNode;
 }
 
 interface DetailItemProps {

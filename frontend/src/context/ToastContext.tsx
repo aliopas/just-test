@@ -1,10 +1,9 @@
-﻿import {
+﻿import React, {
   createContext,
   useCallback,
   useContext,
   useMemo,
   useState,
-  type ReactNode,
 } from 'react';
 
 export type ToastVariant = 'success' | 'error' | 'info';
@@ -32,7 +31,7 @@ interface ToastContextValue {
 const ToastContext = createContext<ToastContextValue | undefined>(undefined);
 
 interface ToastProviderProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 export function ToastProvider({ children }: ToastProviderProps) {
@@ -69,7 +68,9 @@ export function ToastProvider({ children }: ToastProviderProps) {
   );
 
   return (
-    <ToastContext.Provider value={value}>{children}</ToastContext.Provider>
+    <ToastContext.Provider value={value}>
+      {children}
+    </ToastContext.Provider>
   );
 }
 

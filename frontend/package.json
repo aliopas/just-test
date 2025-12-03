@@ -5,7 +5,9 @@
   "author": "Bacura Technologies Team",
   "scripts": {
     "dev": "next dev -p 3002",
-    "build": "next build",
+    "build": "next build && node scripts/fix-validator-types.js",
+    "postbuild": "node scripts/fix-validator-types.js",
+    "fix:validator": "node scripts/fix-validator-types.js",
     "start": "next start -p 3002",
     "lint": "npx eslint@8.57.0 --no-ignore \"src\" --ext .js,.jsx,.ts,.tsx",
     "clean": "rm -rf .next out dist node_modules/.cache",
@@ -24,10 +26,10 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
-    "@types/react": "^18.3.12",
+    "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.1",
     "@types/react-router-dom": "^5.3.3",
-    "typescript": "^5.7.2",
+    "typescript": "~5.3.3",
     "eslint": "^8.57.0",
     "eslint-config-next": "^15.1.6"
   }

@@ -1,11 +1,11 @@
-import { ReactNode } from 'react';
+import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { palette } from '../styles/theme';
 
 interface TableColumn<T> {
   key: string;
   label: string;
-  render?: (item: T) => ReactNode;
+  render?: (item: T) => React.ReactNode;
   headerStyle?: React.CSSProperties;
   cellStyle?: React.CSSProperties;
 }

@@ -363,6 +363,14 @@ export function InvestorInternalNewsPage() {
 export default function InvestorInternalNewsPageStub() {
   return null;
 }
+
+// Prevent static generation - this page uses client-side hooks and state
+// In Pages Router, we need to use getServerSideProps instead of export const dynamic
+export async function getServerSideProps() {
+  return {
+    props: {},
+  };
+}
 const stateCardStyle: CSSProperties = {
   padding: '2rem',
   borderRadius: '1rem',

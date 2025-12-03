@@ -1123,3 +1123,11 @@ export function InvestorDashboardPage() {
 
 // Default export for Next.js page validation (not used, App Router uses named export)
 export default InvestorDashboardPage;
+
+// Prevent static generation - this page uses client-side hooks and state
+// In Pages Router, we need to use getServerSideProps instead of export const dynamic
+export async function getServerSideProps() {
+  return {
+    props: {},
+  };
+}

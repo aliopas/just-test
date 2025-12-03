@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNextNavigate } from '../utils/next-router';
 import {
   QueryClient,
@@ -473,6 +473,14 @@ export function NonFinancialRequestsPage() {
 // any browser-only APIs so that static generation in Netlify succeeds.
 export default function NonFinancialRequestsPageStub() {
   return null;
+}
+
+// Prevent static generation - this page uses client-side hooks and state
+// In Pages Router, we need to use getServerSideProps instead of export const dynamic
+export async function getServerSideProps() {
+  return {
+    props: {},
+  };
 }
 
 
