@@ -38,3 +38,8 @@ next-env.d.ts
 # Ignore old src/app directory - using app/ instead
 /src/app
 
+# Build-time backup directories
+.app-backup
+src/app-old
+src/pages-old
+

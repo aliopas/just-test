@@ -25,7 +25,7 @@ function updateTsconfigForBuild() {
   if (!tsconfig.exclude) {
     tsconfig.exclude = [];
   }
-  const excludeList = ['src/app-old', 'src/pages-old'];
+  const excludeList = ['.app-backup', 'src/app-old', 'src/pages-old'];
   excludeList.forEach(item => {
     if (!tsconfig.exclude.includes(item)) {
       tsconfig.exclude.push(item);
@@ -62,20 +62,26 @@ function updateTsconfigForBuild() {
 
 console.log('Pre-build: Checking directories to avoid Next.js conflicts...');
 
-// Handle src/app - rename to avoid detection
-if (fs.existsSync(srcAppPath) && !fs.existsSync(srcAppOldPath)) {
-  console.log('✓ Renaming src/app to src/app-old to avoid Next.js conflicts...');
-  fs.renameSync(srcAppPath, srcAppOldPath);
-  console.log('✓ src/app renamed successfully');
-  
-  // Note: tsconfig.json exclude is already set, but Next.js may still scan files
-  // We rely on exclude array to prevent compilation errors
-} else if (fs.existsSync(srcAppPath)) {
-  console.log('⚠ src/app-old already exists, removing src/app...');
-  fs.rmSync(srcAppPath, { recursive: true, force: true });
-  console.log('✓ src/app removed');
+// Handle src/app - move outside src/ to completely avoid Next.js detection
+const appBackupPath = path.join(__dirname, '..', '.app-backup');
+
+if (fs.existsSync(srcAppPath)) {
+  if (!fs.existsSync(appBackupPath)) {
+    console.log('✓ Moving src/app to .app-backup to avoid Next.js conflicts...');
+    fs.renameSync(srcAppPath, appBackupPath);
+    console.log('✓ src/app moved successfully');
+  } else {
+    console.log('⚠ .app-backup already exists, removing src/app...');
+    fs.rmSync(srcAppPath, { recursive: true, force: true });
+    console.log('✓ src/app removed');
+  }
+} else if (fs.existsSync(srcAppOldPath)) {
+  // Clean up old src/app-old if it exists
+  console.log('⚠ Removing old src/app-old...');
+  fs.rmSync(srcAppOldPath, { recursive: true, force: true });
+  console.log('✓ src/app-old removed');
 } else {
-  console.log('✓ src/app does not exist or already renamed (OK)');
+  console.log('✓ src/app does not exist (OK)');
 }
 
 // Handle src/pages - rename to avoid Next.js detecting it as Pages Router

@@ -4,11 +4,20 @@ const path = require('path');
 // Post-build script to restore src/pages and tsconfig.json after build
 // This ensures development continues to work normally
 
+const srcAppPath = path.join(__dirname, '..', 'src', 'app');
+const appBackupPath = path.join(__dirname, '..', '.app-backup');
 const srcPagesPath = path.join(__dirname, '..', 'src', 'pages');
 const srcPagesOldPath = path.join(__dirname, '..', 'src', 'pages-old');
 const tsconfigPath = path.join(__dirname, '..', 'tsconfig.json');
 
 console.log('Post-build: Restoring directories and tsconfig.json...');
+
+// Restore src/app from .app-backup
+if (fs.existsSync(appBackupPath) && !fs.existsSync(srcAppPath)) {
+  console.log('✓ Restoring src/app from .app-backup...');
+  fs.renameSync(appBackupPath, srcAppPath);
+  console.log('✓ src/app restored successfully');
+}
 
 // Restore src/pages from src/pages-old
 if (fs.existsSync(srcPagesOldPath) && !fs.existsSync(srcPagesPath)) {
