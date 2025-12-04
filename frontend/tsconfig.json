@@ -48,7 +48,7 @@
         "./src/locales/*"
       ],
       "@/pages/*": [
-        "./src/pages/*"
+        "./src/spa-pages/*"
       ]
     },
     "forceConsistentCasingInFileNames": true
