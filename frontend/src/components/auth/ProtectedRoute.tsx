@@ -95,13 +95,15 @@ export function ProtectedRoute({
           />
           <p>Loading...</p>
         </div>
-        <style jsx>{`
-          @keyframes spin {
-            to {
-              transform: rotate(360deg);
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            @keyframes spin {
+              to {
+                transform: rotate(360deg);
+              }
             }
-          }
-        `}</style>
+          `
+        }} />
       </div>
     );
   }

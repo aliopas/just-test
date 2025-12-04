@@ -17,6 +17,24 @@ const publicRoutes = [
 ];
 
 /**
+ * Admin routes that require admin role
+ */
+const adminRoutes = [
+  '/admin',
+];
+
+/**
+ * Investor routes that require investor role
+ */
+const investorRoutes = [
+  '/dashboard',
+  '/profile',
+  '/requests',
+  '/projects',
+  '/internal-news',
+];
+
+/**
  * Protected routes that require authentication
  * هذه الصفحات تحتاج تسجيل دخول (يتم التحقق منها على جانب العميل)
  */
@@ -47,7 +65,8 @@ const protectedRoutes = {
 /**
  * Middleware for Next.js App Router
  * Handles basic route protection and public routes
- * Authentication is primarily handled client-side
+ * Note: Full authentication check happens client-side in ProtectedRoute component
+ * This middleware provides basic server-side checks
  */
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -82,14 +101,13 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 5. المسارات الديناميكية (مثل [id] أو [...slug])
-  // يتم التعامل معها من قبل Next.js routing
-  // أمثلة: /requests/[id], /news/[id], /projects/[id], /admin/requests/[id]
-  // هذه المسارات تحتاج مصادقة (يتم التحقق منها على جانب العميل)
+  // 5. Protected routes check
+  // Note: Full authentication check happens client-side in ProtectedRoute component
+  // This middleware allows all requests - client-side components handle redirects
+  // This approach allows Next.js to render page structure before client-side redirect
   
-  // 6. جميع المسارات الأخرى (المحمية وغير المحمية)
-  // يتم السماح بها - التحقق من المصادقة يتم على جانب العميل
-  // في AuthContext والمكونات
+  // 6. جميع المسارات الأخرى
+  // التحقق الكامل من المصادقة يتم على جانب العميل في ProtectedRoute component
   return NextResponse.next();
 }
 

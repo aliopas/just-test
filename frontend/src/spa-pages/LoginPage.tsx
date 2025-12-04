@@ -27,12 +27,24 @@ export function LoginPage() {
         return;
       }
 
+      // Check if there's a redirect path stored
+      const redirectPath = typeof window !== 'undefined' 
+        ? sessionStorage.getItem('redirectAfterLogin')
+        : null;
+      
+      if (redirectPath) {
+        // Clear the stored redirect path
+        sessionStorage.removeItem('redirectAfterLogin');
+        router.push(redirectPath);
+        return;
+      }
+
       // التوجيه حسب الدور
       const role = (result as any).user?.role === 'admin' ? 'admin' : 'investor';
       if (role === 'admin') {
         router.push('/admin/dashboard');
       } else {
-        router.push('/home');
+        router.push('/dashboard');
       }
     } catch (err) {
       if (err instanceof ApiError) {
