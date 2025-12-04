@@ -21,7 +21,7 @@ const navLinkStyle: React.CSSProperties = {
   color: palette.textPrimary,
 };
 
-export function HeaderNav(): JSX.Element {
+export function HeaderNav() {
   const { language, direction } = useLanguage();
   const logout = useLogout();
   const pathname = usePathname();

@@ -1,11 +1,11 @@
-import { memo } from 'react';
+import React, { memo } from 'react';
 import { palette } from '../../styles/theme';
 import { useLanguage } from '../../context/LanguageContext';
 
 interface Statistic {
   value: string;
   label: string;
-  icon: JSX.Element;
+  icon: React.ReactElement;
 }
 
 const statisticsEn: Statistic[] = [

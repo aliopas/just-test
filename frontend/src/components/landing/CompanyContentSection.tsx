@@ -37,7 +37,7 @@ interface ContentSection {
   displayOrder: number;
 }
 
-function getSectionIcon(sectionId: string, color: string): JSX.Element | null {
+function getSectionIcon(sectionId: string, color: string): React.ReactElement | null {
   const iconProps = {
     width: 80,
     height: 80,

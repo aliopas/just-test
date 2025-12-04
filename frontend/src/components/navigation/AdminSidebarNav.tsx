@@ -72,7 +72,7 @@ const adminNavItems = [
   },
 ];
 
-export function AdminSidebarNav(): JSX.Element {
+export function AdminSidebarNav() {
   const { language, direction } = useLanguage();
   const logout = useLogout();
   const pathname = usePathname();

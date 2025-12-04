@@ -5,7 +5,7 @@ import { Logo } from '@/components/Logo';
 import { palette } from '@/styles/theme';
 import { useCompanyLogoUrl } from '@/hooks/usePublicContent';
 
-export function AppFooter(): JSX.Element {
+export function AppFooter() {
   const { language } = useLanguage();
   const isArabic = language === 'ar';
   const companyLogoUrl = useCompanyLogoUrl();

@@ -21,7 +21,7 @@ const adminSidebarLinkBase: React.CSSProperties = {
   border: `1px solid ${palette.neutralBorderSoft}`,
 };
 
-export function InvestorSidebarNav(): JSX.Element {
+export function InvestorSidebarNav() {
   const { language, direction } = useLanguage();
   const logout = useLogout();
   const pathname = usePathname();
