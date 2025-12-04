@@ -24,17 +24,42 @@ export function RegisterPage() {
     setError(null);
     setSuccess(null);
 
+    // Basic client-side validation
+    if (!email || !email.trim()) {
+      setError(isArabic ? 'البريد الإلكتروني مطلوب' : 'Email is required');
+      return;
+    }
+
+    if (!fullName || fullName.trim().length < 3) {
+      setError(
+        isArabic
+          ? 'الاسم الكامل يجب أن يكون 3 أحرف على الأقل'
+          : 'Full name must be at least 3 characters'
+      );
+      return;
+    }
+
     try {
       const payload = {
-        email,
-        fullName,
-        phone: phone || undefined,
-        company: company || undefined,
-        message: message || undefined,
+        email: email.trim(),
+        fullName: fullName.trim(),
+        phone: phone?.trim() || undefined,
+        company: company?.trim() || undefined,
+        message: message?.trim() || undefined,
         language: (isArabic ? 'ar' : 'en') as 'ar' | 'en',
       };
 
+      console.log('[RegisterPage] Submitting request:', {
+        email: payload.email,
+        fullName: payload.fullName,
+        hasPhone: !!payload.phone,
+        hasCompany: !!payload.company,
+        hasMessage: !!payload.message,
+      });
+
       const response = await registerMutation.mutateAsync(payload);
+
+      console.log('[RegisterPage] Request submitted successfully:', response);
 
       setSuccess(
         isArabic
@@ -42,20 +67,53 @@ export function RegisterPage() {
           : 'Your investor signup request has been received. The Bacura team will review it and contact you.'
       );
 
+      // Reset form after successful submission
+      setFullName('');
+      setEmail('');
+      setPhone('');
+      setCompany('');
+      setMessage('');
+
       // يمكن لاحقاً التوجيه لصفحة مخصصة لتأكيد الطلب
       // router.push('/thanks'); مثلاً
     } catch (err) {
+      console.error('[RegisterPage] Error submitting request:', err);
+
       if (err instanceof ApiError) {
+        let errorMessage = err.message;
+
+        // Extract validation errors if available
+        if (err.payload && typeof err.payload === 'object') {
+          const payload = err.payload as Record<string, unknown>;
+          if (payload.error && typeof payload.error === 'object') {
+            const errorObj = payload.error as Record<string, unknown>;
+            if (errorObj.details && Array.isArray(errorObj.details)) {
+              const details = errorObj.details as Array<{ field: string; message: string }>;
+              if (details.length > 0) {
+                errorMessage = details.map(d => d.message).join(', ');
+              }
+            } else if (errorObj.message && typeof errorObj.message === 'string') {
+              errorMessage = errorObj.message;
+            }
+          }
+        }
+
         setError(
           isArabic
-            ? err.message || 'تعذّر إرسال الطلب. حاول مرة أخرى.'
-            : err.message || 'Unable to submit your request. Please try again.'
+            ? errorMessage || 'تعذّر إرسال الطلب. حاول مرة أخرى.'
+            : errorMessage || 'Unable to submit your request. Please try again.'
         );
       } else if (err instanceof Error) {
-        setError(isArabic ? err.message : err.message || 'Something went wrong.');
+        setError(
+          isArabic
+            ? err.message || 'حدث خطأ أثناء إرسال الطلب.'
+            : err.message || 'Something went wrong.'
+        );
       } else {
         setError(
-          isArabic ? 'حدث خطأ غير متوقع. حاول مرة أخرى.' : 'An unexpected error occurred.'
+          isArabic
+            ? 'حدث خطأ غير متوقع. حاول مرة أخرى.'
+            : 'An unexpected error occurred.'
         );
       }
     }
@@ -288,43 +346,22 @@ export function RegisterPage() {
             />
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-            <label
-              htmlFor="password"
-              style={{
-                fontSize: typography.sizes.caption,
-                fontWeight: typography.weights.medium,
-                color: palette.textPrimary,
-              }}
-            >
-              {isArabic ? 'كلمة المرور' : 'Password'}
-            </label>
-            <input
-              id="password"
-              type="password"
-              placeholder={isArabic ? '••••••••' : '••••••••'}
-              style={{
-                padding: '0.7rem 0.85rem',
-                borderRadius: radius.md,
-                border: `1px solid ${palette.neutralBorder}`,
-                fontSize: typography.sizes.body,
-                outline: 'none',
-              }}
-            />
-          </div>
-
           <button
             type="submit"
+            disabled={registerMutation.isPending}
             style={{
               marginTop: '0.5rem',
               padding: '0.85rem 1rem',
               borderRadius: radius.md,
               border: 'none',
-              background: palette.brandPrimaryStrong,
+              background: registerMutation.isPending
+                ? palette.neutralBorder
+                : palette.brandPrimaryStrong,
               color: palette.textOnBrand,
               fontWeight: typography.weights.semibold,
               fontSize: typography.sizes.body,
-              cursor: 'pointer',
+              cursor: registerMutation.isPending ? 'not-allowed' : 'pointer',
+              opacity: registerMutation.isPending ? 0.7 : 1,
             }}
           >
             {registerMutation.isPending

@@ -13,7 +13,7 @@ export const validate = (schema: ZodSchema) => {
           message: err.message,
         }));
 
-        res.status(400).json({
+        return res.status(400).json({
           error: {
             code: 'VALIDATION_ERROR',
             message: 'Validation failed',
@@ -21,7 +21,7 @@ export const validate = (schema: ZodSchema) => {
           },
         });
       } else {
-        next(error);
+        return next(error);
       }
     }
   };

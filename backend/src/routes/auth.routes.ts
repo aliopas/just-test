@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction, RequestHandler } from 'express';
 import { authController } from '../controllers/auth.controller';
 import { validate } from '../middleware/validation.middleware';
 import { authenticate } from '../middleware/auth.middleware';
@@ -17,53 +17,63 @@ import {
 
 const authRouter = Router();
 
-authRouter.post('/register', validate(registerSchema), authController.register);
+// Async error wrapper to catch errors from async route handlers
+// Uses type assertion to handle different Request types safely
+const asyncHandler = (
+  fn: (req: Request, res: Response, next?: NextFunction) => Promise<any> | any
+): RequestHandler => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    Promise.resolve(fn(req as any, res, next)).catch(next);
+  };
+};
+
+authRouter.post('/register', validate(registerSchema), asyncHandler(authController.register as any));
 authRouter.post(
   '/verify-otp',
   validate(verifyOTPSchema),
-  authController.verifyOTP
+  asyncHandler(authController.verifyOTP as any)
 );
 authRouter.post(
   '/resend-otp',
   validate(resendOTPSchema),
-  authController.resendOTP
+  asyncHandler(authController.resendOTP as any)
 );
 authRouter.post(
   '/confirm-email',
   validate(confirmEmailSchema),
-  authController.confirmEmail
+  asyncHandler(authController.confirmEmail as any)
 );
 
-authRouter.post('/login', validate(loginSchema), authController.login);
-authRouter.post('/refresh', validate(refreshSchema), authController.refresh);
-authRouter.post('/logout', authController.logout);
+authRouter.post('/login', validate(loginSchema), asyncHandler(authController.login as any));
+authRouter.post('/refresh', validate(refreshSchema), asyncHandler(authController.refresh as any));
+authRouter.post('/logout', asyncHandler(authController.logout as any));
 
 // 2FA endpoints (require authentication)
-authRouter.post('/2fa/setup', authenticate, authController.setup2FA);
+authRouter.post('/2fa/setup', authenticate, asyncHandler(authController.setup2FA as any));
 authRouter.post(
   '/2fa/verify',
   authenticate,
   validate(totpVerifySchema),
-  authController.verify2FA
+  asyncHandler(authController.verify2FA as any)
 );
-authRouter.post('/2fa/disable', authenticate, authController.disable2FA);
+authRouter.post('/2fa/disable', authenticate, asyncHandler(authController.disable2FA as any));
 
 // Password Reset Endpoints
 authRouter.post(
   '/reset-password-request',
   validate(resetPasswordRequestSchema),
-  authController.resetPasswordRequest
+  asyncHandler(authController.resetPasswordRequest as any)
 );
 authRouter.post(
   '/verify-reset-token',
   validate(verifyResetTokenSchema),
-  authController.verifyResetToken
+  asyncHandler(authController.verifyResetToken as any)
 );
 authRouter.post(
   '/update-password',
   authenticate,
   validate(updatePasswordSchema),
-  authController.updatePassword
+  asyncHandler(authController.updatePassword as any)
 );
 
 export { authRouter };

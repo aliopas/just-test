@@ -39,6 +39,10 @@ export function LoginPage() {
         return;
       }
 
+      // Wait a bit for session to be fully initialized before redirecting
+      // This ensures Supabase auth state is updated
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       // التوجيه حسب الدور
       const role = (result as any).user?.role === 'admin' ? 'admin' : 'investor';
       if (role === 'admin') {
@@ -94,57 +98,163 @@ export function LoginPage() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: palette.backgroundSurface,
+        background: `linear-gradient(135deg, ${palette.brandPrimaryDark} 0%, ${palette.brandPrimary} 50%, ${palette.brandAccent} 100%)`,
         padding: '2rem',
         direction,
+        position: 'relative',
+        overflow: 'hidden',
       }}
     >
+      {/* Decorative background elements */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          opacity: 0.1,
+          backgroundImage: `
+            radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
+            radial-gradient(circle at 40% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 50%)
+          `,
+          pointerEvents: 'none',
+        }}
+      />
+      
+      {/* Investment-themed grid pattern */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          opacity: 0.05,
+          backgroundImage: `
+            linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px)
+          `,
+          backgroundSize: '40px 40px',
+          pointerEvents: 'none',
+        }}
+      />
+
       <div
         style={{
           width: '100%',
-          maxWidth: 420,
+          maxWidth: 480,
           background: palette.backgroundBase,
-          borderRadius: radius.lg,
-          boxShadow: shadow.medium,
-          padding: '2rem',
-          border: `1px solid ${palette.neutralBorderSoft}`,
+          borderRadius: '16px',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+          padding: '3rem',
+          border: 'none',
+          position: 'relative',
+          zIndex: 1,
         }}
       >
-        <h1
+        {/* Logo/Brand section */}
+        <div
           style={{
-            margin: 0,
-            marginBottom: '0.75rem',
-            fontSize: typography.sizes.heading,
-            fontWeight: typography.weights.bold,
-            color: palette.textPrimary,
+            textAlign: 'center',
+            marginBottom: '2rem',
           }}
         >
-          {isArabic ? 'تسجيل الدخول' : 'Sign in to your account'}
-        </h1>
-        <p
-          style={{
-            margin: 0,
-            marginBottom: '1.5rem',
-            fontSize: typography.sizes.body,
-            color: palette.textSecondary,
-          }}
-        >
-          {isArabic
-            ? 'ادخل بريدك الإلكتروني وكلمة المرور للوصول إلى لوحة المستثمر.'
-            : 'Enter your email and password to access your investor dashboard.'}
-        </p>
+          <div
+            style={{
+              width: '64px',
+              height: '64px',
+              margin: '0 auto 1rem',
+              borderRadius: '12px',
+              background: `linear-gradient(135deg, ${palette.brandPrimary} 0%, ${palette.brandPrimaryStrong} 100%)`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: `0 8px 24px rgba(45, 111, 163, 0.3)`,
+            }}
+          >
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12 2L2 7L12 12L22 7L12 2Z"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M2 17L12 22L22 17"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M2 12L12 17L22 12"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+          <h1
+            style={{
+              margin: 0,
+              marginBottom: '0.5rem',
+              fontSize: '1.875rem',
+              fontWeight: typography.weights.bold,
+              color: palette.textPrimary,
+              letterSpacing: '-0.02em',
+            }}
+          >
+            {isArabic ? 'تسجيل الدخول' : 'Welcome Back'}
+          </h1>
+          <p
+            style={{
+              margin: 0,
+              fontSize: typography.sizes.body,
+              color: palette.textSecondary,
+              fontWeight: typography.weights.regular,
+            }}
+          >
+            {isArabic
+              ? 'ادخل إلى لوحة المستثمر الخاصة بك'
+              : 'Sign in to access your investor dashboard'}
+          </p>
+        </div>
 
         {error && (
           <div
             style={{
-              marginBottom: '1rem',
-              padding: '0.75rem 0.9rem',
+              marginBottom: '1.5rem',
+              padding: '0.875rem 1rem',
               borderRadius: radius.md,
               background: '#FEF2F2',
+              border: '1px solid #FEE2E2',
               color: palette.error,
               fontSize: typography.sizes.caption,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
             }}
           >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
+              <path d="M12 8V12M12 16H12.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
             {error}
           </div>
         )}
@@ -153,17 +263,18 @@ export function LoginPage() {
           style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: '1rem',
+            gap: '1.25rem',
           }}
           onSubmit={handleSubmit}
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <label
               htmlFor="email"
               style={{
                 fontSize: typography.sizes.caption,
-                fontWeight: typography.weights.medium,
+                fontWeight: typography.weights.semibold,
                 color: palette.textPrimary,
+                letterSpacing: '0.01em',
               }}
             >
               {isArabic ? 'البريد الإلكتروني' : 'Email address'}
@@ -173,11 +284,22 @@ export function LoginPage() {
               type="email"
               placeholder={isArabic ? 'name@company.com' : 'name@company.com'}
               style={{
-                padding: '0.7rem 0.85rem',
+                padding: '0.875rem 1rem',
                 borderRadius: radius.md,
-                border: `1px solid ${palette.neutralBorder}`,
+                border: `1.5px solid ${palette.neutralBorderSoft}`,
                 fontSize: typography.sizes.body,
                 outline: 'none',
+                transition: 'all 0.2s ease',
+                background: palette.backgroundBase,
+                color: palette.textPrimary,
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = palette.brandPrimary;
+                e.target.style.boxShadow = `0 0 0 3px rgba(45, 111, 163, 0.1)`;
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = palette.neutralBorderSoft;
+                e.target.style.boxShadow = 'none';
               }}
               value={email}
               onChange={event => setEmail(event.target.value)}
@@ -185,13 +307,14 @@ export function LoginPage() {
             />
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <label
               htmlFor="password"
               style={{
                 fontSize: typography.sizes.caption,
-                fontWeight: typography.weights.medium,
+                fontWeight: typography.weights.semibold,
                 color: palette.textPrimary,
+                letterSpacing: '0.01em',
               }}
             >
               {isArabic ? 'كلمة المرور' : 'Password'}
@@ -201,11 +324,22 @@ export function LoginPage() {
               type="password"
               placeholder={isArabic ? '••••••••' : '••••••••'}
               style={{
-                padding: '0.7rem 0.85rem',
+                padding: '0.875rem 1rem',
                 borderRadius: radius.md,
-                border: `1px solid ${palette.neutralBorder}`,
+                border: `1.5px solid ${palette.neutralBorderSoft}`,
                 fontSize: typography.sizes.body,
                 outline: 'none',
+                transition: 'all 0.2s ease',
+                background: palette.backgroundBase,
+                color: palette.textPrimary,
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = palette.brandPrimary;
+                e.target.style.boxShadow = `0 0 0 3px rgba(45, 111, 163, 0.1)`;
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = palette.neutralBorderSoft;
+                e.target.style.boxShadow = 'none';
               }}
               value={password}
               onChange={event => setPassword(event.target.value)}
@@ -216,18 +350,24 @@ export function LoginPage() {
           <div
             style={{
               display: 'flex',
-              justifyContent: 'space-between',
+              justifyContent: 'flex-end',
               alignItems: 'center',
               fontSize: typography.sizes.caption,
             }}
           >
-            <div />
             <a
               href="/reset-password"
               style={{
                 color: palette.brandPrimary,
                 textDecoration: 'none',
                 fontWeight: typography.weights.medium,
+                transition: 'color 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = palette.brandPrimaryStrong;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = palette.brandPrimary;
               }}
             >
               {isArabic ? 'نسيت كلمة المرور؟' : 'Forgot password?'}
@@ -236,16 +376,36 @@ export function LoginPage() {
 
           <button
             type="submit"
+            disabled={loginMutation.isPending}
             style={{
               marginTop: '0.5rem',
-              padding: '0.8rem 1rem',
+              padding: '0.875rem 1.5rem',
               borderRadius: radius.md,
               border: 'none',
-              background: palette.brandPrimaryStrong,
+              background: loginMutation.isPending
+                ? palette.neutralBorder
+                : `linear-gradient(135deg, ${palette.brandPrimary} 0%, ${palette.brandPrimaryStrong} 100%)`,
               color: palette.textOnBrand,
               fontWeight: typography.weights.semibold,
               fontSize: typography.sizes.body,
-              cursor: 'pointer',
+              cursor: loginMutation.isPending ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: loginMutation.isPending
+                ? 'none'
+                : `0 4px 12px rgba(45, 111, 163, 0.3)`,
+              opacity: loginMutation.isPending ? 0.7 : 1,
+            }}
+            onMouseEnter={(e) => {
+              if (!loginMutation.isPending) {
+                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.boxShadow = `0 6px 16px rgba(45, 111, 163, 0.4)`;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!loginMutation.isPending) {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = `0 4px 12px rgba(45, 111, 163, 0.3)`;
+              }
             }}
           >
             {loginMutation.isPending
@@ -258,25 +418,137 @@ export function LoginPage() {
           </button>
         </form>
 
-        <p
+        <div
           style={{
-            marginTop: '1.25rem',
-            fontSize: typography.sizes.caption,
-            color: palette.textMuted,
+            marginTop: '2rem',
+            paddingTop: '1.5rem',
+            borderTop: `1px solid ${palette.neutralBorderSoft}`,
+            textAlign: 'center',
           }}
         >
-          {isArabic ? 'لا يوجد لديك حساب؟ ' : "Don't have an account? "}
-          <a
-            href="/register"
+          <p
             style={{
-              color: palette.brandPrimary,
-              textDecoration: 'none',
-              fontWeight: typography.weights.medium,
+              margin: 0,
+              fontSize: typography.sizes.caption,
+              color: palette.textMuted,
             }}
           >
-            {isArabic ? 'إنشاء حساب مستثمر' : 'Create an investor account'}
-          </a>
-        </p>
+            {isArabic ? 'لا يوجد لديك حساب؟ ' : "Don't have an account? "}
+            <a
+              href="/register"
+              style={{
+                color: palette.brandPrimary,
+                textDecoration: 'none',
+                fontWeight: typography.weights.semibold,
+                transition: 'color 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = palette.brandPrimaryStrong;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = palette.brandPrimary;
+              }}
+            >
+              {isArabic ? 'إنشاء حساب مستثمر' : 'Create an investor account'}
+            </a>
+          </p>
+        </div>
+
+        {/* Trust indicators */}
+        <div
+          style={{
+            marginTop: '2rem',
+            paddingTop: '1.5rem',
+            borderTop: `1px solid ${palette.neutralBorderSoft}`,
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '1.5rem',
+            flexWrap: 'wrap',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontSize: '0.75rem',
+              color: palette.textMuted,
+            }}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M9 12L11 14L15 10"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span>{isArabic ? 'آمن' : 'Secure'}</span>
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontSize: '0.75rem',
+              color: palette.textMuted,
+            }}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span>{isArabic ? 'موثوق' : 'Trusted'}</span>
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontSize: '0.75rem',
+              color: palette.textMuted,
+            }}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                fill="currentColor"
+              />
+            </svg>
+            <span>{isArabic ? 'احترافي' : 'Professional'}</span>
+          </div>
+        </div>
       </div>
     </div>
   );

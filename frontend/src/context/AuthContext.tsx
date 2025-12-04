@@ -7,6 +7,8 @@ import React, {
   useEffect,
 } from 'react';
 import { getStoredAccessToken, decodeJwtPayload } from '../utils/auth-token';
+import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
+import { useSupabaseUser } from '../hooks/useSupabaseUser';
 
 type UserRole = 'investor' | 'admin';
 
@@ -119,7 +121,69 @@ function serializeUser(user: AuthUser): string {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUserState] = useState<AuthUser | null>(() => readStoredUser());
+  // Use Supabase auth for real-time authentication state
+  const { user: supabaseUser, session, isLoading: supabaseLoading, isAuthenticated: supabaseAuthenticated } = useSupabaseAuth();
+  
+  // Fetch user record from users table if authenticated
+  const { userRecord, isLoading: userRecordLoading } = useSupabaseUser(supabaseUser?.id);
+
+  // Combine Supabase auth with user record
+  const [user, setUserState] = useState<AuthUser | null>(() => {
+    // Try to read from localStorage first for faster initial load
+    const stored = readStoredUser();
+    return stored;
+  });
+
+  // Update user when Supabase auth or user record changes
+  useEffect(() => {
+    // Wait for both Supabase auth and user record to finish loading
+    if (supabaseLoading || userRecordLoading) {
+      return;
+    }
+
+    if (supabaseAuthenticated && supabaseUser) {
+      // User is authenticated via Supabase
+      if (userRecord) {
+        // We have the full user record - use it
+        const authUser: AuthUser = {
+          id: supabaseUser.id,
+          email: supabaseUser.email || userRecord.email,
+          role: (userRecord.role === 'admin' ? 'admin' : 'investor') as UserRole,
+        };
+        setUserState(authUser);
+        
+        // Persist to localStorage
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem(STORAGE_KEY, serializeUser(authUser));
+        }
+      } else {
+        // Supabase user exists but no record yet - try to reconstruct from token
+        // This handles the case where login just happened and userRecord hasn't loaded yet
+        const stored = readStoredUser();
+        if (stored && stored.id === supabaseUser.id) {
+          // Use stored user temporarily until userRecord loads
+          setUserState(stored);
+        } else {
+          // Create minimal user from Supabase data
+          const authUser: AuthUser = {
+            id: supabaseUser.id,
+            email: supabaseUser.email || '',
+            role: 'investor', // Default role until userRecord loads
+          };
+          setUserState(authUser);
+          if (typeof window !== 'undefined') {
+            window.localStorage.setItem(STORAGE_KEY, serializeUser(authUser));
+          }
+        }
+      }
+    } else if (!supabaseAuthenticated || !supabaseUser) {
+      // User is not authenticated
+      setUserState(null);
+      if (typeof window !== 'undefined') {
+        window.localStorage.removeItem(STORAGE_KEY);
+      }
+    }
+  }, [supabaseUser, supabaseAuthenticated, supabaseLoading, userRecord, userRecordLoading]);
 
   const setUser = useCallback((next: AuthUser | null) => {
     if (typeof window !== 'undefined') {
@@ -133,8 +197,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const hydrate = useCallback(() => {
-    setUserState(readStoredUser());
-  }, []);
+    // Re-read from localStorage and sync with Supabase
+    const stored = readStoredUser();
+    setUserState(stored);
+    
+    // If we have Supabase session, prefer that
+    if (supabaseAuthenticated && supabaseUser && userRecord) {
+      const authUser: AuthUser = {
+        id: supabaseUser.id,
+        email: supabaseUser.email || userRecord.email,
+        role: (userRecord.role === 'admin' ? 'admin' : 'investor') as UserRole,
+      };
+      setUserState(authUser);
+    }
+  }, [supabaseAuthenticated, supabaseUser, userRecord]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -142,23 +218,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const handleFocus = () => {
-      setUserState(readStoredUser());
+      hydrate();
     };
 
     window.addEventListener('focus', handleFocus);
     return () => {
       window.removeEventListener('focus', handleFocus);
     };
-  }, []);
+  }, [hydrate]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
-      isAuthenticated: Boolean(user),
+      isAuthenticated: Boolean(user && (supabaseAuthenticated || !supabaseLoading)),
       setUser,
       hydrate,
     }),
-    [hydrate, setUser, user]
+    [hydrate, setUser, user, supabaseAuthenticated, supabaseLoading]
   );
 
   return React.createElement(AuthContext.Provider, { value }, children);

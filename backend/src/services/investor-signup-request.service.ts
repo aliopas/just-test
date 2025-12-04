@@ -132,58 +132,119 @@ export const investorSignupRequestService = {
   async createRequest(
     input: InvestorSignupRequestInput
   ): Promise<SignupRequestRow> {
-    const adminClient = requireSupabaseAdmin();
-    const email = normaliseEmail(input.email);
+    try {
+      console.log('[InvestorSignupRequestService] Creating request for:', {
+        email: input.email,
+        fullName: input.fullName,
+      });
 
-    const { data: existingUser } = await adminClient
-      .from('users')
-      .select('id')
-      .eq('email', email)
-      .maybeSingle();
+      const adminClient = requireSupabaseAdmin();
+      const email = normaliseEmail(input.email);
 
-    if (existingUser) {
-      const error = new Error('USER_ALREADY_EXISTS');
-      (error as Error & { status?: number }).status = 409;
-      throw error;
-    }
+      // Check if user already exists
+      const { data: existingUser, error: userCheckError } = await adminClient
+        .from('users')
+        .select('id')
+        .eq('email', email)
+        .maybeSingle();
 
-    const { data: existingPending } = await adminClient
-      .from(TABLE_NAME)
-      .select('id, status, created_at')
-      .eq('email', email)
-      .eq('status', 'pending')
-      .maybeSingle();
+      if (userCheckError) {
+        console.error('[InvestorSignupRequestService] Error checking existing user:', userCheckError);
+        throw new Error(`Database error while checking user: ${userCheckError.message}`);
+      }
 
-    if (existingPending) {
-      const error = new Error('REQUEST_ALREADY_PENDING');
-      (error as Error & { status?: number }).status = 409;
-      throw error;
-    }
+      if (existingUser) {
+        const error = new Error('USER_ALREADY_EXISTS');
+        (error as Error & { status?: number }).status = 409;
+        throw error;
+      }
 
-    const { data, error } = await adminClient
-      .from(TABLE_NAME)
-      .insert({
+      // Check if pending request already exists
+      const { data: existingPending, error: pendingCheckError } = await adminClient
+        .from(TABLE_NAME)
+        .select('id, status, created_at')
+        .eq('email', email)
+        .eq('status', 'pending')
+        .maybeSingle();
+
+      if (pendingCheckError) {
+        console.error('[InvestorSignupRequestService] Error checking pending request:', pendingCheckError);
+        throw new Error(`Database error while checking pending request: ${pendingCheckError.message}`);
+      }
+
+      if (existingPending) {
+        const error = new Error('REQUEST_ALREADY_PENDING');
+        (error as Error & { status?: number }).status = 409;
+        throw error;
+      }
+
+      // Create new signup request
+      const insertPayload = {
         email,
         full_name: input.fullName,
         phone: input.phone ?? null,
         company: input.company ?? null,
         message: input.message ?? null,
         requested_role: 'investor',
-        status: 'pending',
+        status: 'pending' as const,
         payload: {
           language: input.language ?? 'ar',
         },
-      })
-      .select('*')
-      .single<SignupRequestRow>();
+      };
 
-    if (error || !data) {
-      throw new Error(
-        `Failed to create signup request: ${error?.message ?? 'unknown'}`
-      );
+      console.log('[InvestorSignupRequestService] Inserting request:', {
+        email,
+        fullName: input.fullName,
+        hasPhone: !!input.phone,
+        hasCompany: !!input.company,
+        hasMessage: !!input.message,
+      });
+
+      const { data, error } = await adminClient
+        .from(TABLE_NAME)
+        .insert(insertPayload)
+        .select('*')
+        .single<SignupRequestRow>();
+
+      if (error) {
+        console.error('[InvestorSignupRequestService] Insert error:', {
+          error: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+        });
+        throw new Error(
+          `Failed to create signup request: ${error.message}${error.code ? ` (code: ${error.code})` : ''}`
+        );
+      }
+
+      if (!data) {
+        console.error('[InvestorSignupRequestService] Insert succeeded but no data returned');
+        throw new Error('Failed to create signup request: No data returned from database');
+      }
+
+      console.log('[InvestorSignupRequestService] Request created successfully:', {
+        id: data.id,
+        status: data.status,
+      });
+
+      return data;
+    } catch (error) {
+      // Re-throw known errors (USER_ALREADY_EXISTS, REQUEST_ALREADY_PENDING)
+      if (error instanceof Error && 
+          (error.message === 'USER_ALREADY_EXISTS' || error.message === 'REQUEST_ALREADY_PENDING')) {
+        throw error;
+      }
+      
+      // Wrap unknown errors with more context
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('[InvestorSignupRequestService] Unexpected error:', {
+        error: errorMessage,
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      
+      throw new Error(`Failed to create signup request: ${errorMessage}`);
     }
-
-    return data;
   },
 
   async listRequests(params: ListParams & { actorId?: string }) {

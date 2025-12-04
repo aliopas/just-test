@@ -93,6 +93,11 @@ export type UserRow = {
 export async function ensureUserRecord(user: SupabaseUser): Promise<UserRow | null> {
   const adminClient = requireSupabaseAdmin();
 
+  console.log('[ensureUserRecord] Checking user:', {
+    userId: user.id,
+    email: user.email,
+  });
+
   const { data: existingUser, error: existingError } = await adminClient
     .from('users')
     .select('id, email, role')
@@ -100,7 +105,20 @@ export async function ensureUserRecord(user: SupabaseUser): Promise<UserRow | nu
     .single<UserRow>();
 
   if (existingUser && !existingError) {
+    console.log('[ensureUserRecord] User exists:', {
+      userId: existingUser.id,
+      email: existingUser.email,
+      role: existingUser.role,
+    });
     return existingUser;
+  }
+
+  if (existingError && existingError.code !== 'PGRST116') {
+    // PGRST116 is "not found" error, which is expected
+    console.error('[ensureUserRecord] Error checking existing user:', {
+      error: existingError.message,
+      code: existingError.code,
+    });
   }
 
   const metadataRole =
@@ -119,6 +137,12 @@ export async function ensureUserRecord(user: SupabaseUser): Promise<UserRow | nu
       ? user.phone
       : `user-${user.id}@generated.local`);
 
+  console.log('[ensureUserRecord] Creating/updating user record:', {
+    userId: user.id,
+    email,
+    inferredRole,
+  });
+
   const { data: insertedUser, error: insertError } = await adminClient
     .from('users')
     .upsert(
@@ -136,14 +160,36 @@ export async function ensureUserRecord(user: SupabaseUser): Promise<UserRow | nu
     .select('id, email, role')
     .single<UserRow>();
 
-  if (insertError || !insertedUser) {
+  if (insertError) {
+    console.error('[ensureUserRecord] Error upserting user:', {
+      error: insertError.message,
+      code: insertError.code,
+      details: insertError.details,
+      hint: insertError.hint,
+    });
     return null;
   }
 
+  if (!insertedUser) {
+    console.error('[ensureUserRecord] Upsert succeeded but no data returned');
+    return null;
+  }
+
+  console.log('[ensureUserRecord] User record created/updated:', {
+    userId: insertedUser.id,
+    email: insertedUser.email,
+    role: insertedUser.role,
+  });
+
   try {
     await rbacService.assignRole(user.id, inferredRole);
+    console.log('[ensureUserRecord] Role assigned via RBAC:', {
+      userId: user.id,
+      role: inferredRole,
+    });
   } catch (roleError) {
-    void roleError;
+    console.error('[ensureUserRecord] Failed to assign role via RBAC service:', roleError);
+    // Don't fail the whole operation if RBAC assignment fails
   }
 
   return insertedUser;

@@ -41,4 +41,42 @@ app.use('/api/v1/notifications', notificationRouter);
 app.use('/api/v1/news', newsRouter);
 app.use('/api/v1/public', publicRouter);
 
+// Error handler middleware - must be last
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  // If response was already sent, delegate to default Express error handler
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  // Log error for debugging
+  console.error('[Error Handler]', {
+    path: req.path,
+    method: req.method,
+    error: err.message,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+  });
+
+  // Determine status code
+  const statusCode = err.statusCode || err.status || 500;
+
+  // Return error response
+  return res.status(statusCode).json({
+    error: {
+      code: err.code || 'INTERNAL_ERROR',
+      message: err.message || 'An unexpected error occurred',
+      ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+    },
+  });
+});
+
+// 404 handler - must be after all routes
+app.use((req: express.Request, res: express.Response) => {
+  return res.status(404).json({
+    error: {
+      code: 'NOT_FOUND',
+      message: `Route ${req.method} ${req.path} not found`,
+    },
+  });
+});
+
 export default app;

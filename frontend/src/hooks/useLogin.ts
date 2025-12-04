@@ -99,10 +99,18 @@ export function useLogin() {
               status: sessionError.status,
             });
             
-            // Try to verify the session was set correctly
+            // Even if setSession fails, tokens are stored in localStorage
+            // Try to get session to verify
             const { data: currentSession } = await supabase.auth.getSession();
             if (!currentSession?.session) {
               console.warn('[Supabase Auth] Session not set, but tokens are stored in localStorage');
+              // Force a refresh by calling getSession again after a short delay
+              setTimeout(async () => {
+                const { data: retrySession } = await supabase.auth.getSession();
+                if (retrySession?.session) {
+                  console.log('[Supabase Auth] Session recovered after retry');
+                }
+              }, 100);
             }
           } else {
             console.log('[Supabase Auth] Session initialized successfully', {
@@ -110,18 +118,36 @@ export function useLogin() {
               email: sessionData?.user?.email,
             });
             
-            // Verify session is accessible
+            // Verify session is accessible immediately
             const { data: verifySession } = await supabase.auth.getSession();
             if (verifySession?.session) {
               console.log('[Supabase Auth] Session verified successfully');
             } else {
-              console.warn('[Supabase Auth] Session set but not accessible');
+              console.warn('[Supabase Auth] Session set but not immediately accessible, will retry');
+              // Retry after a short delay to allow Supabase to sync
+              setTimeout(async () => {
+                const { data: retrySession } = await supabase.auth.getSession();
+                if (retrySession?.session) {
+                  console.log('[Supabase Auth] Session accessible after retry');
+                }
+              }, 200);
             }
           }
         } catch (error) {
           console.error('[Supabase Auth] Failed to hydrate Supabase client session:', error);
           // Session tokens are still stored, so the app can continue working
           // The Supabase client will use them on next request
+          // Try to recover by getting session after a delay
+          setTimeout(async () => {
+            try {
+              const { data: recoveredSession } = await supabase.auth.getSession();
+              if (recoveredSession?.session) {
+                console.log('[Supabase Auth] Session recovered after error');
+              }
+            } catch (recoverError) {
+              console.error('[Supabase Auth] Failed to recover session:', recoverError);
+            }
+          }, 300);
         }
       } else {
         if (!supabase) {

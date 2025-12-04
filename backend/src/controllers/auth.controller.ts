@@ -51,6 +51,15 @@ export const authController = {
     res: Response
   ) => {
     try {
+      console.log('[Register] Received request:', {
+        email: req.body.email,
+        fullName: req.body.fullName,
+        hasPhone: !!req.body.phone,
+        hasCompany: !!req.body.company,
+        hasMessage: !!req.body.message,
+        language: req.body.language ?? 'ar',
+      });
+
       const language = req.body.language ?? 'ar';
       const request = await investorSignupRequestService.createRequest({
         email: req.body.email,
@@ -59,6 +68,11 @@ export const authController = {
         company: req.body.company,
         message: req.body.message,
         language,
+      });
+
+      console.log('[Register] Request created successfully:', {
+        id: request.id,
+        status: request.status,
       });
 
       return res.status(202).json({
@@ -73,6 +87,12 @@ export const authController = {
             : 'Your investor signup request has been received and will be reviewed by the admin team.',
       });
     } catch (error) {
+      console.error('[Register] Error occurred:', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        status: (error as Error & { status?: number }).status,
+      });
+
       const status =
         (error as Error & { status?: number }).status ??
         (error instanceof Error &&
@@ -80,6 +100,20 @@ export const authController = {
           error.message === 'USER_ALREADY_EXISTS')
           ? 409
           : 500);
+
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to submit signup request';
+
+      // Log additional details for 500 errors
+      if (status === 500) {
+        console.error('[Register] Internal server error details:', {
+          errorType: error?.constructor?.name,
+          errorMessage,
+          body: req.body,
+        });
+      }
 
       return res.status(status).json({
         error: {
@@ -89,10 +123,7 @@ export const authController = {
               error.message === 'USER_ALREADY_EXISTS')
               ? error.message
               : 'INTERNAL_ERROR',
-          message:
-            error instanceof Error
-              ? error.message
-              : 'Failed to submit signup request',
+          message: errorMessage,
         },
       });
     }
@@ -450,6 +481,12 @@ export const authController = {
     try {
       const { email, password, totpToken } = req.body;
 
+      console.log('[Login] Attempting login:', {
+        email,
+        hasPassword: !!password,
+        hasTotpToken: !!totpToken,
+      });
+
       // Sign in with password
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -457,6 +494,10 @@ export const authController = {
       });
 
       if (error) {
+        console.error('[Login] Supabase auth error:', {
+          message: error.message,
+          status: error.status,
+        });
         return res.status(401).json({
           error: {
             code: 'INVALID_CREDENTIALS',
@@ -466,6 +507,7 @@ export const authController = {
       }
 
       if (!data.user || !data.session) {
+        console.error('[Login] Missing user or session after successful auth');
         await supabase.auth.signOut();
         return res.status(500).json({
           error: {
@@ -475,10 +517,19 @@ export const authController = {
         });
       }
 
+      console.log('[Login] Supabase auth successful:', {
+        userId: data.user.id,
+        email: data.user.email,
+      });
+
       // Ensure user exists in users table
       const userRecord = await ensureUserRecord(data.user);
       
       if (!userRecord) {
+        console.error('[Login] Failed to ensure user record:', {
+          userId: data.user.id,
+          email: data.user.email,
+        });
         await supabase.auth.signOut();
         return res.status(403).json({
           error: {
@@ -488,6 +539,12 @@ export const authController = {
         });
       }
 
+      console.log('[Login] User record ensured:', {
+        userId: userRecord.id,
+        email: userRecord.email,
+        role: userRecord.role,
+      });
+
       // Check if 2FA is enabled and get user status
       const adminClient = requireSupabaseAdmin();
       const { data: userData, error: userDataError } = await adminClient
@@ -496,7 +553,12 @@ export const authController = {
         .eq('id', data.user.id)
         .single();
 
-      if (userDataError || !userData) {
+      if (userDataError) {
+        console.error('[Login] Error fetching user data:', {
+          error: userDataError.message,
+          code: userDataError.code,
+          details: userDataError.details,
+        });
         await supabase.auth.signOut();
         return res.status(403).json({
           error: {
@@ -506,8 +568,32 @@ export const authController = {
         });
       }
 
+      if (!userData) {
+        console.error('[Login] User data not found:', {
+          userId: data.user.id,
+        });
+        await supabase.auth.signOut();
+        return res.status(403).json({
+          error: {
+            code: 'USER_NOT_FOUND',
+            message: 'User account not found in database',
+          },
+        });
+      }
+
+      console.log('[Login] User data retrieved:', {
+        userId: data.user.id,
+        status: userData.status,
+        role: userData.role,
+        mfaEnabled: userData.mfa_enabled,
+      });
+
       // Check user status - only allow active users to login
       if (userData.status !== 'active') {
+        console.warn('[Login] User account not active:', {
+          userId: data.user.id,
+          status: userData.status,
+        });
         await supabase.auth.signOut();
         return res.status(403).json({
           error: {
@@ -553,9 +639,16 @@ export const authController = {
         metadataRole ??
         'investor';
 
+      console.log('[Login] Final role determination:', {
+        userId: data.user.id,
+        dbRole: userData?.role,
+        metadataRole,
+        finalRole: role,
+      });
+
       setAuthCookies(res, data.session);
 
-      return res.status(200).json({
+      const response = {
         user: {
           id: data.user.id,
           email: data.user.email,
@@ -570,7 +663,15 @@ export const authController = {
         },
         expiresIn: data.session.expires_in ?? 3600,
         tokenType: 'Bearer',
+      };
+
+      console.log('[Login] Login successful:', {
+        userId: response.user.id,
+        email: response.user.email,
+        role: response.user.role,
       });
+
+      return res.status(200).json(response);
     } catch (error) {
       console.error('Login error:', error);
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';

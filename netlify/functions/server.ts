@@ -162,6 +162,41 @@ export default async (event: any, context: any) => {
 
     const result = await serverlessHandler(event, context);
     console.log('[Server Function] Handler returned:', result?.statusCode);
+    
+    // Ensure we always return a proper response object
+    if (!result) {
+      console.error('[Server Function] Handler returned undefined/null');
+      return {
+        statusCode: 500,
+        body: JSON.stringify({
+          error: {
+            code: 'INTERNAL_ERROR',
+            message: 'Handler returned an invalid response',
+          },
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      };
+    }
+    
+    // Ensure result has required properties
+    if (!result.statusCode) {
+      console.error('[Server Function] Handler returned response without statusCode');
+      return {
+        statusCode: 500,
+        body: JSON.stringify({
+          error: {
+            code: 'INTERNAL_ERROR',
+            message: 'Handler returned an invalid response format',
+          },
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      };
+    }
+    
     return result;
   } catch (error) {
     console.error('[Server Function] Error:', error);
