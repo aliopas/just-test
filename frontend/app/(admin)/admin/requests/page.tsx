@@ -1,6 +1,6 @@
 'use client';
 
-import { AdminRequestsInboxPage } from '@/pages/AdminRequestsInboxPage';
+import { AdminRequestsInboxPage } from '@/spa-pages/AdminRequestsInboxPage';
 import { ClientOnly } from '../../../components/ClientOnly';
 
 export const dynamic = 'force-dynamic';

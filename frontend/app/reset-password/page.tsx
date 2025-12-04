@@ -1,6 +1,6 @@
 'use client';
 
-import { ResetPasswordPage } from '@/pages/ResetPasswordPage';
+import { ResetPasswordPage } from '@/spa-pages/ResetPasswordPage';
 import { ClientOnly } from '../components/ClientOnly';
 
 export const dynamic = 'force-dynamic';

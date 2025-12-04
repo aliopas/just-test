@@ -1,14 +1,14 @@
 'use client';
 
-import { AdminCompanyContentPage } from '@/spa-pages/AdminCompanyContentPage';
+import { InvestorRequestDetailPage } from '@/spa-pages/InvestorRequestDetailPage';
 import { ClientOnly } from '../../../components/ClientOnly';
 
 export const dynamic = 'force-dynamic';
 
-export default function AdminCompanyContent() {
+export default function RequestDetail() {
   return (
     <ClientOnly>
-      <AdminCompanyContentPage />
+      <InvestorRequestDetailPage />
     </ClientOnly>
   );
 }

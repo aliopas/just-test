@@ -11,6 +11,13 @@ import {
   usePublicPartnershipInfo,
   usePublicMarketValue,
   usePublicCompanyGoals,
+  type PublicCompanyProfile,
+  type PublicCompanyClient,
+  type PublicCompanyResource,
+  type PublicCompanyStrength,
+  type PublicPartnershipInfo,
+  type PublicMarketValue,
+  type PublicCompanyGoal,
 } from '../../hooks/usePublicContent';
 import { SectionSkeleton } from './SectionSkeleton';
 
@@ -213,6 +220,7 @@ export function CompanyContentSection() {
 
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
 
+  // Check if any query is still loading
   const isLoading =
     isLoadingProfiles ||
     isLoadingClients ||
@@ -222,6 +230,7 @@ export function CompanyContentSection() {
     isLoadingMarketValue ||
     isLoadingGoals;
 
+  // Check if any query has an error
   const hasAnyError =
     isErrorProfiles ||
     isErrorClients ||
@@ -231,23 +240,33 @@ export function CompanyContentSection() {
     isErrorMarketValue ||
     isErrorGoals;
 
+  // Check if we have at least some data loaded (partial success)
+  const hasPartialData =
+    ((profilesData as { profiles?: PublicCompanyProfile[] } | undefined)?.profiles?.length ?? 0) > 0 ||
+    ((clientsData as { clients?: PublicCompanyClient[] } | undefined)?.clients?.length ?? 0) > 0 ||
+    ((resourcesData as { resources?: PublicCompanyResource[] } | undefined)?.resources?.length ?? 0) > 0 ||
+    ((strengthsData as { strengths?: PublicCompanyStrength[] } | undefined)?.strengths?.length ?? 0) > 0 ||
+    ((partnershipData as { partnershipInfo?: PublicPartnershipInfo[] } | undefined)?.partnershipInfo?.length ?? 0) > 0 ||
+    (marketValueData as { marketValue?: PublicMarketValue | null } | undefined)?.marketValue !== null ||
+    ((goalsData as { goals?: PublicCompanyGoal[] } | undefined)?.goals?.length ?? 0) > 0;
+
   // Build separate sections for each content type according to general content management group
   // Sections: Profiles, Business Model (Clients), Resources, Strengths, Partnership Info, Market Value, Goals
   const sections = useMemo<ContentSection[]>(() => {
     const sectionsList: ContentSection[] = [];
-    const profiles = profilesData?.profiles ?? [];
-    const clients = clientsData?.clients ?? [];
-    const resources = resourcesData?.resources ?? [];
-    const strengths = strengthsData?.strengths ?? [];
-    const partnershipInfo = partnershipData?.partnershipInfo ?? [];
-    const marketValue = marketValueData?.marketValue;
-    const goals = goalsData?.goals ?? [];
+    const profiles: PublicCompanyProfile[] = (profilesData as { profiles?: PublicCompanyProfile[] } | undefined)?.profiles ?? [];
+    const clients: PublicCompanyClient[] = (clientsData as { clients?: PublicCompanyClient[] } | undefined)?.clients ?? [];
+    const resources: PublicCompanyResource[] = (resourcesData as { resources?: PublicCompanyResource[] } | undefined)?.resources ?? [];
+    const strengths: PublicCompanyStrength[] = (strengthsData as { strengths?: PublicCompanyStrength[] } | undefined)?.strengths ?? [];
+    const partnershipInfo: PublicPartnershipInfo[] = (partnershipData as { partnershipInfo?: PublicPartnershipInfo[] } | undefined)?.partnershipInfo ?? [];
+    const marketValue: PublicMarketValue | null | undefined = (marketValueData as { marketValue?: PublicMarketValue | null } | undefined)?.marketValue;
+    const goals: PublicCompanyGoal[] = (goalsData as { goals?: PublicCompanyGoal[] } | undefined)?.goals ?? [];
 
     // 1. البروفايل التعريفي (Company Profile)
     if (profiles.length > 0) {
       const profileCards: SectionCard[] = profiles
-        .sort((a, b) => a.displayOrder - b.displayOrder)
-        .map((profile) => ({
+        .sort((a: PublicCompanyProfile, b: PublicCompanyProfile) => a.displayOrder - b.displayOrder)
+        .map((profile: PublicCompanyProfile) => ({
           id: `profile-${profile.id}`,
           title: profile.title,
           description: profile.content.substring(0, 100) + (profile.content.length > 100 ? '...' : ''),
@@ -256,7 +275,7 @@ export function CompanyContentSection() {
           onClick: () => setSelectedSection(`profile-${profile.id}`),
         }));
 
-      const minDisplayOrder = Math.min(...profiles.map((p) => p.displayOrder), Infinity);
+      const minDisplayOrder = Math.min(...profiles.map((p: PublicCompanyProfile) => p.displayOrder), Infinity);
       sectionsList.push({
         id: 'company-profile',
         title: isArabic ? 'البروفايل التعريفي' : 'Company Profile',
@@ -268,8 +287,8 @@ export function CompanyContentSection() {
     // 2. نموذج العمل التجاري (Business Model - Clients)
     if (clients.length > 0) {
       const businessModelCards: SectionCard[] = clients
-        .sort((a, b) => a.displayOrder - b.displayOrder)
-        .map((client) => ({
+        .sort((a: PublicCompanyClient, b: PublicCompanyClient) => a.displayOrder - b.displayOrder)
+        .map((client: PublicCompanyClient) => ({
           id: `client-${client.id}`,
           title: client.name,
           description: client.description
@@ -280,7 +299,7 @@ export function CompanyContentSection() {
           onClick: () => setSelectedSection(`client-${client.id}`),
         }));
 
-      const minDisplayOrder = Math.min(...clients.map((c) => c.displayOrder), Infinity);
+      const minDisplayOrder = Math.min(...clients.map((c: PublicCompanyClient) => c.displayOrder), Infinity);
       sectionsList.push({
         id: 'business-model',
         title: isArabic ? 'نموذج العمل التجاري' : 'Business Model',
@@ -292,8 +311,8 @@ export function CompanyContentSection() {
     // 3. الموارد المالية
     if (resources.length > 0) {
       const resourceCards: SectionCard[] = resources
-        .sort((a, b) => a.displayOrder - b.displayOrder)
-        .map((resource) => {
+        .sort((a: PublicCompanyResource, b: PublicCompanyResource) => a.displayOrder - b.displayOrder)
+        .map((resource: PublicCompanyResource) => {
           const description = resource.description
             ? resource.description.substring(0, 100) + (resource.description.length > 100 ? '...' : '')
             : resource.value
@@ -314,7 +333,7 @@ export function CompanyContentSection() {
           };
         });
 
-      const minDisplayOrder = Math.min(...resources.map((r) => r.displayOrder), Infinity);
+      const minDisplayOrder = Math.min(...resources.map((r: PublicCompanyResource) => r.displayOrder), Infinity);
       sectionsList.push({
         id: 'resources',
         title: isArabic ? 'الموارد المالية' : 'Financial Resources',
@@ -326,8 +345,8 @@ export function CompanyContentSection() {
     // 4. نقاط قوة الشركة
     if (strengths.length > 0) {
       const strengthCards: SectionCard[] = strengths
-        .sort((a, b) => a.displayOrder - b.displayOrder)
-        .map((strength) => ({
+        .sort((a: PublicCompanyStrength, b: PublicCompanyStrength) => a.displayOrder - b.displayOrder)
+        .map((strength: PublicCompanyStrength) => ({
           id: `strength-${strength.id}`,
           title: strength.title,
           description: strength.description
@@ -338,7 +357,7 @@ export function CompanyContentSection() {
           onClick: () => setSelectedSection(`strength-${strength.id}`),
         }));
 
-      const minDisplayOrder = Math.min(...strengths.map((s) => s.displayOrder), Infinity);
+      const minDisplayOrder = Math.min(...strengths.map((s: PublicCompanyStrength) => s.displayOrder), Infinity);
       sectionsList.push({
         id: 'strengths',
         title: isArabic ? 'نقاط قوة الشركة' : 'Company Strengths',
@@ -350,8 +369,8 @@ export function CompanyContentSection() {
     // 5. كيف تكون شريك في باكورة
     if (partnershipInfo.length > 0) {
       const partnershipCards: SectionCard[] = partnershipInfo
-        .sort((a, b) => a.displayOrder - b.displayOrder)
-        .map((info) => ({
+        .sort((a: PublicPartnershipInfo, b: PublicPartnershipInfo) => a.displayOrder - b.displayOrder)
+        .map((info: PublicPartnershipInfo) => ({
           id: `partnership-${info.id}`,
           title: info.title,
           description: info.content.substring(0, 120) + (info.content.length > 120 ? '...' : ''),
@@ -360,7 +379,7 @@ export function CompanyContentSection() {
           onClick: () => setSelectedSection(`partnership-${info.id}`),
         }));
 
-      const minDisplayOrder = Math.min(...partnershipInfo.map((i) => i.displayOrder), Infinity);
+      const minDisplayOrder = Math.min(...partnershipInfo.map((i: PublicPartnershipInfo) => i.displayOrder), Infinity);
       sectionsList.push({
         id: 'partnership',
         title: isArabic ? 'كيف تكون شريك في باكورة' : 'How to Become a Partner in Bacura',
@@ -401,8 +420,8 @@ export function CompanyContentSection() {
     // 7. الأهداف العامة للشركة
     if (goals.length > 0) {
       const goalCards: SectionCard[] = goals
-        .sort((a, b) => a.displayOrder - b.displayOrder)
-        .map((goal) => {
+        .sort((a: PublicCompanyGoal, b: PublicCompanyGoal) => a.displayOrder - b.displayOrder)
+        .map((goal: PublicCompanyGoal) => {
           const description = goal.description
             ? goal.description.substring(0, 100) + (goal.description.length > 100 ? '...' : '')
             : goal.targetDate
@@ -421,7 +440,7 @@ export function CompanyContentSection() {
           };
         });
 
-      const minDisplayOrder = Math.min(...goals.map((g) => g.displayOrder), Infinity);
+      const minDisplayOrder = Math.min(...goals.map((g: PublicCompanyGoal) => g.displayOrder), Infinity);
       sectionsList.push({
         id: 'goals',
         title: isArabic ? 'الأهداف العامة للشركة' : 'Company General Goals',
@@ -444,11 +463,13 @@ export function CompanyContentSection() {
     isArabic,
   ]);
 
-  if (isLoading) {
+  // Show loading skeleton only if we're loading and have no data at all
+  if (isLoading && !hasPartialData) {
     return React.createElement(SectionSkeleton);
   }
 
-  if (sections.length === 0) {
+  // Show error/empty state only if we have no sections AND we're not loading
+  if (sections.length === 0 && !isLoading) {
     return (
       <div
         style={{
@@ -472,8 +493,8 @@ export function CompanyContentSection() {
           <p style={{ margin: 0, fontSize: '1.1rem', lineHeight: 1.7 }}>
             {hasAnyError
               ? isArabic
-                ? 'حدث خطأ في تحميل البيانات. يرجى المحاولة مرة أخرى لاحقاً.'
-                : 'Failed to load content. Please try again later.'
+                ? 'حدث خطأ في تحميل بعض البيانات. قد تظهر بعض الأقسام بشكل محدود.'
+                : 'Failed to load some content. Some sections may appear limited.'
               : isArabic
                 ? 'لا توجد بيانات متاحة للعرض حالياً.'
                 : 'No content available to display at the moment.'}

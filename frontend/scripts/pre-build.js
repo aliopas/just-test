@@ -50,20 +50,23 @@ if (fs.existsSync(srcAppPath)) {
   console.log('✓ src/app does not exist (OK)');
 }
 
-// Handle src/pages - rename to avoid Next.js detecting it as Pages Router
+// Handle src/pages - remove completely to avoid Next.js detecting it as Pages Router
 // Next.js doesn't allow pages/ and app/ at different levels
-// We keep src/pages renamed during build, imports use @/pages/* alias
+// All imports now use @/spa-pages/* instead of @/pages/*
 
-if (fs.existsSync(srcPagesPath) && !fs.existsSync(srcPagesOldPath)) {
-  console.log('✓ Renaming src/pages to src/pages-old to avoid Next.js conflicts...');
-  fs.renameSync(srcPagesPath, srcPagesOldPath);
-  console.log('✓ src/pages renamed successfully');
-} else if (fs.existsSync(srcPagesPath)) {
-  console.log('⚠ src/pages-old already exists, removing src/pages...');
+if (fs.existsSync(srcPagesPath)) {
+  console.log('⚠ Removing src/pages to avoid Next.js conflicts...');
   fs.rmSync(srcPagesPath, { recursive: true, force: true });
   console.log('✓ src/pages removed');
 } else {
-  console.log('✓ src/pages does not exist or already renamed (OK)');
+  console.log('✓ src/pages does not exist (OK)');
+}
+
+// Also clean up src/pages-old if it exists from previous builds
+if (fs.existsSync(srcPagesOldPath)) {
+  console.log('⚠ Removing old src/pages-old...');
+  fs.rmSync(srcPagesOldPath, { recursive: true, force: true });
+  console.log('✓ src/pages-old removed');
 }
 
 // Remove any root/pages directory that might exist

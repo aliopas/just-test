@@ -11,6 +11,14 @@ import {
   usePublicPartnershipInfo,
   usePublicMarketValue,
   usePublicCompanyGoals,
+  type PublicCompanyProfile,
+  type PublicCompanyPartner,
+  type PublicCompanyClient,
+  type PublicCompanyResource,
+  type PublicCompanyStrength,
+  type PublicPartnershipInfo,
+  type PublicMarketValue,
+  type PublicCompanyGoal,
 } from '../../hooks/usePublicContent';
 import { getStoragePublicUrl, COMPANY_CONTENT_IMAGES_BUCKET } from '../../utils/supabase-storage';
 import { OptimizedImage } from '../OptimizedImage';
@@ -66,7 +74,8 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
     // Profile
     if (sectionId.startsWith('profile-')) {
       const id = sectionId.replace('profile-', '');
-      const profile = profilesData?.profiles.find((p) => p.id === id);
+      const profiles = (profilesData as { profiles?: PublicCompanyProfile[] } | undefined)?.profiles ?? [];
+      const profile = profiles.find((p: PublicCompanyProfile) => p.id === id);
       if (!profile) return null;
       return {
         type: 'profile' as const,
@@ -79,10 +88,10 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
     // Partner
     if (sectionId.startsWith('partner-')) {
       const id = sectionId.replace('partner-', '');
-      const partners = partnersData?.partners ?? [];
-      const partner = partners.find((p) => p.id === id);
+      const partners = (partnersData as { partners?: PublicCompanyPartner[] } | undefined)?.partners ?? [];
+      const partner = partners.find((p: PublicCompanyPartner) => p.id === id);
       if (!partner) {
-        console.warn(`Partner with id "${id}" not found. Available partners:`, partners.map((p) => p.id));
+        console.warn(`Partner with id "${id}" not found. Available partners:`, partners.map((p: PublicCompanyPartner) => p.id));
         return null;
       }
       return {
@@ -97,10 +106,10 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
     // Client (Business Model)
     if (sectionId.startsWith('client-')) {
       const id = sectionId.replace('client-', '');
-      const clients = clientsData?.clients ?? [];
-      const client = clients.find((c) => c.id === id);
+      const clients = (clientsData as { clients?: PublicCompanyClient[] } | undefined)?.clients ?? [];
+      const client = clients.find((c: PublicCompanyClient) => c.id === id);
       if (!client) {
-        console.warn(`Client with id "${id}" not found. Available clients:`, clients.map((c) => c.id));
+        console.warn(`Client with id "${id}" not found. Available clients:`, clients.map((c: PublicCompanyClient) => c.id));
         return null;
       }
       return {
@@ -111,10 +120,10 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
       };
     }
 
-    // Partners & Clients (legacy - kept for backward compatibility)
+    // Partners & Clients
     if (sectionId === 'partners-clients') {
-      const partners = partnersData?.partners ?? [];
-      const clients = clientsData?.clients ?? [];
+      const partners = (partnersData as { partners?: PublicCompanyPartner[] } | undefined)?.partners ?? [];
+      const clients = (clientsData as { clients?: PublicCompanyClient[] } | undefined)?.clients ?? [];
       return {
         type: 'partners-clients' as const,
         partners,
@@ -125,7 +134,8 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
     // Resource
     if (sectionId.startsWith('resource-')) {
       const id = sectionId.replace('resource-', '');
-      const resource = resourcesData?.resources.find((r) => r.id === id);
+      const resources = (resourcesData as { resources?: PublicCompanyResource[] } | undefined)?.resources ?? [];
+      const resource = resources.find((r: PublicCompanyResource) => r.id === id);
       if (!resource) return null;
       return {
         type: 'resource' as const,
@@ -140,7 +150,8 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
     // Strength
     if (sectionId.startsWith('strength-')) {
       const id = sectionId.replace('strength-', '');
-      const strength = strengthsData?.strengths.find((s) => s.id === id);
+      const strengths = (strengthsData as { strengths?: PublicCompanyStrength[] } | undefined)?.strengths ?? [];
+      const strength = strengths.find((s: PublicCompanyStrength) => s.id === id);
       if (!strength) return null;
       return {
         type: 'strength' as const,
@@ -153,7 +164,8 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
     // Partnership Info
     if (sectionId.startsWith('partnership-')) {
       const id = sectionId.replace('partnership-', '');
-      const info = partnershipData?.partnershipInfo.find((p) => p.id === id);
+      const partnershipInfo = (partnershipData as { partnershipInfo?: PublicPartnershipInfo[] } | undefined)?.partnershipInfo ?? [];
+      const info = partnershipInfo.find((p: PublicPartnershipInfo) => p.id === id);
       if (!info) return null;
       return {
         type: 'partnership' as const,
@@ -166,7 +178,7 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
 
     // Market Value
     if (sectionId === 'market-value') {
-      const marketValue = marketValueData?.marketValue;
+      const marketValue = (marketValueData as { marketValue?: PublicMarketValue | null } | undefined)?.marketValue;
       if (!marketValue) return null;
       return {
         type: 'market-value' as const,
@@ -182,7 +194,8 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
     // Goal
     if (sectionId.startsWith('goal-')) {
       const id = sectionId.replace('goal-', '');
-      const goal = goalsData?.goals.find((g) => g.id === id);
+      const goals = (goalsData as { goals?: PublicCompanyGoal[] } | undefined)?.goals ?? [];
+      const goal = goals.find((g: PublicCompanyGoal) => g.id === id);
       if (!goal) return null;
       return {
         type: 'goal' as const,
@@ -369,7 +382,7 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
                   gap: '1.5rem',
                 }}
               >
-                {content.partners.map((partner) => {
+                {content.partners.map((partner: PublicCompanyPartner) => {
                   const logoUrl = partner.logoKey
                     ? getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, partner.logoKey)
                     : null;
@@ -459,7 +472,7 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
                   gap: '1.5rem',
                 }}
               >
-                {content.clients.map((client) => {
+                {content.clients.map((client: PublicCompanyClient) => {
                   const logoUrl = client.logoKey
                     ? getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, client.logoKey)
                     : null;
@@ -762,7 +775,7 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
                   gap: '1.25rem',
                 }}
               >
-                {content.steps.map((step, index) => (
+                {content.steps.map((step: string, index: number) => (
                   <li
                     key={index}
                     style={{

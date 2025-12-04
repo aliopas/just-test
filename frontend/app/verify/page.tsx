@@ -1,6 +1,6 @@
 'use client';
 
-import { VerifyOtpPage } from '@/pages/VerifyOtpPage';
+import { VerifyOtpPage } from '@/spa-pages/VerifyOtpPage';
 import { ClientOnly } from '../components/ClientOnly';
 
 export const dynamic = 'force-dynamic';

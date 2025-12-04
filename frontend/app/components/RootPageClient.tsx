@@ -8,7 +8,7 @@ import { palette } from '@/styles/theme';
 
 // Dynamic import with SSR disabled
 const PublicLandingPage = dynamic(
-  () => import('@/pages/PublicLandingPage').then((mod) => ({ default: mod.PublicLandingPage })),
+  () => import('@/spa-pages/PublicLandingPage').then((mod) => ({ default: mod.PublicLandingPage })),
   {
     ssr: false,
     loading: () => (

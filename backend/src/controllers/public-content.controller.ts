@@ -35,12 +35,19 @@ export const publicContentController = {
         displayOrder: profile.displayOrder,
       }));
 
+      console.log(`[Public Content Controller] Fetched ${mapped.length} company profiles (lang: ${language})`);
       return res.status(200).json({
         profiles: mapped,
         language,
       });
     } catch (error) {
-      console.error('Failed to fetch public company profile:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      console.error('[Public Content Controller] Failed to fetch public company profile:', {
+        error: errorMessage,
+        stack: errorStack,
+        language: getLanguageFromQuery(req),
+      });
       return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
@@ -188,12 +195,19 @@ export const publicContentController = {
         displayOrder: info.displayOrder,
       }));
 
+      console.log(`[Public Content Controller] Fetched ${mapped.length} partnership info items (lang: ${language})`);
       return res.status(200).json({
         partnershipInfo: mapped,
         language,
       });
     } catch (error) {
-      console.error('Failed to fetch public partnership info:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      console.error('[Public Content Controller] Failed to fetch public partnership info:', {
+        error: errorMessage,
+        stack: errorStack,
+        language: getLanguageFromQuery(req),
+      });
       return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
@@ -212,11 +226,13 @@ export const publicContentController = {
       const latest = marketValues.length > 0 ? marketValues[0] : null;
 
       if (!latest) {
+        console.log('[Public Content Controller] No verified market value found');
         return res.status(200).json({
           marketValue: null,
         });
       }
 
+      console.log(`[Public Content Controller] Fetched market value: ${latest.value} ${latest.currency}`);
       return res.status(200).json({
         marketValue: {
           id: latest.id,
@@ -229,7 +245,12 @@ export const publicContentController = {
         },
       });
     } catch (error) {
-      console.error('Failed to fetch public market value:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      console.error('[Public Content Controller] Failed to fetch public market value:', {
+        error: errorMessage,
+        stack: errorStack,
+      });
       return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
@@ -255,12 +276,19 @@ export const publicContentController = {
         displayOrder: goal.displayOrder,
       }));
 
+      console.log(`[Public Content Controller] Fetched ${mapped.length} company goals (lang: ${language})`);
       return res.status(200).json({
         goals: mapped,
         language,
       });
     } catch (error) {
-      console.error('Failed to fetch public company goals:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      console.error('[Public Content Controller] Failed to fetch public company goals:', {
+        error: errorMessage,
+        stack: errorStack,
+        language: getLanguageFromQuery(req),
+      });
       return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',

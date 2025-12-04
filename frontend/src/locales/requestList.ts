@@ -1,6 +1,6 @@
 ﻿import type { InvestorLanguage } from '../types/investor';
 
-type MessageKey =
+export type MessageKey =
   | 'pageTitle'
   | 'pageSubtitle'
   | 'filters.all'

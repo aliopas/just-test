@@ -1,6 +1,6 @@
 'use client';
 
-import { SupabaseTestPage } from '@/pages/SupabaseTestPage';
+import { SupabaseTestPage } from '@/spa-pages/SupabaseTestPage';
 
 export default function TestSupabasePage() {
   return <SupabaseTestPage />;

@@ -24,8 +24,6 @@ const excludeList = [
   'node_modules',
   'vite.config.ts',
   'src/app',
-  'src/App.tsx',
-  'src/main.tsx',
   'src/index.html'
 ];
 

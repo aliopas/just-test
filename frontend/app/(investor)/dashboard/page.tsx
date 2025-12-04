@@ -1,6 +1,6 @@
 'use client';
 
-import { InvestorDashboardPage } from '@/pages/InvestorDashboardPage';
+import { InvestorDashboardPage } from '@/spa-pages/InvestorDashboardPage';
 import { ClientOnly } from '../../components/ClientOnly';
 
 export const dynamic = 'force-dynamic';

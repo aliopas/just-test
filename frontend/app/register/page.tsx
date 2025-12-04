@@ -1,6 +1,6 @@
 'use client';
 
-import { RegisterPage } from '@/pages/RegisterPage';
+import { RegisterPage } from '@/spa-pages/RegisterPage';
 import { ClientOnly } from '../components/ClientOnly';
 
 export const dynamic = 'force-dynamic';

@@ -1,6 +1,6 @@
 'use client';
 
-import { AdminReportsPage } from '@/pages/AdminReportsPage';
+import { AdminReportsPage } from '@/spa-pages/AdminReportsPage';
 import { ClientOnly } from '../../../components/ClientOnly';
 
 export const dynamic = 'force-dynamic';

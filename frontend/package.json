@@ -4,6 +4,7 @@
   "private": true,
   "author": "Bacura Technologies Team",
   "scripts": {
+    "predev": "node scripts/pre-build.js",
     "dev": "next dev -p 3002",
     "prebuild": "node scripts/pre-build.js",
     "build": "next build && node scripts/fix-validator-types.js",
@@ -22,14 +23,12 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.53.0",
-    "react-router-dom": "^6.28.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.1",
-    "@types/react-router-dom": "^5.3.3",
     "typescript": "~5.3.3",
     "eslint": "^9.0.0",
     "eslint-config-next": "^16.0.6"

@@ -9,6 +9,8 @@ import { useLanguage } from '../context/LanguageContext';
 import {
   usePublicCompanyProfiles,
   usePublicPartnershipInfo,
+  type PublicCompanyProfile,
+  type PublicPartnershipInfo,
 } from '../hooks/usePublicContent';
 
 export function PublicLandingPage() {
@@ -19,8 +21,8 @@ export function PublicLandingPage() {
   const { data: profilesData } = usePublicCompanyProfiles();
   const { data: partnershipData } = usePublicPartnershipInfo();
 
-  const mainProfile = profilesData?.profiles?.[0];
-  const mainPartnership = partnershipData?.partnershipInfo?.[0];
+  const mainProfile: PublicCompanyProfile | undefined = (profilesData as { profiles?: PublicCompanyProfile[] } | undefined)?.profiles?.[0];
+  const mainPartnership: PublicPartnershipInfo | undefined = (partnershipData as { partnershipInfo?: PublicPartnershipInfo[] } | undefined)?.partnershipInfo?.[0];
 
   const headerSubtitle =
     mainProfile?.content && mainProfile.content.length > 0

@@ -68,9 +68,8 @@ export function LanguageProvider({
 export function useLanguage(): LanguageContextValue {
   const context = useContext(LanguageContext);
   if (!context) {
-    // Fallback for cases where components are rendered outside of LanguageProvider,
-    // such as during static pre-rendering of legacy pages. In development, warn
-    // so incorrect usage can be fixed, but avoid crashing the build.
+    // Fallback for cases where components are rendered outside of LanguageProvider.
+    // In development, warn so incorrect usage can be fixed, but avoid crashing the build.
     if (process.env.NODE_ENV !== 'production') {
       // eslint-disable-next-line no-console
       console.warn('useLanguage used outside of LanguageProvider. Using default Arabic language fallback.');

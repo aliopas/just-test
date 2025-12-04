@@ -1,6 +1,6 @@
 'use client';
 
-import { MyRequestsPage } from '@/pages/MyRequestsPage';
+import { MyRequestsPage } from '@/spa-pages/MyRequestsPage';
 import { ClientOnly } from '../../components/ClientOnly';
 
 export const dynamic = 'force-dynamic';

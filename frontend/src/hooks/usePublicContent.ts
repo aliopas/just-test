@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '../utils/api-client';
+import { useQuery, UseQueryOptions } from '@tanstack/react-query';
+import { apiClient, ApiError } from '../utils/api-client';
 import { useLanguage } from '../context/LanguageContext';
 import { useMemo } from 'react';
 import { getStoragePublicUrl, COMPANY_CONTENT_IMAGES_BUCKET } from '../utils/supabase-storage';
@@ -116,106 +116,249 @@ interface CompanyGoalsResponse {
   language: string;
 }
 
+// Common query options for public content
+const commonPublicContentOptions: Partial<Omit<UseQueryOptions<any, ApiError>, 'queryFn' | 'queryKey'>> = {
+  enabled: typeof window !== 'undefined', // Only run queries on the client, not during SSR
+  staleTime: 5 * 60 * 1000, // 5 minutes
+  gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+  retry: (failureCount, error) => {
+    // Don't retry on 4xx errors (client errors) or 5xx errors (server errors)
+    // Public content is not critical, so we fail fast to avoid blocking the UI
+    if (error?.status >= 400) {
+      return false;
+    }
+    // Only retry network errors (no status code)
+    return failureCount < 1; // Reduced retries for faster failure
+  },
+  retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff, max 30s
+  refetchOnWindowFocus: false, // Don't refetch when window regains focus for public content
+  refetchOnReconnect: true, // Refetch when network reconnects
+  // Don't throw errors - let components handle error states gracefully
+  throwOnError: false,
+};
+
 // Hooks
 export function usePublicCompanyProfiles() {
   const { language } = useLanguage();
 
-  return useQuery<CompanyProfileResponse>({
+  return useQuery<CompanyProfileResponse, ApiError>({
     queryKey: ['publicCompanyProfiles', language],
-    queryFn: () =>
-      apiClient<CompanyProfileResponse>(`/public/company-profile?lang=${language}`, {
-        auth: false,
-      }),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    queryFn: async () => {
+      try {
+        return await apiClient<CompanyProfileResponse>(`/public/company-profile?lang=${language}`, {
+          auth: false,
+        });
+      } catch (error) {
+        // Log as warning for non-critical public content errors
+        if (error instanceof Error && 'status' in error) {
+          const apiError = error as { status?: number };
+          if (apiError.status && apiError.status >= 500) {
+            console.warn('[usePublicCompanyProfiles] Server error (non-critical):', error);
+          } else {
+            console.warn('[usePublicCompanyProfiles] Failed to fetch:', error);
+          }
+        } else {
+          console.warn('[usePublicCompanyProfiles] Failed to fetch:', error);
+        }
+        // Return empty data structure instead of throwing to prevent page crashes
+        return { profiles: [], language } as CompanyProfileResponse;
+      }
+    },
+    ...commonPublicContentOptions,
   });
 }
 
 export function usePublicCompanyPartners() {
   const { language } = useLanguage();
 
-  return useQuery<CompanyPartnersResponse>({
+  return useQuery<CompanyPartnersResponse, ApiError>({
     queryKey: ['publicCompanyPartners', language],
-    queryFn: () =>
-      apiClient<CompanyPartnersResponse>(`/public/company-partners?lang=${language}`, {
-        auth: false,
-      }),
-    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      try {
+        return await apiClient<CompanyPartnersResponse>(`/public/company-partners?lang=${language}`, {
+          auth: false,
+        });
+      } catch (error) {
+        if (error instanceof Error && 'status' in error) {
+          const apiError = error as { status?: number };
+          if (apiError.status && apiError.status >= 500) {
+            console.warn('[usePublicCompanyPartners] Server error (non-critical):', error);
+          } else {
+            console.warn('[usePublicCompanyPartners] Failed to fetch:', error);
+          }
+        } else {
+          console.warn('[usePublicCompanyPartners] Failed to fetch:', error);
+        }
+        return { partners: [], language } as CompanyPartnersResponse;
+      }
+    },
+    ...commonPublicContentOptions,
   });
 }
 
 export function usePublicCompanyClients() {
   const { language } = useLanguage();
 
-  return useQuery<CompanyClientsResponse>({
+  return useQuery<CompanyClientsResponse, ApiError>({
     queryKey: ['publicCompanyClients', language],
-    queryFn: () =>
-      apiClient<CompanyClientsResponse>(`/public/company-clients?lang=${language}`, {
-        auth: false,
-      }),
-    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      try {
+        return await apiClient<CompanyClientsResponse>(`/public/company-clients?lang=${language}`, {
+          auth: false,
+        });
+      } catch (error) {
+        if (error instanceof Error && 'status' in error) {
+          const apiError = error as { status?: number };
+          if (apiError.status && apiError.status >= 500) {
+            console.warn('[usePublicCompanyClients] Server error (non-critical):', error);
+          } else {
+            console.warn('[usePublicCompanyClients] Failed to fetch:', error);
+          }
+        } else {
+          console.warn('[usePublicCompanyClients] Failed to fetch:', error);
+        }
+        return { clients: [], language } as CompanyClientsResponse;
+      }
+    },
+    ...commonPublicContentOptions,
   });
 }
 
 export function usePublicCompanyResources() {
   const { language } = useLanguage();
 
-  return useQuery<CompanyResourcesResponse>({
+  return useQuery<CompanyResourcesResponse, ApiError>({
     queryKey: ['publicCompanyResources', language],
-    queryFn: () =>
-      apiClient<CompanyResourcesResponse>(`/public/company-resources?lang=${language}`, {
-        auth: false,
-      }),
-    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      try {
+        return await apiClient<CompanyResourcesResponse>(`/public/company-resources?lang=${language}`, {
+          auth: false,
+        });
+      } catch (error) {
+        if (error instanceof Error && 'status' in error) {
+          const apiError = error as { status?: number };
+          if (apiError.status && apiError.status >= 500) {
+            console.warn('[usePublicCompanyResources] Server error (non-critical):', error);
+          } else {
+            console.warn('[usePublicCompanyResources] Failed to fetch:', error);
+          }
+        } else {
+          console.warn('[usePublicCompanyResources] Failed to fetch:', error);
+        }
+        return { resources: [], language } as CompanyResourcesResponse;
+      }
+    },
+    ...commonPublicContentOptions,
   });
 }
 
 export function usePublicCompanyStrengths() {
   const { language } = useLanguage();
 
-  return useQuery<CompanyStrengthsResponse>({
+  return useQuery<CompanyStrengthsResponse, ApiError>({
     queryKey: ['publicCompanyStrengths', language],
-    queryFn: () =>
-      apiClient<CompanyStrengthsResponse>(`/public/company-strengths?lang=${language}`, {
-        auth: false,
-      }),
-    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      try {
+        return await apiClient<CompanyStrengthsResponse>(`/public/company-strengths?lang=${language}`, {
+          auth: false,
+        });
+      } catch (error) {
+        if (error instanceof Error && 'status' in error) {
+          const apiError = error as { status?: number };
+          if (apiError.status && apiError.status >= 500) {
+            console.warn('[usePublicCompanyStrengths] Server error (non-critical):', error);
+          } else {
+            console.warn('[usePublicCompanyStrengths] Failed to fetch:', error);
+          }
+        } else {
+          console.warn('[usePublicCompanyStrengths] Failed to fetch:', error);
+        }
+        return { strengths: [], language } as CompanyStrengthsResponse;
+      }
+    },
+    ...commonPublicContentOptions,
   });
 }
 
 export function usePublicPartnershipInfo() {
   const { language } = useLanguage();
 
-  return useQuery<PartnershipInfoResponse>({
+  return useQuery<PartnershipInfoResponse, ApiError>({
     queryKey: ['publicPartnershipInfo', language],
-    queryFn: () =>
-      apiClient<PartnershipInfoResponse>(`/public/partnership-info?lang=${language}`, {
-        auth: false,
-      }),
-    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      try {
+        return await apiClient<PartnershipInfoResponse>(`/public/partnership-info?lang=${language}`, {
+          auth: false,
+        });
+      } catch (error) {
+        if (error instanceof Error && 'status' in error) {
+          const apiError = error as { status?: number };
+          if (apiError.status && apiError.status >= 500) {
+            console.warn('[usePublicPartnershipInfo] Server error (non-critical):', error);
+          } else {
+            console.warn('[usePublicPartnershipInfo] Failed to fetch:', error);
+          }
+        } else {
+          console.warn('[usePublicPartnershipInfo] Failed to fetch:', error);
+        }
+        return { partnershipInfo: [], language } as PartnershipInfoResponse;
+      }
+    },
+    ...commonPublicContentOptions,
   });
 }
 
 export function usePublicMarketValue() {
-  return useQuery<MarketValueResponse>({
+  return useQuery<MarketValueResponse, ApiError>({
     queryKey: ['publicMarketValue'],
-    queryFn: () =>
-      apiClient<MarketValueResponse>('/public/market-value', {
-        auth: false,
-      }),
-    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      try {
+        return await apiClient<MarketValueResponse>('/public/market-value', {
+          auth: false,
+        });
+      } catch (error) {
+        if (error instanceof Error && 'status' in error) {
+          const apiError = error as { status?: number };
+          if (apiError.status && apiError.status >= 500) {
+            console.warn('[usePublicMarketValue] Server error (non-critical):', error);
+          } else {
+            console.warn('[usePublicMarketValue] Failed to fetch:', error);
+          }
+        } else {
+          console.warn('[usePublicMarketValue] Failed to fetch:', error);
+        }
+        return { marketValue: null } as MarketValueResponse;
+      }
+    },
+    ...commonPublicContentOptions,
   });
 }
 
 export function usePublicCompanyGoals() {
   const { language } = useLanguage();
 
-  return useQuery<CompanyGoalsResponse>({
+  return useQuery<CompanyGoalsResponse, ApiError>({
     queryKey: ['publicCompanyGoals', language],
-    queryFn: () =>
-      apiClient<CompanyGoalsResponse>(`/public/company-goals?lang=${language}`, {
-        auth: false,
-      }),
-    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      try {
+        return await apiClient<CompanyGoalsResponse>(`/public/company-goals?lang=${language}`, {
+          auth: false,
+        });
+      } catch (error) {
+        if (error instanceof Error && 'status' in error) {
+          const apiError = error as { status?: number };
+          if (apiError.status && apiError.status >= 500) {
+            console.warn('[usePublicCompanyGoals] Server error (non-critical):', error);
+          } else {
+            console.warn('[usePublicCompanyGoals] Failed to fetch:', error);
+          }
+        } else {
+          console.warn('[usePublicCompanyGoals] Failed to fetch:', error);
+        }
+        return { goals: [], language } as CompanyGoalsResponse;
+      }
+    },
+    ...commonPublicContentOptions,
   });
 }
 

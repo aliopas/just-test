@@ -36,15 +36,33 @@ export function LoginPage() {
       }
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(
-          isArabic
-            ? err.message || 'تعذّر تسجيل الدخول. تأكد من البيانات وحاول مرة أخرى.'
-            : err.message || 'Unable to sign in. Please check your credentials and try again.'
-        );
+        let errorMessage = err.message;
+        
+        // Provide user-friendly messages for server errors
+        if (err.status >= 500) {
+          errorMessage = isArabic
+            ? 'حدث خطأ في الخادم. يرجى المحاولة مرة أخرى لاحقاً.'
+            : 'A server error occurred. Please try again later.';
+        } else if (err.status === 401 || err.status === 403) {
+          errorMessage = isArabic
+            ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة.'
+            : 'Invalid email or password.';
+        } else if (err.status === 429) {
+          errorMessage = isArabic
+            ? 'تم إجراء محاولات كثيرة. يرجى الانتظار قليلاً والمحاولة مرة أخرى.'
+            : 'Too many attempts. Please wait a moment and try again.';
+        } else if (!errorMessage || errorMessage.includes('Internal Server Error')) {
+          // Fallback for generic server errors
+          errorMessage = isArabic
+            ? 'تعذّر تسجيل الدخول. تأكد من البيانات وحاول مرة أخرى.'
+            : 'Unable to sign in. Please check your credentials and try again.';
+        }
+        
+        setError(errorMessage);
       } else if (err instanceof Error) {
         setError(
           isArabic
-            ? err.message
+            ? err.message || 'تعذّر تسجيل الدخول. حاول مرة أخرى.'
             : err.message || 'Unable to sign in. Please try again.'
         );
       } else {

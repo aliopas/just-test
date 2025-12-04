@@ -164,6 +164,16 @@ export async function apiClient<TResponse>(
   path: string,
   { auth = true, headers, ...init }: ApiClientOptions = {}
 ): Promise<TResponse> {
+  // Prevent API calls during SSR - they should only happen on the client
+  // This is a safety guard in case apiClient is called directly during SSR
+  if (typeof window === 'undefined') {
+    throw new ApiError(
+      'API calls are not supported during server-side rendering. Use client-side hooks instead.',
+      0,
+      { path }
+    );
+  }
+
   const baseUrl = getBaseUrl();
   // Remove any duplicate /api/v1 prefix from path if it exists
   const cleanPath = path.replace(/^\/api\/v1\//, '/');
@@ -202,15 +212,33 @@ export async function apiClient<TResponse>(
   const payload = await parseResponsePayload(response);
 
   if (!response.ok) {
-    const message =
-      typeof payload === 'object' &&
-      payload !== null &&
-      'error' in (payload as Record<string, unknown>)
-        ? (payload as { error?: { message?: string } }).error?.message ??
-          'Unexpected error'
-        : response.statusText || 'Request failed';
+    let message: string;
+    
+    // Try to extract error message from payload
+    if (typeof payload === 'object' && payload !== null) {
+      if ('error' in (payload as Record<string, unknown>)) {
+        const errorObj = (payload as { error?: { message?: string; code?: string } }).error;
+        message = errorObj?.message ?? 'Unexpected error';
+        
+        // Include error code if available for better debugging
+        if (errorObj?.code) {
+          message = `[${errorObj.code}] ${message}`;
+        }
+      } else if ('message' in (payload as Record<string, unknown>)) {
+        message = String((payload as { message?: unknown }).message ?? 'Unexpected error');
+      } else {
+        message = response.statusText || 'Request failed';
+      }
+    } else if (typeof payload === 'string') {
+      message = payload;
+    } else {
+      message = response.statusText || 'Request failed';
+    }
 
-    throw new ApiError(message, response.status, payload);
+    // Include URL and status in error message for debugging
+    const errorMessage = `${message} (${response.status} ${response.statusText}) - ${url}`;
+    
+    throw new ApiError(errorMessage, response.status, payload);
   }
 
   return payload as TResponse;

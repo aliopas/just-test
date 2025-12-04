@@ -972,17 +972,34 @@ export async function deleteCompanyStrength(id: string): Promise<void> {
 // ============================================================================
 
 export async function listPartnershipInfo(): Promise<PartnershipInfo[]> {
-  const adminClient = requireSupabaseAdmin();
-  const { data, error } = await adminClient
-    .from('partnership_info')
-    .select('*')
-    .order('display_order', { ascending: true });
+  try {
+    const adminClient = requireSupabaseAdmin();
+    const { data, error } = await adminClient
+      .from('partnership_info')
+      .select('*')
+      .order('display_order', { ascending: true });
 
-  if (error) {
-    throw new Error(`Failed to list partnership info: ${error.message}`);
+    if (error) {
+      console.error('[Company Content Service] Failed to list partnership info:', {
+        error: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      });
+      throw new Error(`Failed to list partnership info: ${error.message} (code: ${error.code || 'unknown'})`);
+    }
+
+    const mapped = (data ?? []).map(mapPartnershipInfo);
+    console.log(`[Company Content Service] Retrieved ${mapped.length} partnership info items`);
+    return mapped;
+  } catch (error) {
+    // Re-throw with more context if it's a Supabase admin client error
+    if (error instanceof Error && error.message.includes('service role key')) {
+      console.error('[Company Content Service] Supabase Admin Client Error:', error.message);
+      throw new Error('Database access error: Service role key is required. Please set SUPABASE_SERVICE_ROLE_KEY in environment variables.');
+    }
+    throw error;
   }
-
-  return (data ?? []).map(mapPartnershipInfo);
 }
 
 export async function getPartnershipInfoById(
@@ -1092,23 +1109,41 @@ export async function deletePartnershipInfo(id: string): Promise<void> {
 export async function listMarketValues(
   includeUnverified = false
 ): Promise<MarketValue[]> {
-  const adminClient = requireSupabaseAdmin();
-  let query = adminClient
-    .from('market_value')
-    .select('*')
-    .order('valuation_date', { ascending: false });
+  try {
+    const adminClient = requireSupabaseAdmin();
+    let query = adminClient
+      .from('market_value')
+      .select('*')
+      .order('valuation_date', { ascending: false });
 
-  if (!includeUnverified) {
-    query = query.eq('is_verified', true);
+    if (!includeUnverified) {
+      query = query.eq('is_verified', true);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('[Company Content Service] Failed to list market values:', {
+        error: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        includeUnverified,
+      });
+      throw new Error(`Failed to list market values: ${error.message} (code: ${error.code || 'unknown'})`);
+    }
+
+    const mapped = (data ?? []).map(mapMarketValue);
+    console.log(`[Company Content Service] Retrieved ${mapped.length} market values (includeUnverified: ${includeUnverified})`);
+    return mapped;
+  } catch (error) {
+    // Re-throw with more context if it's a Supabase admin client error
+    if (error instanceof Error && error.message.includes('service role key')) {
+      console.error('[Company Content Service] Supabase Admin Client Error:', error.message);
+      throw new Error('Database access error: Service role key is required. Please set SUPABASE_SERVICE_ROLE_KEY in environment variables.');
+    }
+    throw error;
   }
-
-  const { data, error } = await query;
-
-  if (error) {
-    throw new Error(`Failed to list market values: ${error.message}`);
-  }
-
-  return (data ?? []).map(mapMarketValue);
 }
 
 export async function getMarketValueById(
@@ -1222,17 +1257,34 @@ export async function deleteMarketValue(id: string): Promise<void> {
 // ============================================================================
 
 export async function listCompanyGoals(): Promise<CompanyGoal[]> {
-  const adminClient = requireSupabaseAdmin();
-  const { data, error } = await adminClient
-    .from('company_goals')
-    .select('*')
-    .order('display_order', { ascending: true });
+  try {
+    const adminClient = requireSupabaseAdmin();
+    const { data, error } = await adminClient
+      .from('company_goals')
+      .select('*')
+      .order('display_order', { ascending: true });
 
-  if (error) {
-    throw new Error(`Failed to list company goals: ${error.message}`);
+    if (error) {
+      console.error('[Company Content Service] Failed to list company goals:', {
+        error: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      });
+      throw new Error(`Failed to list company goals: ${error.message} (code: ${error.code || 'unknown'})`);
+    }
+
+    const mapped = (data ?? []).map(mapCompanyGoal);
+    console.log(`[Company Content Service] Retrieved ${mapped.length} company goals`);
+    return mapped;
+  } catch (error) {
+    // Re-throw with more context if it's a Supabase admin client error
+    if (error instanceof Error && error.message.includes('service role key')) {
+      console.error('[Company Content Service] Supabase Admin Client Error:', error.message);
+      throw new Error('Database access error: Service role key is required. Please set SUPABASE_SERVICE_ROLE_KEY in environment variables.');
+    }
+    throw error;
   }
-
-  return (data ?? []).map(mapCompanyGoal);
 }
 
 export async function getCompanyGoalById(

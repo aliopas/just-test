@@ -1,10 +1,9 @@
 ﻿import React from 'react';
 import { palette } from '../styles/theme';
 
-// Note: For Next.js, images should be in public/ folder
-// Logo files are in public/ folder: logo.jpg (primary) and logo.png (if available)
+// Logo files are in public/ folder: logo.jpg (primary) and logo.png (fallback)
 const primaryLogoSrc = '/logo.jpg';
-const legacyLogoSrc = '/logo.png';
+const fallbackLogoSrc = '/logo.png';
 
 export interface LogoProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   size?: number; // Minimum: 96px for web, 72px for mobile (per PRD)
@@ -12,7 +11,7 @@ export interface LogoProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   showWordmark?: boolean;
   tagline?: string;
   stacked?: boolean;
-  useLegacyAsset?: boolean;
+  useFallbackAsset?: boolean;
   logoUrl?: string | null; // URL to use instead of default logo (e.g., from company profile)
 }
 
@@ -27,7 +26,7 @@ export function Logo({
   showWordmark = true,
   tagline,
   stacked = false,
-  useLegacyAsset = false,
+  useFallbackAsset = false,
   logoUrl,
   style,
   alt,
@@ -70,8 +69,8 @@ export function Logo({
   };
 
   // Determine which logo source to use
-  // Primary is logo.jpg, legacy is logo.png
-  const logoSrc = logoUrl || (useLegacyAsset ? legacyLogoSrc : primaryLogoSrc);
+  // Primary is logo.jpg, fallback is logo.png
+  const logoSrc = logoUrl || (useFallbackAsset ? fallbackLogoSrc : primaryLogoSrc);
 
   return (
     <figure
