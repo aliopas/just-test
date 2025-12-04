@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { palette } from '../../../styles/theme';
 
@@ -30,7 +30,7 @@ export function MarkdownEditor({
       if (/^#{1,6}\s/.test(trimmed)) {
         const level = Math.min(trimmed.match(/^#{1,6}/)?.[0].length || 1, 6);
         const text = trimmed.replace(/^#{1,6}\s+/, '');
-        const HeadingTag = `h${level}` as keyof JSX.IntrinsicElements;
+        const HeadingTag = `h${level}` as keyof React.JSX.IntrinsicElements;
         return (
           <HeadingTag
             key={index}
