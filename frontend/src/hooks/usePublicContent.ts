@@ -145,20 +145,30 @@ export function usePublicCompanyProfiles() {
     queryKey: ['publicCompanyProfiles', language],
     queryFn: async () => {
       try {
-        return await apiClient<CompanyProfileResponse>(`/public/company-profile?lang=${language}`, {
+        const response = await apiClient<CompanyProfileResponse>(`/public/company-profile?lang=${language}`, {
           auth: false,
         });
+        console.log(`[usePublicCompanyProfiles] Successfully fetched ${response.profiles?.length || 0} profiles (lang: ${language})`);
+        return response;
       } catch (error) {
-        // Log as warning for non-critical public content errors
         if (error instanceof Error && 'status' in error) {
-          const apiError = error as { status?: number };
+          const apiError = error as ApiError;
           if (apiError.status && apiError.status >= 500) {
-            console.warn('[usePublicCompanyProfiles] Server error (non-critical):', error);
+            console.error('[usePublicCompanyProfiles] Server error:', {
+              status: apiError.status,
+              message: apiError.message,
+              payload: apiError.payload,
+            });
+          } else if (apiError.status === 404) {
+            console.warn('[usePublicCompanyProfiles] Endpoint not found - check API route configuration');
           } else {
-            console.warn('[usePublicCompanyProfiles] Failed to fetch:', error);
+            console.warn('[usePublicCompanyProfiles] Client error:', {
+              status: apiError.status,
+              message: apiError.message,
+            });
           }
         } else {
-          console.warn('[usePublicCompanyProfiles] Failed to fetch:', error);
+          console.error('[usePublicCompanyProfiles] Network or unknown error:', error);
         }
         // Return empty data structure instead of throwing to prevent page crashes
         return { profiles: [], language } as CompanyProfileResponse;
@@ -203,19 +213,30 @@ export function usePublicCompanyClients() {
     queryKey: ['publicCompanyClients', language],
     queryFn: async () => {
       try {
-        return await apiClient<CompanyClientsResponse>(`/public/company-clients?lang=${language}`, {
+        const response = await apiClient<CompanyClientsResponse>(`/public/company-clients?lang=${language}`, {
           auth: false,
         });
+        console.log(`[usePublicCompanyClients] Successfully fetched ${response.clients?.length || 0} clients (lang: ${language})`);
+        return response;
       } catch (error) {
         if (error instanceof Error && 'status' in error) {
-          const apiError = error as { status?: number };
+          const apiError = error as ApiError;
           if (apiError.status && apiError.status >= 500) {
-            console.warn('[usePublicCompanyClients] Server error (non-critical):', error);
+            console.error('[usePublicCompanyClients] Server error:', {
+              status: apiError.status,
+              message: apiError.message,
+              payload: apiError.payload,
+            });
+          } else if (apiError.status === 404) {
+            console.warn('[usePublicCompanyClients] Endpoint not found - check API route configuration');
           } else {
-            console.warn('[usePublicCompanyClients] Failed to fetch:', error);
+            console.warn('[usePublicCompanyClients] Client error:', {
+              status: apiError.status,
+              message: apiError.message,
+            });
           }
         } else {
-          console.warn('[usePublicCompanyClients] Failed to fetch:', error);
+          console.error('[usePublicCompanyClients] Network or unknown error:', error);
         }
         return { clients: [], language } as CompanyClientsResponse;
       }
@@ -231,19 +252,30 @@ export function usePublicCompanyResources() {
     queryKey: ['publicCompanyResources', language],
     queryFn: async () => {
       try {
-        return await apiClient<CompanyResourcesResponse>(`/public/company-resources?lang=${language}`, {
+        const response = await apiClient<CompanyResourcesResponse>(`/public/company-resources?lang=${language}`, {
           auth: false,
         });
+        console.log(`[usePublicCompanyResources] Successfully fetched ${response.resources?.length || 0} resources (lang: ${language})`);
+        return response;
       } catch (error) {
         if (error instanceof Error && 'status' in error) {
-          const apiError = error as { status?: number };
+          const apiError = error as ApiError;
           if (apiError.status && apiError.status >= 500) {
-            console.warn('[usePublicCompanyResources] Server error (non-critical):', error);
+            console.error('[usePublicCompanyResources] Server error:', {
+              status: apiError.status,
+              message: apiError.message,
+              payload: apiError.payload,
+            });
+          } else if (apiError.status === 404) {
+            console.warn('[usePublicCompanyResources] Endpoint not found - check API route configuration');
           } else {
-            console.warn('[usePublicCompanyResources] Failed to fetch:', error);
+            console.warn('[usePublicCompanyResources] Client error:', {
+              status: apiError.status,
+              message: apiError.message,
+            });
           }
         } else {
-          console.warn('[usePublicCompanyResources] Failed to fetch:', error);
+          console.error('[usePublicCompanyResources] Network or unknown error:', error);
         }
         return { resources: [], language } as CompanyResourcesResponse;
       }
@@ -259,19 +291,30 @@ export function usePublicCompanyStrengths() {
     queryKey: ['publicCompanyStrengths', language],
     queryFn: async () => {
       try {
-        return await apiClient<CompanyStrengthsResponse>(`/public/company-strengths?lang=${language}`, {
+        const response = await apiClient<CompanyStrengthsResponse>(`/public/company-strengths?lang=${language}`, {
           auth: false,
         });
+        console.log(`[usePublicCompanyStrengths] Successfully fetched ${response.strengths?.length || 0} strengths (lang: ${language})`);
+        return response;
       } catch (error) {
         if (error instanceof Error && 'status' in error) {
-          const apiError = error as { status?: number };
+          const apiError = error as ApiError;
           if (apiError.status && apiError.status >= 500) {
-            console.warn('[usePublicCompanyStrengths] Server error (non-critical):', error);
+            console.error('[usePublicCompanyStrengths] Server error:', {
+              status: apiError.status,
+              message: apiError.message,
+              payload: apiError.payload,
+            });
+          } else if (apiError.status === 404) {
+            console.warn('[usePublicCompanyStrengths] Endpoint not found - check API route configuration');
           } else {
-            console.warn('[usePublicCompanyStrengths] Failed to fetch:', error);
+            console.warn('[usePublicCompanyStrengths] Client error:', {
+              status: apiError.status,
+              message: apiError.message,
+            });
           }
         } else {
-          console.warn('[usePublicCompanyStrengths] Failed to fetch:', error);
+          console.error('[usePublicCompanyStrengths] Network or unknown error:', error);
         }
         return { strengths: [], language } as CompanyStrengthsResponse;
       }
@@ -287,19 +330,30 @@ export function usePublicPartnershipInfo() {
     queryKey: ['publicPartnershipInfo', language],
     queryFn: async () => {
       try {
-        return await apiClient<PartnershipInfoResponse>(`/public/partnership-info?lang=${language}`, {
+        const response = await apiClient<PartnershipInfoResponse>(`/public/partnership-info?lang=${language}`, {
           auth: false,
         });
+        console.log(`[usePublicPartnershipInfo] Successfully fetched ${response.partnershipInfo?.length || 0} partnership info items (lang: ${language})`);
+        return response;
       } catch (error) {
         if (error instanceof Error && 'status' in error) {
-          const apiError = error as { status?: number };
+          const apiError = error as ApiError;
           if (apiError.status && apiError.status >= 500) {
-            console.warn('[usePublicPartnershipInfo] Server error (non-critical):', error);
+            console.error('[usePublicPartnershipInfo] Server error:', {
+              status: apiError.status,
+              message: apiError.message,
+              payload: apiError.payload,
+            });
+          } else if (apiError.status === 404) {
+            console.warn('[usePublicPartnershipInfo] Endpoint not found - check API route configuration');
           } else {
-            console.warn('[usePublicPartnershipInfo] Failed to fetch:', error);
+            console.warn('[usePublicPartnershipInfo] Client error:', {
+              status: apiError.status,
+              message: apiError.message,
+            });
           }
         } else {
-          console.warn('[usePublicPartnershipInfo] Failed to fetch:', error);
+          console.error('[usePublicPartnershipInfo] Network or unknown error:', error);
         }
         return { partnershipInfo: [], language } as PartnershipInfoResponse;
       }
@@ -313,19 +367,30 @@ export function usePublicMarketValue() {
     queryKey: ['publicMarketValue'],
     queryFn: async () => {
       try {
-        return await apiClient<MarketValueResponse>('/public/market-value', {
+        const response = await apiClient<MarketValueResponse>('/public/market-value', {
           auth: false,
         });
+        console.log(`[usePublicMarketValue] Successfully fetched market value:`, response.marketValue ? `${response.marketValue.value} ${response.marketValue.currency}` : 'null');
+        return response;
       } catch (error) {
         if (error instanceof Error && 'status' in error) {
-          const apiError = error as { status?: number };
+          const apiError = error as ApiError;
           if (apiError.status && apiError.status >= 500) {
-            console.warn('[usePublicMarketValue] Server error (non-critical):', error);
+            console.error('[usePublicMarketValue] Server error:', {
+              status: apiError.status,
+              message: apiError.message,
+              payload: apiError.payload,
+            });
+          } else if (apiError.status === 404) {
+            console.warn('[usePublicMarketValue] Endpoint not found - check API route configuration');
           } else {
-            console.warn('[usePublicMarketValue] Failed to fetch:', error);
+            console.warn('[usePublicMarketValue] Client error:', {
+              status: apiError.status,
+              message: apiError.message,
+            });
           }
         } else {
-          console.warn('[usePublicMarketValue] Failed to fetch:', error);
+          console.error('[usePublicMarketValue] Network or unknown error:', error);
         }
         return { marketValue: null } as MarketValueResponse;
       }
@@ -341,19 +406,30 @@ export function usePublicCompanyGoals() {
     queryKey: ['publicCompanyGoals', language],
     queryFn: async () => {
       try {
-        return await apiClient<CompanyGoalsResponse>(`/public/company-goals?lang=${language}`, {
+        const response = await apiClient<CompanyGoalsResponse>(`/public/company-goals?lang=${language}`, {
           auth: false,
         });
+        console.log(`[usePublicCompanyGoals] Successfully fetched ${response.goals?.length || 0} goals (lang: ${language})`);
+        return response;
       } catch (error) {
         if (error instanceof Error && 'status' in error) {
-          const apiError = error as { status?: number };
+          const apiError = error as ApiError;
           if (apiError.status && apiError.status >= 500) {
-            console.warn('[usePublicCompanyGoals] Server error (non-critical):', error);
+            console.error('[usePublicCompanyGoals] Server error:', {
+              status: apiError.status,
+              message: apiError.message,
+              payload: apiError.payload,
+            });
+          } else if (apiError.status === 404) {
+            console.warn('[usePublicCompanyGoals] Endpoint not found - check API route configuration');
           } else {
-            console.warn('[usePublicCompanyGoals] Failed to fetch:', error);
+            console.warn('[usePublicCompanyGoals] Client error:', {
+              status: apiError.status,
+              message: apiError.message,
+            });
           }
         } else {
-          console.warn('[usePublicCompanyGoals] Failed to fetch:', error);
+          console.error('[usePublicCompanyGoals] Network or unknown error:', error);
         }
         return { goals: [], language } as CompanyGoalsResponse;
       }

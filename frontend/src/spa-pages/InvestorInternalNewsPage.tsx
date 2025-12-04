@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
-import { useInvestorInternalNewsList } from '../hooks/useInvestorInternalNews';
+import { useInvestorInternalNewsList } from '../hooks/useSupabaseNews';
 import { tInvestorInternalNews } from '../locales/investorInternalNews';
 
 export function InvestorInternalNewsPage() {
@@ -251,7 +251,7 @@ export function InvestorInternalNewsPage() {
                         gap: '0.45rem',
                       }}
                     >
-                      {item.attachments.map(attachment => (
+                      {item.attachments.map((attachment: { id: string; downloadUrl: string | null }) => (
                         <a
                           key={attachment.id}
                           href={attachment.downloadUrl ?? '#'}

@@ -620,6 +620,7 @@ export async function deleteCompanyPartner(id: string): Promise<void> {
 // ============================================================================
 
 export async function listCompanyClients(): Promise<CompanyClient[]> {
+  try {
   const adminClient = requireSupabaseAdmin();
   const { data, error } = await adminClient
     .from('company_clients')
@@ -627,10 +628,25 @@ export async function listCompanyClients(): Promise<CompanyClient[]> {
     .order('display_order', { ascending: true });
 
   if (error) {
-    throw new Error(`Failed to list company clients: ${error.message}`);
+      console.error('[Company Content Service] Failed to list company clients:', {
+        error: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      });
+      throw new Error(`Failed to list company clients: ${error.message} (code: ${error.code || 'unknown'})`);
   }
 
+    console.log(`[Company Content Service] Retrieved ${data?.length || 0} company clients`);
   return (data ?? []).map(mapCompanyClient);
+  } catch (error) {
+    // Re-throw with more context if it's a Supabase admin client error
+    if (error instanceof Error && error.message.includes('service role key')) {
+      console.error('[Company Content Service] Supabase Admin Client Error:', error.message);
+      throw new Error('Database access error: Service role key is required. Please set SUPABASE_SERVICE_ROLE_KEY in Netlify Dashboard.');
+    }
+    throw error;
+  }
 }
 
 export async function getCompanyClientById(
@@ -736,6 +752,7 @@ export async function deleteCompanyClient(id: string): Promise<void> {
 // ============================================================================
 
 export async function listCompanyResources(): Promise<CompanyResource[]> {
+  try {
   const adminClient = requireSupabaseAdmin();
   const { data, error } = await adminClient
     .from('company_resources')
@@ -743,10 +760,25 @@ export async function listCompanyResources(): Promise<CompanyResource[]> {
     .order('display_order', { ascending: true });
 
   if (error) {
-    throw new Error(`Failed to list company resources: ${error.message}`);
+      console.error('[Company Content Service] Failed to list company resources:', {
+        error: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      });
+      throw new Error(`Failed to list company resources: ${error.message} (code: ${error.code || 'unknown'})`);
   }
 
+    console.log(`[Company Content Service] Retrieved ${data?.length || 0} company resources`);
   return (data ?? []).map(mapCompanyResource);
+  } catch (error) {
+    // Re-throw with more context if it's a Supabase admin client error
+    if (error instanceof Error && error.message.includes('service role key')) {
+      console.error('[Company Content Service] Supabase Admin Client Error:', error.message);
+      throw new Error('Database access error: Service role key is required. Please set SUPABASE_SERVICE_ROLE_KEY in Netlify Dashboard.');
+    }
+    throw error;
+  }
 }
 
 export async function getCompanyResourceById(
@@ -856,6 +888,7 @@ export async function deleteCompanyResource(id: string): Promise<void> {
 // ============================================================================
 
 export async function listCompanyStrengths(): Promise<CompanyStrength[]> {
+  try {
   const adminClient = requireSupabaseAdmin();
   const { data, error } = await adminClient
     .from('company_strengths')
@@ -863,10 +896,25 @@ export async function listCompanyStrengths(): Promise<CompanyStrength[]> {
     .order('display_order', { ascending: true });
 
   if (error) {
-    throw new Error(`Failed to list company strengths: ${error.message}`);
+      console.error('[Company Content Service] Failed to list company strengths:', {
+        error: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      });
+      throw new Error(`Failed to list company strengths: ${error.message} (code: ${error.code || 'unknown'})`);
   }
 
+    console.log(`[Company Content Service] Retrieved ${data?.length || 0} company strengths`);
   return (data ?? []).map(mapCompanyStrength);
+  } catch (error) {
+    // Re-throw with more context if it's a Supabase admin client error
+    if (error instanceof Error && error.message.includes('service role key')) {
+      console.error('[Company Content Service] Supabase Admin Client Error:', error.message);
+      throw new Error('Database access error: Service role key is required. Please set SUPABASE_SERVICE_ROLE_KEY in Netlify Dashboard.');
+    }
+    throw error;
+  }
 }
 
 export async function getCompanyStrengthById(

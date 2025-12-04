@@ -3,7 +3,7 @@ import { useParams } from 'next/navigation';
 import { useNextNavigate } from '../utils/next-router';
 import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
-import { useInvestorNewsDetail } from '../hooks/useInvestorNews';
+import { useInvestorNewsDetail } from '../hooks/useSupabaseNews';
 import { tInvestorNews } from '../locales/investorNews';
 
 export function InvestorNewsDetailPage() {
@@ -122,10 +122,12 @@ export function InvestorNewsDetailPage() {
                     {tInvestorNews('detail.publishedAt', language)}:{' '}
                     {formatDateTime(data.publishedAt)}
                   </span>
-                  <span>
-                    {tInvestorNews('detail.updatedAt', language)}:{' '}
-                    {formatDateTime(data.updatedAt)}
-                  </span>
+                  {data.updatedAt && (
+                    <span>
+                      {tInvestorNews('detail.updatedAt', language)}:{' '}
+                      {formatDateTime(data.updatedAt)}
+                    </span>
+                  )}
                 </div>
               </header>
 
@@ -142,76 +144,8 @@ export function InvestorNewsDetailPage() {
                 {data.bodyMd}
               </section>
 
-              {/* Attachments */}
-              {data.attachments.length > 0 && (
-                <section
-                  style={{
-                    marginTop: '1.1rem',
-                    paddingTop: '1rem',
-                    borderTop: `1px solid ${palette.neutralBorderMuted}`,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.6rem',
-                  }}
-                >
-                  <h2
-                    style={{
-                      margin: 0,
-                      fontSize: '1rem',
-                      fontWeight: typography.weights.semibold,
-                      color: palette.textPrimary,
-                    }}
-                  >
-                    {tInvestorNews('detail.attachments.title', language)}
-                  </h2>
-                  <ul
-                    style={{
-                      listStyle: 'none',
-                      margin: 0,
-                      padding: 0,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '0.45rem',
-                      fontSize: '0.9rem',
-                    }}
-                  >
-                    {data.attachments.map(attachment => (
-                      <li
-                        key={attachment.id}
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                        }}
-                      >
-                        <span
-                          style={{
-                            color: palette.textSecondary,
-                          }}
-                        >
-                          {attachment.name}
-                        </span>
-                        {attachment.downloadUrl && (
-                          <a
-                            href={attachment.downloadUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            style={{
-                              fontSize: '0.85rem',
-                              color: palette.brandPrimaryStrong,
-                              textDecoration: 'none',
-                              fontWeight: 500,
-                            }}
-                          >
-                            {tInvestorNews('detail.attachments.download', language)}
-                          </a>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              )}
+              {/* Note: Attachments are not included in the simplified response */}
+              {/* If needed, they can be added later by fetching from the attachments field */}
             </article>
           )}
         </section>

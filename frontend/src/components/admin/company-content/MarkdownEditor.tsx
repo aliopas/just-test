@@ -30,21 +30,34 @@ export function MarkdownEditor({
       if (/^#{1,6}\s/.test(trimmed)) {
         const level = Math.min(trimmed.match(/^#{1,6}/)?.[0].length || 1, 6);
         const text = trimmed.replace(/^#{1,6}\s+/, '');
-        const HeadingTag = `h${level}` as keyof React.JSX.IntrinsicElements;
-        return (
-          <HeadingTag
-            key={index}
-            style={{
-              marginTop: index === 0 ? 0 : '1.5rem',
-              marginBottom: '0.75rem',
-              fontWeight: 700,
-              fontSize: level === 1 ? '1.5rem' : level === 2 ? '1.25rem' : '1.1rem',
-              color: palette.textPrimary,
-            }}
-          >
-            {text}
-          </HeadingTag>
-        );
+        const headingProps = {
+          key: index,
+          style: {
+            marginTop: index === 0 ? 0 : '1.5rem',
+            marginBottom: '0.75rem',
+            fontWeight: 700,
+            fontSize: level === 1 ? '1.5rem' : level === 2 ? '1.25rem' : '1.1rem',
+            color: palette.textPrimary,
+          },
+        };
+        
+        // Use React.createElement to dynamically create heading elements
+        switch (level) {
+          case 1:
+            return React.createElement('h1', headingProps, text);
+          case 2:
+            return React.createElement('h2', headingProps, text);
+          case 3:
+            return React.createElement('h3', headingProps, text);
+          case 4:
+            return React.createElement('h4', headingProps, text);
+          case 5:
+            return React.createElement('h5', headingProps, text);
+          case 6:
+            return React.createElement('h6', headingProps, text);
+          default:
+            return React.createElement('h1', headingProps, text);
+        }
       }
 
       // Lists

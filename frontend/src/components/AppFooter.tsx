@@ -3,7 +3,7 @@
 import { useLanguage } from '@/context/LanguageContext';
 import { Logo } from '@/components/Logo';
 import { palette } from '@/styles/theme';
-import { useCompanyLogoUrl } from '@/hooks/usePublicContent';
+import { useCompanyLogoUrl } from '@/hooks/useSupabaseTables';
 
 export function AppFooter() {
   const { language } = useLanguage();

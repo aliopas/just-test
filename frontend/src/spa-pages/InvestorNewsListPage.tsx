@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
-import { useInvestorNewsList } from '../hooks/useInvestorNews';
+import { useInvestorNewsList } from '../hooks/useSupabaseNews';
 import { tInvestorNews } from '../locales/investorNews';
 
 export function InvestorNewsListPage() {

@@ -2,7 +2,7 @@ import React from 'react';
 import { useParams } from 'next/navigation';
 import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
-import { usePublicProjectDetail } from '../hooks/usePublicProjects';
+import { usePublicProjectDetail } from '../hooks/useSupabaseProjects';
 import { useNextNavigate } from '../utils/next-router';
 import type { Project } from '../hooks/useAdminProjects';
 

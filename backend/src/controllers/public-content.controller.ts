@@ -103,16 +103,26 @@ export const publicContentController = {
         displayOrder: client.displayOrder,
       }));
 
+      console.log(`[Public Content Controller] Fetched ${mapped.length} company clients (lang: ${language})`);
       return res.status(200).json({
         clients: mapped,
         language,
       });
     } catch (error) {
-      console.error('Failed to fetch public company clients:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      console.error('[Public Content Controller] Failed to fetch public company clients:', {
+        error: errorMessage,
+        stack: errorStack,
+        language: getLanguageFromQuery(req),
+      });
       return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
-          message: 'Failed to fetch company clients',
+          message: errorMessage.includes('service role key') 
+            ? 'Database configuration error. Please check server logs.'
+            : 'Failed to fetch company clients',
+          details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
         },
       });
     }
@@ -135,16 +145,26 @@ export const publicContentController = {
         displayOrder: resource.displayOrder,
       }));
 
+      console.log(`[Public Content Controller] Fetched ${mapped.length} company resources (lang: ${language})`);
       return res.status(200).json({
         resources: mapped,
         language,
       });
     } catch (error) {
-      console.error('Failed to fetch public company resources:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      console.error('[Public Content Controller] Failed to fetch public company resources:', {
+        error: errorMessage,
+        stack: errorStack,
+        language: getLanguageFromQuery(req),
+      });
       return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
-          message: 'Failed to fetch company resources',
+          message: errorMessage.includes('service role key') 
+            ? 'Database configuration error. Please check server logs.'
+            : 'Failed to fetch company resources',
+          details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
         },
       });
     }
@@ -165,16 +185,26 @@ export const publicContentController = {
         displayOrder: strength.displayOrder,
       }));
 
+      console.log(`[Public Content Controller] Fetched ${mapped.length} company strengths (lang: ${language})`);
       return res.status(200).json({
         strengths: mapped,
         language,
       });
     } catch (error) {
-      console.error('Failed to fetch public company strengths:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      console.error('[Public Content Controller] Failed to fetch public company strengths:', {
+        error: errorMessage,
+        stack: errorStack,
+        language: getLanguageFromQuery(req),
+      });
       return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
-          message: 'Failed to fetch company strengths',
+          message: errorMessage.includes('service role key') 
+            ? 'Database configuration error. Please check server logs.'
+            : 'Failed to fetch company strengths',
+          details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
         },
       });
     }
@@ -220,19 +250,20 @@ export const publicContentController = {
   // Market Value
   async getMarketValue(_req: Request, res: Response) {
     try {
+      console.log('[Public Content Controller] Fetching market value...');
       const marketValues = await listMarketValues(false); // includeUnverified = false (only verified)
 
       // Return the latest verified market value
       const latest = marketValues.length > 0 ? marketValues[0] : null;
 
       if (!latest) {
-        console.log('[Public Content Controller] No verified market value found');
+        console.log('[Public Content Controller] No verified market value found - returning null');
         return res.status(200).json({
           marketValue: null,
         });
       }
 
-      console.log(`[Public Content Controller] Fetched market value: ${latest.value} ${latest.currency}`);
+      console.log(`[Public Content Controller] Successfully fetched market value: ${latest.value} ${latest.currency}`);
       return res.status(200).json({
         marketValue: {
           id: latest.id,
@@ -250,11 +281,15 @@ export const publicContentController = {
       console.error('[Public Content Controller] Failed to fetch public market value:', {
         error: errorMessage,
         stack: errorStack,
+        errorName: error instanceof Error ? error.name : 'Unknown',
       });
       return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
-          message: 'Failed to fetch market value',
+          message: errorMessage.includes('service role key') 
+            ? 'Database configuration error. Please check server logs.'
+            : 'Failed to fetch market value',
+          details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
         },
       });
     }
@@ -264,6 +299,7 @@ export const publicContentController = {
   async getCompanyGoals(req: Request, res: Response) {
     try {
       const language = getLanguageFromQuery(req);
+      console.log(`[Public Content Controller] Fetching company goals (lang: ${language})...`);
       const goals = await listCompanyGoals();
 
       const mapped = goals.map(goal => ({
@@ -276,7 +312,7 @@ export const publicContentController = {
         displayOrder: goal.displayOrder,
       }));
 
-      console.log(`[Public Content Controller] Fetched ${mapped.length} company goals (lang: ${language})`);
+      console.log(`[Public Content Controller] Successfully fetched ${mapped.length} company goals (lang: ${language})`);
       return res.status(200).json({
         goals: mapped,
         language,
@@ -287,12 +323,16 @@ export const publicContentController = {
       console.error('[Public Content Controller] Failed to fetch public company goals:', {
         error: errorMessage,
         stack: errorStack,
+        errorName: error instanceof Error ? error.name : 'Unknown',
         language: getLanguageFromQuery(req),
       });
       return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
-          message: 'Failed to fetch company goals',
+          message: errorMessage.includes('service role key') 
+            ? 'Database configuration error. Please check server logs.'
+            : 'Failed to fetch company goals',
+          details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
         },
       });
     }

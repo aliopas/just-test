@@ -6,7 +6,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useLogout } from '@/hooks/useLogout';
 import { Logo } from '@/components/Logo';
 import { palette } from '@/styles/theme';
-import { useCompanyLogoUrl } from '@/hooks/usePublicContent';
+import { useCompanyLogoUrl } from '@/hooks/useSupabaseTables';
 
 const adminSidebarLinkBase: React.CSSProperties = {
   borderRadius: '0.85rem',

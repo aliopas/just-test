@@ -7,42 +7,44 @@ import { Logo } from '../components/Logo';
 import { palette } from '../styles/theme';
 import { useLanguage } from '../context/LanguageContext';
 import {
-  usePublicCompanyProfiles,
-  usePublicPartnershipInfo,
-  type PublicCompanyProfile,
-  type PublicPartnershipInfo,
-} from '../hooks/usePublicContent';
+  useCompanyProfiles,
+  usePartnershipInfo,
+} from '../hooks/useSupabaseTables';
 
 export function PublicLandingPage() {
   const { language, direction } = useLanguage();
   const isArabic = language === 'ar';
 
   // Public, admin-managed content for hero and header
-  const { data: profilesData } = usePublicCompanyProfiles();
-  const { data: partnershipData } = usePublicPartnershipInfo();
+  const { data: profiles } = useCompanyProfiles();
+  const { data: partnershipInfo } = usePartnershipInfo();
 
-  const mainProfile: PublicCompanyProfile | undefined = (profilesData as { profiles?: PublicCompanyProfile[] } | undefined)?.profiles?.[0];
-  const mainPartnership: PublicPartnershipInfo | undefined = (partnershipData as { partnershipInfo?: PublicPartnershipInfo[] } | undefined)?.partnershipInfo?.[0];
+  const mainProfile = profiles && profiles.length > 0 
+    ? profiles.sort((a, b) => a.display_order - b.display_order)[0]
+    : null;
+  const mainPartnership = partnershipInfo && partnershipInfo.length > 0
+    ? partnershipInfo.sort((a, b) => a.display_order - b.display_order)[0]
+    : null;
 
   const headerSubtitle =
-    mainProfile?.content && mainProfile.content.length > 0
-      ? `${mainProfile.content.slice(0, 110)}${
-          mainProfile.content.length > 110 ? '…' : ''
+    mainProfile && (isArabic ? mainProfile.content_ar : mainProfile.content_en).length > 0
+      ? `${(isArabic ? mainProfile.content_ar : mainProfile.content_en).slice(0, 110)}${
+          (isArabic ? mainProfile.content_ar : mainProfile.content_en).length > 110 ? '…' : ''
         }`
       : isArabic
         ? 'بوابة موحدة لاستقبال المستثمرين وتقديم طلبات الاستثمار.'
         : 'Unified portal for investor onboarding and investment requests.';
 
   const heroTitle =
-    mainPartnership?.title && mainPartnership.title.length > 0
-      ? mainPartnership.title
+    mainPartnership && (isArabic ? mainPartnership.title_ar : mainPartnership.title_en).length > 0
+      ? (isArabic ? mainPartnership.title_ar : mainPartnership.title_en)
       : isArabic
         ? 'كن شريكًا في باكورة'
         : 'Become a partner in Bakura';
 
   const heroDescription =
-    mainProfile?.content && mainProfile.content.length > 0
-      ? mainProfile.content
+    mainProfile && (isArabic ? mainProfile.content_ar : mainProfile.content_en).length > 0
+      ? (isArabic ? mainProfile.content_ar : mainProfile.content_en)
       : isArabic
         ? 'قدّم طلب الاستثمار الخاص بك وتابع أخبار الشركة، المشاريع، والتقارير في مكان واحد مصمم للمستثمرين.'
         : 'Submit your investment request and follow company news, projects, and reports in a single portal built for investors.';

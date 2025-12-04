@@ -7,7 +7,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useLogout } from '@/hooks/useLogout';
 import { Logo } from '@/components/Logo';
 import { palette } from '@/styles/theme';
-import { useCompanyLogoUrl } from '@/hooks/usePublicContent';
+import { useCompanyLogoUrl } from '@/hooks/useSupabaseTables';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useUnreadSignupRequestCount } from '@/hooks/useAdminAccountRequests';
 

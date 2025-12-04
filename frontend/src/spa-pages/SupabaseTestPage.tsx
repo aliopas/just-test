@@ -9,9 +9,9 @@
  */
 
 import { useState } from 'react';
-import { useInvestorNewsList } from '../hooks/useInvestorNews';
-import { usePublicProjects } from '../hooks/usePublicProjects';
-import { usePublicCompanyProfiles } from '../hooks/usePublicContent';
+import { useInvestorNewsList } from '../hooks/useSupabaseNews';
+import { usePublicProjects } from '../hooks/useSupabaseProjects';
+import { useCompanyProfiles } from '../hooks/useSupabaseTables';
 import { useCreateRequest } from '../hooks/useCreateRequest';
 import { apiClient } from '../utils/api-client';
 import { palette } from '../styles/theme';
@@ -42,11 +42,20 @@ export function SupabaseTestPage() {
   } = usePublicProjects();
 
   const {
-    data: profilesData,
+    data: profiles,
     isLoading: isProfilesLoading,
     isError: isProfilesError,
     error: profilesError,
-  } = usePublicCompanyProfiles();
+  } = useCompanyProfiles();
+  
+  // Transform profiles to match expected format
+  const profilesData = profiles ? { profiles: profiles.map(p => ({
+    id: p.id,
+    title: language === 'ar' ? p.title_ar : p.title_en,
+    content: language === 'ar' ? p.content_ar : p.content_en,
+    iconKey: p.icon_key,
+    displayOrder: p.display_order,
+  })) } : null;
 
   // Test POST operation - إرسال البيانات
   const createRequestMutation = useCreateRequest();

@@ -4,21 +4,21 @@ import { CompanyContentModal } from './CompanyContentModal';
 import { palette } from '../../styles/theme';
 import { useLanguage } from '../../context/LanguageContext';
 import {
-  usePublicCompanyProfiles,
-  usePublicCompanyClients,
-  usePublicCompanyResources,
-  usePublicCompanyStrengths,
-  usePublicPartnershipInfo,
-  usePublicMarketValue,
-  usePublicCompanyGoals,
-  type PublicCompanyProfile,
-  type PublicCompanyClient,
-  type PublicCompanyResource,
-  type PublicCompanyStrength,
-  type PublicPartnershipInfo,
-  type PublicMarketValue,
-  type PublicCompanyGoal,
-} from '../../hooks/usePublicContent';
+  useCompanyProfiles,
+  useCompanyClients,
+  useCompanyResources,
+  useCompanyStrengths,
+  usePartnershipInfo,
+  useMarketValue,
+  useCompanyGoals,
+  type CompanyProfile,
+  type CompanyClient,
+  type CompanyResource,
+  type CompanyStrength,
+  type PartnershipInfo,
+  type MarketValue,
+  type CompanyGoal,
+} from '../../hooks/useSupabaseTables';
 import { SectionSkeleton } from './SectionSkeleton';
 
 interface SectionCard {
@@ -181,42 +181,42 @@ export function CompanyContentSection() {
   const { language, direction } = useLanguage();
   const isArabic = language === 'ar';
 
-  // Fetch all content from general content management group
+  // Fetch all content directly from Supabase using new hooks
   const {
-    data: profilesData,
+    data: profiles,
     isLoading: isLoadingProfiles,
     isError: isErrorProfiles,
-  } = usePublicCompanyProfiles();
+  } = useCompanyProfiles();
   const {
-    data: clientsData,
+    data: clients,
     isLoading: isLoadingClients,
     isError: isErrorClients,
-  } = usePublicCompanyClients();
+  } = useCompanyClients();
   const {
-    data: resourcesData,
+    data: resources,
     isLoading: isLoadingResources,
     isError: isErrorResources,
-  } = usePublicCompanyResources();
+  } = useCompanyResources();
   const {
-    data: strengthsData,
+    data: strengths,
     isLoading: isLoadingStrengths,
     isError: isErrorStrengths,
-  } = usePublicCompanyStrengths();
+  } = useCompanyStrengths();
   const {
-    data: partnershipData,
+    data: partnershipInfo,
     isLoading: isLoadingPartnership,
     isError: isErrorPartnership,
-  } = usePublicPartnershipInfo();
+  } = usePartnershipInfo();
   const {
-    data: marketValueData,
+    data: marketValue,
     isLoading: isLoadingMarketValue,
     isError: isErrorMarketValue,
-  } = usePublicMarketValue();
+  } = useMarketValue();
   const {
-    data: goalsData,
+    data: goals,
     isLoading: isLoadingGoals,
     isError: isErrorGoals,
-  } = usePublicCompanyGoals();
+  } = useCompanyGoals();
 
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
 
@@ -242,40 +242,44 @@ export function CompanyContentSection() {
 
   // Check if we have at least some data loaded (partial success)
   const hasPartialData =
-    ((profilesData as { profiles?: PublicCompanyProfile[] } | undefined)?.profiles?.length ?? 0) > 0 ||
-    ((clientsData as { clients?: PublicCompanyClient[] } | undefined)?.clients?.length ?? 0) > 0 ||
-    ((resourcesData as { resources?: PublicCompanyResource[] } | undefined)?.resources?.length ?? 0) > 0 ||
-    ((strengthsData as { strengths?: PublicCompanyStrength[] } | undefined)?.strengths?.length ?? 0) > 0 ||
-    ((partnershipData as { partnershipInfo?: PublicPartnershipInfo[] } | undefined)?.partnershipInfo?.length ?? 0) > 0 ||
-    (marketValueData as { marketValue?: PublicMarketValue | null } | undefined)?.marketValue !== null ||
-    ((goalsData as { goals?: PublicCompanyGoal[] } | undefined)?.goals?.length ?? 0) > 0;
+    (profiles?.length ?? 0) > 0 ||
+    (clients?.length ?? 0) > 0 ||
+    (resources?.length ?? 0) > 0 ||
+    (strengths?.length ?? 0) > 0 ||
+    (partnershipInfo?.length ?? 0) > 0 ||
+    marketValue !== null ||
+    (goals?.length ?? 0) > 0;
 
   // Build separate sections for each content type according to general content management group
   // Sections: Profiles, Business Model (Clients), Resources, Strengths, Partnership Info, Market Value, Goals
   const sections = useMemo<ContentSection[]>(() => {
     const sectionsList: ContentSection[] = [];
-    const profiles: PublicCompanyProfile[] = (profilesData as { profiles?: PublicCompanyProfile[] } | undefined)?.profiles ?? [];
-    const clients: PublicCompanyClient[] = (clientsData as { clients?: PublicCompanyClient[] } | undefined)?.clients ?? [];
-    const resources: PublicCompanyResource[] = (resourcesData as { resources?: PublicCompanyResource[] } | undefined)?.resources ?? [];
-    const strengths: PublicCompanyStrength[] = (strengthsData as { strengths?: PublicCompanyStrength[] } | undefined)?.strengths ?? [];
-    const partnershipInfo: PublicPartnershipInfo[] = (partnershipData as { partnershipInfo?: PublicPartnershipInfo[] } | undefined)?.partnershipInfo ?? [];
-    const marketValue: PublicMarketValue | null | undefined = (marketValueData as { marketValue?: PublicMarketValue | null } | undefined)?.marketValue;
-    const goals: PublicCompanyGoal[] = (goalsData as { goals?: PublicCompanyGoal[] } | undefined)?.goals ?? [];
+    const profilesList: CompanyProfile[] = profiles ?? [];
+    const clientsList: CompanyClient[] = clients ?? [];
+    const resourcesList: CompanyResource[] = resources ?? [];
+    const strengthsList: CompanyStrength[] = strengths ?? [];
+    const partnershipInfoList: PartnershipInfo[] = partnershipInfo ?? [];
+    const marketValueData: MarketValue | null = marketValue;
+    const goalsList: CompanyGoal[] = goals ?? [];
 
     // 1. البروفايل التعريفي (Company Profile)
-    if (profiles.length > 0) {
-      const profileCards: SectionCard[] = profiles
-        .sort((a: PublicCompanyProfile, b: PublicCompanyProfile) => a.displayOrder - b.displayOrder)
-        .map((profile: PublicCompanyProfile) => ({
-          id: `profile-${profile.id}`,
-          title: profile.title,
-          description: profile.content.substring(0, 100) + (profile.content.length > 100 ? '...' : ''),
-          iconKey: profile.iconKey,
-          displayOrder: profile.displayOrder,
-          onClick: () => setSelectedSection(`profile-${profile.id}`),
-        }));
+    if (profilesList.length > 0) {
+      const profileCards: SectionCard[] = profilesList
+        .sort((a, b) => a.display_order - b.display_order)
+        .map((profile) => {
+          const title = isArabic ? profile.title_ar : profile.title_en;
+          const content = isArabic ? profile.content_ar : profile.content_en;
+          return {
+            id: `profile-${profile.id}`,
+            title,
+            description: content.substring(0, 100) + (content.length > 100 ? '...' : ''),
+            iconKey: profile.icon_key,
+            displayOrder: profile.display_order,
+            onClick: () => setSelectedSection(`profile-${profile.id}`),
+          };
+        });
 
-      const minDisplayOrder = Math.min(...profiles.map((p: PublicCompanyProfile) => p.displayOrder), Infinity);
+      const minDisplayOrder = Math.min(...profilesList.map((p) => p.display_order), Infinity);
       sectionsList.push({
         id: 'company-profile',
         title: isArabic ? 'البروفايل التعريفي' : 'Company Profile',
@@ -285,21 +289,25 @@ export function CompanyContentSection() {
     }
 
     // 2. نموذج العمل التجاري (Business Model - Clients)
-    if (clients.length > 0) {
-      const businessModelCards: SectionCard[] = clients
-        .sort((a: PublicCompanyClient, b: PublicCompanyClient) => a.displayOrder - b.displayOrder)
-        .map((client: PublicCompanyClient) => ({
-          id: `client-${client.id}`,
-          title: client.name,
-          description: client.description
-            ? client.description.substring(0, 100) + (client.description.length > 100 ? '...' : '')
-            : null,
-          iconKey: client.logoKey,
-          displayOrder: client.displayOrder,
-          onClick: () => setSelectedSection(`client-${client.id}`),
-        }));
+    if (clientsList.length > 0) {
+      const businessModelCards: SectionCard[] = clientsList
+        .sort((a, b) => a.display_order - b.display_order)
+        .map((client) => {
+          const name = isArabic ? client.name_ar : client.name_en;
+          const description = isArabic ? client.description_ar : client.description_en;
+          return {
+            id: `client-${client.id}`,
+            title: name,
+            description: description
+              ? description.substring(0, 100) + (description.length > 100 ? '...' : '')
+              : null,
+            iconKey: client.logo_key,
+            displayOrder: client.display_order,
+            onClick: () => setSelectedSection(`client-${client.id}`),
+          };
+        });
 
-      const minDisplayOrder = Math.min(...clients.map((c: PublicCompanyClient) => c.displayOrder), Infinity);
+      const minDisplayOrder = Math.min(...clientsList.map((c) => c.display_order), Infinity);
       sectionsList.push({
         id: 'business-model',
         title: isArabic ? 'نموذج العمل التجاري' : 'Business Model',
@@ -309,31 +317,33 @@ export function CompanyContentSection() {
     }
 
     // 3. الموارد المالية
-    if (resources.length > 0) {
-      const resourceCards: SectionCard[] = resources
-        .sort((a: PublicCompanyResource, b: PublicCompanyResource) => a.displayOrder - b.displayOrder)
-        .map((resource: PublicCompanyResource) => {
-          const description = resource.description
-            ? resource.description.substring(0, 100) + (resource.description.length > 100 ? '...' : '')
+    if (resourcesList.length > 0) {
+      const resourceCards: SectionCard[] = resourcesList
+        .sort((a, b) => a.display_order - b.display_order)
+        .map((resource) => {
+          const title = isArabic ? resource.title_ar : resource.title_en;
+          const description = isArabic ? resource.description_ar : resource.description_en;
+          const displayDescription = description
+            ? description.substring(0, 100) + (description.length > 100 ? '...' : '')
             : resource.value
               ? new Intl.NumberFormat(isArabic ? 'ar-SA' : 'en-US', {
                   style: 'currency',
                   currency: resource.currency,
                   maximumFractionDigits: 0,
-                }).format(resource.value)
+                }).format(Number(resource.value))
               : null;
 
           return {
             id: `resource-${resource.id}`,
-            title: resource.title,
-            description,
-            iconKey: resource.iconKey,
-            displayOrder: resource.displayOrder,
+            title,
+            description: displayDescription,
+            iconKey: resource.icon_key,
+            displayOrder: resource.display_order,
             onClick: () => setSelectedSection(`resource-${resource.id}`),
           };
         });
 
-      const minDisplayOrder = Math.min(...resources.map((r: PublicCompanyResource) => r.displayOrder), Infinity);
+      const minDisplayOrder = Math.min(...resourcesList.map((r) => r.display_order), Infinity);
       sectionsList.push({
         id: 'resources',
         title: isArabic ? 'الموارد المالية' : 'Financial Resources',
@@ -343,21 +353,25 @@ export function CompanyContentSection() {
     }
 
     // 4. نقاط قوة الشركة
-    if (strengths.length > 0) {
-      const strengthCards: SectionCard[] = strengths
-        .sort((a: PublicCompanyStrength, b: PublicCompanyStrength) => a.displayOrder - b.displayOrder)
-        .map((strength: PublicCompanyStrength) => ({
-          id: `strength-${strength.id}`,
-          title: strength.title,
-          description: strength.description
-            ? strength.description.substring(0, 100) + (strength.description.length > 100 ? '...' : '')
-            : null,
-          iconKey: strength.iconKey,
-          displayOrder: strength.displayOrder,
-          onClick: () => setSelectedSection(`strength-${strength.id}`),
-        }));
+    if (strengthsList.length > 0) {
+      const strengthCards: SectionCard[] = strengthsList
+        .sort((a, b) => a.display_order - b.display_order)
+        .map((strength) => {
+          const title = isArabic ? strength.title_ar : strength.title_en;
+          const description = isArabic ? strength.description_ar : strength.description_en;
+          return {
+            id: `strength-${strength.id}`,
+            title,
+            description: description
+              ? description.substring(0, 100) + (description.length > 100 ? '...' : '')
+              : null,
+            iconKey: strength.icon_key,
+            displayOrder: strength.display_order,
+            onClick: () => setSelectedSection(`strength-${strength.id}`),
+          };
+        });
 
-      const minDisplayOrder = Math.min(...strengths.map((s: PublicCompanyStrength) => s.displayOrder), Infinity);
+      const minDisplayOrder = Math.min(...strengthsList.map((s) => s.display_order), Infinity);
       sectionsList.push({
         id: 'strengths',
         title: isArabic ? 'نقاط قوة الشركة' : 'Company Strengths',
@@ -367,19 +381,23 @@ export function CompanyContentSection() {
     }
 
     // 5. كيف تكون شريك في باكورة
-    if (partnershipInfo.length > 0) {
-      const partnershipCards: SectionCard[] = partnershipInfo
-        .sort((a: PublicPartnershipInfo, b: PublicPartnershipInfo) => a.displayOrder - b.displayOrder)
-        .map((info: PublicPartnershipInfo) => ({
-          id: `partnership-${info.id}`,
-          title: info.title,
-          description: info.content.substring(0, 120) + (info.content.length > 120 ? '...' : ''),
-          iconKey: info.iconKey,
-          displayOrder: info.displayOrder,
-          onClick: () => setSelectedSection(`partnership-${info.id}`),
-        }));
+    if (partnershipInfoList.length > 0) {
+      const partnershipCards: SectionCard[] = partnershipInfoList
+        .sort((a, b) => a.display_order - b.display_order)
+        .map((info) => {
+          const title = isArabic ? info.title_ar : info.title_en;
+          const content = isArabic ? info.content_ar : info.content_en;
+          return {
+            id: `partnership-${info.id}`,
+            title,
+            description: content.substring(0, 120) + (content.length > 120 ? '...' : ''),
+            iconKey: info.icon_key,
+            displayOrder: info.display_order,
+            onClick: () => setSelectedSection(`partnership-${info.id}`),
+          };
+        });
 
-      const minDisplayOrder = Math.min(...partnershipInfo.map((i: PublicPartnershipInfo) => i.displayOrder), Infinity);
+      const minDisplayOrder = Math.min(...partnershipInfoList.map((i) => i.display_order), Infinity);
       sectionsList.push({
         id: 'partnership',
         title: isArabic ? 'كيف تكون شريك في باكورة' : 'How to Become a Partner in Bacura',
@@ -389,16 +407,16 @@ export function CompanyContentSection() {
     }
 
     // 6. القيمة السوقية المعتمدة للشركة
-    if (marketValue) {
+    if (marketValueData) {
       const formattedValue = new Intl.NumberFormat(isArabic ? 'ar-SA' : 'en-US', {
         style: 'currency',
-        currency: marketValue.currency,
+        currency: marketValueData.currency,
         maximumFractionDigits: 0,
-      }).format(marketValue.value);
+      }).format(Number(marketValueData.value));
 
       const formattedDate = new Intl.DateTimeFormat(isArabic ? 'ar-SA' : 'en-US', {
         dateStyle: 'medium',
-      }).format(new Date(marketValue.valuationDate));
+      }).format(new Date(marketValueData.valuation_date));
 
       sectionsList.push({
         id: 'market-value',
@@ -418,29 +436,31 @@ export function CompanyContentSection() {
     }
 
     // 7. الأهداف العامة للشركة
-    if (goals.length > 0) {
-      const goalCards: SectionCard[] = goals
-        .sort((a: PublicCompanyGoal, b: PublicCompanyGoal) => a.displayOrder - b.displayOrder)
-        .map((goal: PublicCompanyGoal) => {
-          const description = goal.description
-            ? goal.description.substring(0, 100) + (goal.description.length > 100 ? '...' : '')
-            : goal.targetDate
+    if (goalsList.length > 0) {
+      const goalCards: SectionCard[] = goalsList
+        .sort((a, b) => a.display_order - b.display_order)
+        .map((goal) => {
+          const title = isArabic ? goal.title_ar : goal.title_en;
+          const description = isArabic ? goal.description_ar : goal.description_en;
+          const displayDescription = description
+            ? description.substring(0, 100) + (description.length > 100 ? '...' : '')
+            : goal.target_date
               ? new Intl.DateTimeFormat(isArabic ? 'ar-SA' : 'en-US', {
                   dateStyle: 'medium',
-                }).format(new Date(goal.targetDate))
+                }).format(new Date(goal.target_date))
               : null;
 
           return {
             id: `goal-${goal.id}`,
-            title: goal.title,
-            description,
-            iconKey: goal.iconKey,
-            displayOrder: goal.displayOrder,
+            title,
+            description: displayDescription,
+            iconKey: goal.icon_key,
+            displayOrder: goal.display_order,
             onClick: () => setSelectedSection(`goal-${goal.id}`),
           };
         });
 
-      const minDisplayOrder = Math.min(...goals.map((g: PublicCompanyGoal) => g.displayOrder), Infinity);
+      const minDisplayOrder = Math.min(...goalsList.map((g) => g.display_order), Infinity);
       sectionsList.push({
         id: 'goals',
         title: isArabic ? 'الأهداف العامة للشركة' : 'Company General Goals',
@@ -452,13 +472,13 @@ export function CompanyContentSection() {
     // Sort sections by displayOrder
     return sectionsList.sort((a, b) => a.displayOrder - b.displayOrder);
   }, [
-    profilesData,
-    clientsData,
-    resourcesData,
-    strengthsData,
-    partnershipData,
-    marketValueData,
-    goalsData,
+    profiles,
+    clients,
+    resources,
+    strengths,
+    partnershipInfo,
+    marketValue,
+    goals,
     language,
     isArabic,
   ]);
