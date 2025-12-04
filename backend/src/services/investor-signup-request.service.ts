@@ -138,45 +138,45 @@ export const investorSignupRequestService = {
         fullName: input.fullName,
       });
 
-      const adminClient = requireSupabaseAdmin();
-      const email = normaliseEmail(input.email);
+    const adminClient = requireSupabaseAdmin();
+    const email = normaliseEmail(input.email);
 
       // Check if user already exists
       const { data: existingUser, error: userCheckError } = await adminClient
-        .from('users')
-        .select('id')
-        .eq('email', email)
-        .maybeSingle();
+      .from('users')
+      .select('id')
+      .eq('email', email)
+      .maybeSingle();
 
       if (userCheckError) {
         console.error('[InvestorSignupRequestService] Error checking existing user:', userCheckError);
         throw new Error(`Database error while checking user: ${userCheckError.message}`);
       }
 
-      if (existingUser) {
-        const error = new Error('USER_ALREADY_EXISTS');
-        (error as Error & { status?: number }).status = 409;
-        throw error;
-      }
+    if (existingUser) {
+      const error = new Error('USER_ALREADY_EXISTS');
+      (error as Error & { status?: number }).status = 409;
+      throw error;
+    }
 
       // Check if pending request already exists
       const { data: existingPending, error: pendingCheckError } = await adminClient
-        .from(TABLE_NAME)
-        .select('id, status, created_at')
-        .eq('email', email)
-        .eq('status', 'pending')
-        .maybeSingle();
+      .from(TABLE_NAME)
+      .select('id, status, created_at')
+      .eq('email', email)
+      .eq('status', 'pending')
+      .maybeSingle();
 
       if (pendingCheckError) {
         console.error('[InvestorSignupRequestService] Error checking pending request:', pendingCheckError);
         throw new Error(`Database error while checking pending request: ${pendingCheckError.message}`);
       }
 
-      if (existingPending) {
-        const error = new Error('REQUEST_ALREADY_PENDING');
-        (error as Error & { status?: number }).status = 409;
-        throw error;
-      }
+    if (existingPending) {
+      const error = new Error('REQUEST_ALREADY_PENDING');
+      (error as Error & { status?: number }).status = 409;
+      throw error;
+    }
 
       // Create new signup request
       const insertPayload = {
@@ -203,8 +203,8 @@ export const investorSignupRequestService = {
       const { data, error } = await adminClient
         .from(TABLE_NAME)
         .insert(insertPayload)
-        .select('*')
-        .single<SignupRequestRow>();
+      .select('*')
+      .single<SignupRequestRow>();
 
       if (error) {
         console.error('[InvestorSignupRequestService] Insert error:', {
@@ -213,10 +213,10 @@ export const investorSignupRequestService = {
           details: error.details,
           hint: error.hint,
         });
-        throw new Error(
+      throw new Error(
           `Failed to create signup request: ${error.message}${error.code ? ` (code: ${error.code})` : ''}`
-        );
-      }
+      );
+    }
 
       if (!data) {
         console.error('[InvestorSignupRequestService] Insert succeeded but no data returned');
@@ -228,7 +228,7 @@ export const investorSignupRequestService = {
         status: data.status,
       });
 
-      return data;
+    return data;
     } catch (error) {
       // Re-throw known errors (USER_ALREADY_EXISTS, REQUEST_ALREADY_PENDING)
       if (error instanceof Error && 

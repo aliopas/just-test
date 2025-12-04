@@ -179,6 +179,14 @@ export async function apiClient<TResponse>(
   const cleanPath = path.replace(/^\/api\/v1\//, '/');
   const url = cleanPath.startsWith('http') ? cleanPath : `${baseUrl}${cleanPath}`;
 
+  console.log('[apiClient] Making request:', {
+    path,
+    url,
+    method: init.method || 'GET',
+    auth,
+    baseUrl,
+  });
+
   const createHeaders = () => {
     const requestHeaders = new Headers(defaultHeaders);
     applyHeaders(requestHeaders, headers);
@@ -187,29 +195,66 @@ export async function apiClient<TResponse>(
       const token = resolveAccessToken();
       if (token) {
         requestHeaders.set('Authorization', `Bearer ${token}`);
+        console.log('[apiClient] Added auth token');
+      } else {
+        console.warn('[apiClient] No auth token available');
       }
     }
 
     return requestHeaders;
   };
 
-  const executeRequest = () =>
-    fetch(url, {
+  const executeRequest = () => {
+    const requestHeaders = createHeaders();
+    console.log('[apiClient] Executing request:', {
+      url,
+      method: init.method || 'GET',
+      headers: Object.fromEntries(requestHeaders.entries()),
+      hasBody: !!init.body,
+    });
+    
+    return fetch(url, {
       credentials: 'include',
       ...init,
-      headers: createHeaders(),
+      headers: requestHeaders,
     });
+  };
 
-  let response = await executeRequest();
+  let response: Response;
+  try {
+    response = await executeRequest();
+    console.log('[apiClient] Response received:', {
+      status: response.status,
+      statusText: response.statusText,
+      ok: response.ok,
+      url: response.url,
+    });
+  } catch (networkError) {
+    console.error('[apiClient] Network error:', networkError);
+    throw new ApiError(
+      `Network error: ${networkError instanceof Error ? networkError.message : 'Failed to connect to server'}`,
+      0,
+      { path, url, error: networkError }
+    );
+  }
 
   if (response.status === 401 && auth) {
+    console.log('[apiClient] 401 received, attempting token refresh');
     const refreshed = await refreshAccessToken();
     if (refreshed) {
+      console.log('[apiClient] Token refreshed, retrying request');
       response = await executeRequest();
+    } else {
+      console.warn('[apiClient] Token refresh failed');
     }
   }
 
   const payload = await parseResponsePayload(response);
+  console.log('[apiClient] Response payload:', {
+    status: response.status,
+    payloadType: typeof payload,
+    hasError: !response.ok,
+  });
 
   if (!response.ok) {
     let message: string;
@@ -235,12 +280,21 @@ export async function apiClient<TResponse>(
       message = response.statusText || 'Request failed';
     }
 
+    console.error('[apiClient] Request failed:', {
+      status: response.status,
+      statusText: response.statusText,
+      message,
+      url,
+      payload,
+    });
+
     // Include URL and status in error message for debugging
     const errorMessage = `${message} (${response.status} ${response.statusText}) - ${url}`;
     
     throw new ApiError(errorMessage, response.status, payload);
   }
 
+  console.log('[apiClient] Request successful');
   return payload as TResponse;
 }
 

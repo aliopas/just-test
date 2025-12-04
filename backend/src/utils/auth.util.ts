@@ -15,19 +15,41 @@ const baseCookieOptions: CookieOptions = {
 };
 
 export function setAuthCookies(res: Response, session: Session): void {
-  const expiresIn = session.expires_in ?? 3600;
+  try {
+    if (!session || !session.access_token) {
+      console.warn('[setAuthCookies] Invalid session provided');
+      return;
+    }
 
-  res.cookie(ACCESS_TOKEN_COOKIE, session.access_token, {
-    ...baseCookieOptions,
-    maxAge: expiresIn * 1000,
-  });
+    const expiresIn = session.expires_in ?? 3600;
 
-  if (session.refresh_token) {
-    const refreshMaxAgeSeconds = 60 * 60 * 24 * 30; // 30 days
-    res.cookie(REFRESH_TOKEN_COOKIE, session.refresh_token, {
-      ...baseCookieOptions,
-      maxAge: refreshMaxAgeSeconds * 1000,
-    });
+    // Set access token cookie
+    try {
+      res.cookie(ACCESS_TOKEN_COOKIE, session.access_token, {
+        ...baseCookieOptions,
+        maxAge: expiresIn * 1000,
+      });
+    } catch (cookieError) {
+      console.error('[setAuthCookies] Error setting access token cookie:', cookieError);
+      // Don't throw - continue to set refresh token if available
+    }
+
+    // Set refresh token cookie if available
+    if (session.refresh_token) {
+      try {
+        const refreshMaxAgeSeconds = 60 * 60 * 24 * 30; // 30 days
+        res.cookie(REFRESH_TOKEN_COOKIE, session.refresh_token, {
+          ...baseCookieOptions,
+          maxAge: refreshMaxAgeSeconds * 1000,
+        });
+      } catch (cookieError) {
+        console.error('[setAuthCookies] Error setting refresh token cookie:', cookieError);
+        // Don't throw - cookies are optional, tokens are also in response body
+      }
+    }
+  } catch (error) {
+    console.error('[setAuthCookies] Unexpected error:', error);
+    // Don't throw - cookies are optional, tokens are also in response body
   }
 }
 

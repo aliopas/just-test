@@ -24,17 +24,12 @@ export function RegisterPage() {
     setError(null);
     setSuccess(null);
 
-    // Basic client-side validation
-    if (!email || !email.trim()) {
-      setError(isArabic ? 'البريد الإلكتروني مطلوب' : 'Email is required');
-      return;
-    }
-
-    if (!fullName || fullName.trim().length < 3) {
+    // Validate required fields
+    if (!email || !fullName) {
       setError(
         isArabic
-          ? 'الاسم الكامل يجب أن يكون 3 أحرف على الأقل'
-          : 'Full name must be at least 3 characters'
+          ? 'الرجاء إدخال البريد الإلكتروني والاسم الكامل.'
+          : 'Please enter your email and full name.'
       );
       return;
     }
@@ -49,17 +44,11 @@ export function RegisterPage() {
         language: (isArabic ? 'ar' : 'en') as 'ar' | 'en',
       };
 
-      console.log('[RegisterPage] Submitting request:', {
-        email: payload.email,
-        fullName: payload.fullName,
-        hasPhone: !!payload.phone,
-        hasCompany: !!payload.company,
-        hasMessage: !!payload.message,
-      });
+      console.log('[Register] Submitting request:', { email: payload.email, fullName: payload.fullName });
 
       const response = await registerMutation.mutateAsync(payload);
 
-      console.log('[RegisterPage] Request submitted successfully:', response);
+      console.log('[Register] Request successful:', response);
 
       setSuccess(
         isArabic
@@ -67,7 +56,7 @@ export function RegisterPage() {
           : 'Your investor signup request has been received. The Bacura team will review it and contact you.'
       );
 
-      // Reset form after successful submission
+      // Reset form after success
       setFullName('');
       setEmail('');
       setPhone('');
@@ -77,43 +66,38 @@ export function RegisterPage() {
       // يمكن لاحقاً التوجيه لصفحة مخصصة لتأكيد الطلب
       // router.push('/thanks'); مثلاً
     } catch (err) {
-      console.error('[RegisterPage] Error submitting request:', err);
-
+      console.error('[Register] Error occurred:', err);
+      
       if (err instanceof ApiError) {
         let errorMessage = err.message;
-
-        // Extract validation errors if available
-        if (err.payload && typeof err.payload === 'object') {
-          const payload = err.payload as Record<string, unknown>;
-          if (payload.error && typeof payload.error === 'object') {
-            const errorObj = payload.error as Record<string, unknown>;
-            if (errorObj.details && Array.isArray(errorObj.details)) {
-              const details = errorObj.details as Array<{ field: string; message: string }>;
-              if (details.length > 0) {
-                errorMessage = details.map(d => d.message).join(', ');
-              }
-            } else if (errorObj.message && typeof errorObj.message === 'string') {
-              errorMessage = errorObj.message;
-            }
-          }
+        
+        // Provide user-friendly messages based on error status
+        if (err.status >= 500) {
+          errorMessage = isArabic
+            ? 'حدث خطأ في الخادم. يرجى المحاولة مرة أخرى لاحقاً.'
+            : 'A server error occurred. Please try again later.';
+        } else if (err.status === 409) {
+          errorMessage = isArabic
+            ? 'يوجد طلب قيد المراجعة لهذا البريد الإلكتروني أو حساب موجود بالفعل.'
+            : 'A request is already pending for this email or an account already exists.';
+        } else if (err.status === 400) {
+          errorMessage = isArabic
+            ? 'الرجاء التحقق من البيانات المدخلة وإعادة المحاولة.'
+            : 'Please check your input and try again.';
         }
-
-        setError(
-          isArabic
-            ? errorMessage || 'تعذّر إرسال الطلب. حاول مرة أخرى.'
-            : errorMessage || 'Unable to submit your request. Please try again.'
-        );
+        
+        setError(errorMessage);
       } else if (err instanceof Error) {
         setError(
           isArabic
-            ? err.message || 'حدث خطأ أثناء إرسال الطلب.'
-            : err.message || 'Something went wrong.'
+            ? err.message || 'تعذّر إرسال الطلب. حاول مرة أخرى.'
+            : err.message || 'Unable to submit your request. Please try again.'
         );
       } else {
         setError(
           isArabic
             ? 'حدث خطأ غير متوقع. حاول مرة أخرى.'
-            : 'An unexpected error occurred.'
+            : 'An unexpected error occurred. Please try again.'
         );
       }
     }

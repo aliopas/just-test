@@ -18,14 +18,37 @@ export function LoginPage() {
     event.preventDefault();
     setError(null);
 
+    // Validate required fields
+    if (!email || !password) {
+      setError(
+        isArabic
+          ? 'الرجاء إدخال البريد الإلكتروني وكلمة المرور.'
+          : 'Please enter your email and password.'
+      );
+      return;
+    }
+
     try {
-      const result = await loginMutation.mutateAsync({ email, password });
+      console.log('[Login] Attempting login:', { email: email.trim() });
+
+      const result = await loginMutation.mutateAsync({ 
+        email: email.trim(), 
+        password 
+      });
 
       // في حال تفعيل 2FA مستقبلاً يمكن توجيه المستخدم لصفحة إدخال الكود هنا
       if ('requires2FA' in result && result.requires2FA) {
         router.push('/verify');
         return;
       }
+
+      // Type guard: result is LoginSuccessResponse at this point
+      const successResult = result as Extract<typeof result, { user: { id: string } }>;
+      
+      console.log('[Login] Login successful:', { 
+        userId: successResult.user?.id, 
+        role: successResult.user?.role 
+      });
 
       // Check if there's a redirect path stored
       const redirectPath = typeof window !== 'undefined' 
@@ -44,13 +67,17 @@ export function LoginPage() {
       await new Promise(resolve => setTimeout(resolve, 300));
       
       // التوجيه حسب الدور
-      const role = (result as any).user?.role === 'admin' ? 'admin' : 'investor';
+      const role = successResult.user?.role === 'admin' ? 'admin' : 'investor';
+      console.log('[Login] Redirecting to:', role === 'admin' ? '/admin/dashboard' : '/dashboard');
+      
       if (role === 'admin') {
         router.push('/admin/dashboard');
       } else {
         router.push('/dashboard');
       }
     } catch (err) {
+      console.error('[Login] Error occurred:', err);
+      
       if (err instanceof ApiError) {
         let errorMessage = err.message;
         
@@ -60,9 +87,20 @@ export function LoginPage() {
             ? 'حدث خطأ في الخادم. يرجى المحاولة مرة أخرى لاحقاً.'
             : 'A server error occurred. Please try again later.';
         } else if (err.status === 401 || err.status === 403) {
-          errorMessage = isArabic
-            ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة.'
-            : 'Invalid email or password.';
+          // Check for specific error codes
+          if (err.message.includes('ACCOUNT_INACTIVE')) {
+            errorMessage = isArabic
+              ? 'حسابك غير نشط. يرجى التواصل مع الدعم.'
+              : 'Your account is not active. Please contact support.';
+          } else if (err.message.includes('USER_NOT_FOUND')) {
+            errorMessage = isArabic
+              ? 'المستخدم غير موجود. يرجى التحقق من البريد الإلكتروني.'
+              : 'User not found. Please check your email.';
+          } else {
+            errorMessage = isArabic
+              ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة.'
+              : 'Invalid email or password.';
+          }
         } else if (err.status === 429) {
           errorMessage = isArabic
             ? 'تم إجراء محاولات كثيرة. يرجى الانتظار قليلاً والمحاولة مرة أخرى.'

@@ -487,32 +487,81 @@ export const authController = {
         hasTotpToken: !!totpToken,
       });
 
+      // Validate email and password
+      if (!email || !password) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Email and password are required',
+          },
+        });
+      }
+
       // Sign in with password
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      let data: any;
+      let error: any;
+      
+      try {
+        const signInResult = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
+        data = signInResult.data;
+        error = signInResult.error;
+      } catch (signInError) {
+        console.error('[Login] Exception during signInWithPassword:', signInError);
+        return res.status(500).json({
+          error: {
+            code: 'LOGIN_FAILED',
+            message: signInError instanceof Error ? signInError.message : 'Failed to sign in',
+          },
+        });
+      }
 
       if (error) {
         console.error('[Login] Supabase auth error:', {
           message: error.message,
           status: error.status,
+          name: error.name,
         });
         return res.status(401).json({
           error: {
             code: 'INVALID_CREDENTIALS',
-            message: error.message,
+            message: error.message || 'Invalid email or password',
+          },
+        });
+      }
+
+      if (!data) {
+        console.error('[Login] No data returned from signInWithPassword');
+        try {
+          await supabase.auth.signOut();
+        } catch (signOutError) {
+          console.error('[Login] Error during sign out:', signOutError);
+        }
+        return res.status(500).json({
+          error: {
+            code: 'INTERNAL_ERROR',
+            message: 'Failed to sign in - no data returned',
           },
         });
       }
 
       if (!data.user || !data.session) {
-        console.error('[Login] Missing user or session after successful auth');
-        await supabase.auth.signOut();
+        console.error('[Login] Missing user or session after successful auth:', {
+          hasUser: !!data.user,
+          hasSession: !!data.session,
+          dataKeys: data ? Object.keys(data) : [],
+        });
+        try {
+          await supabase.auth.signOut();
+        } catch (signOutError) {
+          console.error('[Login] Error during sign out:', signOutError);
+        }
         return res.status(500).json({
           error: {
             code: 'INTERNAL_ERROR',
-            message: 'Failed to sign in',
+            message: 'Failed to sign in - missing user or session',
           },
         });
       }
@@ -611,6 +660,7 @@ export const authController = {
       if (userData.mfa_enabled && userData.mfa_secret) {
         // 2FA is enabled - require TOTP token
         if (!totpToken) {
+          console.log('[Login] 2FA enabled but no TOTP token provided');
           await supabase.auth.signOut();
           return res.status(200).json({
             requires2FA: true,
@@ -619,13 +669,26 @@ export const authController = {
         }
 
         // Verify TOTP token
-        const isValid = totpService.verifyToken(userData.mfa_secret, totpToken);
-        if (!isValid) {
+        try {
+          const isValid = totpService.verifyToken(userData.mfa_secret, totpToken);
+          if (!isValid) {
+            console.warn('[Login] Invalid TOTP token provided');
+            await supabase.auth.signOut();
+            return res.status(401).json({
+              error: {
+                code: 'INVALID_TOTP_TOKEN',
+                message: 'Invalid 2FA token',
+              },
+            });
+          }
+          console.log('[Login] TOTP token verified successfully');
+        } catch (totpError) {
+          console.error('[Login] Error verifying TOTP token:', totpError);
           await supabase.auth.signOut();
           return res.status(401).json({
             error: {
-              code: 'INVALID_TOTP_TOKEN',
-              message: 'Invalid 2FA token',
+              code: 'TOTP_VERIFICATION_FAILED',
+              message: 'Failed to verify 2FA token',
             },
           });
         }
@@ -646,7 +709,18 @@ export const authController = {
         finalRole: role,
       });
 
-      setAuthCookies(res, data.session);
+      // Set auth cookies - wrap in try-catch to handle any cookie errors gracefully
+      try {
+        if (data.session) {
+          setAuthCookies(res, data.session);
+          console.log('[Login] Auth cookies set successfully');
+        } else {
+          console.warn('[Login] No session available to set cookies');
+        }
+      } catch (cookieError) {
+        console.error('[Login] Error setting auth cookies:', cookieError);
+        // Don't fail the login if cookie setting fails - tokens are still returned in response
+      }
 
       const response = {
         user: {
@@ -655,13 +729,13 @@ export const authController = {
           role,
         },
         session: {
-          accessToken: data.session.access_token,
-          refreshToken: data.session.refresh_token ?? undefined,
-          expiresIn: data.session.expires_in ?? 3600,
-          expiresAt: data.session.expires_at ?? null,
-          tokenType: data.session.token_type ?? 'bearer',
+          accessToken: data.session?.access_token,
+          refreshToken: data.session?.refresh_token ?? undefined,
+          expiresIn: data.session?.expires_in ?? 3600,
+          expiresAt: data.session?.expires_at ?? null,
+          tokenType: data.session?.token_type ?? 'bearer',
         },
-        expiresIn: data.session.expires_in ?? 3600,
+        expiresIn: data.session?.expires_in ?? 3600,
         tokenType: 'Bearer',
       };
 
@@ -671,26 +745,54 @@ export const authController = {
         role: response.user.role,
       });
 
-      return res.status(200).json(response);
+      // Ensure response is sent properly
+      try {
+        return res.status(200).json(response);
+      } catch (responseError) {
+        console.error('[Login] Error sending response:', responseError);
+        // If response was already sent, don't try again
+        if (!res.headersSent) {
+          return res.status(200).json(response);
+        }
+        // Response already sent, nothing more to do
+        return;
+      }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('[Login] Login error:', error);
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       const errorStack = error instanceof Error ? error.stack : undefined;
       
       // Log full error details for debugging
-      console.error('Login error details:', {
+      console.error('[Login] Login error details:', {
         message: errorMessage,
         stack: errorStack,
         error: error,
+        errorType: error?.constructor?.name,
+        email: req.body?.email,
+        errorName: error instanceof Error ? error.name : typeof error,
       });
+
+      // Try to sign out if we have a session
+      try {
+        await supabase.auth.signOut();
+      } catch (signOutError) {
+        console.error('[Login] Error during sign out:', signOutError);
+      }
+
+      // Only send error response if headers haven't been sent
+      if (!res.headersSent) {
+        return res.status(500).json({
+          error: {
+            code: 'LOGIN_FAILED',
+            message: errorMessage || 'An unexpected error occurred during login',
+            details: process.env.NODE_ENV === 'development' ? errorStack : undefined,
+          },
+        });
+      }
       
-      return res.status(500).json({
-        error: {
-          code: 'LOGIN_FAILED',
-          message: errorMessage || 'An unexpected error occurred during login',
-          details: process.env.NODE_ENV === 'development' ? errorStack : undefined,
-        },
-      });
+      // Response headers already sent, cannot send error response
+      console.error('[Login] Response headers already sent, cannot send error response');
+      return;
     }
   },
 
