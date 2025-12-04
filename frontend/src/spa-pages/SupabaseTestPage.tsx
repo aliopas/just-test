@@ -245,7 +245,7 @@ export function SupabaseTestPage() {
             <p style={{ margin: '0 0 1rem 0', color: palette.textPrimary }}>
               {testResult.message}
             </p>
-            {testResult.data && (
+            {Boolean(testResult.data) && (
               <details
                 style={{
                   marginTop: '1rem',

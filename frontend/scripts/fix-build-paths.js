@@ -1,21 +1,21 @@
 const fs = require('fs');
 const path = require('path');
 
-// Keep tsconfig.json paths as is - src/pages should remain in src/
+// Keep tsconfig.json paths as is - SPA pages live in src/spa-pages
 // Next.js doesn't allow pages/ and app/ directories at the same level
 const tsconfigPath = path.join(__dirname, '..', 'tsconfig.json');
 const tsconfig = JSON.parse(fs.readFileSync(tsconfigPath, 'utf8'));
 
-// Ensure @/pages/* points to ./src/pages/* (don't change it)
+// Ensure @/pages/* points to ./src/spa-pages/* (don't change it)
 if (tsconfig.compilerOptions.paths) {
   if (!tsconfig.compilerOptions.paths['@/pages/*']) {
-    tsconfig.compilerOptions.paths['@/pages/*'] = ['./src/pages/*'];
-    console.log('✓ Set @/pages/* path mapping to ./src/pages/*');
-  } else if (tsconfig.compilerOptions.paths['@/pages/*'][0] !== './src/pages/*') {
-    tsconfig.compilerOptions.paths['@/pages/*'] = ['./src/pages/*'];
-    console.log('✓ Updated @/pages/* path mapping to ./src/pages/*');
+    tsconfig.compilerOptions.paths['@/pages/*'] = ['./src/spa-pages/*'];
+    console.log('✓ Set @/pages/* path mapping to ./src/spa-pages/*');
+  } else if (tsconfig.compilerOptions.paths['@/pages/*'][0] !== './src/spa-pages/*') {
+    tsconfig.compilerOptions.paths['@/pages/*'] = ['./src/spa-pages/*'];
+    console.log('✓ Updated @/pages/* path mapping to ./src/spa-pages/*');
   } else {
-    console.log('✓ @/pages/* path mapping is correct (./src/pages/*)');
+    console.log('✓ @/pages/* path mapping is correct (./src/spa-pages/*)');
   }
 }
 

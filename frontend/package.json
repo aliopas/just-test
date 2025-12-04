@@ -10,7 +10,7 @@
     "postbuild": "node scripts/post-build.js && node scripts/fix-validator-types.js",
     "fix:validator": "node scripts/fix-validator-types.js",
     "start": "next start -p 3002",
-    "lint": "node scripts/lint.js",
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
     "clean": "rm -rf .next out dist node_modules/.cache",
     "clean:all": "rm -rf .next out dist node_modules node_modules/.cache package-lock.json"
   },

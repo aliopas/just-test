@@ -16,48 +16,14 @@ const tsconfigPath = path.join(__dirname, '..', 'tsconfig.json');
 function updateTsconfigForBuild() {
   const tsconfig = JSON.parse(fs.readFileSync(tsconfigPath, 'utf8'));
   
-  // Update paths to point to pages-old
-  if (tsconfig.compilerOptions.paths && tsconfig.compilerOptions.paths['@/pages/*']) {
-    tsconfig.compilerOptions.paths['@/pages/*'] = ['./src/pages-old/*'];
+  // Ensure @/pages/* continues to point at our SPA pages directory
+  if (!tsconfig.compilerOptions.paths) {
+    tsconfig.compilerOptions.paths = {};
   }
-  
-  // Ensure app-old and pages-old are excluded
-  if (!tsconfig.exclude) {
-    tsconfig.exclude = [];
-  }
-  const excludeList = ['.app-backup', 'src/app-old', 'src/pages-old'];
-  excludeList.forEach(item => {
-    if (!tsconfig.exclude.includes(item)) {
-      tsconfig.exclude.push(item);
-    }
-  });
-  
-  // Update include to be more specific and exclude src/app-old
-  // Replace broad patterns with specific ones that exclude old directories
-  if (tsconfig.include && Array.isArray(tsconfig.include)) {
-    const newInclude = [];
-    tsconfig.include.forEach(pattern => {
-      if (pattern === '**/*.ts' || pattern === '**/*.tsx') {
-        // Replace broad patterns with specific ones
-        newInclude.push('app/**/*.ts', 'app/**/*.tsx');
-        newInclude.push('src/components/**/*.ts', 'src/components/**/*.tsx');
-        newInclude.push('src/hooks/**/*.ts', 'src/hooks/**/*.tsx');
-        newInclude.push('src/utils/**/*.ts', 'src/utils/**/*.tsx');
-        newInclude.push('src/styles/**/*.ts', 'src/styles/**/*.tsx');
-        newInclude.push('src/context/**/*.ts', 'src/context/**/*.tsx');
-        newInclude.push('src/types/**/*.ts', 'src/types/**/*.tsx');
-        newInclude.push('src/locales/**/*.ts', 'src/locales/**/*.tsx');
-        newInclude.push('src/pages-old/**/*.ts', 'src/pages-old/**/*.tsx');
-      } else {
-        newInclude.push(pattern);
-      }
-    });
-    // Remove duplicates
-    tsconfig.include = [...new Set(newInclude)];
-  }
-  
+  tsconfig.compilerOptions.paths['@/pages/*'] = ['./src/spa-pages/*'];
+
   fs.writeFileSync(tsconfigPath, JSON.stringify(tsconfig, null, 2) + '\n');
-  console.log('✓ Updated tsconfig.json for build (paths, exclude, and include)');
+  console.log('✓ Updated tsconfig.json for build (paths)');
 }
 
 console.log('Pre-build: Checking directories to avoid Next.js conflicts...');

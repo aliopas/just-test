@@ -175,13 +175,41 @@ export function CompanyContentSection() {
   const isArabic = language === 'ar';
 
   // Fetch all content from general content management group
-  const { data: profilesData, isLoading: isLoadingProfiles, isError: isErrorProfiles } = usePublicCompanyProfiles();
-  const { data: clientsData, isLoading: isLoadingClients, isError: isErrorClients } = usePublicCompanyClients();
-  const { data: resourcesData, isLoading: isLoadingResources, isError: isErrorResources } = usePublicCompanyResources();
-  const { data: strengthsData, isLoading: isLoadingStrengths, isError: isErrorStrengths } = usePublicCompanyStrengths();
-  const { data: partnershipData, isLoading: isLoadingPartnership, isError: isErrorPartnership } = usePublicPartnershipInfo();
-  const { data: marketValueData, isLoading: isLoadingMarketValue, isError: isErrorMarketValue } = usePublicMarketValue();
-  const { data: goalsData, isLoading: isLoadingGoals, isError: isErrorGoals } = usePublicCompanyGoals();
+  const {
+    data: profilesData,
+    isLoading: isLoadingProfiles,
+    isError: isErrorProfiles,
+  } = usePublicCompanyProfiles();
+  const {
+    data: clientsData,
+    isLoading: isLoadingClients,
+    isError: isErrorClients,
+  } = usePublicCompanyClients();
+  const {
+    data: resourcesData,
+    isLoading: isLoadingResources,
+    isError: isErrorResources,
+  } = usePublicCompanyResources();
+  const {
+    data: strengthsData,
+    isLoading: isLoadingStrengths,
+    isError: isErrorStrengths,
+  } = usePublicCompanyStrengths();
+  const {
+    data: partnershipData,
+    isLoading: isLoadingPartnership,
+    isError: isErrorPartnership,
+  } = usePublicPartnershipInfo();
+  const {
+    data: marketValueData,
+    isLoading: isLoadingMarketValue,
+    isError: isErrorMarketValue,
+  } = usePublicMarketValue();
+  const {
+    data: goalsData,
+    isLoading: isLoadingGoals,
+    isError: isErrorGoals,
+  } = usePublicCompanyGoals();
 
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
 
@@ -194,7 +222,7 @@ export function CompanyContentSection() {
     isLoadingMarketValue ||
     isLoadingGoals;
 
-  const hasError =
+  const hasAnyError =
     isErrorProfiles ||
     isErrorClients ||
     isErrorResources ||
@@ -420,37 +448,6 @@ export function CompanyContentSection() {
     return React.createElement(SectionSkeleton);
   }
 
-  if (hasError) {
-    return (
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '1400px',
-          margin: '0 auto',
-          padding: '4rem 2rem',
-          textAlign: 'center',
-          direction,
-        }}
-      >
-        <div
-          style={{
-            padding: '3rem 2rem',
-            borderRadius: '1.5rem',
-            background: palette.backgroundSurface,
-            border: `2px dashed ${palette.brandSecondaryMuted}`,
-            color: palette.textSecondary,
-          }}
-        >
-          <p style={{ margin: 0, fontSize: '1.1rem', lineHeight: 1.7 }}>
-            {isArabic
-              ? 'حدث خطأ في تحميل البيانات. يرجى المحاولة مرة أخرى لاحقاً.'
-              : 'Failed to load content. Please try again later.'}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   if (sections.length === 0) {
     return (
       <div
@@ -473,9 +470,13 @@ export function CompanyContentSection() {
           }}
         >
           <p style={{ margin: 0, fontSize: '1.1rem', lineHeight: 1.7 }}>
-            {isArabic
-              ? 'لا توجد بيانات متاحة للعرض حالياً.'
-              : 'No content available to display at the moment.'}
+            {hasAnyError
+              ? isArabic
+                ? 'حدث خطأ في تحميل البيانات. يرجى المحاولة مرة أخرى لاحقاً.'
+                : 'Failed to load content. Please try again later.'
+              : isArabic
+                ? 'لا توجد بيانات متاحة للعرض حالياً.'
+                : 'No content available to display at the moment.'}
           </p>
         </div>
       </div>
