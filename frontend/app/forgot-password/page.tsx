@@ -1,14 +1,15 @@
 'use client';
 
-import { NewPasswordPage } from '@/spa-pages/NewPasswordPage';
+import { ForgotPasswordPage } from '@/spa-pages/ForgotPasswordPage';
 import { ClientOnly } from '../components/ClientOnly';
 
 export const dynamic = 'force-dynamic';
 
-export default function ResetPassword() {
+export default function ForgotPassword() {
   return (
     <ClientOnly>
-      <NewPasswordPage />
+      <ForgotPasswordPage />
     </ClientOnly>
   );
 }
+

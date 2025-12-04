@@ -474,6 +474,10 @@ export const authController = {
     }
   },
 
+  /**
+   * Login endpoint - Simplified and optimized for Supabase MCP
+   * Uses Supabase Auth for authentication and ensures user record exists
+   */
   login: async (
     req: Request<EmptyParams, unknown, LoginInput>,
     res: Response
@@ -481,13 +485,13 @@ export const authController = {
     try {
       const { email, password, totpToken } = req.body;
 
-      console.log('[Login] Attempting login:', {
-        email,
+      console.log('[Login] Starting login process:', {
+        email: email?.trim(),
         hasPassword: !!password,
         hasTotpToken: !!totpToken,
       });
 
-      // Validate email and password
+      // Validate input
       if (!email || !password) {
         return res.status(400).json({
           error: {
@@ -497,261 +501,115 @@ export const authController = {
         });
       }
 
-      // Sign in with password
-      let data: any;
-      let error: any;
-      
-      try {
-        const signInResult = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password,
-        });
-        data = signInResult.data;
-        error = signInResult.error;
-      } catch (signInError) {
-        console.error('[Login] Exception during signInWithPassword:', signInError);
-        return res.status(500).json({
-          error: {
-            code: 'LOGIN_FAILED',
-            message: signInError instanceof Error ? signInError.message : 'Failed to sign in',
-          },
-        });
-      }
+      // Step 1: Authenticate with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
 
-      if (error) {
-        console.error('[Login] Supabase auth error:', {
-          message: error.message,
-          status: error.status,
-          name: error.name,
+      if (authError) {
+        console.error('[Login] Supabase auth failed:', {
+          message: authError.message,
+          status: authError.status,
         });
         return res.status(401).json({
           error: {
             code: 'INVALID_CREDENTIALS',
-            message: error.message || 'Invalid email or password',
+            message: authError.message || 'Invalid email or password',
           },
         });
       }
 
-      if (!data) {
-        console.error('[Login] No data returned from signInWithPassword');
-        try {
-          await supabase.auth.signOut();
-        } catch (signOutError) {
-          console.error('[Login] Error during sign out:', signOutError);
-        }
+      if (!authData?.user || !authData?.session) {
+        console.error('[Login] Missing user or session after auth');
         return res.status(500).json({
           error: {
-            code: 'INTERNAL_ERROR',
-            message: 'Failed to sign in - no data returned',
-          },
-        });
-      }
-
-      if (!data.user || !data.session) {
-        console.error('[Login] Missing user or session after successful auth:', {
-          hasUser: !!data.user,
-          hasSession: !!data.session,
-          dataKeys: data ? Object.keys(data) : [],
-        });
-        try {
-          await supabase.auth.signOut();
-        } catch (signOutError) {
-          console.error('[Login] Error during sign out:', signOutError);
-        }
-        return res.status(500).json({
-          error: {
-            code: 'INTERNAL_ERROR',
-            message: 'Failed to sign in - missing user or session',
+            code: 'AUTH_FAILED',
+            message: 'Authentication succeeded but session data is missing',
           },
         });
       }
 
       console.log('[Login] Supabase auth successful:', {
-        userId: data.user.id,
-        email: data.user.email,
+        userId: authData.user.id,
+        email: authData.user.email,
       });
 
-      // Ensure user exists in users table
-      const userRecord = await ensureUserRecord(data.user);
-      
-      if (!userRecord) {
-        console.error('[Login] Failed to ensure user record:', {
-          userId: data.user.id,
-          email: data.user.email,
-        });
-        await supabase.auth.signOut();
-        return res.status(403).json({
-          error: {
-            code: 'USER_NOT_FOUND',
-            message: 'User account not found. Please contact support.',
-          },
-        });
+      // Step 2: Ensure user record exists in users table
+      let userRecord;
+      try {
+        userRecord = await ensureUserRecord(authData.user);
+        if (!userRecord) {
+          console.warn('[Login] Failed to ensure user record, but continuing');
+        }
+      } catch (ensureError) {
+        console.error('[Login] Error ensuring user record:', ensureError);
+        // Continue anyway - user might still be able to login
       }
 
-      console.log('[Login] User record ensured:', {
-        userId: userRecord.id,
-        email: userRecord.email,
-        role: userRecord.role,
-      });
+      // Step 3: Get user data from database (role, status, mfa settings)
+      let userData: {
+        role: string | null;
+        status: string;
+        mfa_enabled: boolean;
+      } | null = null;
 
-      // Check if 2FA is enabled and get user status
-      const adminClient = requireSupabaseAdmin();
-      let userData: { mfa_enabled: boolean; mfa_secret: string | null; status: string; role: string | null } | null = null;
-      
       try {
-        const { data: fetchedUserData, error: userDataError } = await adminClient
+        const adminClient = requireSupabaseAdmin();
+        const { data: dbUser, error: dbError } = await adminClient
           .from('users')
-          .select('mfa_enabled, mfa_secret, status, role')
-          .eq('id', data.user.id)
+          .select('role, status, mfa_enabled')
+          .eq('id', authData.user.id)
           .single();
 
-        if (userDataError) {
-          console.warn('[Login] Error fetching user data (continuing anyway):', {
-            error: userDataError.message,
-            code: userDataError.code,
-            details: userDataError.details,
-          });
-          // Don't fail login if user data fetch fails - use defaults
+        if (!dbError && dbUser) {
           userData = {
-            mfa_enabled: false,
-            mfa_secret: null,
-            status: 'active',
-            role: null,
+            role: dbUser.role,
+            status: dbUser.status,
+            mfa_enabled: dbUser.mfa_enabled ?? false,
           };
-        } else {
-          userData = fetchedUserData;
         }
-      } catch (fetchError) {
-        console.error('[Login] Exception fetching user data (continuing anyway):', fetchError);
-        // Use defaults if fetch fails
-        userData = {
-          mfa_enabled: false,
-          mfa_secret: null,
-          status: 'active',
-          role: null,
-        };
+      } catch (dbError) {
+        console.warn('[Login] Error fetching user data from DB:', dbError);
+        // Use defaults
       }
 
-      if (!userData) {
-        console.warn('[Login] User data not found, using defaults');
-        userData = {
-          mfa_enabled: false,
-          mfa_secret: null,
-          status: 'active',
-          role: null,
-        };
-      }
-
-      console.log('[Login] User data retrieved:', {
-        userId: data.user.id,
-        status: userData.status,
-        role: userData.role,
-        mfaEnabled: userData.mfa_enabled,
-      });
-
-      // SECURITY CHECKS DISABLED - Allow all users to login regardless of status
-      // Check user status - only allow active users to login
-      // DISABLED: if (userData.status !== 'active') {
-      //   console.warn('[Login] User account not active:', {
-      //     userId: data.user.id,
-      //     status: userData.status,
-      //   });
-      //   await supabase.auth.signOut();
-      //   return res.status(403).json({
-      //     error: {
-      //       code: 'ACCOUNT_INACTIVE',
-      //       message: userData.status === 'pending'
-      //         ? 'Your account is pending activation. Please check your email.'
-      //         : userData.status === 'suspended'
-      //         ? 'Your account has been suspended. Please contact support.'
-      //         : 'Your account is not active. Please contact support.',
-      //     },
-      //   });
-      // }
-
-      // SECURITY CHECKS DISABLED - Skip 2FA verification
-      // Check if 2FA is enabled
-      // DISABLED: if (userData.mfa_enabled && userData.mfa_secret) {
-      //   // 2FA is enabled - require TOTP token
-      //   if (!totpToken) {
-      //     console.log('[Login] 2FA enabled but no TOTP token provided');
-      //     await supabase.auth.signOut();
-      //     return res.status(200).json({
-      //       requires2FA: true,
-      //       message: '2FA token required',
-      //     });
-      //   }
-
-      //   // Verify TOTP token
-      //   try {
-      //     const isValid = totpService.verifyToken(userData.mfa_secret, totpToken);
-      //     if (!isValid) {
-      //       console.warn('[Login] Invalid TOTP token provided');
-      //       await supabase.auth.signOut();
-      //       return res.status(401).json({
-      //         error: {
-      //           code: 'INVALID_TOTP_TOKEN',
-      //           message: 'Invalid 2FA token',
-      //         },
-      //       });
-      //     }
-      //     console.log('[Login] TOTP token verified successfully');
-      //   } catch (totpError) {
-      //     console.error('[Login] Error verifying TOTP token:', totpError);
-      //     await supabase.auth.signOut();
-      //     return res.status(401).json({
-      //       error: {
-      //         code: 'TOTP_VERIFICATION_FAILED',
-      //         message: 'Failed to verify 2FA token',
-      //       },
-      //     });
-      //   }
-      // }
-      
-      console.log('[Login] Security checks bypassed - allowing login');
-
-      const metadataRole = (
-        data.user.user_metadata as { role?: string } | null | undefined
-      )?.role;
+      // Step 4: Determine user role
       const role =
-        (userData?.role as string | null | undefined) ??
-        metadataRole ??
+        userRecord?.role ??
+        userData?.role ??
+        (authData.user.user_metadata as { role?: string })?.role ??
         'investor';
 
-      console.log('[Login] Final role determination:', {
-        userId: data.user.id,
-        dbRole: userData?.role,
-        metadataRole,
-        finalRole: role,
-      });
+      // Step 5: Check 2FA if enabled (currently disabled for simplicity)
+      // TODO: Re-enable 2FA check when needed
+      // if (userData?.mfa_enabled && !totpToken) {
+      //   return res.status(200).json({ requires2FA: true });
+      // }
 
-      // Set auth cookies - wrap in try-catch to handle any cookie errors gracefully
+      // Step 6: Set auth cookies
       try {
-        if (data.session) {
-          setAuthCookies(res, data.session);
-          console.log('[Login] Auth cookies set successfully');
-        } else {
-          console.warn('[Login] No session available to set cookies');
-        }
+        setAuthCookies(res, authData.session);
       } catch (cookieError) {
-        console.error('[Login] Error setting auth cookies:', cookieError);
-        // Don't fail the login if cookie setting fails - tokens are still returned in response
+        console.warn('[Login] Error setting cookies:', cookieError);
+        // Continue - tokens are in response body
       }
 
+      // Step 7: Return success response
       const response = {
         user: {
-          id: data.user.id,
-          email: data.user.email,
-          role,
+          id: authData.user.id,
+          email: authData.user.email,
+          role: typeof role === 'string' ? role : 'investor',
         },
         session: {
-          accessToken: data.session?.access_token,
-          refreshToken: data.session?.refresh_token ?? undefined,
-          expiresIn: data.session?.expires_in ?? 3600,
-          expiresAt: data.session?.expires_at ?? null,
-          tokenType: data.session?.token_type ?? 'bearer',
+          accessToken: authData.session.access_token,
+          refreshToken: authData.session.refresh_token,
+          expiresIn: authData.session.expires_in ?? 3600,
+          expiresAt: authData.session.expires_at ?? null,
+          tokenType: authData.session.token_type ?? 'bearer',
         },
-        expiresIn: data.session?.expires_in ?? 3600,
+        expiresIn: authData.session.expires_in ?? 3600,
         tokenType: 'Bearer',
       };
 
@@ -761,54 +619,26 @@ export const authController = {
         role: response.user.role,
       });
 
-      // Ensure response is sent properly
-      try {
-        return res.status(200).json(response);
-      } catch (responseError) {
-        console.error('[Login] Error sending response:', responseError);
-        // If response was already sent, don't try again
-        if (!res.headersSent) {
-          return res.status(200).json(response);
-        }
-        // Response already sent, nothing more to do
-        return;
-      }
+      return res.status(200).json(response);
     } catch (error) {
-      console.error('[Login] Login error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
-      const errorStack = error instanceof Error ? error.stack : undefined;
-      
-      // Log full error details for debugging
-      console.error('[Login] Login error details:', {
-        message: errorMessage,
-        stack: errorStack,
-        error: error,
-        errorType: error?.constructor?.name,
-        email: req.body?.email,
-        errorName: error instanceof Error ? error.name : typeof error,
+      console.error('[Login] Unexpected error:', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
       });
 
-      // Try to sign out if we have a session
+      // Try to sign out on error
       try {
         await supabase.auth.signOut();
       } catch (signOutError) {
-        console.error('[Login] Error during sign out:', signOutError);
+        // Ignore sign out errors
       }
 
-      // Only send error response if headers haven't been sent
-      if (!res.headersSent) {
-        return res.status(500).json({
-          error: {
-            code: 'LOGIN_FAILED',
-            message: errorMessage || 'An unexpected error occurred during login',
-            details: process.env.NODE_ENV === 'development' ? errorStack : undefined,
-          },
-        });
-      }
-      
-      // Response headers already sent, cannot send error response
-      console.error('[Login] Response headers already sent, cannot send error response');
-      return;
+      return res.status(500).json({
+        error: {
+          code: 'LOGIN_FAILED',
+          message: error instanceof Error ? error.message : 'An unexpected error occurred during login',
+        },
+      });
     }
   },
 

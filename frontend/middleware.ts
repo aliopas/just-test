@@ -10,7 +10,8 @@ const publicRoutes = [
   '/login',               // تسجيل الدخول
   '/register',            // التسجيل
   '/verify',              // التحقق من OTP
-  '/reset-password',      // إعادة تعيين كلمة المرور
+  '/forgot-password',     // طلب إعادة تعيين كلمة المرور
+  '/reset-password',      // إدخال كلمة المرور الجديدة
   '/home',                // الصفحة الرئيسية للمستثمر (عامة)
   '/news',                // الأخبار العامة
   '/middleware-redirect', // صفحة إعادة التوجيه

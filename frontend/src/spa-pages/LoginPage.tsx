@@ -1,15 +1,14 @@
 import React, { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { palette, radius, shadow, typography } from '../styles/theme';
+import { palette, radius, typography } from '../styles/theme';
 import { useLanguage } from '../context/LanguageContext';
-import { useLogin } from '../hooks/useLogin';
-import { ApiError } from '../utils/api-client';
+import { useSupabaseLogin } from '../hooks/useSupabaseLogin';
 
 export function LoginPage() {
   const { language, direction } = useLanguage();
   const isArabic = language === 'ar';
   const router = useRouter();
-  const loginMutation = useLogin();
+  const loginMutation = useSupabaseLogin();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -18,7 +17,7 @@ export function LoginPage() {
     event.preventDefault();
     setError(null);
 
-    // Validate required fields
+    // التحقق من الحقول المطلوبة
     if (!email || !password) {
       setError(
         isArabic
@@ -29,90 +28,22 @@ export function LoginPage() {
     }
 
     try {
-      console.log('[Login] Attempting login:', { email: email.trim() });
+      console.log('[Login] محاولة تسجيل الدخول:', { email: email.trim() });
 
-      const result = await loginMutation.mutateAsync({ 
+      // استخدام Supabase Login مباشرة
+      await loginMutation.mutateAsync({ 
         email: email.trim(), 
         password 
       });
 
-      // في حال تفعيل 2FA مستقبلاً يمكن توجيه المستخدم لصفحة إدخال الكود هنا
-      if ('requires2FA' in result && result.requires2FA) {
-        router.push('/verify');
-        return;
-      }
-
-      // Type guard: result is LoginSuccessResponse at this point
-      const successResult = result as Extract<typeof result, { user: { id: string } }>;
+      // سيتم التوجيه تلقائياً في onSuccess callback
+      // لا حاجة لمعالجة إضافية هنا
+    } catch (err: any) {
+      console.error('[Login] حدث خطأ:', err);
       
-      console.log('[Login] Login successful:', { 
-        userId: successResult.user?.id, 
-        role: successResult.user?.role 
-      });
-
-      // Check if there's a redirect path stored
-      const redirectPath = typeof window !== 'undefined' 
-        ? sessionStorage.getItem('redirectAfterLogin')
-        : null;
-      
-      if (redirectPath) {
-        // Clear the stored redirect path
-        sessionStorage.removeItem('redirectAfterLogin');
-        router.push(redirectPath);
-        return;
-      }
-
-      // Wait a bit for session to be fully initialized before redirecting
-      // This ensures Supabase auth state is updated
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      // التوجيه حسب الدور
-      const role = successResult.user?.role === 'admin' ? 'admin' : 'investor';
-      console.log('[Login] Redirecting to:', role === 'admin' ? '/admin/dashboard' : '/dashboard');
-      
-      if (role === 'admin') {
-        router.push('/admin/dashboard');
-      } else {
-        router.push('/dashboard');
-      }
-    } catch (err) {
-      console.error('[Login] Error occurred:', err);
-      
-      if (err instanceof ApiError) {
-        let errorMessage = err.message;
-        
-        // Provide user-friendly messages for server errors
-        if (err.status >= 500) {
-          errorMessage = isArabic
-            ? 'حدث خطأ في الخادم. يرجى المحاولة مرة أخرى لاحقاً.'
-            : 'A server error occurred. Please try again later.';
-        } else if (err.status === 401 || err.status === 403) {
-          // Check for specific error codes
-          if (err.message.includes('ACCOUNT_INACTIVE')) {
-            errorMessage = isArabic
-              ? 'حسابك غير نشط. يرجى التواصل مع الدعم.'
-              : 'Your account is not active. Please contact support.';
-          } else if (err.message.includes('USER_NOT_FOUND')) {
-            errorMessage = isArabic
-              ? 'المستخدم غير موجود. يرجى التحقق من البريد الإلكتروني.'
-              : 'User not found. Please check your email.';
-          } else {
-            errorMessage = isArabic
-              ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة.'
-              : 'Invalid email or password.';
-          }
-        } else if (err.status === 429) {
-          errorMessage = isArabic
-            ? 'تم إجراء محاولات كثيرة. يرجى الانتظار قليلاً والمحاولة مرة أخرى.'
-            : 'Too many attempts. Please wait a moment and try again.';
-        } else if (!errorMessage || errorMessage.includes('Internal Server Error')) {
-          // Fallback for generic server errors
-          errorMessage = isArabic
-            ? 'تعذّر تسجيل الدخول. تأكد من البيانات وحاول مرة أخرى.'
-            : 'Unable to sign in. Please check your credentials and try again.';
-        }
-        
-        setError(errorMessage);
+      // معالجة الأخطاء
+      if (err && typeof err === 'object' && 'message' in err) {
+        setError(err.message as string);
       } else if (err instanceof Error) {
         setError(
           isArabic
@@ -394,7 +325,11 @@ export function LoginPage() {
             }}
           >
             <a
-              href="/reset-password"
+              href="/forgot-password"
+              onClick={(e) => {
+                e.preventDefault();
+                router.push('/forgot-password');
+              }}
               style={{
                 color: palette.brandPrimary,
                 textDecoration: 'none',

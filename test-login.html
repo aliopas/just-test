@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار تسجيل الدخول</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 450px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+        }
+
+        .result pre {
+            margin-top: 10px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info {
+            background: #e7f3ff;
+            border: 2px solid #2196F3;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 25px;
+            color: #0d47a1;
+            font-size: 14px;
+        }
+
+        .info strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 اختبار تسجيل الدخول</h1>
+        
+        <div class="info">
+            <strong>معلومات الاتصال:</strong>
+            <div>URL: <span id="apiUrl">https://investor-bacura.netlify.app/api/v1/auth/login</span></div>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">البريد الإلكتروني:</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    value="bacuratec2030@gmail.com" 
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="password">كلمة المرور:</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    value="BACURA2030@@440" 
+                    required
+                >
+            </div>
+
+            <button type="submit" id="submitBtn">تسجيل الدخول</button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px;">جاري تسجيل الدخول...</p>
+        </div>
+
+        <div class="result" id="result">
+            <strong id="resultTitle"></strong>
+            <pre id="resultContent"></pre>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('loginForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+        const resultTitle = document.getElementById('resultTitle');
+        const resultContent = document.getElementById('resultContent');
+        const apiUrlInput = document.getElementById('apiUrl');
+
+        // يمكن تغيير URL من هنا
+        const BACKEND_URL = 'https://investor-bacura.netlify.app';
+        const API_URL = `${BACKEND_URL}/api/v1/auth/login`;
+
+        apiUrlInput.textContent = API_URL;
+
+        // دالة لمعالجة الاستجابة
+        function handleResponse(response, data) {
+            // إخفاء التحميل
+            loading.classList.remove('show');
+            submitBtn.disabled = false;
+
+            // إظهار النتيجة
+            result.style.display = 'block';
+            
+            if (response.ok) {
+                result.className = 'result success';
+                resultTitle.textContent = '✅ نجح تسجيل الدخول!';
+                
+                // عرض معلومات المستخدم بشكل منظم
+                const userInfo = {
+                    'معرف المستخدم': data.user?.id || 'غير متوفر',
+                    'البريد الإلكتروني': data.user?.email || 'غير متوفر',
+                    'الدور': data.user?.role || 'غير متوفر',
+                    'رمز الوصول': data.session?.accessToken ? 'تم الحصول عليه ✓' : 'غير متوفر',
+                    'رمز التحديث': data.session?.refreshToken ? 'تم الحصول عليه ✓' : 'غير متوفر',
+                    'انتهاء الصلاحية': data.session?.expiresIn ? `${data.session.expiresIn} ثانية` : 'غير متوفر',
+                };
+                
+                let formattedInfo = 'معلومات تسجيل الدخول:\n\n';
+                for (const [key, value] of Object.entries(userInfo)) {
+                    formattedInfo += `${key}: ${value}\n`;
+                }
+                formattedInfo += '\n\nالاستجابة الكاملة:\n';
+                formattedInfo += JSON.stringify(data, null, 2);
+                
+                resultContent.textContent = formattedInfo;
+                
+                // حفظ التوكنات في localStorage للاستخدام لاحقاً
+                if (data.session?.accessToken) {
+                    localStorage.setItem('accessToken', data.session.accessToken);
+                    console.log('تم حفظ access token في localStorage');
+                }
+                if (data.session?.refreshToken) {
+                    localStorage.setItem('refreshToken', data.session.refreshToken);
+                    console.log('تم حفظ refresh token في localStorage');
+                }
+            } else {
+                result.className = 'result error';
+                resultTitle.textContent = `❌ فشل تسجيل الدخول (${response.status})`;
+                
+                // عرض رسالة خطأ واضحة
+                let errorMessage = '';
+                if (data.error) {
+                    errorMessage = `رمز الخطأ: ${data.error.code || 'غير معروف'}\n`;
+                    errorMessage += `الرسالة: ${data.error.message || 'خطأ غير معروف'}\n\n`;
+                }
+                errorMessage += 'الاستجابة الكاملة:\n';
+                errorMessage += JSON.stringify(data, null, 2);
+                
+                resultContent.textContent = errorMessage;
+            }
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // إخفاء النتيجة السابقة
+            result.style.display = 'none';
+            result.className = 'result';
+            
+            // إظهار التحميل
+            loading.classList.add('show');
+            submitBtn.disabled = true;
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            // التحقق من البيانات
+            if (!email || !password) {
+                loading.classList.remove('show');
+                submitBtn.disabled = false;
+                result.style.display = 'block';
+                result.className = 'result error';
+                resultTitle.textContent = '❌ خطأ في البيانات';
+                resultContent.textContent = 'الرجاء إدخال البريد الإلكتروني وكلمة المرور';
+                return;
+            }
+
+            try {
+                console.log('جاري إرسال طلب تسجيل الدخول...', { email, url: API_URL });
+                
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    credentials: 'include', // مهم للكوكيز
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    })
+                });
+
+                console.log('تم استلام الاستجابة:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: Object.fromEntries(response.headers.entries())
+                });
+
+                // محاولة قراءة JSON
+                let data;
+                try {
+                    const text = await response.text();
+                    console.log('نص الاستجابة:', text);
+                    if (text) {
+                        data = JSON.parse(text);
+                    } else {
+                        data = { error: { message: 'استجابة فارغة من السيرفر' } };
+                    }
+                } catch (parseError) {
+                    console.error('خطأ في تحليل JSON:', parseError);
+                    data = { error: { message: 'فشل في تحليل استجابة السيرفر' } };
+                }
+                
+                handleResponse(response, data);
+            } catch (error) {
+                console.error('خطأ في الاتصال:', error);
+                
+                // إخفاء التحميل
+                loading.classList.remove('show');
+                submitBtn.disabled = false;
+
+                // إظهار الخطأ
+                result.style.display = 'block';
+                result.className = 'result error';
+                resultTitle.textContent = '❌ خطأ في الاتصال';
+                
+                let errorDetails = `خطأ: ${error.message}\n\n`;
+                
+                // إضافة تفاصيل إضافية حسب نوع الخطأ
+                if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    errorDetails += 'المشكلة: فشل الاتصال بالسيرفر\n\n';
+                    errorDetails += 'الأسباب المحتملة:\n';
+                    errorDetails += '1. السيرفر غير متاح أو متوقف\n';
+                    errorDetails += '2. مشكلة في الشبكة أو الإنترنت\n';
+                    errorDetails += '3. مشكلة CORS (Cross-Origin Resource Sharing)\n';
+                    errorDetails += '4. مشكلة في SSL/HTTPS\n\n';
+                } else if (error.message.includes('CORS')) {
+                    errorDetails += 'المشكلة: مشكلة CORS\n\n';
+                    errorDetails += 'الحل: تأكد من أن السيرفر يسمح بالطلبات من هذا المصدر\n';
+                }
+                
+                errorDetails += `URL المستخدم: ${API_URL}\n`;
+                errorDetails += `الوقت: ${new Date().toLocaleString('ar-SA')}`;
+                
+                resultContent.textContent = errorDetails;
+            }
+        });
+
+        // اختبار تلقائي عند تحميل الصفحة (يمكن تفعيله)
+        // setTimeout(() => {
+        //     console.log('اختبار تلقائي لتسجيل الدخول...');
+        //     form.dispatchEvent(new Event('submit'));
+        // }, 1000);
+    </script>
+</body>
+</html>
+

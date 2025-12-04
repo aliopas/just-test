@@ -19,6 +19,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:story-3.4": "jest backend/tests/request.controller.test.ts --testNamePattern=presignAttachment",
+    "reset-password": "ts-node backend/scripts/reset-user-password.ts",
     "clean": "npm run clean:backend && npm run clean:frontend && npm run clean:cache",
     "clean:backend": "node -e \"require('fs').rmSync('backend/dist', {recursive: true, force: true}); require('fs').rmSync('backend/.tsbuildinfo', {force: true})\"",
     "clean:frontend": "npm run clean --workspace frontend",

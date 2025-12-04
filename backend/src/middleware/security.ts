@@ -7,15 +7,18 @@ import rateLimit from 'express-rate-limit';
 import { Express, RequestHandler } from 'express';
 
 // Configure CORS - adjust origins as needed
-const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:3000')
-  .split(',')
-  .map(o => o.trim());
+const corsOriginsEnv = process.env.CORS_ORIGINS || 'http://localhost:3000';
+const allowedOrigins = corsOriginsEnv === '*' 
+  ? true // Allow all origins (for development/testing)
+  : corsOriginsEnv.split(',').map(o => o.trim());
 
 export const corsOptions: CorsOptions = {
   origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Set-Cookie'],
+  optionsSuccessStatus: 200, // Some legacy browsers (IE11) choke on 204
 };
 
 // Global rate limiter (e.g., 200 req/15min per IP)

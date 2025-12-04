@@ -141,7 +141,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    if (supabaseAuthenticated && supabaseUser) {
+    if (supabaseAuthenticated && supabaseUser && session) {
       // User is authenticated via Supabase
       if (userRecord) {
         // We have the full user record - use it
@@ -165,10 +165,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUserState(stored);
         } else {
           // Create minimal user from Supabase data
+          // Try to get role from user_metadata or app_metadata
+          const metadataRole = 
+            (supabaseUser.user_metadata as { role?: string })?.role ||
+            (supabaseUser.app_metadata as { role?: string })?.role;
+          
           const authUser: AuthUser = {
             id: supabaseUser.id,
             email: supabaseUser.email || '',
-            role: 'investor', // Default role until userRecord loads
+            role: metadataRole === 'admin' ? 'admin' : 'investor',
           };
           setUserState(authUser);
           if (typeof window !== 'undefined') {
@@ -176,14 +181,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
       }
-    } else if (!supabaseAuthenticated || !supabaseUser) {
+    } else if (!supabaseAuthenticated || !supabaseUser || !session) {
       // User is not authenticated
       setUserState(null);
       if (typeof window !== 'undefined') {
         window.localStorage.removeItem(STORAGE_KEY);
       }
     }
-  }, [supabaseUser, supabaseAuthenticated, supabaseLoading, userRecord, userRecordLoading]);
+  }, [supabaseUser, supabaseAuthenticated, supabaseLoading, userRecord, userRecordLoading, session]);
 
   const setUser = useCallback((next: AuthUser | null) => {
     if (typeof window !== 'undefined') {

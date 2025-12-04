@@ -145,17 +145,26 @@ async function parseResponsePayload(response: Response): Promise<unknown> {
 
   const contentType = response.headers.get('content-type') ?? '';
 
-  if (contentType.includes('application/json')) {
-    try {
-      return await response.json();
-    } catch {
+  try {
+    const text = await response.text();
+    
+    if (!text || text.trim() === '') {
       return null;
     }
-  }
 
-  try {
-    return await response.text();
-  } catch {
+    if (contentType.includes('application/json')) {
+      try {
+        return JSON.parse(text);
+      } catch (parseError) {
+        console.warn('[apiClient] Failed to parse JSON response:', parseError);
+        // Return the raw text if JSON parsing fails
+        return text;
+      }
+    }
+
+    return text;
+  } catch (textError) {
+    console.warn('[apiClient] Failed to read response text:', textError);
     return null;
   }
 }
@@ -280,18 +289,31 @@ export async function apiClient<TResponse>(
       message = response.statusText || 'Request failed';
     }
 
-    console.error('[apiClient] Request failed:', {
-      status: response.status,
-      statusText: response.statusText,
-      message,
-      url,
-      payload,
-    });
+    // Enhanced error logging with better error handling
+    const errorDetails: Record<string, unknown> = {
+      status: response.status ?? 'unknown',
+      statusText: response.statusText ?? 'unknown',
+      message: message ?? 'Unknown error',
+      url: url ?? 'unknown',
+    };
+
+    // Safely add payload if it exists and is serializable
+    try {
+      if (payload !== null && payload !== undefined) {
+        errorDetails.payload = payload;
+      }
+    } catch (e) {
+      errorDetails.payloadError = 'Failed to serialize payload';
+    }
+
+    console.error('[apiClient] Request failed:', errorDetails);
 
     // Include URL and status in error message for debugging
-    const errorMessage = `${message} (${response.status} ${response.statusText}) - ${url}`;
+    const statusCode = response.status ?? 0;
+    const statusText = response.statusText ?? 'Unknown';
+    const errorMessage = `${message} (${statusCode} ${statusText}) - ${url}`;
     
-    throw new ApiError(errorMessage, response.status, payload);
+    throw new ApiError(errorMessage, statusCode, payload);
   }
 
   console.log('[apiClient] Request successful');
