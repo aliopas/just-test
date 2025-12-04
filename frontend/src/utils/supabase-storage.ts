@@ -58,6 +58,18 @@ function buildDirectPublicUrl(
 ): string | null {
   const baseUrl = getStorageBaseUrl();
   if (!baseUrl) {
+    // Fallback: try to construct URL from SUPABASE config
+    try {
+      // Import SUPABASE config dynamically to avoid circular dependency
+      const { SUPABASE } = require('../config/supabase.config');
+      if (SUPABASE?.url) {
+        const normalizedBucket = bucket.replace(/^\/+|\/+$/g, '');
+        const normalizedPath = objectPath.replace(/^\/+/, '');
+        return `${SUPABASE.url.replace(/\/+$/, '')}/storage/v1/object/public/${normalizedBucket}/${normalizedPath}`;
+      }
+    } catch {
+      // If import fails, return null
+    }
     return null;
   }
 
@@ -70,11 +82,28 @@ function buildDirectPublicUrl(
  * Get public URL for a file in Supabase Storage
  * @param bucket - The storage bucket name
  * @param path - The file path/key in the bucket
+ * @param options - Optional configuration
  * @returns The public URL or null if client is not available
  */
 export function getStoragePublicUrl(
   bucket: string,
-  path: string
+  path: string,
+  options?: {
+    /**
+     * Force use of direct URL construction instead of Supabase client
+     * Useful when client is not initialized or for SSR
+     */
+    useDirectUrl?: boolean;
+    /**
+     * Transform options for image optimization
+     */
+    transform?: {
+      width?: number;
+      height?: number;
+      quality?: number;
+      format?: 'webp' | 'jpeg' | 'png';
+    };
+  }
 ): string | null {
   if (!path) {
     return null;
@@ -89,26 +118,75 @@ export function getStoragePublicUrl(
     path
   );
 
-  const directUrl = buildDirectPublicUrl(resolvedBucket, objectPath);
-  if (directUrl) {
-    return directUrl;
-  }
-
+  // Try direct URL first if requested or if client is not available
   const client = getSupabaseBrowserClient();
-  if (!client) {
-    return null;
+  const useDirect = options?.useDirectUrl || !client;
+
+  if (useDirect) {
+    const directUrl = buildDirectPublicUrl(resolvedBucket, objectPath);
+    if (directUrl) {
+      // Add transform parameters if provided
+      if (options?.transform) {
+        const params = new URLSearchParams();
+        if (options.transform.width) params.append('width', options.transform.width.toString());
+        if (options.transform.height) params.append('height', options.transform.height.toString());
+        if (options.transform.quality) params.append('quality', options.transform.quality.toString());
+        if (options.transform.format) params.append('format', options.transform.format);
+        if (params.toString()) {
+          return `${directUrl}?${params.toString()}`;
+        }
+      }
+      return directUrl;
+    }
   }
 
-  try {
-    const { data } = client.storage
-      .from(resolvedBucket)
-      .getPublicUrl(objectPath);
+  // Use Supabase client if available
+  if (client) {
+    try {
+      // Build transform options for Supabase
+      const transformOptions: {
+        transform?: {
+          width?: number;
+          height?: number;
+          quality?: number;
+        };
+      } = {};
 
-    return data.publicUrl;
-  } catch (error) {
-    console.error('Failed to get storage public URL:', error);
-    return null;
+      if (options?.transform) {
+        transformOptions.transform = {};
+        if (options.transform.width) transformOptions.transform.width = options.transform.width;
+        if (options.transform.height) transformOptions.transform.height = options.transform.height;
+        if (options.transform.quality) transformOptions.transform.quality = options.transform.quality;
+      }
+
+      const { data } = client.storage
+        .from(resolvedBucket)
+        .getPublicUrl(objectPath, transformOptions.transform ? transformOptions : undefined);
+
+      let url = data.publicUrl;
+
+      // Add format as query param if specified (Supabase doesn't support it in transform)
+      if (options?.transform?.format && url) {
+        try {
+          const urlObj = new URL(url);
+          urlObj.searchParams.set('format', options.transform.format);
+          url = urlObj.toString();
+        } catch {
+          // If URL parsing fails, return original URL
+        }
+      }
+
+      return url;
+    } catch (error) {
+      console.error('[Supabase Storage] Failed to get public URL:', error);
+      // Fallback to direct URL
+      const fallbackUrl = buildDirectPublicUrl(resolvedBucket, objectPath);
+      return fallbackUrl;
+    }
   }
+
+  // Final fallback
+  return buildDirectPublicUrl(resolvedBucket, objectPath);
 }
 
 /**

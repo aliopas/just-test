@@ -78,13 +78,19 @@ export const authenticate = async (
   }
 };
 
-type UserRow = {
+export type UserRow = {
   id: string;
   email: string;
   role: string | null;
 };
 
-async function ensureUserRecord(user: SupabaseUser): Promise<UserRow | null> {
+/**
+ * Ensure user exists in users table
+ * Creates user record if it doesn't exist
+ * @param user - Supabase user object
+ * @returns UserRow or null if creation failed
+ */
+export async function ensureUserRecord(user: SupabaseUser): Promise<UserRow | null> {
   const adminClient = requireSupabaseAdmin();
 
   const { data: existingUser, error: existingError } = await adminClient

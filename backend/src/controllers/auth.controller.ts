@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { AuthenticatedRequest } from '../middleware/auth.middleware';
+import { AuthenticatedRequest, ensureUserRecord } from '../middleware/auth.middleware';
 import { supabase, requireSupabaseAdmin } from '../lib/supabase';
 import {
   RegisterInput,
@@ -475,17 +475,54 @@ export const authController = {
         });
       }
 
-      // Check if 2FA is enabled
+      // Ensure user exists in users table
+      const userRecord = await ensureUserRecord(data.user);
+      
+      if (!userRecord) {
+        await supabase.auth.signOut();
+        return res.status(403).json({
+          error: {
+            code: 'USER_NOT_FOUND',
+            message: 'User account not found. Please contact support.',
+          },
+        });
+      }
+
+      // Check if 2FA is enabled and get user status
       const adminClient = requireSupabaseAdmin();
-      const { data: userData } = await adminClient
+      const { data: userData, error: userDataError } = await adminClient
         .from('users')
         .select('mfa_enabled, mfa_secret, status, role')
         .eq('id', data.user.id)
         .single();
 
-      // Accounts are considered active immediately after signup.
+      if (userDataError || !userData) {
+        await supabase.auth.signOut();
+        return res.status(403).json({
+          error: {
+            code: 'USER_NOT_FOUND',
+            message: 'User account not found in database',
+          },
+        });
+      }
 
-      if (userData?.mfa_enabled && userData?.mfa_secret) {
+      // Check user status - only allow active users to login
+      if (userData.status !== 'active') {
+        await supabase.auth.signOut();
+        return res.status(403).json({
+          error: {
+            code: 'ACCOUNT_INACTIVE',
+            message: userData.status === 'pending'
+              ? 'Your account is pending activation. Please check your email.'
+              : userData.status === 'suspended'
+              ? 'Your account has been suspended. Please contact support.'
+              : 'Your account is not active. Please contact support.',
+          },
+        });
+      }
+
+      // Check if 2FA is enabled
+      if (userData.mfa_enabled && userData.mfa_secret) {
         // 2FA is enabled - require TOTP token
         if (!totpToken) {
           await supabase.auth.signOut();

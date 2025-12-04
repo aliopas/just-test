@@ -83,7 +83,7 @@ export default function TestSupabaseDirectPage() {
               >
                 {profile.icon_key && (
                   <img
-                    src={getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, profile.icon_key)}
+                    src={getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, profile.icon_key) ?? undefined}
                     alt={isArabic ? profile.title_ar : profile.title_en}
                     style={{ width: '64px', height: '64px', marginBottom: '1rem', objectFit: 'contain' }}
                   />
@@ -160,7 +160,7 @@ export default function TestSupabaseDirectPage() {
               >
                 {project.cover_key && (
                   <img
-                    src={getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, project.cover_key)}
+                    src={getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, project.cover_key) ?? undefined}
                     alt={isArabic ? project.name_ar || project.name : project.name}
                     style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '4px', marginBottom: '1rem' }}
                   />

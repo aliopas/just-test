@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { apiClient, type ApiClientOptions } from '../utils/api-client';
-import { getSupabaseBrowserClient } from '../utils/supabase-client';
+import { getSupabaseBrowserClient, resetSupabaseClient } from '../utils/supabase-client';
 import { storeSessionTokens } from '../utils/session-storage';
 import { useAuth } from '../context/AuthContext';
 
@@ -80,16 +80,57 @@ export function useLogin() {
         refreshToken: response.session?.refreshToken,
       });
 
+      // Initialize Supabase session after login
+      // Reset client to ensure fresh state
+      resetSupabaseClient();
       const supabase = getSupabaseBrowserClient();
       if (supabase && response.session?.accessToken && response.session?.refreshToken) {
         try {
-          await supabase.auth.setSession({
+          // Set session with tokens from backend
+          const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
             access_token: response.session.accessToken,
             refresh_token: response.session.refreshToken,
           });
+
+          if (sessionError) {
+            console.error('[Supabase Auth] Failed to set session:', {
+              error: sessionError,
+              message: sessionError.message,
+              status: sessionError.status,
+            });
+            
+            // Try to verify the session was set correctly
+            const { data: currentSession } = await supabase.auth.getSession();
+            if (!currentSession?.session) {
+              console.warn('[Supabase Auth] Session not set, but tokens are stored in localStorage');
+            }
+          } else {
+            console.log('[Supabase Auth] Session initialized successfully', {
+              userId: sessionData?.user?.id,
+              email: sessionData?.user?.email,
+            });
+            
+            // Verify session is accessible
+            const { data: verifySession } = await supabase.auth.getSession();
+            if (verifySession?.session) {
+              console.log('[Supabase Auth] Session verified successfully');
+            } else {
+              console.warn('[Supabase Auth] Session set but not accessible');
+            }
+          }
         } catch (error) {
-          console.warn('Failed to hydrate Supabase client session', error);
+          console.error('[Supabase Auth] Failed to hydrate Supabase client session:', error);
+          // Session tokens are still stored, so the app can continue working
+          // The Supabase client will use them on next request
         }
+      } else {
+        if (!supabase) {
+          console.warn('[Supabase Auth] Supabase client not available');
+        }
+        if (!response.session?.accessToken || !response.session?.refreshToken) {
+          console.warn('[Supabase Auth] Session tokens missing from response');
+        }
+        console.warn('[Supabase Auth] Session tokens stored but not synced with Supabase client');
       }
     },
   });

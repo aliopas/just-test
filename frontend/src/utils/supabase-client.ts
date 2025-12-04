@@ -9,9 +9,24 @@ import { SUPABASE, validateSupabaseConfig } from '../config/supabase.config';
 let client: SupabaseClient | null = null;
 let hasLoggedWarning = false;
 
+/**
+ * Reset the Supabase client (useful for testing or re-initialization)
+ */
+export function resetSupabaseClient(): void {
+  client = null;
+}
+
+/**
+ * Get or create Supabase browser client
+ * Ensures session is properly initialized and refreshed
+ */
 export function getSupabaseBrowserClient(): SupabaseClient | null {
   // إرجاع العميل الموجود إن كان موجوداً
   if (client) {
+    // Verify session is still valid
+    client.auth.getSession().catch((error) => {
+      console.warn('[Supabase] Session check failed:', error);
+    });
     return client;
   }
 
@@ -41,12 +56,26 @@ export function getSupabaseBrowserClient(): SupabaseClient | null {
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
+        storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+        flowType: 'pkce',
       },
       realtime: {
         params: {
           eventsPerSecond: 10,
         },
       },
+      global: {
+        headers: {
+          'X-Client-Info': 'invastors-frontend',
+        },
+      },
+    });
+
+    // Set up session refresh listener
+    client.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+        // Session updated, client is still valid
+      }
     });
 
     return client;
