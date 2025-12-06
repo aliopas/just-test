@@ -84,7 +84,8 @@ async function fetchInvestorRequestsDirect(filters: RequestListFilters) {
   const limit = 10;
   const offset = (page - 1) * limit;
 
-  // Build query using v_request_workflow view
+  // Try to use v_request_workflow view first
+  // If it fails (404), fallback to direct requests table query
   let query = supabase
     .from('v_request_workflow')
     .select(
@@ -119,27 +120,83 @@ async function fetchInvestorRequestsDirect(filters: RequestListFilters) {
   }
 
   // Apply ordering and pagination
-  const { data, error, count } = await query
-    .order('created_at', { ascending: false })
-    .range(offset, offset + limit - 1);
+  let data, error, count;
+  
+  try {
+    const result = await query
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+    
+    data = result.data;
+    error = result.error;
+    count = result.count;
+  } catch (viewError: any) {
+    // If view is not accessible (404), fallback to requests table
+    if (viewError?.code === 'PGRST116' || viewError?.message?.includes('404') || viewError?.message?.includes('does not exist')) {
+      console.warn('v_request_workflow view not accessible, falling back to requests table');
+      
+      // Fallback: query requests table directly
+      let fallbackQuery = supabase
+        .from('requests')
+        .select(
+          `
+          id,
+          request_number,
+          type,
+          amount,
+          currency,
+          target_price,
+          expiry_at,
+          status,
+          created_at,
+          updated_at
+        `,
+          { count: 'exact' }
+        )
+        .eq('user_id', userId);
+
+      // Apply filters
+      if (filters.status && filters.status !== 'all') {
+        fallbackQuery = fallbackQuery.eq('status', filters.status);
+      }
+
+      if (filters.type && filters.type !== 'all') {
+        if (Array.isArray(filters.type)) {
+          fallbackQuery = fallbackQuery.in('type', filters.type);
+        } else {
+          fallbackQuery = fallbackQuery.eq('type', filters.type);
+        }
+      }
+
+      const fallbackResult = await fallbackQuery
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
+
+      data = fallbackResult.data;
+      error = fallbackResult.error;
+      count = fallbackResult.count;
+    } else {
+      throw viewError;
+    }
+  }
 
   if (error) {
     throw new Error(`خطأ في جلب الطلبات: ${error.message}`);
   }
 
-  const rows = (data as RequestWorkflowRow[] | null) ?? [];
+  const rows = (data as any[] | null) ?? [];
 
   // Transform to InvestorRequest format
   const requests: InvestorRequest[] = rows.map(row => ({
     id: row.id,
     requestNumber: row.request_number,
     type: toRequestType(row.type),
-    amount: typeof row.amount === 'string' ? Number(row.amount) : row.amount,
+    amount: typeof row.amount === 'string' ? Number(row.amount) : row.amount ?? null,
     currency: toRequestCurrency(row.currency),
     targetPrice:
       typeof row.target_price === 'string'
         ? Number.parseFloat(row.target_price)
-        : row.target_price,
+        : row.target_price ?? null,
     expiryAt: row.expiry_at,
     status: toRequestStatus(row.status),
     createdAt: row.created_at,
@@ -153,7 +210,7 @@ async function fetchInvestorRequestsDirect(filters: RequestListFilters) {
           note: row.last_event.note ?? null,
           createdAt: row.last_event.created_at ?? null,
         }
-      : null,
+      : null, // last_event may not be available if using fallback
   }));
 
   const total = count ?? 0;
