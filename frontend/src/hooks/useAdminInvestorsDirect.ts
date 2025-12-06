@@ -53,50 +53,123 @@ async function fetchAdminInvestorsDirect(
   const limit = filters.limit ?? 25;
   const offset = (page - 1) * limit;
 
-  // Step 1: Get all user IDs that have investor_profiles
-  const { data: investorUserIds, error: investorIdsError } = await supabase
+  // Step 1: Get all investor_profiles to create a map for later lookup
+  const { data: investorProfiles, error: investorProfilesError } = await supabase
     .from('investor_profiles')
     .select('user_id, full_name, preferred_name, kyc_status');
 
-  if (investorIdsError) {
-    throw new Error(`خطأ في جلب معرفات المستثمرين: ${investorIdsError.message}`);
-  }
-
-  const investorIds = (investorUserIds ?? []).map(p => p.user_id);
+  // If we can't fetch profiles, continue with empty map (users without profiles will have null values)
   const profilesMap = new Map(
-    (investorUserIds ?? []).map(p => [p.user_id, p])
+    (investorProfiles ?? []).map(p => [p.user_id, p])
   );
 
-  // If no investors found, return empty result
-  if (investorIds.length === 0) {
-    return {
-      investors: [],
-      meta: {
-        page,
-        limit,
-        total: 0,
-        pageCount: 0,
-        hasNext: false,
-        hasPrev: false,
-      },
-    };
+  if (investorProfilesError) {
+    console.warn('[useAdminInvestorsDirect] Could not fetch investor profiles:', investorProfilesError);
+    // Continue anyway - we'll just show users without profile data
   }
 
-  // Step 2: Query users table for investors
+  // Debug logging
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[useAdminInvestorsDirect] Found investor profiles:', {
+      count: profilesMap.size,
+    });
+  }
+
+  // Step 2: If search includes profile names or KYC filter, find matching user IDs first
+  let searchUserIds: string[] | null = null;
+  let kycMatchingUserIds: string[] | null = null;
+
+  if (filters.search && filters.search.trim().length > 0) {
+    const searchTerm = filters.search.trim().toLowerCase();
+    // Find profiles matching the search term
+    const matchingProfileUserIds: string[] = [];
+    profilesMap.forEach((profile, userId) => {
+      if (
+        (profile.full_name && profile.full_name.toLowerCase().includes(searchTerm)) ||
+        (profile.preferred_name && profile.preferred_name.toLowerCase().includes(searchTerm))
+      ) {
+        matchingProfileUserIds.push(userId);
+      }
+    });
+    
+    if (matchingProfileUserIds.length > 0) {
+      searchUserIds = matchingProfileUserIds;
+    }
+  }
+
+  // Get user IDs with matching KYC status if filter is applied
+  if (filters.kycStatus && filters.kycStatus !== 'all') {
+    kycMatchingUserIds = [];
+    profilesMap.forEach((profile, userId) => {
+      if (profile.kyc_status === filters.kycStatus) {
+        kycMatchingUserIds!.push(userId);
+      }
+    });
+  }
+
+  // Step 3: Query ALL users from users table
   let query = supabase
     .from('users')
-    .select('id, email, phone, phone_cc, status, created_at, updated_at', { count: 'exact' })
-    .in('id', investorIds);
+    .select('id, email, phone, phone_cc, status, created_at, updated_at', { count: 'exact' });
 
   // Apply status filter
   if (filters.status && filters.status !== 'all') {
     query = query.eq('status', filters.status);
   }
 
-  // Apply search filter
+  // Combine search and KYC filters
+  let finalUserIds: string[] | null = null;
+  
+  if (searchUserIds && kycMatchingUserIds) {
+    // Intersect both filters
+    finalUserIds = searchUserIds.filter(id => kycMatchingUserIds!.includes(id));
+    if (finalUserIds.length === 0) {
+      // No intersection, return empty result
+      return {
+        investors: [],
+        meta: {
+          page,
+          limit,
+          total: 0,
+          pageCount: 0,
+          hasNext: false,
+          hasPrev: false,
+        },
+      };
+    }
+  } else if (searchUserIds) {
+    finalUserIds = searchUserIds;
+  } else if (kycMatchingUserIds) {
+    finalUserIds = kycMatchingUserIds;
+    if (finalUserIds.length === 0) {
+      // No users match KYC filter, return empty result
+      return {
+        investors: [],
+        meta: {
+          page,
+          limit,
+          total: 0,
+          pageCount: 0,
+          hasNext: false,
+          hasPrev: false,
+        },
+      };
+    }
+  }
+
+  // Apply user ID filter if we have one
+  if (finalUserIds && finalUserIds.length > 0) {
+    query = query.in('id', finalUserIds);
+  }
+
+  // Apply search filter on email/phone (in addition to profile name search)
   if (filters.search && filters.search.trim().length > 0) {
     const pattern = `%${filters.search.trim()}%`;
-    query = query.or(`email.ilike.${pattern},phone.ilike.${pattern}`);
+    // If we already have user IDs from profile search, we need to combine
+    // For now, we'll search in email/phone and filter results later
+    if (!finalUserIds) {
+      query = query.or(`email.ilike.${pattern},phone.ilike.${pattern}`);
+    }
   }
 
   // Apply sorting
@@ -109,22 +182,29 @@ async function fetchAdminInvestorsDirect(
     .range(offset, offset + limit - 1);
 
   if (usersError) {
-    throw new Error(`خطأ في جلب المستثمرين: ${usersError.message}`);
+    console.error('[useAdminInvestorsDirect] Error fetching users:', usersError);
+    throw new Error(`خطأ في جلب المستخدمين: ${usersError.message}`);
   }
 
-  const userRows = (users as any[] | null) ?? [];
+  let userRows = (users as any[] | null) ?? [];
 
-  // Step 3: Apply KYC status filter if needed
-  let filteredUsers = userRows;
-  if (filters.kycStatus && filters.kycStatus !== 'all') {
-    filteredUsers = userRows.filter((user) => {
+  // Step 4: Apply additional client-side filtering for search (profile names)
+  // This handles cases where search matches profile names but we couldn't filter at query level
+  if (filters.search && filters.search.trim().length > 0 && !searchUserIds) {
+    const searchTerm = filters.search.trim().toLowerCase();
+    userRows = userRows.filter((user) => {
       const profile = profilesMap.get(user.id);
-      return profile?.kyc_status === filters.kycStatus;
+      const matchesEmail = user.email?.toLowerCase().includes(searchTerm);
+      const matchesPhone = user.phone?.toLowerCase().includes(searchTerm);
+      const matchesFullName = profile?.full_name?.toLowerCase().includes(searchTerm);
+      const matchesPreferredName = profile?.preferred_name?.toLowerCase().includes(searchTerm);
+      
+      return matchesEmail || matchesPhone || matchesFullName || matchesPreferredName;
     });
   }
 
-  // Step 4: Transform to InvestorListItem format
-  const investors: InvestorListItem[] = filteredUsers.map((user) => {
+  // Step 5: Transform to InvestorListItem format
+  const investors: InvestorListItem[] = userRows.map((user) => {
     const profile = profilesMap.get(user.id);
     
     // Combine phone_cc with phone if both exist
@@ -146,11 +226,12 @@ async function fetchAdminInvestorsDirect(
     
     // Debug logging
     if (process.env.NODE_ENV === 'development') {
-      console.log('[useAdminInvestorsDirect] Investor data:', {
+      console.log('[useAdminInvestorsDirect] User data:', {
         userId: user.id,
         email: user.email,
         phone: phone,
         fullName: profile?.full_name,
+        hasProfile: !!profile,
         finalInvestor: investor,
       });
     }
@@ -158,6 +239,8 @@ async function fetchAdminInvestorsDirect(
     return investor;
   });
 
+  // Calculate total count
+  // The count from query should be accurate since we apply filters at query level
   const total = count ?? 0;
   const pageCount = total === 0 ? 0 : Math.ceil(total / limit);
 
