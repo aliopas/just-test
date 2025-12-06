@@ -91,24 +91,41 @@ async function approveSignupRequestDirect(
   }
 
   // استدعاء Edge Function للقبول (لأنه يحتاج إلى إنشاء مستخدم في Auth)
-  const { data, error } = await supabase.functions.invoke('approve-signup-request', {
-    body: {
-      requestId: payload.id,
-      note: payload.note,
-      sendInvite: payload.sendInvite ?? true,
-      locale: payload.locale ?? 'ar',
-    },
-  });
+  try {
+    const { data, error } = await supabase.functions.invoke('approve-signup-request', {
+      body: {
+        requestId: payload.id,
+        note: payload.note,
+        sendInvite: payload.sendInvite ?? true,
+        locale: payload.locale ?? 'ar',
+      },
+    });
 
-  if (error) {
-    throw new Error(`فشل في قبول الطلب: ${error.message}`);
+    if (error) {
+      console.error('Edge Function error:', error);
+      throw new Error(`فشل في قبول الطلب: ${error.message || 'خطأ غير معروف'}`);
+    }
+
+    if (!data) {
+      throw new Error('فشل في قبول الطلب: لا توجد بيانات مستلمة من الـ Edge Function');
+    }
+
+    if (data.error) {
+      throw new Error(`فشل في قبول الطلب: ${data.error}`);
+    }
+
+    if (!data.request) {
+      throw new Error('فشل في قبول الطلب: لا توجد بيانات الطلب في الاستجابة');
+    }
+
+    return data;
+  } catch (invokeError) {
+    console.error('Failed to invoke approve-signup-request function:', invokeError);
+    if (invokeError instanceof Error) {
+      throw invokeError;
+    }
+    throw new Error(`فشل في قبول الطلب: ${String(invokeError)}`);
   }
-
-  if (!data || !data.request) {
-    throw new Error('فشل في قبول الطلب: لا توجد بيانات مستلمة');
-  }
-
-  return data;
 }
 
 export function useRejectAccountRequestMutationDirect() {
