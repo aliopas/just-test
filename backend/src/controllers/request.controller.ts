@@ -19,12 +19,13 @@ export const requestController = {
     try {
       const userId = req.user?.id;
       if (!userId) {
-        return res.status(401).json({
+        res.status(401).json({
           error: {
             code: 'UNAUTHORIZED',
             message: 'User not authenticated',
           },
         });
+        return;
       }
 
       // Log request body for debugging
@@ -40,7 +41,7 @@ export const requestController = {
           issues: validation.error.issues,
           formatted: validation.error.format(),
         });
-        return res.status(400).json({
+        res.status(400).json({
           error: {
             code: 'VALIDATION_ERROR',
             message: 'Invalid request payload',
@@ -51,6 +52,7 @@ export const requestController = {
             })),
           },
         });
+        return;
       }
 
       console.log(
@@ -63,11 +65,12 @@ export const requestController = {
         payload: validation.data,
       });
 
-      return res.status(201).json({
+      res.status(201).json({
         requestId: id,
         requestNumber,
         status: 'draft',
       });
+      return;
     } catch (error) {
       console.error('Failed to create request:', error);
       const errorMessage =
@@ -88,16 +91,22 @@ export const requestController = {
         errorMessage.includes('violates') ||
         errorMessage.includes('check constraint');
 
-      return res.status(500).json({
-        error: {
-          code: 'INTERNAL_ERROR',
-          message: isDatabaseError
-            ? 'Database constraint violation. Please check your request data.'
-            : 'Failed to create request',
-          details:
-            process.env.NODE_ENV === 'development' ? errorMessage : undefined,
-        },
-      });
+      // Ensure response is sent even if headers were already sent
+      if (!res.headersSent) {
+        res.status(500).json({
+          error: {
+            code: 'INTERNAL_ERROR',
+            message: isDatabaseError
+              ? 'Database constraint violation. Please check your request data.'
+              : 'Failed to create request',
+            details:
+              process.env.NODE_ENV === 'development' ? errorMessage : undefined,
+          },
+        });
+      } else {
+        // If headers were already sent, log the error but don't try to send response
+        console.error('Response headers already sent, cannot send error response');
+      }
     }
   },
 

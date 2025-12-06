@@ -2,28 +2,30 @@ import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
 import {
-  useAdminCompanyProfiles,
   useCreateCompanyProfileMutation,
   useUpdateCompanyProfileMutation,
   useDeleteCompanyProfileMutation,
   useCompanyContentImagePresignMutation,
-  useAdminCompanyPartners,
   useCreateCompanyPartnerMutation,
   useUpdateCompanyPartnerMutation,
   useDeleteCompanyPartnerMutation,
-  useAdminCompanyClients,
   useCreateCompanyClientMutation,
   useUpdateCompanyClientMutation,
   useDeleteCompanyClientMutation,
-  useAdminMarketValue,
   useCreateMarketValueMutation,
   useUpdateMarketValueMutation,
   useDeleteMarketValueMutation,
-  useAdminCompanyGoals,
   useCreateCompanyGoalMutation,
   useUpdateCompanyGoalMutation,
   useDeleteCompanyGoalMutation,
 } from '../hooks/useAdminCompanyContent';
+import {
+  useCompanyProfiles,
+  useCompanyPartners,
+  useCompanyClients,
+  useMarketValue,
+  useCompanyGoals,
+} from '../hooks/useSupabaseTables';
 import { CompanyProfilesTable } from '../components/admin/company-content/CompanyProfilesTable';
 import { CompanyProfileFormDrawer } from '../components/admin/company-content/CompanyProfileFormDrawer';
 import { CompanyPartnersTable } from '../components/admin/company-content/CompanyPartnersTable';
@@ -50,14 +52,25 @@ export function AdminCompanyContentPage() {
     isLoading: isLoadingProfiles,
     isError: isErrorProfiles,
     refetch: refetchProfiles,
-  } = useAdminCompanyProfiles();
+  } = useCompanyProfiles();
 
   const createProfile = useCreateCompanyProfileMutation();
   const updateProfile = useUpdateCompanyProfileMutation();
   const deleteProfile = useDeleteCompanyProfileMutation();
   const presignImage = useCompanyContentImagePresignMutation();
 
-  const profiles = profilesData?.profiles ?? [];
+  const profiles = (profilesData ?? []).map((p) => ({
+    id: p.id,
+    titleAr: p.title_ar,
+    titleEn: p.title_en,
+    contentAr: p.content_ar,
+    contentEn: p.content_en,
+    iconKey: p.icon_key,
+    displayOrder: p.display_order,
+    isActive: p.is_active,
+    createdAt: p.created_at,
+    updatedAt: p.updated_at,
+  }));
 
   // Partners
   const [isPartnerDrawerOpen, setIsPartnerDrawerOpen] = useState(false);
@@ -69,13 +82,24 @@ export function AdminCompanyContentPage() {
     isLoading: isLoadingPartners,
     isError: isErrorPartners,
     refetch: refetchPartners,
-  } = useAdminCompanyPartners();
+  } = useCompanyPartners();
 
   const createPartner = useCreateCompanyPartnerMutation();
   const updatePartner = useUpdateCompanyPartnerMutation();
   const deletePartner = useDeleteCompanyPartnerMutation();
 
-  const partners = partnersData?.partners ?? [];
+  const partners = (partnersData ?? []).map((p) => ({
+    id: p.id,
+    nameAr: p.name_ar,
+    nameEn: p.name_en,
+    logoKey: p.logo_key,
+    descriptionAr: p.description_ar,
+    descriptionEn: p.description_en,
+    websiteUrl: p.website_url,
+    displayOrder: p.display_order,
+    createdAt: p.created_at,
+    updatedAt: p.updated_at,
+  }));
 
   // Clients / business model
   const [isClientDrawerOpen, setIsClientDrawerOpen] = useState(false);
@@ -87,13 +111,23 @@ export function AdminCompanyContentPage() {
     isLoading: isLoadingClients,
     isError: isErrorClients,
     refetch: refetchClients,
-  } = useAdminCompanyClients();
+  } = useCompanyClients();
 
   const createClient = useCreateCompanyClientMutation();
   const updateClient = useUpdateCompanyClientMutation();
   const deleteClient = useDeleteCompanyClientMutation();
 
-  const clients = clientsData?.clients ?? [];
+  const clients = (clientsData ?? []).map((c) => ({
+    id: c.id,
+    nameAr: c.name_ar,
+    nameEn: c.name_en,
+    logoKey: c.logo_key,
+    descriptionAr: c.description_ar,
+    descriptionEn: c.description_en,
+    displayOrder: c.display_order,
+    createdAt: c.created_at,
+    updatedAt: c.updated_at,
+  }));
 
   // Market value
   const [isMarketDrawerOpen, setIsMarketDrawerOpen] = useState(false);
@@ -104,13 +138,23 @@ export function AdminCompanyContentPage() {
     isLoading: isLoadingMarket,
     isError: isErrorMarket,
     refetch: refetchMarket,
-  } = useAdminMarketValue();
+  } = useMarketValue();
 
   const createMarket = useCreateMarketValueMutation();
   const updateMarket = useUpdateMarketValueMutation();
   const deleteMarket = useDeleteMarketValueMutation();
 
-  const marketValue = marketData?.marketValue ?? null;
+  const marketValue = marketData ? {
+    id: marketData.id,
+    value: marketData.value,
+    currency: marketData.currency,
+    valuationDate: marketData.valuation_date,
+    source: marketData.source,
+    isVerified: marketData.is_verified,
+    verifiedAt: marketData.verified_at,
+    createdAt: marketData.created_at,
+    updatedAt: marketData.updated_at,
+  } : null;
 
   // Goals
   const [isGoalDrawerOpen, setIsGoalDrawerOpen] = useState(false);
@@ -122,13 +166,24 @@ export function AdminCompanyContentPage() {
     isLoading: isLoadingGoals,
     isError: isErrorGoals,
     refetch: refetchGoals,
-  } = useAdminCompanyGoals();
+  } = useCompanyGoals();
 
   const createGoal = useCreateCompanyGoalMutation();
   const updateGoal = useUpdateCompanyGoalMutation();
   const deleteGoal = useDeleteCompanyGoalMutation();
 
-  const goals = goalsData?.goals ?? [];
+  const goals = (goalsData ?? []).map((g) => ({
+    id: g.id,
+    titleAr: g.title_ar,
+    titleEn: g.title_en,
+    descriptionAr: g.description_ar,
+    descriptionEn: g.description_en,
+    targetDate: g.target_date,
+    iconKey: g.icon_key,
+    displayOrder: g.display_order,
+    createdAt: g.created_at,
+    updatedAt: g.updated_at,
+  }));
 
   const openCreateProfile = () => {
     setActiveTab('profiles');

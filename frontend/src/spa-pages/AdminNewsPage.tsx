@@ -4,7 +4,6 @@ import { palette, radius, shadow, typography } from '../styles/theme';
 import { tAdminNews } from '../locales/adminNews';
 import type { AdminNewsItem, AdminNewsListFilters } from '../types/news';
 import {
-  useAdminNewsList,
   useAdminNewsDetail,
   useApproveNewsMutation,
   useRejectNewsMutation,
@@ -15,6 +14,7 @@ import {
   useNewsAttachmentPresignMutation,
   usePublishScheduledMutation,
 } from '../hooks/useAdminNews';
+import { useAdminNewsListDirect } from '../hooks/useAdminNewsDirect';
 import { AdminNewsTable } from '../components/admin/news/AdminNewsTable';
 import { AdminNewsFormDrawer } from '../components/admin/news/AdminNewsFormDrawer';
 
@@ -28,7 +28,7 @@ export function AdminNewsPage() {
     search: '',
   });
 
-  const { data, isLoading, isError, refetch } = useAdminNewsList(filters);
+  const { data, isLoading, isError, refetch } = useAdminNewsListDirect(filters);
   const approveMutation = useApproveNewsMutation();
   const rejectMutation = useRejectNewsMutation();
   const createMutation = useCreateNewsMutation();

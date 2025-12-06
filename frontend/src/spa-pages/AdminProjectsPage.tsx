@@ -3,12 +3,12 @@ import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
 import type { ProjectListFilters, Project } from '../hooks/useAdminProjects';
 import {
-  useAdminProjectsList,
   useAdminProjectDetail,
   useCreateProjectMutation,
   useUpdateProjectMutation,
   useDeleteProjectMutation,
 } from '../hooks/useAdminProjects';
+import { useAdminProjectsListDirect } from '../hooks/useAdminProjectsDirect';
 
 export function AdminProjectsPage() {
   const { language, direction } = useLanguage();
@@ -21,7 +21,7 @@ export function AdminProjectsPage() {
     order: 'desc',
   });
 
-  const { data, isLoading, isError, refetch } = useAdminProjectsList(filters);
+  const { data, isLoading, isError, refetch } = useAdminProjectsListDirect(filters);
   const createMutation = useCreateProjectMutation();
   const updateMutation = useUpdateProjectMutation();
   const deleteMutation = useDeleteProjectMutation();
@@ -489,7 +489,7 @@ export function AdminProjectsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {projects.map(project => (
+                  {projects.map((project: Project) => (
                     <tr
                       key={project.id}
                       style={{

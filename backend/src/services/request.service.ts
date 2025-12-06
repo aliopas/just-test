@@ -47,11 +47,29 @@ export async function createInvestorRequest(params: {
       }
     }
 
+    // Ensure amount is a number for financial requests (buy/sell)
+    let amountValue: number | null = null;
+    if (params.payload.amount !== undefined && params.payload.amount !== null) {
+      amountValue = typeof params.payload.amount === 'number' 
+        ? params.payload.amount 
+        : Number(params.payload.amount);
+      
+      // Validate amount is a valid number
+      if (Number.isNaN(amountValue) || amountValue <= 0) {
+        throw new Error('Amount must be a positive number');
+      }
+    }
+
+    // For financial requests (buy/sell), amount is required
+    if ((params.payload.type === 'buy' || params.payload.type === 'sell') && !amountValue) {
+      throw new Error('Amount is required for buy and sell requests');
+    }
+
     const requestPayload = {
       user_id: params.userId,
       request_number: requestNumber,
       type: params.payload.type,
-      amount: params.payload.amount ?? null,
+      amount: amountValue,
       currency: params.payload.currency ?? null,
       target_price: params.payload.targetPrice ?? null,
       expiry_at: params.payload.expiryAt ?? null,
@@ -65,7 +83,7 @@ export async function createInvestorRequest(params: {
       user_id: params.userId,
       request_number: requestNumber,
       type: params.payload.type,
-      amount: params.payload.amount,
+      amount: amountValue,
       currency: params.payload.currency,
       has_metadata: !!metadataValue,
       metadata_keys: metadataValue ? Object.keys(metadataValue) : [],
