@@ -232,10 +232,21 @@ export const investorSignupRequestController = {
 
       const decision = investorSignupDecisionSchema.parse(req.body ?? {});
 
+      console.log('[InvestorSignupRequestController] Approving request:', {
+        requestId: req.params.id,
+        actorId,
+        decision,
+      });
+
       const result = await investorSignupRequestService.approveRequest({
         requestId: req.params.id,
         actorId,
         decision,
+      });
+
+      console.log('[InvestorSignupRequestController] Request approved successfully:', {
+        requestId: result.request.id,
+        userId: result.user.id,
       });
 
       return res.status(200).json({
@@ -250,6 +261,13 @@ export const investorSignupRequestController = {
         user: result.user,
       });
     } catch (error) {
+      console.error('[InvestorSignupRequestController] Error in approve:', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        requestId: req.params.id,
+        actorId: req.user?.id,
+      });
+
       const status =
         (error as Error & { status?: number }).status ??
         (error instanceof Error &&

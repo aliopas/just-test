@@ -4,9 +4,9 @@ import { palette, radius, shadow, typography } from '../styles/theme';
 import { tAdminRequests } from '../locales/adminRequests';
 import type { AdminSignupRequestFilters, AdminSignupRequest } from '../types/admin-account-request';
 import {
-  useApproveAccountRequestMutation,
-  useRejectAccountRequestMutation,
-} from '../hooks/useAdminAccountRequests';
+  useApproveAccountRequestMutationDirect,
+  useRejectAccountRequestMutationDirect,
+} from '../hooks/useAdminAccountRequestsMutationsDirect';
 import { useAdminAccountRequestsDirect } from '../hooks/useAdminAccountRequestsDirect';
 
 export function AdminSignupRequestsPage() {
@@ -19,8 +19,8 @@ export function AdminSignupRequestsPage() {
   });
 
   const { data, isLoading, isError, refetch } = useAdminAccountRequestsDirect(filters);
-  const approveMutation = useApproveAccountRequestMutation();
-  const rejectMutation = useRejectAccountRequestMutation();
+  const approveMutation = useApproveAccountRequestMutationDirect();
+  const rejectMutation = useRejectAccountRequestMutationDirect();
 
   const requests = data?.requests ?? [];
   const meta = data?.meta ?? {
@@ -47,22 +47,34 @@ export function AdminSignupRequestsPage() {
 
   async function handleApprove(request: AdminSignupRequest, event: FormEvent) {
     event.preventDefault();
-    await approveMutation.mutateAsync({
-      id: request.id,
-      note: decisionNote || undefined,
-      sendInvite: true,
-      locale: language,
-    });
-    setDecisionNote('');
+    try {
+      await approveMutation.mutateAsync({
+        id: request.id,
+        note: decisionNote || undefined,
+        sendInvite: true,
+        locale: language,
+      });
+      setDecisionNote('');
+      // إعادة تحميل القائمة
+      await refetch();
+    } catch (error) {
+      console.error('فشل في قبول الطلب:', error);
+    }
   }
 
   async function handleReject(request: AdminSignupRequest, event: FormEvent) {
     event.preventDefault();
-    await rejectMutation.mutateAsync({
-      id: request.id,
-      note: decisionNote || undefined,
-    });
-    setDecisionNote('');
+    try {
+      await rejectMutation.mutateAsync({
+        id: request.id,
+        note: decisionNote || undefined,
+      });
+      setDecisionNote('');
+      // إعادة تحميل القائمة
+      await refetch();
+    } catch (error) {
+      console.error('فشل في رفض الطلب:', error);
+    }
   }
 
   return (

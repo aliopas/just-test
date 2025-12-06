@@ -1,4 +1,4 @@
-﻿import { getStoredAccessToken } from './auth-token';
+import { getStoredAccessToken } from './auth-token';
 import { storeSessionTokens, getStoredRefreshToken } from './session-storage';
 import { getSupabaseBrowserClient } from './supabase-client';
 
@@ -131,10 +131,33 @@ async function refreshAccessToken(): Promise<boolean> {
   }
 }
 
-function resolveAccessToken(): string | undefined {
+async function resolveAccessToken(): Promise<string | undefined> {
   if (typeof window === 'undefined') {
     return process.env.NEXT_PUBLIC_TEST_ACCESS_TOKEN;
   }
+
+  // First, try to get token from Supabase session (most reliable)
+  const supabase = getSupabaseBrowserClient();
+  if (supabase) {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        // Store it for future use
+        if (session.access_token) {
+          try {
+            window.localStorage?.setItem('access_token', session.access_token);
+          } catch (e) {
+            // localStorage might be disabled, ignore
+          }
+        }
+        return session.access_token;
+      }
+    } catch (error) {
+      console.warn('[apiClient] Failed to get Supabase session:', error);
+    }
+  }
+
+  // Fallback to stored token
   return getStoredAccessToken();
 }
 
@@ -196,12 +219,12 @@ export async function apiClient<TResponse>(
     baseUrl,
   });
 
-  const createHeaders = () => {
+  const createHeaders = async () => {
     const requestHeaders = new Headers(defaultHeaders);
     applyHeaders(requestHeaders, headers);
 
     if (auth) {
-      const token = resolveAccessToken();
+      const token = await resolveAccessToken();
       if (token) {
         requestHeaders.set('Authorization', `Bearer ${token}`);
         console.log('[apiClient] Added auth token');
@@ -213,8 +236,8 @@ export async function apiClient<TResponse>(
     return requestHeaders;
   };
 
-  const executeRequest = () => {
-    const requestHeaders = createHeaders();
+  const executeRequest = async () => {
+    const requestHeaders = await createHeaders();
     console.log('[apiClient] Executing request:', {
       url,
       method: init.method || 'GET',
@@ -255,6 +278,12 @@ export async function apiClient<TResponse>(
       response = await executeRequest();
     } else {
       console.warn('[apiClient] Token refresh failed');
+      // Try to get fresh token from Supabase one more time
+      const freshToken = await resolveAccessToken();
+      if (freshToken) {
+        console.log('[apiClient] Got fresh token from Supabase, retrying request');
+        response = await executeRequest();
+      }
     }
   }
 
