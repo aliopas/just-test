@@ -27,21 +27,30 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
   icons: {
     icon: [
-      { url: '/icons/icon-192x192.svg', sizes: '192x192', type: 'image/svg+xml' },
+      { url: '/logo.png', sizes: 'any', type: 'image/png' },
     ],
     apple: [
-      { url: '/icons/icon-192x192.svg', sizes: '192x192', type: 'image/svg+xml' },
+      { url: '/logo.png', sizes: 'any', type: 'image/png' },
     ],
   },
   openGraph: {
     type: 'website',
     title: 'شركاء باكورة - Bakurah Partners',
     description: 'منصة آمنة لإدارة طلبات الاستثمار ومتابعة أداء المحفظة والاطلاع على آخر الأخبار والرؤى السوقية.',
+    images: [
+      {
+        url: '/og-image.png', // Logo image for social media sharing
+        width: 1200,
+        height: 630,
+        alt: 'باكورة التقنيات - BACURA / TEC',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'شركاء باكورة - Bakurah Partners',
     description: 'منصة آمنة لإدارة طلبات الاستثمار ومتابعة أداء المحفظة والاطلاع على آخر الأخبار والرؤى السوقية.',
+    images: ['/og-image.png'], // Logo image for Twitter sharing
   },
 };
 
