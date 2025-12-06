@@ -100,6 +100,26 @@ async function fetchInvestorProfileDirect(): Promise<InvestorProfile | null> {
   }
 
   const userId = authData.user.id;
+  const email = authData.user.email ?? null;
+
+  // Fetch user record from users table for phone, status, and created_at
+  const { data: userRecord } = await supabase
+    .from('users')
+    .select('phone, phone_cc, status, created_at')
+    .eq('id', userId)
+    .maybeSingle<{
+      phone: string | null;
+      phone_cc: string | null;
+      status: string | null;
+      created_at: string;
+    }>();
+
+  // Don't fail if user record doesn't exist - it might be created later
+  const phone = userRecord?.phone 
+    ? (userRecord.phone_cc ? `${userRecord.phone_cc}${userRecord.phone}` : userRecord.phone)
+    : null;
+  const userStatus = userRecord?.status ?? null;
+  const userCreatedAt = userRecord?.created_at ?? null;
 
   // Fetch profile
   const { data, error } = await supabase
@@ -139,10 +159,10 @@ async function fetchInvestorProfileDirect(): Promise<InvestorProfile | null> {
     kycDocuments: toKycDocuments(data.kyc_documents),
     createdAt: data.created_at,
     updatedAt: data.updated_at,
-    email: null, // Will be fetched from auth if needed
-    phone: null, // Will be fetched from auth if needed
-    userStatus: null,
-    userCreatedAt: null,
+    email: email,
+    phone: phone,
+    userStatus: userStatus,
+    userCreatedAt: userCreatedAt,
   };
 }
 
@@ -161,8 +181,68 @@ async function updateInvestorProfileDirect(
   }
 
   const userId = authData.user.id;
+  const email = authData.user.email ?? null;
 
-  // Prepare update data
+  // If phone is being updated, update it in the users table
+  if (payload.phone !== undefined) {
+    // Parse phone with country code if provided (format: +966XXXXXXXXX or 966XXXXXXXXX)
+    const phoneValue = payload.phone;
+    let parsedPhone = phoneValue;
+    let parsedPhoneCc = null;
+    
+    if (phoneValue && phoneValue.startsWith('+')) {
+      // Extract country code (assuming Saudi Arabia +966)
+      if (phoneValue.startsWith('+966')) {
+        parsedPhoneCc = '+966';
+        parsedPhone = phoneValue.substring(4);
+      } else {
+        // Try to extract country code (first 1-3 digits after +)
+        const match = phoneValue.match(/^\+(\d{1,3})(.+)$/);
+        if (match) {
+          parsedPhoneCc = `+${match[1]}`;
+          parsedPhone = match[2];
+        }
+      }
+    } else if (phoneValue && phoneValue.startsWith('966')) {
+      parsedPhoneCc = '+966';
+      parsedPhone = phoneValue.substring(3);
+    }
+
+    // Update users table
+    const { error: userUpdateError } = await supabase
+      .from('users')
+      .update({
+        phone: parsedPhone || null,
+        phone_cc: parsedPhoneCc || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', userId);
+
+    if (userUpdateError) {
+      console.warn('Failed to update phone in users table:', userUpdateError);
+      // Don't fail the whole operation, just log the warning
+    }
+  }
+
+  // Fetch user record for phone, status and created_at (after potential update)
+  const { data: userRecord } = await supabase
+    .from('users')
+    .select('phone, phone_cc, status, created_at')
+    .eq('id', userId)
+    .maybeSingle<{
+      phone: string | null;
+      phone_cc: string | null;
+      status: string | null;
+      created_at: string;
+    }>();
+
+  const phone = userRecord?.phone 
+    ? (userRecord.phone_cc ? `${userRecord.phone_cc}${userRecord.phone}` : userRecord.phone)
+    : null;
+  const userStatus = userRecord?.status ?? null;
+  const userCreatedAt = userRecord?.created_at ?? null;
+
+  // Prepare update data (don't update email/phone in investor_profiles - they're in users table)
   const updateData: Partial<ProfileRow> = {};
   
   if (payload.fullName !== undefined) updateData.full_name = payload.fullName;
@@ -231,10 +311,10 @@ async function updateInvestorProfileDirect(
     kycDocuments: toKycDocuments(data.kyc_documents),
     createdAt: data.created_at,
     updatedAt: data.updated_at,
-    email: null, // Will be fetched from auth if needed
-    phone: null, // Will be fetched from auth if needed
-    userStatus: null,
-    userCreatedAt: null,
+    email: email,
+    phone: phone,
+    userStatus: userStatus,
+    userCreatedAt: userCreatedAt,
   };
 }
 
