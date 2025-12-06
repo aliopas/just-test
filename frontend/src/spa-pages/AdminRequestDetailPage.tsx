@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAdminRequestDetailDirect } from '../hooks/useAdminRequestDetailDirect';
 import {
   useApproveRequestMutationDirect,
   useRejectRequestMutationDirect,
   useMoveToScreeningMutationDirect,
-  useMoveToComplianceReviewMutationDirect,
-  useMoveToPendingInfoMutationDirect,
 } from '../hooks/useAdminRequestMutationsDirect';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
@@ -27,22 +26,47 @@ export function AdminRequestDetailPage() {
     ? window.location.pathname.split('/').pop() ?? null
     : searchParams.get('id');
 
-  const { data, isLoading, isError } = useAdminRequestDetailDirect(requestId);
+  const { data, isLoading, isError, refetch } = useAdminRequestDetailDirect(requestId);
   const { pushToast } = useToast();
+  const queryClient = useQueryClient();
 
   const request = data?.request;
 
-  // Mutations
+  // Function to clear cache and refetch
+  const handleClearCache = async () => {
+    try {
+      // Clear all queries related to admin requests
+      queryClient.removeQueries({ queryKey: ['adminRequestsDirect'] });
+      queryClient.removeQueries({ queryKey: ['adminRequestDetailDirect'] });
+      queryClient.removeQueries({ queryKey: ['adminRequestReportDirect'] });
+      
+      // Refetch current request if refetch is available
+      if (refetch) {
+        await refetch();
+      } else {
+        // If refetch is not available, invalidate and let React Query refetch automatically
+        queryClient.invalidateQueries({ queryKey: ['adminRequestDetailDirect', requestId] });
+      }
+      
+      pushToast({
+        message: language === 'ar' ? 'تم مسح الكاش وإعادة تحميل البيانات' : 'Cache cleared and data refreshed',
+        variant: 'success',
+      });
+    } catch (error) {
+      pushToast({
+        message: language === 'ar' ? 'فشل مسح الكاش' : 'Failed to clear cache',
+        variant: 'error',
+      });
+    }
+  };
+
+  // Mutations - فقط قبول، رفض، تحت المراجعة
   const approveMutation = useApproveRequestMutationDirect();
   const rejectMutation = useRejectRequestMutationDirect();
   const moveToScreeningMutation = useMoveToScreeningMutationDirect();
-  const moveToComplianceReviewMutation = useMoveToComplianceReviewMutationDirect();
-  const moveToPendingInfoMutation = useMoveToPendingInfoMutationDirect();
 
   const [showRejectDialog, setShowRejectDialog] = useState(false);
-  const [showPendingInfoDialog, setShowPendingInfoDialog] = useState(false);
   const [rejectNote, setRejectNote] = useState('');
-  const [pendingInfoNote, setPendingInfoNote] = useState('');
 
   const goBack = () => {
     router.push('/admin/requests');
@@ -64,10 +88,11 @@ export function AdminRequestDetailPage() {
     return stateMachine[fromStatus]?.includes(toStatus) ?? false;
   };
 
-  // Get allowed actions for current status
+  // Get allowed actions for current status - فقط قبول، رفض، تحت المراجعة
   const getAllowedActions = (status: RequestStatus) => {
     const actions: Array<{ key: string; label: string; variant: 'primary' | 'danger' | 'secondary' }> = [];
     
+    // فقط قبول، رفض، تحت المراجعة
     if (canTransition(status, 'approved')) {
       actions.push({
         key: 'approve',
@@ -87,23 +112,7 @@ export function AdminRequestDetailPage() {
     if (canTransition(status, 'screening')) {
       actions.push({
         key: 'screening',
-        label: language === 'ar' ? 'نقل إلى المراجعة' : 'Move to Screening',
-        variant: 'secondary',
-      });
-    }
-    
-    if (canTransition(status, 'compliance_review')) {
-      actions.push({
-        key: 'compliance',
-        label: language === 'ar' ? 'نقل إلى مراجعة الامتثال' : 'Move to Compliance Review',
-        variant: 'secondary',
-      });
-    }
-    
-    if (canTransition(status, 'pending_info')) {
-      actions.push({
-        key: 'pending_info',
-        label: language === 'ar' ? 'طلب معلومات إضافية' : 'Request More Info',
+        label: language === 'ar' ? 'تحت المراجعة' : 'Under Review',
         variant: 'secondary',
       });
     }
@@ -170,55 +179,11 @@ export function AdminRequestDetailPage() {
     }
   };
 
-  const handleMoveToComplianceReview = async () => {
-    if (!requestId) return;
-    
-    try {
-      await moveToComplianceReviewMutation.mutateAsync({ requestId });
-      pushToast({
-        message: language === 'ar' ? 'تم نقل الطلب إلى مراجعة الامتثال' : 'Request moved to compliance review',
-        variant: 'success',
-      });
-    } catch (error) {
-      pushToast({
-        message: error instanceof Error ? error.message : (language === 'ar' ? 'فشل نقل الطلب' : 'Failed to move request'),
-        variant: 'error',
-      });
-    }
-  };
-
-  const handleMoveToPendingInfo = async () => {
-    if (!requestId || !pendingInfoNote.trim()) {
-      pushToast({
-        message: language === 'ar' ? 'يرجى إدخال رسالة طلب المعلومات' : 'Please enter a message requesting information',
-        variant: 'error',
-      });
-      return;
-    }
-    
-    try {
-      await moveToPendingInfoMutation.mutateAsync({ requestId, note: pendingInfoNote });
-      pushToast({
-        message: language === 'ar' ? 'تم طلب معلومات إضافية من المستثمر' : 'Information requested from investor',
-        variant: 'success',
-      });
-      setShowPendingInfoDialog(false);
-      setPendingInfoNote('');
-    } catch (error) {
-      pushToast({
-        message: error instanceof Error ? error.message : (language === 'ar' ? 'فشل طلب المعلومات' : 'Failed to request information'),
-        variant: 'error',
-      });
-    }
-  };
-
   const allowedActions = request ? getAllowedActions(request.status) : [];
   const isAnyMutationPending = 
     approveMutation.isPending ||
     rejectMutation.isPending ||
-    moveToScreeningMutation.isPending ||
-    moveToComplianceReviewMutation.isPending ||
-    moveToPendingInfoMutation.isPending;
+    moveToScreeningMutation.isPending;
 
   return (
     <div
@@ -314,6 +279,26 @@ export function AdminRequestDetailPage() {
               >
                 {getStatusLabel(request.status, language)}
               </span>
+              <button
+                type="button"
+                onClick={handleClearCache}
+                style={{
+                  padding: '0.4rem 0.9rem',
+                  borderRadius: radius.md,
+                  border: `1px solid ${palette.neutralBorderMuted}`,
+                  background: palette.backgroundBase,
+                  color: palette.textSecondary,
+                  fontSize: typography.sizes.caption,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                }}
+                title={language === 'ar' ? 'مسح الكاش وإعادة التحميل' : 'Clear cache and refresh'}
+              >
+                <span>🔄</span>
+                <span>{language === 'ar' ? 'مسح الكاش' : 'Clear Cache'}</span>
+              </button>
             </div>
           )}
         </header>
@@ -505,23 +490,27 @@ export function AdminRequestDetailPage() {
                   <InfoRow
                     label={tAdminRequests('table.investor', language)}
                     value={
-                      request.investor.fullName ??
-                      request.investor.preferredName ??
-                      request.investor.email ??
+                      request.investor?.fullName ??
+                      request.investor?.preferredName ??
+                      request.investor?.email ??
                       '—'
                     }
                   />
                   <InfoRow
                     label="Email"
-                    value={request.investor.email ?? '—'}
+                    value={request.investor?.email ?? '—'}
                   />
                   <InfoRow
                     label={language === 'ar' ? 'الهاتف' : 'Phone'}
-                    value={request.investor.phone ?? '—'}
+                    value={
+                      request.investor?.phone
+                        ? `${request.investor.phoneCc ? `+${request.investor.phoneCc} ` : ''}${request.investor.phone}`
+                        : '—'
+                    }
                   />
                   <InfoRow
                     label={language === 'ar' ? 'الدولة' : 'Country'}
-                    value={request.investor.residencyCountry ?? '—'}
+                    value={request.investor?.residencyCountry ?? '—'}
                   />
                 </dl>
               </div>
@@ -752,145 +741,6 @@ export function AdminRequestDetailPage() {
                               ? (language === 'ar' ? 'جاري النقل...' : 'Moving...')
                               : action.label}
                           </button>
-                        );
-                      }
-                      
-                      if (action.key === 'compliance') {
-                        return (
-                          <button
-                            key={action.key}
-                            type="button"
-                            onClick={handleMoveToComplianceReview}
-                            disabled={isAnyMutationPending}
-                            style={{
-                              padding: '0.75rem 1.25rem',
-                              borderRadius: radius.md,
-                              border: `1px solid ${palette.neutralBorderSoft}`,
-                              background: palette.backgroundBase,
-                              color: palette.textPrimary,
-                              fontWeight: 600,
-                              cursor: isAnyMutationPending ? 'not-allowed' : 'pointer',
-                              opacity: isAnyMutationPending ? 0.6 : 1,
-                              fontSize: typography.sizes.body,
-                            }}
-                          >
-                            {moveToComplianceReviewMutation.isPending
-                              ? (language === 'ar' ? 'جاري النقل...' : 'Moving...')
-                              : action.label}
-                          </button>
-                        );
-                      }
-                      
-                      if (action.key === 'pending_info') {
-                        return (
-                          <div key={action.key}>
-                            <button
-                              type="button"
-                              onClick={() => setShowPendingInfoDialog(true)}
-                              disabled={isAnyMutationPending}
-                              style={{
-                                width: '100%',
-                                padding: '0.75rem 1.25rem',
-                                borderRadius: radius.md,
-                                border: `1px solid ${palette.neutralBorderSoft}`,
-                                background: palette.backgroundBase,
-                                color: palette.textPrimary,
-                                fontWeight: 600,
-                                cursor: isAnyMutationPending ? 'not-allowed' : 'pointer',
-                                opacity: isAnyMutationPending ? 0.6 : 1,
-                                fontSize: typography.sizes.body,
-                              }}
-                            >
-                              {action.label}
-                            </button>
-                            {showPendingInfoDialog && (
-                              <div
-                                style={{
-                                  marginTop: '1rem',
-                                  padding: '1rem',
-                                  borderRadius: radius.md,
-                                  background: palette.backgroundSurface,
-                                  border: `1px solid ${palette.brandPrimary}33`,
-                                }}
-                              >
-                                <label
-                                  style={{
-                                    display: 'block',
-                                    marginBottom: '0.5rem',
-                                    fontSize: typography.sizes.caption,
-                                    fontWeight: 600,
-                                    color: palette.textPrimary,
-                                  }}
-                                >
-                                  {language === 'ar' ? 'رسالة طلب المعلومات (مطلوب)' : 'Information Request Message (Required)'}
-                                </label>
-                                <textarea
-                                  value={pendingInfoNote}
-                                  onChange={e => setPendingInfoNote(e.target.value)}
-                                  style={{
-                                    width: '100%',
-                                    padding: '0.75rem',
-                                    borderRadius: radius.md,
-                                    border: `1px solid ${palette.neutralBorderSoft}`,
-                                    background: palette.backgroundBase,
-                                    color: palette.textPrimary,
-                                    fontSize: typography.sizes.body,
-                                    minHeight: '100px',
-                                    resize: 'vertical',
-                                    fontFamily: 'inherit',
-                                  }}
-                                  placeholder={language === 'ar' ? 'أدخل رسالة طلب المعلومات من المستثمر...' : 'Enter message requesting information from investor...'}
-                                />
-                                <div
-                                  style={{
-                                    display: 'flex',
-                                    gap: '0.5rem',
-                                    marginTop: '0.75rem',
-                                    justifyContent: direction === 'rtl' ? 'flex-start' : 'flex-end',
-                                  }}
-                                >
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setShowPendingInfoDialog(false);
-                                      setPendingInfoNote('');
-                                    }}
-                                    style={{
-                                      padding: '0.5rem 1rem',
-                                      borderRadius: radius.md,
-                                      border: `1px solid ${palette.neutralBorderSoft}`,
-                                      background: palette.backgroundBase,
-                                      color: palette.textPrimary,
-                                      cursor: 'pointer',
-                                      fontSize: typography.sizes.caption,
-                                    }}
-                                  >
-                                    {language === 'ar' ? 'إلغاء' : 'Cancel'}
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={handleMoveToPendingInfo}
-                                    disabled={isAnyMutationPending || !pendingInfoNote.trim()}
-                                    style={{
-                                      padding: '0.5rem 1rem',
-                                      borderRadius: radius.md,
-                                      border: 'none',
-                                      background: palette.brandPrimary,
-                                      color: '#FFFFFF',
-                                      fontWeight: 600,
-                                      cursor: isAnyMutationPending || !pendingInfoNote.trim() ? 'not-allowed' : 'pointer',
-                                      opacity: isAnyMutationPending || !pendingInfoNote.trim() ? 0.6 : 1,
-                                      fontSize: typography.sizes.caption,
-                                    }}
-                                  >
-                                    {moveToPendingInfoMutation.isPending
-                                      ? (language === 'ar' ? 'جاري الإرسال...' : 'Sending...')
-                                      : (language === 'ar' ? 'إرسال الطلب' : 'Send Request')}
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-                          </div>
                         );
                       }
                       

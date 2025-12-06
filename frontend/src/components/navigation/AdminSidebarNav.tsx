@@ -10,6 +10,7 @@ import { palette } from '@/styles/theme';
 import { useCompanyLogoUrl } from '@/hooks/useSupabaseTables';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useAdminAccountRequestsUnreadCountDirect } from '@/hooks/useAdminAccountRequestsUnreadCountDirect';
+import { useClearCache } from '@/hooks/useClearCache';
 
 const adminSidebarLinkBase: React.CSSProperties = {
   borderRadius: '0.85rem',
@@ -77,6 +78,7 @@ export function AdminSidebarNav() {
   const logout = useLogout();
   const pathname = usePathname();
   const companyLogoUrl = useCompanyLogoUrl();
+  const { clearAllCache } = useClearCache();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const portalName =
     language === 'ar' ? 'لوحة تحكم إدارة باكورة' : 'Bakurah Admin Console';
@@ -323,29 +325,52 @@ export function AdminSidebarNav() {
           })}
         </nav>
       </div>
-      <button
-        type="button"
-        onClick={() => logout.mutate()}
+      <div
         style={{
-          ...adminSidebarLinkBase,
           marginTop: 'auto',
-          justifyContent: 'center',
-          borderColor: palette.brandPrimaryStrong,
-          background: palette.brandPrimaryStrong,
-          color: palette.textOnBrand,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.75rem',
           position: 'sticky',
           bottom: '1.5rem',
         }}
-        disabled={logout.isPending}
       >
-        {logout.isPending
-          ? language === 'ar'
-            ? 'جارٍ تسجيل الخروج…'
-            : 'Signing out…'
-          : language === 'ar'
-            ? 'تسجيل الخروج'
-            : 'Sign out'}
-      </button>
+        <button
+          type="button"
+          onClick={clearAllCache}
+          style={{
+            ...adminSidebarLinkBase,
+            justifyContent: 'center',
+            borderColor: palette.neutralBorderMuted,
+            background: palette.backgroundBase,
+            color: palette.textSecondary,
+          }}
+          title={language === 'ar' ? 'مسح الكاش القديم من جميع الصفحات' : 'Clear cache from all pages'}
+        >
+          <span>🔄</span>
+          {language === 'ar' ? 'مسح الكاش' : 'Clear Cache'}
+        </button>
+        <button
+          type="button"
+          onClick={() => logout.mutate()}
+          style={{
+            ...adminSidebarLinkBase,
+            justifyContent: 'center',
+            borderColor: palette.brandPrimaryStrong,
+            background: palette.brandPrimaryStrong,
+            color: palette.textOnBrand,
+          }}
+          disabled={logout.isPending}
+        >
+          {logout.isPending
+            ? language === 'ar'
+              ? 'جارٍ تسجيل الخروج…'
+              : 'Signing out…'
+            : language === 'ar'
+              ? 'تسجيل الخروج'
+              : 'Sign out'}
+        </button>
+      </div>
     </aside>
     </>
   );
