@@ -58,8 +58,8 @@ export function ProtectedRoute({
   } : user;
 
   useEffect(() => {
-    // Wait for Supabase auth to finish loading
-    if (supabaseLoading) {
+    // Wait for Supabase auth and user record to finish loading
+    if (supabaseLoading || userRecordLoading) {
       return;
     }
 
@@ -75,22 +75,40 @@ export function ProtectedRoute({
         return;
       }
 
-      // Check role if required
+      // Check role if required - use database role as source of truth
       if (requiredRole) {
         const requiredRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
-        const userRole = finalUser.role;
+        
+        // Always use database role if available, otherwise fallback to AuthContext
+        const currentRole = userRecord?.role === 'admin' 
+          ? 'admin' 
+          : (userRecord?.role === 'investor' ? 'investor' : finalUser.role);
 
-        if (!requiredRoles.includes(userRole)) {
+        console.log('[ProtectedRoute] Role check:', {
+          pathname,
+          requiredRoles,
+          currentRole,
+          userRecordRole: userRecord?.role,
+          finalUserRole: finalUser.role,
+        });
+
+        if (!requiredRoles.includes(currentRole)) {
           // User doesn't have required role, redirect to appropriate dashboard
-          const targetPath = userRole === 'admin' ? '/admin/dashboard' : '/dashboard';
+          const targetPath = currentRole === 'admin' ? '/admin/dashboard' : '/dashboard';
+          console.log('[ProtectedRoute] Redirecting due to role mismatch:', {
+            from: pathname,
+            to: targetPath,
+            currentRole,
+            requiredRoles,
+          });
           router.push(targetPath);
           return;
         }
       }
-    }, 100); // Small delay to allow session to sync
+    }, 200); // Increased delay to allow session and user record to sync
 
     return () => clearTimeout(checkAuth);
-  }, [finalIsAuthenticated, finalUser, requiredRole, redirectTo, router, pathname, supabaseLoading]);
+  }, [finalIsAuthenticated, finalUser, requiredRole, redirectTo, router, pathname, supabaseLoading, userRecordLoading, userRecord]);
 
   // Show loading state
   if (showLoading && (supabaseLoading || userRecordLoading || !finalIsAuthenticated || !finalUser)) {
@@ -137,7 +155,8 @@ export function ProtectedRoute({
   }
 
   // Check role after authentication is confirmed - use database role if available
-  if (finalIsAuthenticated && finalUser && requiredRole) {
+  // Wait for user record to load before checking role
+  if (finalIsAuthenticated && finalUser && requiredRole && !userRecordLoading) {
     const requiredRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
     // Always use the role from database if available, otherwise fallback to AuthContext
     const currentRole = userRecord?.role === 'admin' 
@@ -146,6 +165,11 @@ export function ProtectedRoute({
     
     if (!requiredRoles.includes(currentRole)) {
       // Don't render children if role doesn't match
+      console.log('[ProtectedRoute] Blocking render - role mismatch:', {
+        currentRole,
+        requiredRoles,
+        pathname,
+      });
       return null;
     }
   }
