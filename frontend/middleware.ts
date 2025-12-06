@@ -12,6 +12,7 @@ const publicRoutes = [
   '/verify',              // التحقق من OTP
   '/forgot-password',     // طلب إعادة تعيين كلمة المرور
   '/reset-password',      // إدخال كلمة المرور الجديدة
+  '/reset-password/oauth/consent', // OAuth consent callback لإعادة تعيين كلمة المرور
   '/home',                // الصفحة الرئيسية للمستثمر (عامة)
   '/news',                // الأخبار العامة
   '/middleware-redirect', // صفحة إعادة التوجيه
