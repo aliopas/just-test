@@ -101,15 +101,30 @@ export const investorSignupRequestController = {
         limit,
       });
 
+      // Ensure response is properly formatted
       return res.status(200).json(result);
     } catch (error) {
+      console.error('[InvestorSignupRequestController] Error in list:', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+
+      // Check if it's a Supabase configuration error
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('Supabase service role key') || errorMessage.includes('SUPABASE_SERVICE_ROLE_KEY')) {
+        return res.status(500).json({
+          error: {
+            code: 'CONFIGURATION_ERROR',
+            message: 'Server configuration error: Missing Supabase service role key',
+            details: 'SUPABASE_SERVICE_ROLE_KEY environment variable is not set. Please add it in Netlify Dashboard.',
+          },
+        });
+      }
+
       return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
-          message:
-            error instanceof Error
-              ? error.message
-              : 'Failed to load signup requests.',
+          message: errorMessage || 'Failed to load signup requests.',
         },
       });
     }
@@ -133,13 +148,27 @@ export const investorSignupRequestController = {
         unreadCount: count,
       });
     } catch (error) {
+      console.error('[InvestorSignupRequestController] Error in getUnreadCount:', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+
+      // Check if it's a Supabase configuration error
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('Supabase service role key') || errorMessage.includes('SUPABASE_SERVICE_ROLE_KEY')) {
+        return res.status(500).json({
+          error: {
+            code: 'CONFIGURATION_ERROR',
+            message: 'Server configuration error: Missing Supabase service role key',
+            details: 'SUPABASE_SERVICE_ROLE_KEY environment variable is not set. Please add it in Netlify Dashboard.',
+          },
+        });
+      }
+
       return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
-          message:
-            error instanceof Error
-              ? error.message
-              : 'Failed to get unread count.',
+          message: errorMessage || 'Failed to get unread count.',
         },
       });
     }

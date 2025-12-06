@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction, RequestHandler } from 'express';
 import { adminRequestController } from '../controllers/admin-request.controller';
 import { adminUserController } from '../controllers/admin-user.controller';
 import { newsController } from '../controllers/news.controller';
@@ -14,6 +14,16 @@ import { authenticate } from '../middleware/auth.middleware';
 import { requirePermission } from '../middleware/rbac.middleware';
 
 const adminRouter = Router();
+
+// Async error wrapper to catch errors from async route handlers
+// This ensures all unhandled promise rejections are caught and passed to Express error handler
+const asyncHandler = (
+  fn: (req: Request, res: Response, next?: NextFunction) => Promise<any> | any
+): RequestHandler => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    Promise.resolve(fn(req as any, res, next)).catch(next);
+  };
+};
 
 adminRouter.get(
   '/dashboard/stats',
@@ -222,35 +232,35 @@ adminRouter.get(
   '/account-requests',
   authenticate,
   requirePermission('admin.users.manage'),
-  investorSignupRequestController.list
+  asyncHandler(investorSignupRequestController.list as any)
 );
 
 adminRouter.get(
   '/account-requests/unread-count',
   authenticate,
   requirePermission('admin.users.manage'),
-  investorSignupRequestController.getUnreadCount
+  asyncHandler(investorSignupRequestController.getUnreadCount as any)
 );
 
 adminRouter.post(
   '/account-requests/:id/mark-read',
   authenticate,
   requirePermission('admin.users.manage'),
-  investorSignupRequestController.markAsRead
+  asyncHandler(investorSignupRequestController.markAsRead as any)
 );
 
 adminRouter.post(
   '/account-requests/:id/approve',
   authenticate,
   requirePermission('admin.users.manage'),
-  investorSignupRequestController.approve
+  asyncHandler(investorSignupRequestController.approve as any)
 );
 
 adminRouter.post(
   '/account-requests/:id/reject',
   authenticate,
   requirePermission('admin.users.manage'),
-  investorSignupRequestController.reject
+  asyncHandler(investorSignupRequestController.reject as any)
 );
 
 // Projects routes

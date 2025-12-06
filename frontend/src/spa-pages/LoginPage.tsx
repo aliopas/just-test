@@ -40,23 +40,46 @@ export function LoginPage() {
       // لا حاجة لمعالجة إضافية هنا
     } catch (err: any) {
       console.error('[Login] حدث خطأ:', err);
+      console.error('[Login] Error type:', typeof err);
+      console.error('[Login] Error keys:', err ? Object.keys(err) : 'null');
+      console.error('[Login] Error instanceof Error:', err instanceof Error);
       
-      // معالجة الأخطاء
-      if (err && typeof err === 'object' && 'message' in err) {
-        setError(err.message as string);
-      } else if (err instanceof Error) {
-        setError(
-          isArabic
-            ? err.message || 'تعذّر تسجيل الدخول. حاول مرة أخرى.'
-            : err.message || 'Unable to sign in. Please try again.'
-        );
-      } else {
-        setError(
-          isArabic
+      // معالجة الأخطاء - دعم أشكال مختلفة من الأخطاء
+      let errorMessage: string;
+      
+      if (err && typeof err === 'object') {
+        // LoginError object من useSupabaseLogin: { code, message }
+        if ('message' in err && typeof err.message === 'string') {
+          errorMessage = err.message;
+        }
+        // Error instance
+        else if (err instanceof Error && err.message) {
+          errorMessage = err.message;
+        }
+        // Plain object with error property
+        else if ('error' in err && typeof err.error === 'object' && err.error?.message) {
+          errorMessage = err.error.message;
+        }
+        // String error
+        else if (typeof err === 'string') {
+          errorMessage = err;
+        }
+        // Fallback: try to stringify for debugging
+        else {
+          console.warn('[Login] Unknown error format:', JSON.stringify(err, null, 2));
+          errorMessage = isArabic
             ? 'حدث خطأ غير متوقع. حاول مرة أخرى.'
-            : 'An unexpected error occurred. Please try again.'
-        );
+            : 'An unexpected error occurred. Please try again.';
+        }
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      } else {
+        errorMessage = isArabic
+          ? 'حدث خطأ غير متوقع. حاول مرة أخرى.'
+          : 'An unexpected error occurred. Please try again.';
       }
+      
+      setError(errorMessage);
     }
   }
 

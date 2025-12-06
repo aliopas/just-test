@@ -50,19 +50,19 @@ export function useSupabaseLogin() {
           email: credentials.email.trim(),
         });
         
-        // تحويل Supabase error إلى شكل موحد
-        const loginError: LoginError = {
-          code: error.status?.toString() || 'LOGIN_FAILED',
-          message: getErrorMessage(error),
-        };
+        // تحويل Supabase error إلى Error instance مع خصائص إضافية
+        const errorMessage = getErrorMessage(error);
+        const loginError = new Error(errorMessage) as Error & LoginError;
+        loginError.code = error.status?.toString() || 'LOGIN_FAILED';
+        loginError.message = errorMessage;
         throw loginError;
       }
 
       if (!data.user || !data.session) {
-        throw {
-          code: 'AUTH_FAILED',
-          message: 'فشل تسجيل الدخول. لم يتم الحصول على بيانات الجلسة.',
-        } as LoginError;
+        const authError = new Error('فشل تسجيل الدخول. لم يتم الحصول على بيانات الجلسة.') as Error & LoginError;
+        authError.code = 'AUTH_FAILED';
+        authError.message = 'فشل تسجيل الدخول. لم يتم الحصول على بيانات الجلسة.';
+        throw authError;
       }
 
       // الحصول على role من قاعدة البيانات
@@ -145,8 +145,18 @@ export function useSupabaseLogin() {
         }
       }, 300);
     },
-    onError: (error: LoginError | Error) => {
+    onError: (error: LoginError | Error | unknown) => {
       console.error('[Login] خطأ في تسجيل الدخول:', error);
+      console.error('[Login] Error type:', typeof error);
+      console.error('[Login] Error instanceof Error:', error instanceof Error);
+      if (error && typeof error === 'object') {
+        console.error('[Login] Error keys:', Object.keys(error));
+        console.error('[Login] Error details:', {
+          message: (error as any).message,
+          code: (error as any).code,
+          stack: (error as any).stack,
+        });
+      }
     },
   });
 }

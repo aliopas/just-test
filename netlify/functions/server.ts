@@ -197,6 +197,46 @@ export default async (event: any, context: any) => {
       };
     }
     
+    // Ensure body is a valid JSON string
+    if (result.body) {
+      try {
+        // Validate that body is valid JSON if it's a string
+        if (typeof result.body === 'string') {
+          JSON.parse(result.body);
+        }
+      } catch (parseError) {
+        console.error('[Server Function] Invalid JSON in response body:', parseError);
+        return {
+          statusCode: 500,
+          body: JSON.stringify({
+            error: {
+              code: 'INTERNAL_ERROR',
+              message: 'Response body contains invalid JSON',
+            },
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        };
+      }
+    } else {
+      // If body is missing, ensure we have a valid JSON body
+      result.body = JSON.stringify({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Response body is missing',
+        },
+      });
+    }
+    
+    // Ensure Content-Type header is set for JSON responses
+    if (!result.headers) {
+      result.headers = {};
+    }
+    if (!result.headers['Content-Type'] && !result.headers['content-type']) {
+      result.headers['Content-Type'] = 'application/json';
+    }
+    
     return result;
   } catch (error) {
     console.error('[Server Function] Error:', error);
