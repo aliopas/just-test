@@ -37,14 +37,14 @@ async function fetchUnreadSignupRequestCountDirect(): Promise<{ unreadCount: num
   // Get viewed request IDs for this admin
   const { data: viewedRequests, error: viewedError } = await supabase
     .from('admin_signup_request_views')
-    .select('request_id')
+    .select('signup_request_id')
     .eq('admin_id', adminId);
 
   if (viewedError) {
     throw new Error(`خطأ في جلب الطلبات المقروءة: ${viewedError.message}`);
   }
 
-  const viewedIds = new Set((viewedRequests || []).map((v) => v.request_id));
+  const viewedIds = new Set((viewedRequests || []).map((v) => v.signup_request_id));
   const unreadCount = pendingRequests.filter((r) => !viewedIds.has(r.id)).length;
 
   return { unreadCount };
