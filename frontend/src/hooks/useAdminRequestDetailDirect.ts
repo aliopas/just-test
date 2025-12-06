@@ -191,6 +191,20 @@ async function fetchAdminRequestDetailDirect(requestId: string): Promise<AdminRe
   const profile = profileResult.data;
   const view = viewResult.data;
 
+  // Log for debugging
+  console.log('[useAdminRequestDetailDirect] Fetched data:', {
+    requestId,
+    hasUser: !!user,
+    hasProfile: !!profile,
+    userEmail: user?.email,
+    userPhone: user?.phone,
+    profileFullName: profile?.full_name,
+    profilePreferredName: profile?.preferred_name,
+    profileResidencyCountry: profile?.residency_country,
+    userError: userResult.error,
+    profileError: profileResult.error,
+  });
+
   // Fetch comment actors
   const commentActorIds = [...new Set(comments.map((c) => c.actor_id))];
   let commentActors: UserRow[] = [];

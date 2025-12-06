@@ -9,7 +9,7 @@ import { Logo } from '@/components/Logo';
 import { palette } from '@/styles/theme';
 import { useCompanyLogoUrl } from '@/hooks/useSupabaseTables';
 import { useNotifications } from '@/hooks/useNotifications';
-import { useUnreadSignupRequestCount } from '@/hooks/useAdminAccountRequests';
+import { useAdminAccountRequestsUnreadCountDirect } from '@/hooks/useAdminAccountRequestsUnreadCountDirect';
 
 const adminSidebarLinkBase: React.CSSProperties = {
   borderRadius: '0.85rem',
@@ -91,8 +91,8 @@ export function AdminSidebarNav() {
   const unreadNotificationsCount = notificationsMeta.unreadCount ?? 0;
   
   // Get unread signup requests count
-  const { data: signupRequestsData } = useUnreadSignupRequestCount();
-  const unreadSignupRequestsCount = (signupRequestsData as { unreadCount?: number } | undefined)?.unreadCount ?? 0;
+  const { data: signupRequestsData } = useAdminAccountRequestsUnreadCountDirect();
+  const unreadSignupRequestsCount = signupRequestsData?.unreadCount ?? 0;
 
   // Close sidebar on route change
   useEffect(() => {

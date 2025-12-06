@@ -1,11 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAdminRequestDetailDirect } from '../hooks/useAdminRequestDetailDirect';
+import {
+  useApproveRequestMutationDirect,
+  useRejectRequestMutationDirect,
+  useMoveToScreeningMutationDirect,
+  useMoveToComplianceReviewMutationDirect,
+  useMoveToPendingInfoMutationDirect,
+} from '../hooks/useAdminRequestMutationsDirect';
 import { useLanguage } from '../context/LanguageContext';
+import { useToast } from '../context/ToastContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
 import { tAdminRequests } from '../locales/adminRequests';
 import { RequestStatusBadge } from '../components/request/RequestStatusBadge';
 import { getStatusLabel } from '../utils/requestStatus';
+import type { RequestStatus } from '../types/request';
 
 export function AdminRequestDetailPage() {
   const searchParams = useSearchParams();
@@ -19,12 +28,197 @@ export function AdminRequestDetailPage() {
     : searchParams.get('id');
 
   const { data, isLoading, isError } = useAdminRequestDetailDirect(requestId);
+  const { pushToast } = useToast();
 
   const request = data?.request;
+
+  // Mutations
+  const approveMutation = useApproveRequestMutationDirect();
+  const rejectMutation = useRejectRequestMutationDirect();
+  const moveToScreeningMutation = useMoveToScreeningMutationDirect();
+  const moveToComplianceReviewMutation = useMoveToComplianceReviewMutationDirect();
+  const moveToPendingInfoMutation = useMoveToPendingInfoMutationDirect();
+
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [showPendingInfoDialog, setShowPendingInfoDialog] = useState(false);
+  const [rejectNote, setRejectNote] = useState('');
+  const [pendingInfoNote, setPendingInfoNote] = useState('');
 
   const goBack = () => {
     router.push('/admin/requests');
   };
+
+  // Helper to check if transition is allowed
+  const canTransition = (fromStatus: RequestStatus, toStatus: RequestStatus): boolean => {
+    const stateMachine: Record<RequestStatus, RequestStatus[]> = {
+      draft: ['submitted', 'screening', 'pending_info', 'compliance_review', 'approved', 'rejected'],
+      submitted: ['screening', 'pending_info', 'compliance_review', 'approved', 'rejected'],
+      screening: ['pending_info', 'compliance_review', 'approved', 'rejected'],
+      pending_info: ['screening', 'compliance_review', 'approved', 'rejected'],
+      compliance_review: ['approved', 'pending_info', 'rejected'],
+      approved: ['settling', 'rejected'],
+      settling: ['completed', 'rejected'],
+      completed: [],
+      rejected: [],
+    };
+    return stateMachine[fromStatus]?.includes(toStatus) ?? false;
+  };
+
+  // Get allowed actions for current status
+  const getAllowedActions = (status: RequestStatus) => {
+    const actions: Array<{ key: string; label: string; variant: 'primary' | 'danger' | 'secondary' }> = [];
+    
+    if (canTransition(status, 'approved')) {
+      actions.push({
+        key: 'approve',
+        label: language === 'ar' ? 'قبول' : 'Approve',
+        variant: 'primary',
+      });
+    }
+    
+    if (canTransition(status, 'rejected')) {
+      actions.push({
+        key: 'reject',
+        label: language === 'ar' ? 'رفض' : 'Reject',
+        variant: 'danger',
+      });
+    }
+    
+    if (canTransition(status, 'screening')) {
+      actions.push({
+        key: 'screening',
+        label: language === 'ar' ? 'نقل إلى المراجعة' : 'Move to Screening',
+        variant: 'secondary',
+      });
+    }
+    
+    if (canTransition(status, 'compliance_review')) {
+      actions.push({
+        key: 'compliance',
+        label: language === 'ar' ? 'نقل إلى مراجعة الامتثال' : 'Move to Compliance Review',
+        variant: 'secondary',
+      });
+    }
+    
+    if (canTransition(status, 'pending_info')) {
+      actions.push({
+        key: 'pending_info',
+        label: language === 'ar' ? 'طلب معلومات إضافية' : 'Request More Info',
+        variant: 'secondary',
+      });
+    }
+    
+    return actions;
+  };
+
+  const handleApprove = async () => {
+    if (!requestId) return;
+    
+    try {
+      await approveMutation.mutateAsync({ requestId });
+      pushToast({
+        message: language === 'ar' ? 'تمت الموافقة على الطلب بنجاح' : 'Request approved successfully',
+        variant: 'success',
+      });
+    } catch (error) {
+      pushToast({
+        message: error instanceof Error ? error.message : (language === 'ar' ? 'فشلت الموافقة على الطلب' : 'Failed to approve request'),
+        variant: 'error',
+      });
+    }
+  };
+
+  const handleReject = async () => {
+    if (!requestId || !rejectNote.trim()) {
+      pushToast({
+        message: language === 'ar' ? 'يرجى إدخال سبب الرفض' : 'Please enter a rejection reason',
+        variant: 'error',
+      });
+      return;
+    }
+    
+    try {
+      await rejectMutation.mutateAsync({ requestId, note: rejectNote });
+      pushToast({
+        message: language === 'ar' ? 'تم رفض الطلب بنجاح' : 'Request rejected successfully',
+        variant: 'success',
+      });
+      setShowRejectDialog(false);
+      setRejectNote('');
+    } catch (error) {
+      pushToast({
+        message: error instanceof Error ? error.message : (language === 'ar' ? 'فشل رفض الطلب' : 'Failed to reject request'),
+        variant: 'error',
+      });
+    }
+  };
+
+  const handleMoveToScreening = async () => {
+    if (!requestId) return;
+    
+    try {
+      await moveToScreeningMutation.mutateAsync({ requestId });
+      pushToast({
+        message: language === 'ar' ? 'تم نقل الطلب إلى المراجعة' : 'Request moved to screening',
+        variant: 'success',
+      });
+    } catch (error) {
+      pushToast({
+        message: error instanceof Error ? error.message : (language === 'ar' ? 'فشل نقل الطلب' : 'Failed to move request'),
+        variant: 'error',
+      });
+    }
+  };
+
+  const handleMoveToComplianceReview = async () => {
+    if (!requestId) return;
+    
+    try {
+      await moveToComplianceReviewMutation.mutateAsync({ requestId });
+      pushToast({
+        message: language === 'ar' ? 'تم نقل الطلب إلى مراجعة الامتثال' : 'Request moved to compliance review',
+        variant: 'success',
+      });
+    } catch (error) {
+      pushToast({
+        message: error instanceof Error ? error.message : (language === 'ar' ? 'فشل نقل الطلب' : 'Failed to move request'),
+        variant: 'error',
+      });
+    }
+  };
+
+  const handleMoveToPendingInfo = async () => {
+    if (!requestId || !pendingInfoNote.trim()) {
+      pushToast({
+        message: language === 'ar' ? 'يرجى إدخال رسالة طلب المعلومات' : 'Please enter a message requesting information',
+        variant: 'error',
+      });
+      return;
+    }
+    
+    try {
+      await moveToPendingInfoMutation.mutateAsync({ requestId, note: pendingInfoNote });
+      pushToast({
+        message: language === 'ar' ? 'تم طلب معلومات إضافية من المستثمر' : 'Information requested from investor',
+        variant: 'success',
+      });
+      setShowPendingInfoDialog(false);
+      setPendingInfoNote('');
+    } catch (error) {
+      pushToast({
+        message: error instanceof Error ? error.message : (language === 'ar' ? 'فشل طلب المعلومات' : 'Failed to request information'),
+        variant: 'error',
+      });
+    }
+  };
+
+  const allowedActions = request ? getAllowedActions(request.status) : [];
+  const isAnyMutationPending = 
+    approveMutation.isPending ||
+    rejectMutation.isPending ||
+    moveToScreeningMutation.isPending ||
+    moveToComplianceReviewMutation.isPending ||
+    moveToPendingInfoMutation.isPending;
 
   return (
     <div
@@ -365,6 +559,346 @@ export function AdminRequestDetailPage() {
                     : tAdminRequests('detail.noComments', language)}
                 </p>
               </div>
+
+              {/* Action Buttons */}
+              {allowedActions.length > 0 && (
+                <div
+                  style={{
+                    padding: '1.25rem 1.5rem',
+                    borderRadius: radius.lg,
+                    background: palette.backgroundBase,
+                    boxShadow: shadow.subtle,
+                    border: `1px solid ${palette.neutralBorderMuted}`,
+                  }}
+                >
+                  <h2
+                    style={{
+                      margin: 0,
+                      marginBottom: '1rem',
+                      fontSize: typography.sizes.subheading,
+                      fontWeight: typography.weights.semibold,
+                      color: palette.textPrimary,
+                    }}
+                  >
+                    {language === 'ar' ? 'إجراءات الطلب' : 'Request Actions'}
+                  </h2>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.75rem',
+                    }}
+                  >
+                    {allowedActions.map(action => {
+                      if (action.key === 'approve') {
+                        return (
+                          <button
+                            key={action.key}
+                            type="button"
+                            onClick={handleApprove}
+                            disabled={isAnyMutationPending}
+                            style={{
+                              padding: '0.75rem 1.25rem',
+                              borderRadius: radius.md,
+                              border: 'none',
+                              background: palette.success,
+                              color: '#FFFFFF',
+                              fontWeight: 600,
+                              cursor: isAnyMutationPending ? 'not-allowed' : 'pointer',
+                              opacity: isAnyMutationPending ? 0.6 : 1,
+                              fontSize: typography.sizes.body,
+                            }}
+                          >
+                            {approveMutation.isPending
+                              ? (language === 'ar' ? 'جاري الموافقة...' : 'Approving...')
+                              : action.label}
+                          </button>
+                        );
+                      }
+                      
+                      if (action.key === 'reject') {
+                        return (
+                          <div key={action.key}>
+                            <button
+                              type="button"
+                              onClick={() => setShowRejectDialog(true)}
+                              disabled={isAnyMutationPending}
+                              style={{
+                                width: '100%',
+                                padding: '0.75rem 1.25rem',
+                                borderRadius: radius.md,
+                                border: 'none',
+                                background: palette.error,
+                                color: '#FFFFFF',
+                                fontWeight: 600,
+                                cursor: isAnyMutationPending ? 'not-allowed' : 'pointer',
+                                opacity: isAnyMutationPending ? 0.6 : 1,
+                                fontSize: typography.sizes.body,
+                              }}
+                            >
+                              {action.label}
+                            </button>
+                            {showRejectDialog && (
+                              <div
+                                style={{
+                                  marginTop: '1rem',
+                                  padding: '1rem',
+                                  borderRadius: radius.md,
+                                  background: palette.backgroundSurface,
+                                  border: `1px solid ${palette.error}33`,
+                                }}
+                              >
+                                <label
+                                  style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontSize: typography.sizes.caption,
+                                    fontWeight: 600,
+                                    color: palette.textPrimary,
+                                  }}
+                                >
+                                  {language === 'ar' ? 'سبب الرفض (مطلوب)' : 'Rejection Reason (Required)'}
+                                </label>
+                                <textarea
+                                  value={rejectNote}
+                                  onChange={e => setRejectNote(e.target.value)}
+                                  style={{
+                                    width: '100%',
+                                    padding: '0.75rem',
+                                    borderRadius: radius.md,
+                                    border: `1px solid ${palette.neutralBorderSoft}`,
+                                    background: palette.backgroundBase,
+                                    color: palette.textPrimary,
+                                    fontSize: typography.sizes.body,
+                                    minHeight: '100px',
+                                    resize: 'vertical',
+                                    fontFamily: 'inherit',
+                                  }}
+                                  placeholder={language === 'ar' ? 'أدخل سبب الرفض...' : 'Enter rejection reason...'}
+                                />
+                                <div
+                                  style={{
+                                    display: 'flex',
+                                    gap: '0.5rem',
+                                    marginTop: '0.75rem',
+                                    justifyContent: direction === 'rtl' ? 'flex-start' : 'flex-end',
+                                  }}
+                                >
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setShowRejectDialog(false);
+                                      setRejectNote('');
+                                    }}
+                                    style={{
+                                      padding: '0.5rem 1rem',
+                                      borderRadius: radius.md,
+                                      border: `1px solid ${palette.neutralBorderSoft}`,
+                                      background: palette.backgroundBase,
+                                      color: palette.textPrimary,
+                                      cursor: 'pointer',
+                                      fontSize: typography.sizes.caption,
+                                    }}
+                                  >
+                                    {language === 'ar' ? 'إلغاء' : 'Cancel'}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={handleReject}
+                                    disabled={isAnyMutationPending || !rejectNote.trim()}
+                                    style={{
+                                      padding: '0.5rem 1rem',
+                                      borderRadius: radius.md,
+                                      border: 'none',
+                                      background: palette.error,
+                                      color: '#FFFFFF',
+                                      fontWeight: 600,
+                                      cursor: isAnyMutationPending || !rejectNote.trim() ? 'not-allowed' : 'pointer',
+                                      opacity: isAnyMutationPending || !rejectNote.trim() ? 0.6 : 1,
+                                      fontSize: typography.sizes.caption,
+                                    }}
+                                  >
+                                    {rejectMutation.isPending
+                                      ? (language === 'ar' ? 'جاري الرفض...' : 'Rejecting...')
+                                      : (language === 'ar' ? 'تأكيد الرفض' : 'Confirm Reject')}
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }
+                      
+                      if (action.key === 'screening') {
+                        return (
+                          <button
+                            key={action.key}
+                            type="button"
+                            onClick={handleMoveToScreening}
+                            disabled={isAnyMutationPending}
+                            style={{
+                              padding: '0.75rem 1.25rem',
+                              borderRadius: radius.md,
+                              border: `1px solid ${palette.neutralBorderSoft}`,
+                              background: palette.backgroundBase,
+                              color: palette.textPrimary,
+                              fontWeight: 600,
+                              cursor: isAnyMutationPending ? 'not-allowed' : 'pointer',
+                              opacity: isAnyMutationPending ? 0.6 : 1,
+                              fontSize: typography.sizes.body,
+                            }}
+                          >
+                            {moveToScreeningMutation.isPending
+                              ? (language === 'ar' ? 'جاري النقل...' : 'Moving...')
+                              : action.label}
+                          </button>
+                        );
+                      }
+                      
+                      if (action.key === 'compliance') {
+                        return (
+                          <button
+                            key={action.key}
+                            type="button"
+                            onClick={handleMoveToComplianceReview}
+                            disabled={isAnyMutationPending}
+                            style={{
+                              padding: '0.75rem 1.25rem',
+                              borderRadius: radius.md,
+                              border: `1px solid ${palette.neutralBorderSoft}`,
+                              background: palette.backgroundBase,
+                              color: palette.textPrimary,
+                              fontWeight: 600,
+                              cursor: isAnyMutationPending ? 'not-allowed' : 'pointer',
+                              opacity: isAnyMutationPending ? 0.6 : 1,
+                              fontSize: typography.sizes.body,
+                            }}
+                          >
+                            {moveToComplianceReviewMutation.isPending
+                              ? (language === 'ar' ? 'جاري النقل...' : 'Moving...')
+                              : action.label}
+                          </button>
+                        );
+                      }
+                      
+                      if (action.key === 'pending_info') {
+                        return (
+                          <div key={action.key}>
+                            <button
+                              type="button"
+                              onClick={() => setShowPendingInfoDialog(true)}
+                              disabled={isAnyMutationPending}
+                              style={{
+                                width: '100%',
+                                padding: '0.75rem 1.25rem',
+                                borderRadius: radius.md,
+                                border: `1px solid ${palette.neutralBorderSoft}`,
+                                background: palette.backgroundBase,
+                                color: palette.textPrimary,
+                                fontWeight: 600,
+                                cursor: isAnyMutationPending ? 'not-allowed' : 'pointer',
+                                opacity: isAnyMutationPending ? 0.6 : 1,
+                                fontSize: typography.sizes.body,
+                              }}
+                            >
+                              {action.label}
+                            </button>
+                            {showPendingInfoDialog && (
+                              <div
+                                style={{
+                                  marginTop: '1rem',
+                                  padding: '1rem',
+                                  borderRadius: radius.md,
+                                  background: palette.backgroundSurface,
+                                  border: `1px solid ${palette.brandPrimary}33`,
+                                }}
+                              >
+                                <label
+                                  style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontSize: typography.sizes.caption,
+                                    fontWeight: 600,
+                                    color: palette.textPrimary,
+                                  }}
+                                >
+                                  {language === 'ar' ? 'رسالة طلب المعلومات (مطلوب)' : 'Information Request Message (Required)'}
+                                </label>
+                                <textarea
+                                  value={pendingInfoNote}
+                                  onChange={e => setPendingInfoNote(e.target.value)}
+                                  style={{
+                                    width: '100%',
+                                    padding: '0.75rem',
+                                    borderRadius: radius.md,
+                                    border: `1px solid ${palette.neutralBorderSoft}`,
+                                    background: palette.backgroundBase,
+                                    color: palette.textPrimary,
+                                    fontSize: typography.sizes.body,
+                                    minHeight: '100px',
+                                    resize: 'vertical',
+                                    fontFamily: 'inherit',
+                                  }}
+                                  placeholder={language === 'ar' ? 'أدخل رسالة طلب المعلومات من المستثمر...' : 'Enter message requesting information from investor...'}
+                                />
+                                <div
+                                  style={{
+                                    display: 'flex',
+                                    gap: '0.5rem',
+                                    marginTop: '0.75rem',
+                                    justifyContent: direction === 'rtl' ? 'flex-start' : 'flex-end',
+                                  }}
+                                >
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setShowPendingInfoDialog(false);
+                                      setPendingInfoNote('');
+                                    }}
+                                    style={{
+                                      padding: '0.5rem 1rem',
+                                      borderRadius: radius.md,
+                                      border: `1px solid ${palette.neutralBorderSoft}`,
+                                      background: palette.backgroundBase,
+                                      color: palette.textPrimary,
+                                      cursor: 'pointer',
+                                      fontSize: typography.sizes.caption,
+                                    }}
+                                  >
+                                    {language === 'ar' ? 'إلغاء' : 'Cancel'}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={handleMoveToPendingInfo}
+                                    disabled={isAnyMutationPending || !pendingInfoNote.trim()}
+                                    style={{
+                                      padding: '0.5rem 1rem',
+                                      borderRadius: radius.md,
+                                      border: 'none',
+                                      background: palette.brandPrimary,
+                                      color: '#FFFFFF',
+                                      fontWeight: 600,
+                                      cursor: isAnyMutationPending || !pendingInfoNote.trim() ? 'not-allowed' : 'pointer',
+                                      opacity: isAnyMutationPending || !pendingInfoNote.trim() ? 0.6 : 1,
+                                      fontSize: typography.sizes.caption,
+                                    }}
+                                  >
+                                    {moveToPendingInfoMutation.isPending
+                                      ? (language === 'ar' ? 'جاري الإرسال...' : 'Sending...')
+                                      : (language === 'ar' ? 'إرسال الطلب' : 'Send Request')}
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }
+                      
+                      return null;
+                    })}
+                  </div>
+                </div>
+              )}
             </section>
           </main>
         )}

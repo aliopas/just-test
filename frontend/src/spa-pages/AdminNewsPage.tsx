@@ -4,16 +4,18 @@ import { palette, radius, shadow, typography } from '../styles/theme';
 import { tAdminNews } from '../locales/adminNews';
 import type { AdminNewsItem, AdminNewsListFilters } from '../types/news';
 import {
-  useAdminNewsDetail,
-  useApproveNewsMutation,
-  useRejectNewsMutation,
-  useCreateNewsMutation,
-  useUpdateNewsMutation,
-  useDeleteNewsMutation,
-  useNewsImagePresignMutation,
-  useNewsAttachmentPresignMutation,
-  usePublishScheduledMutation,
-} from '../hooks/useAdminNews';
+  useApproveNewsMutationDirect,
+  useRejectNewsMutationDirect,
+  useCreateNewsMutationDirect,
+  useUpdateNewsMutationDirect,
+  useDeleteNewsMutationDirect,
+  usePublishScheduledMutationDirect,
+} from '../hooks/useAdminNewsMutationsDirect';
+import { useAdminNewsDetailDirect } from '../hooks/useAdminNewsDetailDirect';
+import {
+  useNewsImagePresignMutationDirect,
+  useNewsAttachmentPresignMutationDirect,
+} from '../hooks/useNewsStorageDirect';
 import { useAdminNewsListDirect } from '../hooks/useAdminNewsDirect';
 import { AdminNewsTable } from '../components/admin/news/AdminNewsTable';
 import { AdminNewsFormDrawer } from '../components/admin/news/AdminNewsFormDrawer';
@@ -29,14 +31,14 @@ export function AdminNewsPage() {
   });
 
   const { data, isLoading, isError, refetch } = useAdminNewsListDirect(filters);
-  const approveMutation = useApproveNewsMutation();
-  const rejectMutation = useRejectNewsMutation();
-  const createMutation = useCreateNewsMutation();
-  const updateMutation = useUpdateNewsMutation();
-  const deleteMutation = useDeleteNewsMutation();
-  const imagePresignMutation = useNewsImagePresignMutation();
-  const attachmentPresignMutation = useNewsAttachmentPresignMutation();
-  const publishScheduledMutation = usePublishScheduledMutation();
+  const approveMutation = useApproveNewsMutationDirect();
+  const rejectMutation = useRejectNewsMutationDirect();
+  const createMutation = useCreateNewsMutationDirect();
+  const updateMutation = useUpdateNewsMutationDirect();
+  const deleteMutation = useDeleteNewsMutationDirect();
+  const publishScheduledMutation = usePublishScheduledMutationDirect();
+  const imagePresignMutation = useNewsImagePresignMutationDirect();
+  const attachmentPresignMutation = useNewsAttachmentPresignMutationDirect();
 
   const newsItems = data?.news ?? [];
   const meta = data?.meta ?? {
@@ -51,7 +53,7 @@ export function AdminNewsPage() {
   const [drawerMode, setDrawerMode] = useState<'create' | 'edit'>('create');
   const [selectedNewsId, setSelectedNewsId] = useState<string | null>(null);
 
-  const detailQuery = useAdminNewsDetail(selectedNewsId);
+  const detailQuery = useAdminNewsDetailDirect(selectedNewsId);
 
   const handleStatusFilterChange = (status: AdminNewsListFilters['status']) => {
     setFilters(prev => ({
@@ -495,6 +497,7 @@ export function AdminNewsPage() {
             fileName: file.name,
             fileType: file.type,
             fileSize: file.size,
+            file,
           });
           return result;
         }}
@@ -503,6 +506,7 @@ export function AdminNewsPage() {
             fileName: file.name,
             fileType: file.type,
             fileSize: file.size,
+            file,
           });
           return result;
         }}
