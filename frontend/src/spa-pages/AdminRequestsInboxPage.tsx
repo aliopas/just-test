@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAdminRequests } from '../hooks/useAdminRequests';
+import { useAdminRequestsDirect } from '../hooks/useAdminRequestsDirect';
 import type { AdminRequestFilters } from '../types/admin';
 import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
@@ -27,7 +27,7 @@ export function AdminRequestsInboxPage() {
     isFetching,
     error,
     refetch,
-  } = useAdminRequests(filters);
+  } = useAdminRequestsDirect(filters);
 
   const handlePageChange = (page: number) => {
     setFilters(prev => ({ ...prev, page }));

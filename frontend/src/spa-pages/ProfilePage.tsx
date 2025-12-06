@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
-import { useInvestorProfile } from '../hooks/useInvestorProfile';
+import { useInvestorProfileDirect } from '../hooks/useInvestorProfileDirect';
 import { getMessage } from '../locales/investorProfile';
 import type {
   InvestorProfile,
@@ -23,7 +23,7 @@ export function ProfilePage() {
     updateProfile,
     isUpdating,
     updateError,
-  } = useInvestorProfile();
+  } = useInvestorProfileDirect();
 
   const [activeTab, setActiveTab] = useState<TabType>('basic');
   const [isEditing, setIsEditing] = useState(false);

@@ -1,13 +1,13 @@
 import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
-import { useInvestorDashboard } from '../hooks/useInvestorDashboard';
+import { useInvestorDashboardDirect } from '../hooks/useInvestorDashboardDirect';
 import { useNextNavigate } from '../utils/next-router';
 
 export function HomePage() {
   const { language, direction } = useLanguage();
   const navigate = useNextNavigate();
-  const { data: dashboardData, isLoading } = useInvestorDashboard();
+  const { data: dashboardData, isLoading } = useInvestorDashboardDirect();
 
   const quickActions = [
     {

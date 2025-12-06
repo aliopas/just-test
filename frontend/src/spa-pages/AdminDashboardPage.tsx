@@ -1,12 +1,12 @@
 import React from 'react';
-import { useAdminDashboardStats } from '../hooks/useAdminDashboardStats';
+import { useAdminDashboardStatsDirect } from '../hooks/useAdminDashboardStatsDirect';
 import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
 import { tAdminDashboard } from '../locales/adminDashboard';
 
 export function AdminDashboardPage() {
   const { language, direction } = useLanguage();
-  const { data, isLoading, isError } = useAdminDashboardStats();
+  const { data, isLoading, isError } = useAdminDashboardStatsDirect();
 
   const summary = data?.summary;
 

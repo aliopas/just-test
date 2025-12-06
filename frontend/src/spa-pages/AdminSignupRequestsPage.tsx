@@ -4,10 +4,10 @@ import { palette, radius, shadow, typography } from '../styles/theme';
 import { tAdminRequests } from '../locales/adminRequests';
 import type { AdminSignupRequestFilters, AdminSignupRequest } from '../types/admin-account-request';
 import {
-  useAdminAccountRequests,
   useApproveAccountRequestMutation,
   useRejectAccountRequestMutation,
 } from '../hooks/useAdminAccountRequests';
+import { useAdminAccountRequestsDirect } from '../hooks/useAdminAccountRequestsDirect';
 
 export function AdminSignupRequestsPage() {
   const { language, direction } = useLanguage();
@@ -18,7 +18,7 @@ export function AdminSignupRequestsPage() {
     search: '',
   });
 
-  const { data, isLoading, isError, refetch } = useAdminAccountRequests(filters);
+  const { data, isLoading, isError, refetch } = useAdminAccountRequestsDirect(filters);
   const approveMutation = useApproveAccountRequestMutation();
   const rejectMutation = useRejectAccountRequestMutation();
 

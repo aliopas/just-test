@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
-import { useInvestorRequests } from '../hooks/useInvestorRequests';
+import { useInvestorRequestsDirect } from '../hooks/useInvestorRequestsDirect';
 import { tRequestList } from '../locales/requestList';
 import type { RequestStatus, RequestType } from '../types/request';
 import { useNextNavigate } from '../utils/next-router';
@@ -13,7 +13,7 @@ export function MyRequestsPage() {
   const [typeFilter, setTypeFilter] = useState<RequestType | 'all'>('all');
   const [page, setPage] = useState(1);
 
-  const { requests, meta, isLoading, isError, refetch } = useInvestorRequests({
+  const { requests, meta, isLoading, isError, refetch } = useInvestorRequestsDirect({
     status: statusFilter,
     type: typeFilter,
     page,

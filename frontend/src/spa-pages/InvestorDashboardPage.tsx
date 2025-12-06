@@ -1,13 +1,13 @@
 import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
-import { useInvestorDashboard } from '../hooks/useInvestorDashboard';
+import { useInvestorDashboardDirect } from '../hooks/useInvestorDashboardDirect';
 import type { DashboardRecentRequest, DashboardRequestSummary } from '../types/dashboard';
 import type { RequestStatus } from '../types/request';
 
 export function InvestorDashboardPage() {
   const { language, direction } = useLanguage();
-  const { data, isLoading, isError, refetch } = useInvestorDashboard();
+  const { data, isLoading, isError, refetch } = useInvestorDashboardDirect();
 
   const summary: DashboardRequestSummary | undefined = data?.requestSummary;
   const recent = data?.recentRequests ?? [];
