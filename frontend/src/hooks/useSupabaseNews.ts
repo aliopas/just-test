@@ -6,8 +6,8 @@
 
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useNews, useNewsById, useNewsBySlug, useNewsCount, type NewsItem } from './useSupabaseTables';
-import { getStoragePublicUrl, NEWS_IMAGES_BUCKET } from '../utils/supabase-storage';
-import type { InvestorInternalNewsAttachment } from '../types/news';
+import { getStoragePublicUrl, getStorageSignedUrl, NEWS_IMAGES_BUCKET } from '../utils/supabase-storage';
+import type { InvestorInternalNewsAttachment, InvestorInternalNewsListResponse } from '../types/news';
 
 // Helper function to create excerpt from markdown
 function createExcerpt(bodyMd: string, maxLength: number = 150): string {
@@ -29,13 +29,17 @@ function createExcerpt(bodyMd: string, maxLength: number = 150): string {
 }
 
 // Helper function to parse attachments from unknown type
-function parseAttachments(attachments: unknown): InvestorInternalNewsAttachment[] {
+// For internal news, attachments are stored in 'internal-news-assets' bucket
+async function parseAttachments(attachments: unknown, isInternal: boolean = false): Promise<InvestorInternalNewsAttachment[]> {
   if (!Array.isArray(attachments)) {
     return [];
   }
 
-  return attachments
-    .map((item) => {
+  const INTERNAL_NEWS_BUCKET = 'internal-news-assets';
+  const bucket = isInternal ? INTERNAL_NEWS_BUCKET : NEWS_IMAGES_BUCKET;
+
+  const parsed = await Promise.all(
+    attachments.map(async (item) => {
       if (!item || typeof item !== 'object') {
         return null;
       }
@@ -59,7 +63,23 @@ function parseAttachments(attachments: unknown): InvestorInternalNewsAttachment[
           : null;
       const type = record.type === 'image' ? 'image' : 'document';
 
-      const downloadUrl = getStoragePublicUrl(NEWS_IMAGES_BUCKET, storageKey);
+      // For internal news, use signed URLs (private bucket)
+      // For public news, use public URLs
+      let downloadUrl: string | null = null;
+      try {
+        if (isInternal) {
+          // Internal news uses private bucket, need signed URL
+          // storageKey might already include bucket name (e.g., "internal-news-assets/file.pdf")
+          // or just be the path (e.g., "file.pdf")
+          downloadUrl = await getStorageSignedUrl(bucket, storageKey, 3600);
+        } else {
+          // Public news uses public bucket
+          downloadUrl = getStoragePublicUrl(bucket, storageKey);
+        }
+      } catch (error) {
+        console.error('Error getting download URL for attachment:', error);
+        downloadUrl = null;
+      }
 
       return {
         id,
@@ -71,22 +91,73 @@ function parseAttachments(attachments: unknown): InvestorInternalNewsAttachment[
         downloadUrl,
       } satisfies InvestorInternalNewsAttachment;
     })
-    .filter((item): item is InvestorInternalNewsAttachment => item !== null);
+  );
+
+  return parsed.filter((item): item is InvestorInternalNewsAttachment => item !== null);
 }
 
-// Transform NewsItem to match InvestorNewsListResponse format
-function transformNewsItem(item: NewsItem, language: 'ar' | 'en' = 'ar') {
-  return {
-    id: item.id,
-    title: item.title,
-    slug: item.slug,
-    excerpt: createExcerpt(item.body_md),
-    coverKey: item.cover_key,
-    coverUrl: item.cover_key ? getStoragePublicUrl(NEWS_IMAGES_BUCKET, item.cover_key) : null,
-    publishedAt: item.published_at || item.created_at,
-    createdAt: item.created_at,
-    attachments: parseAttachments(item.attachments),
-  };
+// Transform NewsItem to match NewsListResponse format (for public news)
+async function transformPublicNewsItem(item: NewsItem) {
+  try {
+    const attachments = await parseAttachments(item.attachments, false);
+    const excerpt = createExcerpt(item.body_md);
+    
+    return {
+      id: item.id,
+      title: item.title,
+      slug: item.slug,
+      excerpt,
+      coverKey: item.cover_key,
+      coverUrl: item.cover_key ? getStoragePublicUrl(NEWS_IMAGES_BUCKET, item.cover_key) : null,
+      publishedAt: item.published_at || item.created_at,
+      createdAt: item.created_at,
+      attachments,
+    };
+  } catch (error) {
+    console.error('Error transforming public news item:', error);
+    // Return item with empty attachments on error
+    return {
+      id: item.id,
+      title: item.title,
+      slug: item.slug,
+      excerpt: createExcerpt(item.body_md),
+      coverKey: item.cover_key,
+      coverUrl: item.cover_key ? getStoragePublicUrl(NEWS_IMAGES_BUCKET, item.cover_key) : null,
+      publishedAt: item.published_at || item.created_at,
+      createdAt: item.created_at,
+      attachments: [],
+    };
+  }
+}
+
+// Transform NewsItem to match InvestorInternalNewsItem format (for internal news)
+async function transformInternalNewsItem(item: NewsItem) {
+  try {
+    const attachments = await parseAttachments(item.attachments, true);
+    const excerpt = createExcerpt(item.body_md);
+    
+    return {
+      id: item.id,
+      title: item.title,
+      slug: item.slug,
+      excerpt: excerpt || null,
+      coverKey: item.cover_key,
+      publishedAt: item.published_at || item.created_at,
+      attachments,
+    };
+  } catch (error) {
+    console.error('Error transforming internal news item:', error);
+    // Return item with empty attachments on error
+    return {
+      id: item.id,
+      title: item.title,
+      slug: item.slug,
+      excerpt: createExcerpt(item.body_md) || null,
+      coverKey: item.cover_key,
+      publishedAt: item.published_at || item.created_at,
+      attachments: [],
+    };
+  }
 }
 
 export interface NewsListResponse {
@@ -150,8 +221,25 @@ export function useInvestorNewsList(options?: {
 
   return useQuery<NewsListResponse>({
     queryKey: ['investorNews', 'list', { page, limit }],
-    queryFn: () => {
-      const transformedNews = (news || []).map(item => transformNewsItem(item));
+    queryFn: async () => {
+      if (!news || news.length === 0) {
+        const total = totalCount || 0;
+        const pageCount = Math.ceil(total / limit) || 0;
+        return {
+          news: [],
+          meta: {
+            page,
+            limit,
+            total,
+            pageCount,
+            hasNext: page < pageCount,
+          },
+        };
+      }
+
+      const transformedNews = await Promise.all(
+        news.map(item => transformPublicNewsItem(item))
+      );
       const total = totalCount || 0;
       const pageCount = Math.ceil(total / limit) || 0;
 
@@ -166,7 +254,7 @@ export function useInvestorNewsList(options?: {
         },
       };
     },
-    enabled: typeof window !== 'undefined',
+    enabled: typeof window !== 'undefined' && news !== undefined,
     placeholderData: keepPreviousData,
     refetchInterval: 30000, // Refetch every 30 seconds
   });
@@ -221,18 +309,35 @@ export function useInvestorInternalNewsList(options?: {
   const page = options?.page ?? DEFAULT_PAGE;
   const limit = options?.limit ?? DEFAULT_LIMIT;
 
-  const { data: news, isLoading, isError, error, refetch } = useNews({
+  const { data: news, isLoading: isLoadingNews, isError: isErrorNews, error: errorNews, refetch: refetchNews } = useNews({
     page,
     limit,
     audience: 'investor_internal',
   });
 
-  const { data: totalCount } = useNewsCount('investor_internal');
+  const { data: totalCount, isLoading: isLoadingCount } = useNewsCount('investor_internal');
 
-  return useQuery<NewsListResponse>({
+  const queryResult = useQuery<InvestorInternalNewsListResponse>({
     queryKey: ['investorInternalNews', 'list', { page, limit }],
-    queryFn: () => {
-      const transformedNews = (news || []).map(item => transformNewsItem(item));
+    queryFn: async () => {
+      if (!news || news.length === 0) {
+        const total = totalCount || 0;
+        const pageCount = Math.ceil(total / limit) || 0;
+        return {
+          news: [],
+          meta: {
+            page,
+            limit,
+            total,
+            pageCount,
+            hasNext: page < pageCount,
+          },
+        };
+      }
+
+      const transformedNews = await Promise.all(
+        news.map(item => transformInternalNewsItem(item))
+      );
       const total = totalCount || 0;
       const pageCount = Math.ceil(total / limit) || 0;
 
@@ -247,10 +352,22 @@ export function useInvestorInternalNewsList(options?: {
         },
       };
     },
-    enabled: typeof window !== 'undefined',
+    enabled: typeof window !== 'undefined' && news !== undefined && totalCount !== undefined,
     placeholderData: keepPreviousData,
     refetchInterval: 30000,
   });
+
+  // Combine loading and error states from both hooks
+  return {
+    ...queryResult,
+    isLoading: queryResult.isLoading || isLoadingNews || isLoadingCount,
+    isError: queryResult.isError || isErrorNews,
+    error: queryResult.error || errorNews,
+    refetch: () => {
+      refetchNews();
+      return queryResult.refetch();
+    },
+  };
 }
 
 /**
