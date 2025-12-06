@@ -39,8 +39,8 @@ interface ContentSection {
 
 function getSectionIcon(sectionId: string, color: string): React.ReactElement | null {
   const iconProps = {
-    width: 80,
-    height: 80,
+    width: 56,
+    height: 56,
     viewBox: '0 0 64 64',
     fill: 'none',
     xmlns: 'http://www.w3.org/2000/svg',
@@ -549,75 +549,99 @@ export function CompanyContentSection() {
         >
           <div
             style={{
-              width: '120px',
-              height: '120px',
-              margin: '0 auto 2.5rem',
-              borderRadius: '28px',
-              background: `linear-gradient(135deg, ${palette.brandPrimaryStrong}15 0%, ${palette.brandSecondarySoft}25 100%)`,
-              border: `3px solid ${palette.brandPrimaryStrong}30`,
               display: 'flex',
+              flexDirection: isArabic ? 'row-reverse' : 'row',
               alignItems: 'center',
-              justifyContent: 'center',
-              position: 'relative',
-              transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-              boxShadow: `
+              gap: '1.5rem',
+              marginBottom: '3rem',
+              flexWrap: 'wrap',
+            }}
+          >
+            <div
+              style={{
+                width: '80px',
+                height: '80px',
+                flexShrink: 0,
+                borderRadius: '20px',
+                background: `linear-gradient(135deg, ${palette.brandPrimaryStrong}15 0%, ${palette.brandSecondarySoft}25 100%)`,
+                border: `3px solid ${palette.brandPrimaryStrong}30`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
+                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                boxShadow: `
                 0 8px 24px rgba(45, 111, 163, 0.12),
                 0 4px 12px rgba(45, 111, 163, 0.08),
                 inset 0 1px 0 rgba(255, 255, 255, 0.1)
               `,
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-8px) scale(1.05)';
-              e.currentTarget.style.background = `linear-gradient(135deg, ${palette.brandPrimaryStrong}25 0%, ${palette.brandSecondarySoft}35 100%)`;
-              e.currentTarget.style.borderColor = `${palette.brandPrimaryStrong}60`;
-              e.currentTarget.style.boxShadow = `
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px) scale(1.05)';
+                e.currentTarget.style.background = `linear-gradient(135deg, ${palette.brandPrimaryStrong}25 0%, ${palette.brandSecondarySoft}35 100%)`;
+                e.currentTarget.style.borderColor = `${palette.brandPrimaryStrong}60`;
+                e.currentTarget.style.boxShadow = `
                 0 16px 40px rgba(45, 111, 163, 0.2),
                 0 8px 20px rgba(45, 111, 163, 0.15),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2)
               `;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0) scale(1)';
-              e.currentTarget.style.background = `linear-gradient(135deg, ${palette.brandPrimaryStrong}15 0%, ${palette.brandSecondarySoft}25 100%)`;
-              e.currentTarget.style.borderColor = `${palette.brandPrimaryStrong}30`;
-              e.currentTarget.style.boxShadow = `
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                e.currentTarget.style.background = `linear-gradient(135deg, ${palette.brandPrimaryStrong}15 0%, ${palette.brandSecondarySoft}25 100%)`;
+                e.currentTarget.style.borderColor = `${palette.brandPrimaryStrong}30`;
+                e.currentTarget.style.boxShadow = `
                 0 8px 24px rgba(45, 111, 163, 0.12),
                 0 4px 12px rgba(45, 111, 163, 0.08),
                 inset 0 1px 0 rgba(255, 255, 255, 0.1)
               `;
-            }}
-            aria-label={section.title}
-          >
-            <div
-              style={{
-                position: 'relative',
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
               }}
+              aria-label={section.title}
             >
-              {getSectionIcon(section.id, palette.brandPrimaryStrong)}
-              {/* Decorative glow effect */}
               <div
                 style={{
-                  position: 'absolute',
-                  inset: '-4px',
-                  borderRadius: '32px',
-                  background: `radial-gradient(circle at center, ${palette.brandPrimaryStrong}20 0%, transparent 70%)`,
-                  opacity: 0,
-                  transition: 'opacity 0.4s ease',
-                  pointerEvents: 'none',
+                  position: 'relative',
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.opacity = '1';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.opacity = '0';
-                }}
-              />
+              >
+                {getSectionIcon(section.id, palette.brandPrimaryStrong)}
+                {/* Decorative glow effect */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: '-4px',
+                    borderRadius: '24px',
+                    background: `radial-gradient(circle at center, ${palette.brandPrimaryStrong}20 0%, transparent 70%)`,
+                    opacity: 0,
+                    transition: 'opacity 0.4s ease',
+                    pointerEvents: 'none',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.opacity = '1';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.opacity = '0';
+                  }}
+                />
+              </div>
             </div>
+            <h2
+              style={{
+                margin: 0,
+                fontSize: '1.75rem',
+                fontWeight: 700,
+                color: palette.textPrimary,
+                letterSpacing: isArabic ? 0 : '-0.02em',
+                flex: 1,
+                minWidth: '200px',
+              }}
+            >
+              {section.title}
+            </h2>
           </div>
 
           <div

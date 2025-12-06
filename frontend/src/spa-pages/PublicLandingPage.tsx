@@ -254,7 +254,9 @@ export function PublicLandingPage() {
 
         <section
           style={{
-            marginTop: '1rem',
+            maxWidth: '1200px',
+            margin: '2.5rem auto 0',
+            padding: '0 1.5rem',
           }}
         >
           <CompanyContentSection />
