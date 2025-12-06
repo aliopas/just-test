@@ -160,11 +160,35 @@ export default async (event: any, context: any) => {
       };
     }
 
-    const result = await serverlessHandler(event, context);
-    console.log('[Server Function] Handler returned:', result?.statusCode);
+    let result: any;
+    try {
+      result = await serverlessHandler(event, context);
+    } catch (handlerError) {
+      console.error('[Server Function] Handler threw an error:', handlerError);
+      return {
+        statusCode: 500,
+        body: JSON.stringify({
+          error: {
+            code: 'INTERNAL_ERROR',
+            message: 'Handler execution failed',
+            details: handlerError instanceof Error ? handlerError.message : 'Unknown error',
+          },
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      };
+    }
+    
+    console.log('[Server Function] Handler returned:', {
+      hasResult: !!result,
+      statusCode: result?.statusCode,
+      hasBody: !!result?.body,
+      hasHeaders: !!result?.headers,
+    });
     
     // Ensure we always return a proper response object
-    if (!result) {
+    if (!result || result === undefined || result === null) {
       console.error('[Server Function] Handler returned undefined/null');
       return {
         statusCode: 500,
@@ -181,8 +205,24 @@ export default async (event: any, context: any) => {
     }
     
     // Ensure result has required properties
-    if (!result.statusCode) {
-      console.error('[Server Function] Handler returned response without statusCode');
+    if (!result || typeof result !== 'object') {
+      console.error('[Server Function] Handler returned invalid result type:', typeof result);
+      return {
+        statusCode: 500,
+        body: JSON.stringify({
+          error: {
+            code: 'INTERNAL_ERROR',
+            message: 'Handler returned an invalid response type',
+          },
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      };
+    }
+    
+    if (!result.statusCode || typeof result.statusCode !== 'number') {
+      console.error('[Server Function] Handler returned response without valid statusCode:', result.statusCode);
       return {
         statusCode: 500,
         body: JSON.stringify({
@@ -198,11 +238,17 @@ export default async (event: any, context: any) => {
     }
     
     // Ensure body is a valid JSON string
-    if (result.body) {
+    if (result.body !== undefined && result.body !== null) {
       try {
         // Validate that body is valid JSON if it's a string
         if (typeof result.body === 'string') {
-          JSON.parse(result.body);
+          // Try to parse to validate JSON
+          if (result.body.trim() !== '') {
+            JSON.parse(result.body);
+          }
+        } else if (typeof result.body === 'object') {
+          // If body is an object, stringify it
+          result.body = JSON.stringify(result.body);
         }
       } catch (parseError) {
         console.error('[Server Function] Invalid JSON in response body:', parseError);
@@ -230,14 +276,27 @@ export default async (event: any, context: any) => {
     }
     
     // Ensure Content-Type header is set for JSON responses
-    if (!result.headers) {
+    if (!result.headers || typeof result.headers !== 'object') {
       result.headers = {};
     }
     if (!result.headers['Content-Type'] && !result.headers['content-type']) {
       result.headers['Content-Type'] = 'application/json';
     }
     
-    return result;
+    // Ensure we return a proper response object
+    const response = {
+      statusCode: result.statusCode,
+      body: result.body,
+      headers: result.headers || {},
+    };
+    
+    console.log('[Server Function] Returning response:', {
+      statusCode: response.statusCode,
+      hasBody: !!response.body,
+      bodyLength: typeof response.body === 'string' ? response.body.length : 0,
+    });
+    
+    return response;
   } catch (error) {
     console.error('[Server Function] Error:', error);
     console.error('[Server Function] Error stack:', error instanceof Error ? error.stack : 'No stack trace');

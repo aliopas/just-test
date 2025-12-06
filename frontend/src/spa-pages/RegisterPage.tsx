@@ -2,14 +2,14 @@ import React, { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { palette, radius, shadow, typography } from '../styles/theme';
 import { useLanguage } from '../context/LanguageContext';
-import { useRegister } from '../hooks/useRegister';
+import { useRegisterDirect } from '../hooks/useRegisterDirect';
 import { ApiError } from '../utils/api-client';
 
 export function RegisterPage() {
   const { language, direction } = useLanguage();
   const isArabic = language === 'ar';
   const router = useRouter();
-  const registerMutation = useRegister();
+  const registerMutation = useRegisterDirect();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');

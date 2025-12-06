@@ -1,10 +1,11 @@
-﻿import type { InvestorLanguage } from '../types/investor';
+import type { InvestorLanguage } from '../types/investor';
 
 type MessageKey =
   | 'pageTitle'
   | 'pageSubtitle'
   | 'form.type'
   | 'form.amount'
+  | 'form.numberOfShares'
   | 'form.currency'
   | 'form.targetPrice'
   | 'form.expiry'
@@ -30,6 +31,7 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
       'Submit a buy or sell request. Compliance will review it after submission.',
     'form.type': 'Request type',
     'form.amount': 'Amount',
+    'form.numberOfShares': 'Number of Shares',
     'form.currency': 'Currency',
     'form.targetPrice': 'Target price (optional)',
     'form.expiry': 'Expiry date',
@@ -54,6 +56,7 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
       'قدّم طلب شراء أو بيع. سيتم مراجعته من قبل الفريق المختص بعد الإرسال.',
     'form.type': 'نوع الطلب',
     'form.amount': 'المبلغ',
+    'form.numberOfShares': 'عدد الأسهم',
     'form.currency': 'العملة',
     'form.targetPrice': 'السعر المستهدف (اختياري)',
     'form.expiry': 'تاريخ الصلاحية',

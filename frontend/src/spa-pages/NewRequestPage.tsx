@@ -1,7 +1,7 @@
 import React, { useState, FormEvent } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
-import { useCreateRequest } from '../hooks/useCreateRequest';
+import { useCreateRequestDirect } from '../hooks/useCreateRequestDirect';
 import { tRequest } from '../locales/newRequest';
 import { tRequestList } from '../locales/requestList';
 import type { RequestType, RequestCurrency, CreateRequestPayload } from '../types/request';
@@ -11,17 +11,20 @@ import { ApiError } from '../utils/api-client';
 export function NewRequestPage() {
   const { language, direction } = useLanguage();
   const navigate = useNextNavigate();
-  const createRequestMutation = useCreateRequest();
+  const createRequestMutation = useCreateRequestDirect();
 
   const [type, setType] = useState<RequestType>('buy');
-  const [amount, setAmount] = useState<string>('');
-  const [currency, setCurrency] = useState<RequestCurrency>('SAR');
+  const [numberOfShares, setNumberOfShares] = useState<string>('');
   const [targetPrice, setTargetPrice] = useState<string>('');
   const [expiryAt, setExpiryAt] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
   const [documents, setDocuments] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // Calculate total amount based on number of shares (50000 SAR per share)
+  const SHARE_PRICE = 50000;
+  const calculatedAmount = numberOfShares ? Number(numberOfShares) * SHARE_PRICE : 0;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -34,11 +37,20 @@ export function NewRequestPage() {
       return;
     }
 
-    if ((type === 'buy' || type === 'sell') && !amount) {
+    if ((type === 'buy' || type === 'sell') && !numberOfShares) {
       setError(
         language === 'ar'
-          ? 'يرجى إدخال المبلغ للطلبات من نوع شراء أو بيع'
-          : 'Please enter amount for buy or sell requests'
+          ? 'يرجى إدخال عدد الأسهم للطلبات من نوع شراء أو بيع'
+          : 'Please enter number of shares for buy or sell requests'
+      );
+      return;
+    }
+
+    if ((type === 'buy' || type === 'sell') && (Number(numberOfShares) <= 0 || !Number.isInteger(Number(numberOfShares)))) {
+      setError(
+        language === 'ar'
+          ? 'عدد الأسهم يجب أن يكون رقماً صحيحاً أكبر من صفر'
+          : 'Number of shares must be a positive integer'
       );
       return;
     }
@@ -46,8 +58,8 @@ export function NewRequestPage() {
     try {
       const payload: CreateRequestPayload = {
         type,
-        amount: amount ? parseFloat(amount) : null,
-        currency: amount ? currency : null,
+        amount: (type === 'buy' || type === 'sell') ? calculatedAmount : null,
+        currency: (type === 'buy' || type === 'sell') ? 'SAR' : null,
         targetPrice: targetPrice ? parseFloat(targetPrice) : null,
         expiryAt: expiryAt || null,
         notes: notes || null,
@@ -239,15 +251,31 @@ export function NewRequestPage() {
               </select>
             </div>
 
-            {/* Amount and Currency (for buy/sell) */}
+            {/* Number of Shares (for buy/sell) */}
             {(type === 'buy' || type === 'sell') && (
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '2fr 1fr',
-                  gap: '1rem',
-                }}
-              >
+              <div>
+                {/* Info box showing share price */}
+                <div
+                  style={{
+                    padding: '0.85rem 1rem',
+                    marginBottom: '1rem',
+                    borderRadius: radius.md,
+                    border: `1px solid ${palette.neutralBorderSoft}`,
+                    background: palette.backgroundSurface,
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: typography.sizes.caption,
+                      color: palette.textSecondary,
+                    }}
+                  >
+                    {language === 'ar' 
+                      ? `قيمة السهم الواحد: ${SHARE_PRICE.toLocaleString('ar-SA')} ريال سعودي`
+                      : `Share price: ${SHARE_PRICE.toLocaleString('en-US')} SAR per share`}
+                  </div>
+                </div>
+
                 <div>
                   <label
                     style={{
@@ -258,15 +286,15 @@ export function NewRequestPage() {
                       color: palette.textPrimary,
                     }}
                   >
-                    {tRequest('form.amount', language)} *
+                    {tRequest('form.numberOfShares', language)} *
                   </label>
                   <input
                     type="number"
-                    value={amount}
-                    onChange={e => setAmount(e.target.value)}
+                    value={numberOfShares}
+                    onChange={e => setNumberOfShares(e.target.value)}
                     required={type === 'buy' || type === 'sell'}
-                    min="0"
-                    step="0.01"
+                    min="1"
+                    step="1"
                     style={{
                       width: '100%',
                       padding: '0.75rem 1rem',
@@ -276,39 +304,45 @@ export function NewRequestPage() {
                       color: palette.textPrimary,
                       fontSize: typography.sizes.body,
                     }}
+                    placeholder={language === 'ar' ? 'أدخل عدد الأسهم' : 'Enter number of shares'}
                   />
                 </div>
-                <div>
-                  <label
+
+                {/* Display calculated total amount */}
+                {numberOfShares && Number(numberOfShares) > 0 && (
+                  <div
                     style={{
-                      display: 'block',
-                      marginBottom: '0.5rem',
-                      fontSize: typography.sizes.caption,
-                      fontWeight: 600,
-                      color: palette.textPrimary,
-                    }}
-                  >
-                    {tRequest('form.currency', language)}
-                  </label>
-                  <select
-                    value={currency}
-                    onChange={e => setCurrency(e.target.value as RequestCurrency)}
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem 1rem',
+                      marginTop: '1rem',
+                      padding: '0.85rem 1rem',
                       borderRadius: radius.md,
-                      border: `1px solid ${palette.neutralBorderSoft}`,
-                      background: palette.backgroundBase,
-                      color: palette.textPrimary,
-                      fontSize: typography.sizes.body,
-                      cursor: 'pointer',
+                      border: `1px solid ${palette.brandPrimary}`,
+                      background: `${palette.brandPrimary}15`,
+                      display: 'flex',
+                      flexDirection: direction === 'rtl' ? 'row-reverse' : 'row',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
                     }}
                   >
-                    <option value="SAR">SAR</option>
-                    <option value="USD">USD</option>
-                    <option value="EUR">EUR</option>
-                  </select>
-                </div>
+                    <span
+                      style={{
+                        fontWeight: 600,
+                        color: palette.textPrimary,
+                        fontSize: typography.sizes.body,
+                      }}
+                    >
+                      {language === 'ar' ? 'المبلغ الإجمالي:' : 'Total Amount:'}
+                    </span>
+                    <span
+                      style={{
+                        fontWeight: 700,
+                        color: palette.brandPrimary,
+                        fontSize: typography.sizes.heading,
+                      }}
+                    >
+                      {calculatedAmount.toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US')} {language === 'ar' ? 'ريال' : 'SAR'}
+                    </span>
+                  </div>
+                )}
               </div>
             )}
 

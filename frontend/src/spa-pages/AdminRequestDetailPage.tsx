@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useAdminRequestDetail } from '../hooks/useAdminRequestDetail';
+import { useAdminRequestDetailDirect } from '../hooks/useAdminRequestDetailDirect';
 import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
 import { tAdminRequests } from '../locales/adminRequests';
@@ -18,7 +18,7 @@ export function AdminRequestDetailPage() {
     ? window.location.pathname.split('/').pop() ?? null
     : searchParams.get('id');
 
-  const { data, isLoading, isError } = useAdminRequestDetail(requestId);
+  const { data, isLoading, isError } = useAdminRequestDetailDirect(requestId);
 
   const request = data?.request;
 

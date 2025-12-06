@@ -107,6 +107,8 @@ export const requestController = {
         // If headers were already sent, log the error but don't try to send response
         console.error('Response headers already sent, cannot send error response');
       }
+      // Explicitly return to ensure function completes
+      return;
     }
   },
 

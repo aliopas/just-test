@@ -2,7 +2,7 @@ import React, { FormEvent, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { palette, radius, shadow, typography } from '../styles/theme';
 import { useLanguage } from '../context/LanguageContext';
-import { useVerifyOtp } from '../hooks/useVerifyOtp';
+import { useVerifyOtpDirect } from '../hooks/useVerifyOtpDirect';
 import { ApiError } from '../utils/api-client';
 
 export function VerifyOtpPage() {
@@ -10,7 +10,7 @@ export function VerifyOtpPage() {
   const isArabic = language === 'ar';
   const router = useRouter();
   const searchParams = useSearchParams();
-  const verifyOtpMutation = useVerifyOtp();
+  const verifyOtpMutation = useVerifyOtpDirect();
 
   const initialEmail = searchParams.get('email') ?? '';
   const [email, setEmail] = useState(initialEmail);
