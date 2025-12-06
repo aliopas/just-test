@@ -332,6 +332,17 @@ export function AdminInvestorsPage() {
                       color: palette.textSecondary,
                     }}
                   >
+                    {language === 'ar' ? 'رقم الهاتف' : 'Phone'}
+                  </th>
+                  <th
+                    style={{
+                      padding: '0.85rem 1rem',
+                      textAlign: 'start',
+                      fontSize: typography.sizes.caption,
+                      fontWeight: typography.weights.semibold,
+                      color: palette.textSecondary,
+                    }}
+                  >
                     {language === 'ar' ? 'حالة الحساب' : 'Account Status'}
                   </th>
                   <th
@@ -386,6 +397,15 @@ export function AdminInvestorsPage() {
                       }}
                     >
                       {investor.fullName || investor.preferredName || '—'}
+                    </td>
+                    <td
+                      style={{
+                        padding: '0.85rem 1rem',
+                        fontSize: typography.sizes.body,
+                        color: palette.textPrimary,
+                      }}
+                    >
+                      {investor.phone || '—'}
                     </td>
                     <td
                       style={{

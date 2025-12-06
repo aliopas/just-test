@@ -128,16 +128,40 @@ async function fetchInvestorProfileDirect(): Promise<InvestorProfile | null> {
     .eq('user_id', userId)
     .maybeSingle<ProfileRow>();
 
-  if (error) {
-    // If profile doesn't exist, return null (not an error)
-    if (error.code === 'PGRST116') {
-      return null;
-    }
+  // Check if error is "not found" (PGRST116)
+  const isNotFound = error && 'code' in error && error.code === 'PGRST116';
+
+  if (error && !isNotFound) {
+    // Only throw error if it's not a "not found" error
     throw new Error(`خطأ في جلب الملف الشخصي: ${error.message}`);
   }
 
-  if (!data) {
-    return null;
+  // If profile doesn't exist, return a default profile with basic user data
+  if (!data || isNotFound) {
+    const now = new Date().toISOString();
+    return {
+      userId: userId,
+      fullName: null,
+      preferredName: null,
+      language: 'ar' as InvestorLanguage,
+      idType: null,
+      idNumber: null,
+      idExpiry: null,
+      nationality: null,
+      residencyCountry: null,
+      city: null,
+      kycStatus: 'pending' as InvestorKycStatus,
+      kycUpdatedAt: null,
+      riskProfile: null,
+      communicationPreferences: { email: true, sms: false, push: false },
+      kycDocuments: null,
+      createdAt: userCreatedAt ?? now,
+      updatedAt: userCreatedAt ?? now,
+      email: email,
+      phone: phone,
+      userStatus: userStatus,
+      userCreatedAt: userCreatedAt,
+    };
   }
 
   // Transform to InvestorProfile format

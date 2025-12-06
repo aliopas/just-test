@@ -70,7 +70,51 @@ async function fetchAdminInvestorsDirect(
   const limit = filters.limit ?? 25;
   const offset = (page - 1) * limit;
 
-  // Build query for users with role = 'investor'
+  // Step 1: If search includes names, we need to fetch profiles first to filter by name
+  let searchUserIds: string[] | null = null;
+  if (filters.search && filters.search.trim().length > 0) {
+    const searchTerm = filters.search.trim();
+    const searchPattern = `%${searchTerm}%`;
+    
+    // Search in profiles for names
+    const profilesSearchResult = await supabase
+      .from('investor_profiles')
+      .select('user_id, full_name, preferred_name')
+      .or(`full_name.ilike.${searchPattern},preferred_name.ilike.${searchPattern}`);
+    
+    const matchingProfileUserIds = (profilesSearchResult.data ?? [])
+      .map(p => p.user_id);
+    
+    // Also search in users table for email/phone
+    const usersSearchResult = await supabase
+      .from('users')
+      .select('id')
+      .eq('role', 'investor')
+      .or(`email.ilike.${searchPattern},phone.ilike.${searchPattern}`);
+    
+    const matchingUserIds = (usersSearchResult.data ?? [])
+      .map(u => u.id);
+    
+    // Combine both search results
+    searchUserIds = [...new Set([...matchingProfileUserIds, ...matchingUserIds])];
+    
+    // If no matches found, return empty result
+    if (searchUserIds.length === 0) {
+      return {
+        investors: [],
+        meta: {
+          page,
+          limit,
+          total: 0,
+          pageCount: 0,
+          hasNext: false,
+          hasPrev: false,
+        },
+      };
+    }
+  }
+
+  // Step 2: Build query for users with role = 'investor'
   let query = supabase
     .from('users')
     .select(
@@ -93,9 +137,13 @@ async function fetchAdminInvestorsDirect(
     query = query.eq('status', filters.status);
   }
 
-  if (filters.search && filters.search.trim().length > 0) {
+  // If we have search results, filter by those user IDs
+  if (searchUserIds && searchUserIds.length > 0) {
+    query = query.in('id', searchUserIds);
+  } else if (filters.search && filters.search.trim().length > 0) {
+    // Fallback: search only in email/phone if no profile matches
     const pattern = `%${filters.search.trim().toLowerCase()}%`;
-    query = query.or(`email.ilike.${pattern}`);
+    query = query.or(`email.ilike.${pattern},phone.ilike.${pattern}`);
   }
 
   // Apply sorting
@@ -113,7 +161,7 @@ async function fetchAdminInvestorsDirect(
 
   const userRows = (users as UserRow[] | null) ?? [];
 
-  // Fetch profiles for these users
+  // Step 3: Fetch profiles for these users
   const userIds = userRows.map((u) => u.id);
   let profiles: ProfileRow[] = [];
   
@@ -134,7 +182,7 @@ async function fetchAdminInvestorsDirect(
     {} as Record<string, ProfileRow>
   );
 
-  // Apply KYC status filter if needed
+  // Step 4: Apply KYC status filter if needed
   let filteredUsers = userRows;
   if (filters.kycStatus && filters.kycStatus !== 'all') {
     filteredUsers = userRows.filter((user) => {
@@ -146,10 +194,15 @@ async function fetchAdminInvestorsDirect(
   // Transform to InvestorListItem format
   const investors: InvestorListItem[] = filteredUsers.map((user) => {
     const profile = profilesMap[user.id];
-    return {
+    // Combine phone_cc with phone if both exist
+    const phone = user.phone 
+      ? (user.phone_cc ? `${user.phone_cc}${user.phone}` : user.phone)
+      : null;
+    
+    const investor = {
       id: user.id,
       email: user.email,
-      phone: user.phone,
+      phone: phone,
       fullName: profile?.full_name ?? null,
       preferredName: profile?.preferred_name ?? null,
       status: user.status,
@@ -157,6 +210,21 @@ async function fetchAdminInvestorsDirect(
       createdAt: user.created_at,
       updatedAt: user.updated_at,
     };
+    
+    // Debug logging
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[useAdminInvestorsDirect] Investor data:', {
+        userId: user.id,
+        email: user.email,
+        phone: phone,
+        hasProfile: !!profile,
+        fullName: profile?.full_name,
+        preferredName: profile?.preferred_name,
+        finalInvestor: investor,
+      });
+    }
+    
+    return investor;
   });
 
   const total = count ?? 0;

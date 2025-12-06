@@ -147,17 +147,41 @@ async function fetchAdminRequestDetailDirect(requestId: string): Promise<AdminRe
   }
 
   // Step 1: جلب بيانات المستخدم أولاً (قبل باقي البيانات)
+  // Use RPC function to get user data with fallback to auth.users
   console.log('[useAdminRequestDetailDirect] Step 1: Fetching user data for user_id:', request.user_id);
   
+  // First try direct query to users table
   const userResult = await supabase
     .from('users')
     .select('id, email, phone, phone_cc, status, created_at')
     .eq('id', request.user_id)
     .maybeSingle<UserRow>();
 
+  let user: UserRow | null = userResult.data;
+
+  // If not found in users table, try RPC function to get from auth.users
+  if (!user && request.user_id) {
+    console.log('[useAdminRequestDetailDirect] User not found in users table, trying RPC function');
+    try {
+      const { data: rpcData, error: rpcError } = await supabase
+        .rpc('get_user_with_auth_fallback', { p_user_id: request.user_id });
+      
+      if (!rpcError && rpcData && rpcData.length > 0) {
+        user = rpcData[0] as UserRow;
+        console.log('[useAdminRequestDetailDirect] Got user from RPC function:', user);
+      } else {
+        console.warn('[useAdminRequestDetailDirect] RPC function also returned no data:', rpcError);
+      }
+    } catch (error) {
+      console.warn('[useAdminRequestDetailDirect] RPC function error (may not exist yet):', error);
+    }
+  }
+
   console.log('[useAdminRequestDetailDirect] Step 1 Result:', {
-    hasUser: !!userResult.data,
-    userEmail: userResult.data?.email,
+    hasUser: !!user,
+    userEmail: user?.email,
+    userPhone: user?.phone,
+    userPhoneCc: user?.phone_cc,
     userError: userResult.error,
   });
 
@@ -207,7 +231,7 @@ async function fetchAdminRequestDetailDirect(requestId: string): Promise<AdminRe
   const attachments = (attachmentsResult.data as AttachmentRow[] | null) ?? [];
   const events = (eventsResult.data as EventRow[] | null) ?? [];
   const comments = (commentsResult.data as CommentRow[] | null) ?? [];
-  const user = userResult.data;
+  // user is already set above (with fallback via RPC if needed)
   const profile = profileResult.data;
   const view = viewResult.data;
 

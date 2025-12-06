@@ -18,6 +18,15 @@ import {
   useCreateCompanyGoalMutation,
   useUpdateCompanyGoalMutation,
   useDeleteCompanyGoalMutation,
+  useCreateCompanyStrengthMutation,
+  useUpdateCompanyStrengthMutation,
+  useDeleteCompanyStrengthMutation,
+  useCreateCompanyResourceMutation,
+  useUpdateCompanyResourceMutation,
+  useDeleteCompanyResourceMutation,
+  useCreatePartnershipInfoMutation,
+  useUpdatePartnershipInfoMutation,
+  useDeletePartnershipInfoMutation,
 } from '../hooks/useAdminCompanyContent';
 import {
   useCompanyProfiles,
@@ -25,6 +34,9 @@ import {
   useCompanyClients,
   useMarketValue,
   useCompanyGoals,
+  useCompanyStrengths,
+  useCompanyResources,
+  usePartnershipInfo,
 } from '../hooks/useSupabaseTables';
 import { CompanyProfilesTable } from '../components/admin/company-content/CompanyProfilesTable';
 import { CompanyProfileFormDrawer } from '../components/admin/company-content/CompanyProfileFormDrawer';
@@ -36,12 +48,18 @@ import { MarketValueTable } from '../components/admin/company-content/MarketValu
 import { MarketValueFormDrawer } from '../components/admin/company-content/MarketValueFormDrawer';
 import { CompanyGoalsTable } from '../components/admin/company-content/CompanyGoalsTable';
 import { CompanyGoalFormDrawer } from '../components/admin/company-content/CompanyGoalFormDrawer';
+import { CompanyStrengthsTable } from '../components/admin/company-content/CompanyStrengthsTable';
+import { CompanyStrengthFormDrawer } from '../components/admin/company-content/CompanyStrengthFormDrawer';
+import { CompanyResourcesTable } from '../components/admin/company-content/CompanyResourcesTable';
+import { CompanyResourceFormDrawer } from '../components/admin/company-content/CompanyResourceFormDrawer';
+import { PartnershipInfoTable } from '../components/admin/company-content/PartnershipInfoTable';
+import { PartnershipInfoFormDrawer } from '../components/admin/company-content/PartnershipInfoFormDrawer';
 
 export function AdminCompanyContentPage() {
   const { language, direction } = useLanguage();
   const isArabic = language === 'ar';
 
-  const [activeTab, setActiveTab] = useState<'profiles' | 'partners' | 'clients' | 'marketValue' | 'goals'>('profiles');
+  const [activeTab, setActiveTab] = useState<'profiles' | 'partners' | 'clients' | 'marketValue' | 'goals' | 'strengths' | 'resources' | 'partnership'>('profiles');
 
   const [isProfileDrawerOpen, setIsProfileDrawerOpen] = useState(false);
   const [profileDrawerMode, setProfileDrawerMode] = useState<'create' | 'edit'>('create');
@@ -185,6 +203,98 @@ export function AdminCompanyContentPage() {
     updatedAt: g.updated_at,
   }));
 
+  // Strengths
+  const [isStrengthDrawerOpen, setIsStrengthDrawerOpen] = useState(false);
+  const [strengthDrawerMode, setStrengthDrawerMode] = useState<'create' | 'edit'>('create');
+  const [selectedStrengthId, setSelectedStrengthId] = useState<string | null>(null);
+
+  const {
+    data: strengthsData,
+    isLoading: isLoadingStrengths,
+    isError: isErrorStrengths,
+    refetch: refetchStrengths,
+  } = useCompanyStrengths();
+
+  const createStrength = useCreateCompanyStrengthMutation();
+  const updateStrength = useUpdateCompanyStrengthMutation();
+  const deleteStrength = useDeleteCompanyStrengthMutation();
+
+  const strengths = (strengthsData ?? []).map((s) => ({
+    id: s.id,
+    titleAr: s.title_ar,
+    titleEn: s.title_en,
+    descriptionAr: s.description_ar,
+    descriptionEn: s.description_en,
+    iconKey: s.icon_key,
+    displayOrder: s.display_order,
+    createdAt: s.created_at,
+    updatedAt: s.updated_at,
+  }));
+
+  // Resources
+  const [isResourceDrawerOpen, setIsResourceDrawerOpen] = useState(false);
+  const [resourceDrawerMode, setResourceDrawerMode] = useState<'create' | 'edit'>('create');
+  const [selectedResourceId, setSelectedResourceId] = useState<string | null>(null);
+
+  const {
+    data: resourcesData,
+    isLoading: isLoadingResources,
+    isError: isErrorResources,
+    refetch: refetchResources,
+  } = useCompanyResources();
+
+  const createResource = useCreateCompanyResourceMutation();
+  const updateResource = useUpdateCompanyResourceMutation();
+  const deleteResource = useDeleteCompanyResourceMutation();
+
+  const resources = (resourcesData ?? []).map((r) => ({
+    id: r.id,
+    titleAr: r.title_ar,
+    titleEn: r.title_en,
+    descriptionAr: r.description_ar,
+    descriptionEn: r.description_en,
+    iconKey: r.icon_key,
+    value: typeof r.value === 'string' ? Number.parseFloat(r.value) : r.value,
+    currency: r.currency || 'SAR',
+    displayOrder: r.display_order,
+    createdAt: r.created_at,
+    updatedAt: r.updated_at,
+  }));
+
+  // Partnership Info
+  const [isPartnershipDrawerOpen, setIsPartnershipDrawerOpen] = useState(false);
+  const [partnershipDrawerMode, setPartnershipDrawerMode] = useState<'create' | 'edit'>('create');
+  const [selectedPartnershipId, setSelectedPartnershipId] = useState<string | null>(null);
+
+  const {
+    data: partnershipData,
+    isLoading: isLoadingPartnership,
+    isError: isErrorPartnership,
+    refetch: refetchPartnership,
+  } = usePartnershipInfo();
+
+  const createPartnership = useCreatePartnershipInfoMutation();
+  const updatePartnership = useUpdatePartnershipInfoMutation();
+  const deletePartnership = useDeletePartnershipInfoMutation();
+
+  const partnershipInfo = (partnershipData ?? []).map((p) => ({
+    id: p.id,
+    titleAr: p.title_ar,
+    titleEn: p.title_en,
+    contentAr: p.content_ar,
+    contentEn: p.content_en,
+    stepsAr: Array.isArray(p.steps_ar) 
+      ? (p.steps_ar as string[])
+      : (typeof p.steps_ar === 'string' ? [p.steps_ar] : null),
+    stepsEn: Array.isArray(p.steps_en)
+      ? (p.steps_en as string[])
+      : (typeof p.steps_en === 'string' ? [p.steps_en] : null),
+    iconKey: p.icon_key,
+    displayOrder: p.display_order,
+    createdAt: p.created_at,
+    updatedAt: p.updated_at,
+  }));
+
   const openCreateProfile = () => {
     setActiveTab('profiles');
     setProfileDrawerMode('create');
@@ -216,6 +326,21 @@ export function AdminCompanyContentPage() {
   const selectedGoal =
     selectedGoalId != null
       ? goals.find((g) => g.id === selectedGoalId) ?? null
+      : null;
+
+  const selectedStrength =
+    selectedStrengthId != null
+      ? strengths.find((s) => s.id === selectedStrengthId) ?? null
+      : null;
+
+  const selectedResource =
+    selectedResourceId != null
+      ? resources.find((r) => r.id === selectedResourceId) ?? null
+      : null;
+
+  const selectedPartnership =
+    selectedPartnershipId != null
+      ? partnershipInfo.find((p) => p.id === selectedPartnershipId) ?? null
       : null;
 
   async function handleSubmitProfile(values: {
@@ -321,6 +446,9 @@ export function AdminCompanyContentPage() {
               { id: 'clients', ar: 'نموذج العمل / العملاء', en: 'Business model & clients' },
               { id: 'marketValue', ar: 'القيمة السوقية', en: 'Market value' },
               { id: 'goals', ar: 'الأهداف الاستراتيجية', en: 'Strategic goals' },
+              { id: 'strengths', ar: 'نقاط القوة', en: 'Strengths' },
+              { id: 'resources', ar: 'الموارد', en: 'Resources' },
+              { id: 'partnership', ar: 'معلومات الشراكة', en: 'Partnership Info' },
             ] as const
           ).map((tab) => {
             const isActive = activeTab === tab.id;
@@ -772,6 +900,261 @@ export function AdminCompanyContentPage() {
             />
           </section>
         )}
+
+        {activeTab === 'strengths' && (
+          <section
+            style={{
+              padding: '1.25rem 1.5rem',
+              borderRadius: radius.lg,
+              background: palette.backgroundBase,
+              boxShadow: shadow.subtle,
+              border: `1px solid ${palette.neutralBorderMuted}`,
+            }}
+          >
+            <div
+              style={{
+                marginBottom: '0.75rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '0.75rem',
+                flexWrap: 'wrap',
+              }}
+            >
+              <div>
+                <h2
+                  style={{
+                    margin: 0,
+                    fontSize: typography.sizes.subheading,
+                    fontWeight: typography.weights.semibold,
+                    color: palette.textPrimary,
+                  }}
+                >
+                  {isArabic ? 'نقاط القوة' : 'Company Strengths'}
+                </h2>
+                <p
+                  style={{
+                    margin: 0,
+                    marginTop: '0.25rem',
+                    fontSize: typography.sizes.caption,
+                    color: palette.textSecondary,
+                  }}
+                >
+                  {isArabic
+                    ? 'نقاط القوة والامتيازات التي تميز باكورة.'
+                    : 'Strengths and advantages that distinguish Bakurah.'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setStrengthDrawerMode('create');
+                  setSelectedStrengthId(null);
+                  setIsStrengthDrawerOpen(true);
+                }}
+                style={{
+                  padding: '0.7rem 1.4rem',
+                  borderRadius: radius.md,
+                  border: 'none',
+                  background: palette.brandPrimaryStrong,
+                  color: palette.textOnBrand,
+                  fontWeight: typography.weights.semibold,
+                  fontSize: typography.sizes.body,
+                  cursor: 'pointer',
+                }}
+              >
+                {isArabic ? 'إضافة نقطة قوة جديدة' : 'Add strength'}
+              </button>
+            </div>
+
+            <CompanyStrengthsTable
+              strengths={strengths}
+              isLoading={isLoadingStrengths}
+              isError={isErrorStrengths}
+              onRetry={() => refetchStrengths()}
+              onEdit={(strength) => {
+                setSelectedStrengthId(strength.id);
+                setStrengthDrawerMode('edit');
+                setIsStrengthDrawerOpen(true);
+              }}
+              onDelete={(strength) => {
+                setSelectedStrengthId(strength.id);
+                setStrengthDrawerMode('edit');
+                setIsStrengthDrawerOpen(true);
+              }}
+            />
+          </section>
+        )}
+
+        {activeTab === 'resources' && (
+          <section
+            style={{
+              padding: '1.25rem 1.5rem',
+              borderRadius: radius.lg,
+              background: palette.backgroundBase,
+              boxShadow: shadow.subtle,
+              border: `1px solid ${palette.neutralBorderMuted}`,
+            }}
+          >
+            <div
+              style={{
+                marginBottom: '0.75rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '0.75rem',
+                flexWrap: 'wrap',
+              }}
+            >
+              <div>
+                <h2
+                  style={{
+                    margin: 0,
+                    fontSize: typography.sizes.subheading,
+                    fontWeight: typography.weights.semibold,
+                    color: palette.textPrimary,
+                  }}
+                >
+                  {isArabic ? 'الموارد' : 'Company Resources'}
+                </h2>
+                <p
+                  style={{
+                    margin: 0,
+                    marginTop: '0.25rem',
+                    fontSize: typography.sizes.caption,
+                    color: palette.textSecondary,
+                  }}
+                >
+                  {isArabic
+                    ? 'الموارد المالية والاستثمارية للشركة.'
+                    : 'Financial and investment resources of the company.'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setResourceDrawerMode('create');
+                  setSelectedResourceId(null);
+                  setIsResourceDrawerOpen(true);
+                }}
+                style={{
+                  padding: '0.7rem 1.4rem',
+                  borderRadius: radius.md,
+                  border: 'none',
+                  background: palette.brandPrimaryStrong,
+                  color: palette.textOnBrand,
+                  fontWeight: typography.weights.semibold,
+                  fontSize: typography.sizes.body,
+                  cursor: 'pointer',
+                }}
+              >
+                {isArabic ? 'إضافة مورد جديد' : 'Add resource'}
+              </button>
+            </div>
+
+            <CompanyResourcesTable
+              resources={resources}
+              isLoading={isLoadingResources}
+              isError={isErrorResources}
+              onRetry={() => refetchResources()}
+              onEdit={(resource) => {
+                setSelectedResourceId(resource.id);
+                setResourceDrawerMode('edit');
+                setIsResourceDrawerOpen(true);
+              }}
+              onDelete={(resource) => {
+                setSelectedResourceId(resource.id);
+                setResourceDrawerMode('edit');
+                setIsResourceDrawerOpen(true);
+              }}
+            />
+          </section>
+        )}
+
+        {activeTab === 'partnership' && (
+          <section
+            style={{
+              padding: '1.25rem 1.5rem',
+              borderRadius: radius.lg,
+              background: palette.backgroundBase,
+              boxShadow: shadow.subtle,
+              border: `1px solid ${palette.neutralBorderMuted}`,
+            }}
+          >
+            <div
+              style={{
+                marginBottom: '0.75rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '0.75rem',
+                flexWrap: 'wrap',
+              }}
+            >
+              <div>
+                <h2
+                  style={{
+                    margin: 0,
+                    fontSize: typography.sizes.subheading,
+                    fontWeight: typography.weights.semibold,
+                    color: palette.textPrimary,
+                  }}
+                >
+                  {isArabic ? 'معلومات الشراكة' : 'Partnership Information'}
+                </h2>
+                <p
+                  style={{
+                    margin: 0,
+                    marginTop: '0.25rem',
+                    fontSize: typography.sizes.caption,
+                    color: palette.textSecondary,
+                  }}
+                >
+                  {isArabic
+                    ? 'معلومات عن عملية الشراكة والخطوات المطلوبة.'
+                    : 'Information about the partnership process and required steps.'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setPartnershipDrawerMode('create');
+                  setSelectedPartnershipId(null);
+                  setIsPartnershipDrawerOpen(true);
+                }}
+                style={{
+                  padding: '0.7rem 1.4rem',
+                  borderRadius: radius.md,
+                  border: 'none',
+                  background: palette.brandPrimaryStrong,
+                  color: palette.textOnBrand,
+                  fontWeight: typography.weights.semibold,
+                  fontSize: typography.sizes.body,
+                  cursor: 'pointer',
+                }}
+              >
+                {isArabic ? 'إضافة معلومات شراكة جديدة' : 'Add partnership info'}
+              </button>
+            </div>
+
+            <PartnershipInfoTable
+              partnershipInfo={partnershipInfo}
+              isLoading={isLoadingPartnership}
+              isError={isErrorPartnership}
+              onRetry={() => refetchPartnership()}
+              onEdit={(partnership) => {
+                setSelectedPartnershipId(partnership.id);
+                setPartnershipDrawerMode('edit');
+                setIsPartnershipDrawerOpen(true);
+              }}
+              onDelete={(partnership) => {
+                setSelectedPartnershipId(partnership.id);
+                setPartnershipDrawerMode('edit');
+                setIsPartnershipDrawerOpen(true);
+              }}
+            />
+          </section>
+        )}
       </div>
 
       <CompanyProfileFormDrawer
@@ -871,6 +1254,72 @@ export function AdminCompanyContentPage() {
         } : undefined}
         submitting={createGoal.isPending || updateGoal.isPending}
         deleting={deleteGoal.isPending}
+        onPresignImage={handlePresignImage}
+      />
+
+      <CompanyStrengthFormDrawer
+        open={isStrengthDrawerOpen}
+        mode={strengthDrawerMode}
+        strength={selectedStrength}
+        isLoadingDetail={false}
+        onClose={() => setIsStrengthDrawerOpen(false)}
+        onSubmit={async (values) => {
+          if (strengthDrawerMode === 'create') {
+            await createStrength.mutateAsync(values);
+          } else if (strengthDrawerMode === 'edit' && selectedStrengthId) {
+            await updateStrength.mutateAsync({ id: selectedStrengthId, payload: values });
+          }
+        }}
+        onDelete={selectedStrength ? async () => {
+          await deleteStrength.mutateAsync(selectedStrength.id);
+          setIsStrengthDrawerOpen(false);
+        } : undefined}
+        submitting={createStrength.isPending || updateStrength.isPending}
+        deleting={deleteStrength.isPending}
+        onPresignImage={handlePresignImage}
+      />
+
+      <CompanyResourceFormDrawer
+        open={isResourceDrawerOpen}
+        mode={resourceDrawerMode}
+        resource={selectedResource}
+        isLoadingDetail={false}
+        onClose={() => setIsResourceDrawerOpen(false)}
+        onSubmit={async (values) => {
+          if (resourceDrawerMode === 'create') {
+            await createResource.mutateAsync(values);
+          } else if (resourceDrawerMode === 'edit' && selectedResourceId) {
+            await updateResource.mutateAsync({ id: selectedResourceId, payload: values });
+          }
+        }}
+        onDelete={selectedResource ? async () => {
+          await deleteResource.mutateAsync(selectedResource.id);
+          setIsResourceDrawerOpen(false);
+        } : undefined}
+        submitting={createResource.isPending || updateResource.isPending}
+        deleting={deleteResource.isPending}
+        onPresignImage={handlePresignImage}
+      />
+
+      <PartnershipInfoFormDrawer
+        open={isPartnershipDrawerOpen}
+        mode={partnershipDrawerMode}
+        partnershipInfo={selectedPartnership}
+        isLoadingDetail={false}
+        onClose={() => setIsPartnershipDrawerOpen(false)}
+        onSubmit={async (values) => {
+          if (partnershipDrawerMode === 'create') {
+            await createPartnership.mutateAsync(values);
+          } else if (partnershipDrawerMode === 'edit' && selectedPartnershipId) {
+            await updatePartnership.mutateAsync({ id: selectedPartnershipId, payload: values });
+          }
+        }}
+        onDelete={selectedPartnership ? async () => {
+          await deletePartnership.mutateAsync(selectedPartnership.id);
+          setIsPartnershipDrawerOpen(false);
+        } : undefined}
+        submitting={createPartnership.isPending || updatePartnership.isPending}
+        deleting={deletePartnership.isPending}
         onPresignImage={handlePresignImage}
       />
     </div>
