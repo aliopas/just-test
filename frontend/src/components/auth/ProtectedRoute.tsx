@@ -10,6 +10,7 @@ import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import { useSupabaseUser } from '@/hooks/useSupabaseUser';
 import { palette } from '@/styles/theme';
 
 type ProtectedRouteProps = {
@@ -38,15 +39,22 @@ export function ProtectedRoute({
 }: ProtectedRouteProps) {
   const { user, isAuthenticated } = useAuth();
   const { user: supabaseUser, isAuthenticated: supabaseAuthenticated, isLoading: supabaseLoading } = useSupabaseAuth();
+  const { userRecord, isLoading: userRecordLoading } = useSupabaseUser(supabaseUser?.id);
   const router = useRouter();
   const pathname = usePathname();
 
   // Use Supabase auth as primary source, fallback to AuthContext
   const finalIsAuthenticated = supabaseAuthenticated || (isAuthenticated && !supabaseLoading);
+  
+  // Determine user role: prioritize database record, then AuthContext, then default to investor
+  const userRole: 'investor' | 'admin' = userRecord?.role === 'admin' 
+    ? 'admin' 
+    : (user?.role || 'investor');
+  
   const finalUser = supabaseUser ? {
     id: supabaseUser.id,
-    email: supabaseUser.email || '',
-    role: (user?.role || 'investor') as 'investor' | 'admin',
+    email: supabaseUser.email || userRecord?.email || '',
+    role: userRole,
   } : user;
 
   useEffect(() => {
@@ -85,7 +93,7 @@ export function ProtectedRoute({
   }, [finalIsAuthenticated, finalUser, requiredRole, redirectTo, router, pathname, supabaseLoading]);
 
   // Show loading state
-  if (showLoading && (supabaseLoading || !finalIsAuthenticated || !finalUser)) {
+  if (showLoading && (supabaseLoading || userRecordLoading || !finalIsAuthenticated || !finalUser)) {
     return (
       <div
         style={{
@@ -128,10 +136,15 @@ export function ProtectedRoute({
     );
   }
 
-  // Check role after authentication is confirmed
+  // Check role after authentication is confirmed - use database role if available
   if (finalIsAuthenticated && finalUser && requiredRole) {
     const requiredRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
-    if (!requiredRoles.includes(finalUser.role)) {
+    // Always use the role from database if available, otherwise fallback to AuthContext
+    const currentRole = userRecord?.role === 'admin' 
+      ? 'admin' 
+      : (userRecord?.role === 'investor' ? 'investor' : finalUser.role);
+    
+    if (!requiredRoles.includes(currentRole)) {
       // Don't render children if role doesn't match
       return null;
     }

@@ -144,13 +144,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (supabaseAuthenticated && supabaseUser && session) {
       // User is authenticated via Supabase
       if (userRecord) {
-        // We have the full user record - use it
+        // We have the full user record - use it (database is source of truth for role)
         const authUser: AuthUser = {
           id: supabaseUser.id,
           email: supabaseUser.email || userRecord.email,
           role: (userRecord.role === 'admin' ? 'admin' : 'investor') as UserRole,
         };
-        setUserState(authUser);
+        
+        // Only update if role changed to avoid unnecessary re-renders
+        setUserState((prev) => {
+          if (prev?.id === authUser.id && prev?.role === authUser.role) {
+            return prev; // No change
+          }
+          return authUser;
+        });
         
         // Persist to localStorage
         if (typeof window !== 'undefined') {

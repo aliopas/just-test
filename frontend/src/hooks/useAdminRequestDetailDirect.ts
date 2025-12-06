@@ -146,8 +146,38 @@ async function fetchAdminRequestDetailDirect(requestId: string): Promise<AdminRe
     throw new Error('الطلب غير موجود');
   }
 
-  // Fetch related data in parallel
-  const [attachmentsResult, eventsResult, commentsResult, userResult, profileResult, viewResult] =
+  // Step 1: جلب بيانات المستخدم أولاً (قبل باقي البيانات)
+  console.log('[useAdminRequestDetailDirect] Step 1: Fetching user data for user_id:', request.user_id);
+  
+  const userResult = await supabase
+    .from('users')
+    .select('id, email, phone, phone_cc, status, created_at')
+    .eq('id', request.user_id)
+    .maybeSingle<UserRow>();
+
+  console.log('[useAdminRequestDetailDirect] Step 1 Result:', {
+    hasUser: !!userResult.data,
+    userEmail: userResult.data?.email,
+    userError: userResult.error,
+  });
+
+  // Step 2: جلب الملف الشخصي
+  console.log('[useAdminRequestDetailDirect] Step 2: Fetching profile data for user_id:', request.user_id);
+  
+  const profileResult = await supabase
+    .from('investor_profiles')
+    .select('*')
+    .eq('user_id', request.user_id)
+    .maybeSingle<ProfileRow>();
+
+  console.log('[useAdminRequestDetailDirect] Step 2 Result:', {
+    hasProfile: !!profileResult.data,
+    profileFullName: profileResult.data?.full_name,
+    profileError: profileResult.error,
+  });
+
+  // Step 3: جلب باقي البيانات (attachments, events, comments, view)
+  const [attachmentsResult, eventsResult, commentsResult, viewResult] =
     await Promise.all([
       supabase
         .from('attachments')
@@ -164,16 +194,6 @@ async function fetchAdminRequestDetailDirect(requestId: string): Promise<AdminRe
         .select('*')
         .eq('request_id', requestId)
         .order('created_at', { ascending: false }),
-      supabase
-        .from('users')
-        .select('id, email, phone, phone_cc, status, created_at')
-        .eq('id', request.user_id)
-        .maybeSingle<UserRow>(),
-      supabase
-        .from('investor_profiles')
-        .select('*')
-        .eq('user_id', request.user_id)
-        .maybeSingle<ProfileRow>(),
       adminId
         ? supabase
             .from('admin_request_views')
@@ -194,16 +214,28 @@ async function fetchAdminRequestDetailDirect(requestId: string): Promise<AdminRe
   // Log for debugging
   console.log('[useAdminRequestDetailDirect] Fetched data:', {
     requestId,
+    requestUserId: request.user_id,
     hasUser: !!user,
     hasProfile: !!profile,
     userEmail: user?.email,
     userPhone: user?.phone,
+    userPhoneCc: user?.phone_cc,
     profileFullName: profile?.full_name,
     profilePreferredName: profile?.preferred_name,
     profileResidencyCountry: profile?.residency_country,
     userError: userResult.error,
     profileError: profileResult.error,
+    userResultData: userResult.data,
+    profileResultData: profileResult.data,
   });
+
+  // Log errors if any
+  if (userResult.error) {
+    console.error('[useAdminRequestDetailDirect] User fetch error:', userResult.error);
+  }
+  if (profileResult.error) {
+    console.error('[useAdminRequestDetailDirect] Profile fetch error:', profileResult.error);
+  }
 
   // Fetch comment actors
   const commentActorIds = [...new Set(comments.map((c) => c.actor_id))];

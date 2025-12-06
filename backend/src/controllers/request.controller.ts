@@ -94,15 +94,15 @@ export const requestController = {
       // Ensure response is sent even if headers were already sent
       if (!res.headersSent) {
         res.status(500).json({
-          error: {
-            code: 'INTERNAL_ERROR',
-            message: isDatabaseError
-              ? 'Database constraint violation. Please check your request data.'
-              : 'Failed to create request',
-            details:
-              process.env.NODE_ENV === 'development' ? errorMessage : undefined,
-          },
-        });
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: isDatabaseError
+            ? 'Database constraint violation. Please check your request data.'
+            : 'Failed to create request',
+          details:
+            process.env.NODE_ENV === 'development' ? errorMessage : undefined,
+        },
+      });
       } else {
         // If headers were already sent, log the error but don't try to send response
         console.error('Response headers already sent, cannot send error response');

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAdminRequestDetailDirect } from '../hooks/useAdminRequestDetailDirect';
@@ -31,6 +31,23 @@ export function AdminRequestDetailPage() {
   const queryClient = useQueryClient();
 
   const request = data?.request;
+
+  // Debug logging
+  useEffect(() => {
+    if (request) {
+      console.log('[AdminRequestDetailPage] Request data:', {
+        requestId,
+        hasRequest: !!request,
+        hasInvestor: !!request.investor,
+        investorEmail: request.investor?.email,
+        investorFullName: request.investor?.fullName,
+        investorPreferredName: request.investor?.preferredName,
+        investorPhone: request.investor?.phone,
+        investorCountry: request.investor?.residencyCountry,
+        fullInvestorData: request.investor,
+      });
+    }
+  }, [request, requestId]);
 
   // Function to clear cache and refetch
   const handleClearCache = async () => {
@@ -490,15 +507,15 @@ export function AdminRequestDetailPage() {
                   <InfoRow
                     label={tAdminRequests('table.investor', language)}
                     value={
-                      request.investor?.fullName ??
-                      request.investor?.preferredName ??
-                      request.investor?.email ??
+                      request.investor?.fullName ||
+                      request.investor?.preferredName ||
+                      request.investor?.email ||
                       '—'
                     }
                   />
                   <InfoRow
                     label="Email"
-                    value={request.investor?.email ?? '—'}
+                    value={request.investor?.email || '—'}
                   />
                   <InfoRow
                     label={language === 'ar' ? 'الهاتف' : 'Phone'}
@@ -510,8 +527,21 @@ export function AdminRequestDetailPage() {
                   />
                   <InfoRow
                     label={language === 'ar' ? 'الدولة' : 'Country'}
-                    value={request.investor?.residencyCountry ?? '—'}
+                    value={request.investor?.residencyCountry || '—'}
                   />
+                  {/* Debug info - remove in production */}
+                  {process.env.NODE_ENV === 'development' && (
+                    <>
+                      <InfoRow
+                        label="Debug: Investor ID"
+                        value={request.investor?.id || 'null'}
+                      />
+                      <InfoRow
+                        label="Debug: Has Investor Data"
+                        value={request.investor ? 'Yes' : 'No'}
+                      />
+                    </>
+                  )}
                 </dl>
               </div>
 

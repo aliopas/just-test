@@ -350,26 +350,26 @@ export function AdminSidebarNav() {
           <span>🔄</span>
           {language === 'ar' ? 'مسح الكاش' : 'Clear Cache'}
         </button>
-        <button
-          type="button"
-          onClick={() => logout.mutate()}
-          style={{
-            ...adminSidebarLinkBase,
-            justifyContent: 'center',
-            borderColor: palette.brandPrimaryStrong,
-            background: palette.brandPrimaryStrong,
-            color: palette.textOnBrand,
-          }}
-          disabled={logout.isPending}
-        >
-          {logout.isPending
-            ? language === 'ar'
-              ? 'جارٍ تسجيل الخروج…'
-              : 'Signing out…'
-            : language === 'ar'
-              ? 'تسجيل الخروج'
-              : 'Sign out'}
-        </button>
+      <button
+        type="button"
+        onClick={() => logout.mutate()}
+        style={{
+          ...adminSidebarLinkBase,
+          justifyContent: 'center',
+          borderColor: palette.brandPrimaryStrong,
+          background: palette.brandPrimaryStrong,
+          color: palette.textOnBrand,
+        }}
+        disabled={logout.isPending}
+      >
+        {logout.isPending
+          ? language === 'ar'
+            ? 'جارٍ تسجيل الخروج…'
+            : 'Signing out…'
+          : language === 'ar'
+            ? 'تسجيل الخروج'
+            : 'Sign out'}
+      </button>
       </div>
     </aside>
     </>

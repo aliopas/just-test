@@ -77,6 +77,20 @@ export function useSupabaseUser(userId?: string | null): UseSupabaseUserReturn {
     fetchUser();
   }, [fetchUser]);
 
+  // Refresh user record when userId changes or periodically
+  useEffect(() => {
+    if (!userId) {
+      return;
+    }
+
+    // Refresh every 30 seconds to catch role changes
+    const refreshInterval = setInterval(() => {
+      fetchUser();
+    }, 30000);
+
+    return () => clearInterval(refreshInterval);
+  }, [userId, fetchUser]);
+
   return {
     userRecord,
     isLoading,

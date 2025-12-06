@@ -226,10 +226,10 @@ async function updateNewsDirect({
     reviews: reviews.map((r) => {
       const reviewer = r.reviewer_id ? reviewersMap[r.reviewer_id] : null;
       return {
-        id: r.id,
-        action: r.action,
-        comment: r.comment,
-        createdAt: r.created_at,
+      id: r.id,
+      action: r.action,
+      comment: r.comment,
+      createdAt: r.created_at,
         reviewer: reviewer
           ? {
               id: reviewer.id,

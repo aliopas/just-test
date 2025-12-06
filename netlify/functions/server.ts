@@ -244,7 +244,7 @@ export default async (event: any, context: any) => {
         if (typeof result.body === 'string') {
           // Try to parse to validate JSON
           if (result.body.trim() !== '') {
-            JSON.parse(result.body);
+          JSON.parse(result.body);
           }
         } else if (typeof result.body === 'object') {
           // If body is an object, stringify it
