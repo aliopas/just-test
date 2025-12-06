@@ -12,9 +12,39 @@ import type {
   InvestorRequest,
   RequestListFilters,
   RequestListResponse,
+  RequestCurrency,
+  RequestType,
+  RequestStatus,
 } from '../types/request';
 
 const QUERY_KEY = ['investorRequestsDirect'];
+
+// Helper functions to convert string types to typed enums
+function toRequestCurrency(value: string | null): RequestCurrency | null {
+  if (!value) return null;
+  const validCurrencies: RequestCurrency[] = ['SAR', 'USD', 'EUR'];
+  return validCurrencies.includes(value as RequestCurrency) ? (value as RequestCurrency) : null;
+}
+
+function toRequestType(value: string): RequestType {
+  const validTypes: RequestType[] = ['buy', 'sell', 'partnership', 'board_nomination', 'feedback'];
+  return validTypes.includes(value as RequestType) ? (value as RequestType) : 'buy';
+}
+
+function toRequestStatus(value: string): RequestStatus {
+  const validStatuses: RequestStatus[] = [
+    'draft',
+    'submitted',
+    'screening',
+    'pending_info',
+    'compliance_review',
+    'approved',
+    'rejected',
+    'settling',
+    'completed',
+  ];
+  return validStatuses.includes(value as RequestStatus) ? (value as RequestStatus) : 'draft';
+}
 
 type RequestWorkflowRow = {
   id: string;
@@ -103,25 +133,25 @@ async function fetchInvestorRequestsDirect(filters: RequestListFilters) {
   const requests: InvestorRequest[] = rows.map(row => ({
     id: row.id,
     requestNumber: row.request_number,
-    type: row.type as any,
+    type: toRequestType(row.type),
     amount: typeof row.amount === 'string' ? Number(row.amount) : row.amount,
-    currency: row.currency ?? null,
+    currency: toRequestCurrency(row.currency),
     targetPrice:
       typeof row.target_price === 'string'
         ? Number.parseFloat(row.target_price)
         : row.target_price,
     expiryAt: row.expiry_at,
-    status: row.status as any,
+    status: toRequestStatus(row.status),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     lastEvent: row.last_event
       ? {
-          id: row.last_event.id ?? undefined,
-          fromStatus: row.last_event.from_status ?? undefined,
-          toStatus: row.last_event.to_status ?? undefined,
-          actorId: row.last_event.actor_id ?? undefined,
-          note: row.last_event.note ?? undefined,
-          createdAt: row.last_event.created_at ?? undefined,
+          id: row.last_event.id ?? null,
+          fromStatus: row.last_event.from_status ? toRequestStatus(row.last_event.from_status) : null,
+          toStatus: row.last_event.to_status ? toRequestStatus(row.last_event.to_status) : null,
+          actorId: row.last_event.actor_id ?? null,
+          note: row.last_event.note ?? null,
+          createdAt: row.last_event.created_at ?? null,
         }
       : null,
   }));

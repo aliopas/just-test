@@ -13,6 +13,11 @@ import { getSupabaseBrowserClient } from '../utils/supabase-client';
 import type {
   InvestorProfile,
   InvestorProfileUpdateRequest,
+  InvestorIdType,
+  InvestorKycStatus,
+  InvestorLanguage,
+  InvestorRiskProfile,
+  CommunicationPreferences,
 } from '../types/investor';
 
 type ProfileRow = {
@@ -34,6 +39,53 @@ type ProfileRow = {
   created_at: string;
   updated_at: string;
 };
+
+// Helper functions to convert string types to typed enums
+function toInvestorIdType(value: string | null): InvestorIdType | null {
+  if (!value) return null;
+  const validTypes: InvestorIdType[] = ['national_id', 'iqama', 'passport', 'other'];
+  return validTypes.includes(value as InvestorIdType) ? (value as InvestorIdType) : null;
+}
+
+function toInvestorKycStatus(value: string | null): InvestorKycStatus {
+  if (!value) return 'pending';
+  const validStatuses: InvestorKycStatus[] = ['pending', 'in_review', 'approved', 'rejected'];
+  return validStatuses.includes(value as InvestorKycStatus) ? (value as InvestorKycStatus) : 'pending';
+}
+
+function toInvestorLanguage(value: string | null): InvestorLanguage {
+  if (!value) return 'ar';
+  return value === 'en' ? 'en' : 'ar';
+}
+
+function toInvestorRiskProfile(value: string | null): InvestorRiskProfile {
+  if (!value) return null;
+  const validProfiles: InvestorRiskProfile[] = ['conservative', 'balanced', 'aggressive'];
+  return validProfiles.includes(value as InvestorRiskProfile) ? (value as InvestorRiskProfile) : null;
+}
+
+function toCommunicationPreferences(
+  value: Record<string, boolean> | null
+): CommunicationPreferences {
+  if (!value) {
+    return { email: true, sms: false, push: false };
+  }
+  return {
+    email: value.email ?? true,
+    sms: value.sms ?? false,
+    push: value.push ?? false,
+  };
+}
+
+function toKycDocuments(value: unknown): string[] | null {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === 'string');
+  }
+  if (value && typeof value === 'string') {
+    return [value];
+  }
+  return null;
+}
 
 async function fetchInvestorProfileDirect(): Promise<InvestorProfile | null> {
   const supabase = getSupabaseBrowserClient();
@@ -73,20 +125,24 @@ async function fetchInvestorProfileDirect(): Promise<InvestorProfile | null> {
     userId: data.user_id,
     fullName: data.full_name ?? null,
     preferredName: data.preferred_name ?? null,
-    language: data.language ?? 'ar',
-    idType: data.id_type ?? null,
+    language: toInvestorLanguage(data.language),
+    idType: toInvestorIdType(data.id_type),
     idNumber: data.id_number ?? null,
     idExpiry: data.id_expiry ?? null,
     nationality: data.nationality ?? null,
     residencyCountry: data.residency_country ?? null,
     city: data.city ?? null,
-    kycStatus: data.kyc_status ?? null,
+    kycStatus: toInvestorKycStatus(data.kyc_status),
     kycUpdatedAt: data.kyc_updated_at ?? null,
-    riskProfile: data.risk_profile ?? null,
-    communicationPreferences: data.communication_preferences ?? {},
-    kycDocuments: data.kyc_documents ?? null,
+    riskProfile: toInvestorRiskProfile(data.risk_profile),
+    communicationPreferences: toCommunicationPreferences(data.communication_preferences),
+    kycDocuments: toKycDocuments(data.kyc_documents),
     createdAt: data.created_at,
     updatedAt: data.updated_at,
+    email: null, // Will be fetched from auth if needed
+    phone: null, // Will be fetched from auth if needed
+    userStatus: null,
+    userCreatedAt: null,
   };
 }
 
@@ -112,15 +168,24 @@ async function updateInvestorProfileDirect(
   if (payload.fullName !== undefined) updateData.full_name = payload.fullName;
   if (payload.preferredName !== undefined) updateData.preferred_name = payload.preferredName;
   if (payload.language !== undefined) updateData.language = payload.language;
-  if (payload.idType !== undefined) updateData.id_type = payload.idType;
+  if (payload.idType !== undefined) updateData.id_type = payload.idType ?? null;
   if (payload.idNumber !== undefined) updateData.id_number = payload.idNumber;
   if (payload.idExpiry !== undefined) updateData.id_expiry = payload.idExpiry;
   if (payload.nationality !== undefined) updateData.nationality = payload.nationality;
   if (payload.residencyCountry !== undefined) updateData.residency_country = payload.residencyCountry;
   if (payload.city !== undefined) updateData.city = payload.city;
-  if (payload.riskProfile !== undefined) updateData.risk_profile = payload.riskProfile;
+  if (payload.riskProfile !== undefined) updateData.risk_profile = payload.riskProfile ?? null;
+  if (payload.kycStatus !== undefined) updateData.kyc_status = payload.kycStatus;
   if (payload.communicationPreferences !== undefined) {
-    updateData.communication_preferences = payload.communicationPreferences;
+    // Merge with existing preferences to ensure all channels are present
+    updateData.communication_preferences = {
+      email: payload.communicationPreferences.email ?? true,
+      sms: payload.communicationPreferences.sms ?? false,
+      push: payload.communicationPreferences.push ?? false,
+    } as Record<string, boolean>;
+  }
+  if (payload.kycDocuments !== undefined) {
+    updateData.kyc_documents = payload.kycDocuments;
   }
 
   // Use upsert to create if doesn't exist, update if exists
@@ -152,20 +217,24 @@ async function updateInvestorProfileDirect(
     userId: data.user_id,
     fullName: data.full_name ?? null,
     preferredName: data.preferred_name ?? null,
-    language: data.language ?? 'ar',
-    idType: data.id_type ?? null,
+    language: toInvestorLanguage(data.language),
+    idType: toInvestorIdType(data.id_type),
     idNumber: data.id_number ?? null,
     idExpiry: data.id_expiry ?? null,
     nationality: data.nationality ?? null,
     residencyCountry: data.residency_country ?? null,
     city: data.city ?? null,
-    kycStatus: data.kyc_status ?? null,
+    kycStatus: toInvestorKycStatus(data.kyc_status),
     kycUpdatedAt: data.kyc_updated_at ?? null,
-    riskProfile: data.risk_profile ?? null,
-    communicationPreferences: data.communication_preferences ?? {},
-    kycDocuments: data.kyc_documents ?? null,
+    riskProfile: toInvestorRiskProfile(data.risk_profile),
+    communicationPreferences: toCommunicationPreferences(data.communication_preferences),
+    kycDocuments: toKycDocuments(data.kyc_documents),
     createdAt: data.created_at,
     updatedAt: data.updated_at,
+    email: null, // Will be fetched from auth if needed
+    phone: null, // Will be fetched from auth if needed
+    userStatus: null,
+    userCreatedAt: null,
   };
 }
 
