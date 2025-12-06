@@ -20,6 +20,7 @@ SELECT
     ARRAY[]::text[]
   ) AS role_names,
   ip.full_name,
+  ip.preferred_name,
   ip.kyc_status,
   ip.language,
   ip.risk_profile,
@@ -37,6 +38,7 @@ LEFT JOIN investor_profiles ip ON ip.user_id = u.id
 GROUP BY
   u.id,
   ip.full_name,
+  ip.preferred_name,
   ip.kyc_status,
   ip.language,
   ip.risk_profile,

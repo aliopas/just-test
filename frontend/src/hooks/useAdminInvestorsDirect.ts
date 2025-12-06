@@ -40,23 +40,6 @@ export type InvestorListResponse = {
   };
 };
 
-type UserRow = {
-  id: string;
-  email: string;
-  phone: string | null;
-  phone_cc: string | null;
-  role: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-};
-
-type ProfileRow = {
-  user_id: string;
-  full_name: string | null;
-  preferred_name: string | null;
-  kyc_status: string | null;
-};
 
 async function fetchAdminInvestorsDirect(
   filters: InvestorListFilters
@@ -70,79 +53,49 @@ async function fetchAdminInvestorsDirect(
   const limit = filters.limit ?? 25;
   const offset = (page - 1) * limit;
 
-  // Step 1: If search includes names, we need to fetch profiles first to filter by name
-  let searchUserIds: string[] | null = null;
-  if (filters.search && filters.search.trim().length > 0) {
-    const searchTerm = filters.search.trim();
-    const searchPattern = `%${searchTerm}%`;
-    
-    // Search in profiles for names
-    const profilesSearchResult = await supabase
-      .from('investor_profiles')
-      .select('user_id, full_name, preferred_name')
-      .or(`full_name.ilike.${searchPattern},preferred_name.ilike.${searchPattern}`);
-    
-    const matchingProfileUserIds = (profilesSearchResult.data ?? [])
-      .map(p => p.user_id);
-    
-    // Also search in users table for email/phone
-    const usersSearchResult = await supabase
-      .from('users')
-      .select('id')
-      .eq('role', 'investor')
-      .or(`email.ilike.${searchPattern},phone.ilike.${searchPattern}`);
-    
-    const matchingUserIds = (usersSearchResult.data ?? [])
-      .map(u => u.id);
-    
-    // Combine both search results
-    searchUserIds = [...new Set([...matchingProfileUserIds, ...matchingUserIds])];
-    
-    // If no matches found, return empty result
-    if (searchUserIds.length === 0) {
-      return {
-        investors: [],
-        meta: {
-          page,
-          limit,
-          total: 0,
-          pageCount: 0,
-          hasNext: false,
-          hasPrev: false,
-        },
-      };
-    }
+  // Step 1: Get all user IDs that have investor_profiles
+  const { data: investorUserIds, error: investorIdsError } = await supabase
+    .from('investor_profiles')
+    .select('user_id, full_name, preferred_name, kyc_status');
+
+  if (investorIdsError) {
+    throw new Error(`خطأ في جلب معرفات المستثمرين: ${investorIdsError.message}`);
   }
 
-  // Step 2: Build query for users with role = 'investor'
+  const investorIds = (investorUserIds ?? []).map(p => p.user_id);
+  const profilesMap = new Map(
+    (investorUserIds ?? []).map(p => [p.user_id, p])
+  );
+
+  // If no investors found, return empty result
+  if (investorIds.length === 0) {
+    return {
+      investors: [],
+      meta: {
+        page,
+        limit,
+        total: 0,
+        pageCount: 0,
+        hasNext: false,
+        hasPrev: false,
+      },
+    };
+  }
+
+  // Step 2: Query users table for investors
   let query = supabase
     .from('users')
-    .select(
-      `
-      id,
-      email,
-      phone,
-      phone_cc,
-      role,
-      status,
-      created_at,
-      updated_at
-    `,
-      { count: 'exact' }
-    )
-    .eq('role', 'investor');
+    .select('id, email, phone, phone_cc, status, created_at, updated_at', { count: 'exact' })
+    .in('id', investorIds);
 
-  // Apply filters
+  // Apply status filter
   if (filters.status && filters.status !== 'all') {
     query = query.eq('status', filters.status);
   }
 
-  // If we have search results, filter by those user IDs
-  if (searchUserIds && searchUserIds.length > 0) {
-    query = query.in('id', searchUserIds);
-  } else if (filters.search && filters.search.trim().length > 0) {
-    // Fallback: search only in email/phone if no profile matches
-    const pattern = `%${filters.search.trim().toLowerCase()}%`;
+  // Apply search filter
+  if (filters.search && filters.search.trim().length > 0) {
+    const pattern = `%${filters.search.trim()}%`;
     query = query.or(`email.ilike.${pattern},phone.ilike.${pattern}`);
   }
 
@@ -159,41 +112,21 @@ async function fetchAdminInvestorsDirect(
     throw new Error(`خطأ في جلب المستثمرين: ${usersError.message}`);
   }
 
-  const userRows = (users as UserRow[] | null) ?? [];
+  const userRows = (users as any[] | null) ?? [];
 
-  // Step 3: Fetch profiles for these users
-  const userIds = userRows.map((u) => u.id);
-  let profiles: ProfileRow[] = [];
-  
-  if (userIds.length > 0) {
-    const profilesResult = await supabase
-      .from('investor_profiles')
-      .select('user_id, full_name, preferred_name, kyc_status')
-      .in('user_id', userIds);
-    profiles = (profilesResult.data as ProfileRow[] | null) ?? [];
-  }
-
-  const profilesByUserId = profiles;
-  const profilesMap = profilesByUserId.reduce(
-    (acc, profile) => {
-      acc[profile.user_id] = profile;
-      return acc;
-    },
-    {} as Record<string, ProfileRow>
-  );
-
-  // Step 4: Apply KYC status filter if needed
+  // Step 3: Apply KYC status filter if needed
   let filteredUsers = userRows;
   if (filters.kycStatus && filters.kycStatus !== 'all') {
     filteredUsers = userRows.filter((user) => {
-      const profile = profilesMap[user.id];
+      const profile = profilesMap.get(user.id);
       return profile?.kyc_status === filters.kycStatus;
     });
   }
 
-  // Transform to InvestorListItem format
+  // Step 4: Transform to InvestorListItem format
   const investors: InvestorListItem[] = filteredUsers.map((user) => {
-    const profile = profilesMap[user.id];
+    const profile = profilesMap.get(user.id);
+    
     // Combine phone_cc with phone if both exist
     const phone = user.phone 
       ? (user.phone_cc ? `${user.phone_cc}${user.phone}` : user.phone)
@@ -217,9 +150,7 @@ async function fetchAdminInvestorsDirect(
         userId: user.id,
         email: user.email,
         phone: phone,
-        hasProfile: !!profile,
         fullName: profile?.full_name,
-        preferredName: profile?.preferred_name,
         finalInvestor: investor,
       });
     }
