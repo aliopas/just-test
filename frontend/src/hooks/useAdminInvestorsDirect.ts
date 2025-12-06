@@ -183,7 +183,22 @@ async function fetchAdminInvestorsDirect(
 
   if (usersError) {
     console.error('[useAdminInvestorsDirect] Error fetching users:', usersError);
+    console.error('[useAdminInvestorsDirect] Query details:', {
+      filters,
+      finalUserIds: finalUserIds?.length,
+      hasSearch: !!filters.search,
+      hasKycFilter: filters.kycStatus !== 'all',
+    });
     throw new Error(`خطأ في جلب المستخدمين: ${usersError.message}`);
+  }
+
+  // Debug logging
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[useAdminInvestorsDirect] Fetched users:', {
+      count: users?.length ?? 0,
+      totalCount: count,
+      filters,
+    });
   }
 
   let userRows = (users as any[] | null) ?? [];
