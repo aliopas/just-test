@@ -109,7 +109,7 @@ async function fetchAdminInvestorsDirect(
 
   // Step 3: Query ALL users from users table
   let query = supabase
-    .from('users')
+      .from('users')
     .select('id, email, phone, phone_cc, status, created_at, updated_at', { count: 'exact' });
 
   // Apply status filter
@@ -168,7 +168,7 @@ async function fetchAdminInvestorsDirect(
     // If we already have user IDs from profile search, we need to combine
     // For now, we'll search in email/phone and filter results later
     if (!finalUserIds) {
-      query = query.or(`email.ilike.${pattern},phone.ilike.${pattern}`);
+    query = query.or(`email.ilike.${pattern},phone.ilike.${pattern}`);
     }
   }
 

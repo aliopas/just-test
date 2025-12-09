@@ -210,6 +210,21 @@
     padding: 1.5rem 1rem !important;
   }
 
+  /* Page containers */
+  div[style*="padding: 2rem"] {
+    padding: 1rem !important;
+  }
+
+  div[style*="padding: '2rem'"] {
+    padding: 1rem !important;
+  }
+
+  /* Max width containers */
+  div[style*="maxWidth"] {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
   /* Logo sizes */
   .logo-small {
     width: 40px !important;
@@ -294,6 +309,49 @@
     text-align: center !important;
     padding: 1rem 1.25rem !important;
     min-height: 48px !important;
+  }
+
+  /* Forms and inputs */
+  textarea {
+    min-height: 80px !important;
+  }
+
+  /* Cards and sections */
+  section[style*="padding"] {
+    padding: 1rem !important;
+  }
+
+  /* Buttons in forms */
+  form button {
+    width: 100% !important;
+    margin-top: 0.5rem !important;
+  }
+
+  /* Flex containers */
+  div[style*="display: flex"][style*="gap"] {
+    flex-wrap: wrap !important;
+  }
+
+  /* Grid layouts */
+  div[style*="gridTemplateColumns"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Tables - ensure cards view on mobile */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Modal and dialog adjustments */
+  [role="dialog"],
+  .modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    max-height: 100vh !important;
+    overflow-y: auto !important;
   }
 }
 

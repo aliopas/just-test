@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { getMessage } from '../../locales/investorProfile';
 
@@ -68,17 +68,14 @@ export function ProfileTabs({ tabs }: ProfileTabsProps) {
         ))}
       </div>
       <div>
-        {tabs.map(
-          tab =>
-            tab.id === activeTab && (
-              <section key={tab.id} role="tabpanel">
-                {tab.content}
-              </section>
-            )
-        )}
+        {tabs
+          .filter(tab => tab.id === activeTab)
+          .map(tab => (
+            <section key={tab.id} role="tabpanel">
+              {tab.content}
+            </section>
+          ))}
       </div>
     </div>
   );
 }
-
-

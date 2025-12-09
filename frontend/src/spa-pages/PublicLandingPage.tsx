@@ -10,10 +10,12 @@ import {
   useCompanyProfiles,
   usePartnershipInfo,
 } from '../hooks/useSupabaseTables';
+import { useIsMobile } from '../hooks/useMediaQuery';
 
 export function PublicLandingPage() {
   const { language, direction } = useLanguage();
   const isArabic = language === 'ar';
+  const isMobile = useIsMobile();
 
   // Public, admin-managed content for hero and header
   const { data: profiles } = useCompanyProfiles();
@@ -71,7 +73,7 @@ export function PublicLandingPage() {
           style={{
             maxWidth: '1200px',
             margin: '0 auto',
-            padding: '1rem 1.5rem',
+            padding: isMobile ? '1rem' : '1rem 1.5rem',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -87,11 +89,11 @@ export function PublicLandingPage() {
               flexWrap: 'wrap',
             }}
           >
-            <Logo size={56} showWordmark={false} aria-hidden />
+            <Logo size={isMobile ? 48 : 56} showWordmark={false} aria-hidden />
             <div>
               <div
                 style={{
-                  fontSize: '1.25rem',
+                  fontSize: isMobile ? '1.1rem' : '1.25rem',
                   fontWeight: 700,
                   letterSpacing: isArabic ? 0 : '0.02em',
                 }}
@@ -100,8 +102,9 @@ export function PublicLandingPage() {
               </div>
               <div
                 style={{
-                  fontSize: '0.9rem',
+                  fontSize: isMobile ? '0.8rem' : '0.9rem',
                   color: palette.textSecondary,
+                  display: isMobile ? 'none' : 'block',
                 }}
               >
                 {headerSubtitle}
@@ -112,21 +115,25 @@ export function PublicLandingPage() {
           <div
             style={{
               display: 'flex',
-              gap: '0.75rem',
+              gap: isMobile ? '0.5rem' : '0.75rem',
               flexWrap: 'wrap',
+              width: isMobile ? '100%' : 'auto',
             }}
           >
             <a
               href="/login"
               style={{
-                padding: '0.55rem 1.3rem',
+                padding: isMobile ? '0.65rem 1rem' : '0.55rem 1.3rem',
                 borderRadius: '999px',
                 border: `1px solid ${palette.neutralBorderSoft}`,
                 background: palette.backgroundSurface,
                 color: palette.textPrimary,
                 textDecoration: 'none',
                 fontWeight: 600,
-                fontSize: '0.9rem',
+                fontSize: isMobile ? '0.85rem' : '0.9rem',
+                flex: isMobile ? 1 : 'none',
+                textAlign: 'center',
+                minHeight: isMobile ? '44px' : 'auto',
               }}
             >
               {isArabic ? 'تسجيل الدخول' : 'Sign in'}
@@ -134,14 +141,17 @@ export function PublicLandingPage() {
             <a
               href="/register"
               style={{
-                padding: '0.55rem 1.4rem',
+                padding: isMobile ? '0.65rem 1rem' : '0.55rem 1.4rem',
                 borderRadius: '999px',
                 border: 'none',
                 background: palette.brandPrimaryStrong,
                 color: palette.textOnBrand,
                 textDecoration: 'none',
                 fontWeight: 600,
-                fontSize: '0.9rem',
+                fontSize: isMobile ? '0.85rem' : '0.9rem',
+                flex: isMobile ? 1 : 'none',
+                textAlign: 'center',
+                minHeight: isMobile ? '44px' : 'auto',
               }}
             >
               {isArabic ? '  كن شريك باكورة ' : 'Create investor account'}
@@ -162,10 +172,10 @@ export function PublicLandingPage() {
           style={{
             maxWidth: '1200px',
             margin: '0 auto',
-            padding: '2.5rem 1.5rem 1.5rem',
+            padding: isMobile ? '1.5rem 1rem' : '2.5rem 1.5rem 1.5rem',
             display: 'flex',
             flexDirection: 'column',
-            gap: '1.75rem',
+            gap: isMobile ? '1.25rem' : '1.75rem',
           }}
         >
           <div
@@ -179,7 +189,7 @@ export function PublicLandingPage() {
             <h1
               style={{
                 margin: 0,
-                fontSize: '2.4rem',
+                fontSize: isMobile ? '1.75rem' : '2.4rem',
                 lineHeight: 1.3,
                 fontWeight: 800,
                 letterSpacing: isArabic ? 0 : '-0.05em',
@@ -190,7 +200,7 @@ export function PublicLandingPage() {
             <p
               style={{
                 margin: 0,
-                fontSize: '1.05rem',
+                fontSize: isMobile ? '0.95rem' : '1.05rem',
                 lineHeight: 1.8,
                 color: palette.textSecondary,
               }}

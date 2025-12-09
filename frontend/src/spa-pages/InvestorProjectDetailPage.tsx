@@ -4,7 +4,22 @@ import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
 import { usePublicProjectDetail } from '../hooks/useSupabaseProjects';
 import { useNextNavigate } from '../utils/next-router';
-import type { Project } from '../hooks/useAdminProjects';
+
+type PublicProject = {
+  name: string;
+  nameAr: string | null;
+  description: string | null;
+  descriptionAr: string | null;
+  status: 'active' | 'inactive' | 'archived';
+  createdAt: string;
+  coverKey: string | null;
+  operatingCosts: number;
+  annualBenefits: number;
+  totalShares: number;
+  sharePrice: number;
+  operatingCostPerShare: number;
+  annualBenefitPerShare: number;
+};
 
 export function InvestorProjectDetailPage() {
   const { language, direction } = useLanguage();
@@ -32,11 +47,11 @@ export function InvestorProjectDetailPage() {
     });
   };
 
-  const getProjectName = (project: Project) => {
+  const getProjectName = (project: PublicProject) => {
     return language === 'ar' && project.nameAr ? project.nameAr : project.name;
   };
 
-  const getProjectDescription = (project: Project) => {
+  const getProjectDescription = (project: PublicProject) => {
     return language === 'ar' && project.descriptionAr
       ? project.descriptionAr
       : project.description || '';

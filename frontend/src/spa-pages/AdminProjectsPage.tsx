@@ -3,11 +3,12 @@ import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
 import type { ProjectListFilters, Project } from '../hooks/useAdminProjects';
 import {
-  useAdminProjectDetail,
-  useCreateProjectMutation,
-  useUpdateProjectMutation,
-  useDeleteProjectMutation,
-} from '../hooks/useAdminProjects';
+  useAdminProjectDetailDirect,
+  useCreateProjectMutationDirect,
+  useUpdateProjectMutationDirect,
+  useDeleteProjectMutationDirect,
+  useCompanyResources,
+} from '../hooks/useAdminProjectsDirect';
 import { useAdminProjectsListDirect } from '../hooks/useAdminProjectsDirect';
 
 export function AdminProjectsPage() {
@@ -22,9 +23,10 @@ export function AdminProjectsPage() {
   });
 
   const { data, isLoading, isError, refetch } = useAdminProjectsListDirect(filters);
-  const createMutation = useCreateProjectMutation();
-  const updateMutation = useUpdateProjectMutation();
-  const deleteMutation = useDeleteProjectMutation();
+  const createMutation = useCreateProjectMutationDirect();
+  const updateMutation = useUpdateProjectMutationDirect();
+  const deleteMutation = useDeleteProjectMutationDirect();
+  const { data: companyResources } = useCompanyResources();
 
   const projects = data?.projects ?? [];
   const meta = data?.meta ?? {
@@ -38,14 +40,10 @@ export function AdminProjectsPage() {
 
   type FormValues = {
     name: string;
-    nameAr: string;
-    description: string;
-    descriptionAr: string;
-    coverKey: string;
-    operatingCosts: string;
-    annualBenefits: string;
-    totalShares: string;
-    sharePrice: string;
+    contractDate: string;
+    completionPercentage: string;
+    projectValue: string;
+    companyResourceId: string;
     status: Project['status'];
   };
 
@@ -54,21 +52,17 @@ export function AdminProjectsPage() {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [formValues, setFormValues] = useState<FormValues>({
     name: '',
-    nameAr: '',
-    description: '',
-    descriptionAr: '',
-    coverKey: '',
-    operatingCosts: '',
-    annualBenefits: '',
-    totalShares: '',
-    sharePrice: '',
+    contractDate: '',
+    completionPercentage: '0',
+    projectValue: '',
+    companyResourceId: '',
     status: 'active',
   });
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof FormValues, string>>>(
     {}
   );
 
-  const detailQuery = useAdminProjectDetail(selectedProjectId);
+  const detailQuery = useAdminProjectDetailDirect(selectedProjectId);
 
   const handleStatusFilterChange = (status: ProjectListFilters['status']) => {
     setFilters(prev => ({
@@ -96,14 +90,10 @@ export function AdminProjectsPage() {
   const resetForm = () => {
     setFormValues({
       name: '',
-      nameAr: '',
-      description: '',
-      descriptionAr: '',
-      coverKey: '',
-      operatingCosts: '',
-      annualBenefits: '',
-      totalShares: '',
-      sharePrice: '',
+      contractDate: '',
+      completionPercentage: '0',
+      projectValue: '',
+      companyResourceId: '',
       status: 'active',
     });
     setFormErrors({});
@@ -127,14 +117,10 @@ export function AdminProjectsPage() {
       const p = detailQuery.data;
       setFormValues({
         name: p.name,
-        nameAr: p.nameAr ?? '',
-        description: p.description ?? '',
-        descriptionAr: p.descriptionAr ?? '',
-        coverKey: p.coverKey ?? '',
-        operatingCosts: String(p.operatingCosts),
-        annualBenefits: String(p.annualBenefits),
-        totalShares: String(p.totalShares),
-        sharePrice: String(p.sharePrice),
+        contractDate: p.contractDate ? new Date(p.contractDate).toISOString().split('T')[0] : '',
+        completionPercentage: String(p.completionPercentage),
+        projectValue: p.projectValue ? String(p.projectValue) : '',
+        companyResourceId: p.companyResourceId ?? '',
         status: p.status,
       });
       setFormErrors({});
@@ -162,17 +148,17 @@ export function AdminProjectsPage() {
     if (!formValues.name.trim()) {
       errors.name = language === 'ar' ? 'اسم المشروع مطلوب' : 'Project name is required';
     }
-    if (!formValues.operatingCosts.trim() || Number.isNaN(Number(formValues.operatingCosts))) {
-      errors.operatingCosts =
-        language === 'ar' ? 'أدخل تكلفة تشغيل صحيحة' : 'Enter valid operating cost';
+    if (!formValues.contractDate.trim()) {
+      errors.contractDate = language === 'ar' ? 'تاريخ العقد مطلوب' : 'Contract date is required';
     }
-    if (!formValues.annualBenefits.trim() || Number.isNaN(Number(formValues.annualBenefits))) {
-      errors.annualBenefits =
-        language === 'ar' ? 'أدخل عوائد سنوية صحيحة' : 'Enter valid annual benefits';
+    const completionPercentage = Number(formValues.completionPercentage);
+    if (Number.isNaN(completionPercentage) || completionPercentage < 0 || completionPercentage > 100) {
+      errors.completionPercentage =
+        language === 'ar' ? 'نسبة الإنجاز يجب أن تكون بين 0 و 100' : 'Completion percentage must be between 0 and 100';
     }
-    if (!formValues.totalShares.trim() || Number.isNaN(Number(formValues.totalShares))) {
-      errors.totalShares =
-        language === 'ar' ? 'أدخل عدد حصص صحيح' : 'Enter valid total shares';
+    if (formValues.projectValue.trim() && Number.isNaN(Number(formValues.projectValue))) {
+      errors.projectValue =
+        language === 'ar' ? 'أدخل قيمة مشروع صحيحة' : 'Enter valid project value';
     }
 
     setFormErrors(errors);
@@ -185,26 +171,28 @@ export function AdminProjectsPage() {
 
     const payload = {
       name: formValues.name.trim(),
-      nameAr: formValues.nameAr.trim() || undefined,
-      description: formValues.description.trim() || undefined,
-      descriptionAr: formValues.descriptionAr.trim() || undefined,
-      coverKey: formValues.coverKey.trim() || null,
-      operatingCosts: Number(formValues.operatingCosts),
-      annualBenefits: Number(formValues.annualBenefits),
-      totalShares: Number(formValues.totalShares),
-      sharePrice: formValues.sharePrice.trim()
-        ? Number(formValues.sharePrice)
-        : undefined,
+      contractDate: formValues.contractDate.trim() || null,
+      completionPercentage: Number(formValues.completionPercentage),
+      projectValue: formValues.projectValue.trim() ? Number(formValues.projectValue) : null,
+      companyResourceId: formValues.companyResourceId.trim() || null,
       status: formValues.status,
+      // Keep old fields for backward compatibility (set defaults)
+      operatingCosts: 0,
+      annualBenefits: 0,
+      totalShares: 1,
+      sharePrice: 50000,
     };
 
-    if (drawerMode === 'create') {
-      await createMutation.mutateAsync(payload);
-    } else if (drawerMode === 'edit' && selectedProjectId) {
-      await updateMutation.mutateAsync({ id: selectedProjectId, input: payload });
+    try {
+      if (drawerMode === 'create') {
+        await createMutation.mutateAsync(payload);
+      } else if (drawerMode === 'edit' && selectedProjectId) {
+        await updateMutation.mutateAsync({ id: selectedProjectId, input: payload });
+      }
+      setDrawerOpen(false);
+    } catch (error) {
+      console.error('Error saving project:', error);
     }
-
-    setDrawerOpen(false);
   };
 
   const isMutating =
@@ -463,19 +451,19 @@ export function AdminProjectsPage() {
                     }}
                   >
                     <th style={thStyle}>
-                      {language === 'ar' ? 'المشروع' : 'Project'}
+                      {language === 'ar' ? 'اسم المشروع' : 'Project Name'}
                     </th>
                     <th style={thStyle}>
-                      {language === 'ar' ? 'التكلفة التشغيلية' : 'Operating cost'}
+                      {language === 'ar' ? 'تاريخ العقد' : 'Contract Date'}
                     </th>
                     <th style={thStyle}>
-                      {language === 'ar' ? 'العوائد السنوية' : 'Annual benefits'}
+                      {language === 'ar' ? 'نسبة الإنجاز' : 'Completion %'}
                     </th>
                     <th style={thStyle}>
-                      {language === 'ar' ? 'عدد الحصص' : 'Total shares'}
+                      {language === 'ar' ? 'قيمة المشروع' : 'Project Value'}
                     </th>
                     <th style={thStyle}>
-                      {language === 'ar' ? 'سعر الحصة' : 'Share price'}
+                      {language === 'ar' ? 'مورد الشركة' : 'Company Resource'}
                     </th>
                     <th style={thStyle}>
                       {language === 'ar' ? 'الحالة' : 'Status'}
@@ -497,70 +485,90 @@ export function AdminProjectsPage() {
                       }}
                     >
                       <td style={tdStyle}>
+                        <strong
+                          style={{
+                            color: 'var(--color-text-primary)',
+                          }}
+                        >
+                          {project.name}
+                        </strong>
+                      </td>
+                      <td style={tdStyle}>
+                        {project.contractDate
+                          ? new Date(project.contractDate).toLocaleDateString(
+                              language === 'ar' ? 'ar-SA' : 'en-US',
+                              { dateStyle: 'medium' }
+                            )
+                          : '-'}
+                      </td>
+                      <td style={tdStyle}>
                         <div
                           style={{
                             display: 'flex',
-                            flexDirection: 'column',
-                            gap: '0.25rem',
+                            alignItems: 'center',
+                            gap: '0.5rem',
                           }}
                         >
-                          <strong
+                          <div
                             style={{
-                              color: 'var(--color-text-primary)',
+                              flex: 1,
+                              height: '8px',
+                              background: palette.neutralBorderSoft,
+                              borderRadius: '4px',
+                              overflow: 'hidden',
                             }}
                           >
-                            {language === 'ar' && project.nameAr
-                              ? project.nameAr
-                              : project.name}
-                          </strong>
-                          {project.description && (
-                            <span
+                            <div
                               style={{
-                                color: 'var(--color-text-secondary)',
-                                fontSize: '0.85rem',
-                                maxWidth: '360px',
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
+                                width: `${project.completionPercentage}%`,
+                                height: '100%',
+                                background:
+                                  project.completionPercentage >= 80
+                                    ? '#10B981'
+                                    : project.completionPercentage >= 50
+                                    ? '#F59E0B'
+                                    : '#EF4444',
+                                transition: 'width 0.3s ease',
                               }}
-                            >
-                              {language === 'ar' && project.descriptionAr
-                                ? project.descriptionAr
-                                : project.description}
-                            </span>
-                          )}
+                            />
+                          </div>
+                          <span
+                            style={{
+                              minWidth: '40px',
+                              fontSize: '0.85rem',
+                              fontWeight: 600,
+                              color: palette.textPrimary,
+                            }}
+                          >
+                            {project.completionPercentage.toFixed(0)}%
+                          </span>
                         </div>
                       </td>
                       <td style={tdStyle}>
-                        {new Intl.NumberFormat(
-                          language === 'ar' ? 'ar-SA' : 'en-US',
-                          {
-                            style: 'currency',
-                            currency: 'SAR',
-                            maximumFractionDigits: 0,
-                          }
-                        ).format(project.operatingCosts)}
+                        {project.projectValue
+                          ? new Intl.NumberFormat(
+                              language === 'ar' ? 'ar-SA' : 'en-US',
+                              {
+                                style: 'currency',
+                                currency: 'SAR',
+                                maximumFractionDigits: 0,
+                              }
+                            ).format(project.projectValue)
+                          : '-'}
                       </td>
                       <td style={tdStyle}>
-                        {new Intl.NumberFormat(
-                          language === 'ar' ? 'ar-SA' : 'en-US',
-                          {
-                            style: 'currency',
-                            currency: 'SAR',
-                            maximumFractionDigits: 0,
-                          }
-                        ).format(project.annualBenefits)}
-                      </td>
-                      <td style={tdStyle}>{project.totalShares}</td>
-                      <td style={tdStyle}>
-                        {new Intl.NumberFormat(
-                          language === 'ar' ? 'ar-SA' : 'en-US',
-                          {
-                            style: 'currency',
-                            currency: 'SAR',
-                            maximumFractionDigits: 2,
-                          }
-                        ).format(project.sharePrice)}
+                        {project.companyResourceId
+                          ? (() => {
+                              const resource = companyResources?.find(
+                                r => r.id === project.companyResourceId
+                              );
+                              return resource
+                                ? language === 'ar'
+                                  ? resource.titleAr
+                                  : resource.titleEn
+                                : '-';
+                            })()
+                          : '-'}
                       </td>
                       <td style={tdStyle}>
                         <span style={getStatusBadgeStyle(project.status)}>
@@ -771,11 +779,12 @@ export function AdminProjectsPage() {
               >
                 <div style={sectionStyle}>
                   <label style={labelStyle}>
-                    {language === 'ar' ? 'اسم المشروع (إنجليزي)' : 'Project name (EN)'}
+                    {language === 'ar' ? 'اسم المشروع' : 'Project Name'}
                     <input
                       type="text"
                       value={formValues.name}
                       onChange={e => handleFieldChange('name', e.target.value)}
+                      placeholder={language === 'ar' ? 'أدخل اسم المشروع' : 'Enter project name'}
                       style={{
                         ...inputStyle,
                         borderColor: formErrors.name ? '#DC2626' : 'var(--color-brand-secondary-soft)',
@@ -785,111 +794,148 @@ export function AdminProjectsPage() {
                       <span style={errorStyle}>{formErrors.name}</span>
                     )}
                   </label>
-
-                  <label style={labelStyle}>
-                    {language === 'ar' ? 'اسم المشروع (عربي)' : 'Project name (AR)'}
-                    <input
-                      type="text"
-                      value={formValues.nameAr}
-                      onChange={e => handleFieldChange('nameAr', e.target.value)}
-                      style={inputStyle}
-                    />
-                  </label>
                 </div>
 
                 <div style={sectionStyle}>
                   <label style={labelStyle}>
-                    {language === 'ar' ? 'وصف مختصر (إنجليزي)' : 'Description (EN)'}
-                    <textarea
-                      value={formValues.description}
-                      onChange={e => handleFieldChange('description', e.target.value)}
-                      rows={3}
-                      style={textareaStyle}
-                    />
-                  </label>
-                  <label style={labelStyle}>
-                    {language === 'ar' ? 'وصف مختصر (عربي)' : 'Description (AR)'}
-                    <textarea
-                      value={formValues.descriptionAr}
-                      onChange={e => handleFieldChange('descriptionAr', e.target.value)}
-                      rows={3}
-                      style={textareaStyle}
-                    />
-                  </label>
-                </div>
-
-                <div style={sectionStyle}>
-                  <label style={labelStyle}>
-                    {language === 'ar' ? 'تكاليف التشغيل (ريال)' : 'Operating costs (SAR)'}
+                    {language === 'ar' ? 'تاريخ العقد' : 'Contract Date'}
                     <input
-                      type="number"
-                      value={formValues.operatingCosts}
-                      onChange={e => handleFieldChange('operatingCosts', e.target.value)}
+                      type="date"
+                      value={formValues.contractDate}
+                      onChange={e => handleFieldChange('contractDate', e.target.value)}
                       style={{
                         ...inputStyle,
-                        borderColor: formErrors.operatingCosts
-                          ? '#DC2626'
-                          : 'var(--color-brand-secondary-soft)',
+                        borderColor: formErrors.contractDate ? '#DC2626' : 'var(--color-brand-secondary-soft)',
                       }}
                     />
-                    {formErrors.operatingCosts && (
-                      <span style={errorStyle}>{formErrors.operatingCosts}</span>
-                    )}
-                  </label>
-
-                  <label style={labelStyle}>
-                    {language === 'ar' ? 'العوائد السنوية (ريال)' : 'Annual benefits (SAR)'}
-                    <input
-                      type="number"
-                      value={formValues.annualBenefits}
-                      onChange={e => handleFieldChange('annualBenefits', e.target.value)}
-                      style={{
-                        ...inputStyle,
-                        borderColor: formErrors.annualBenefits
-                          ? '#DC2626'
-                          : 'var(--color-brand-secondary-soft)',
-                      }}
-                    />
-                    {formErrors.annualBenefits && (
-                      <span style={errorStyle}>{formErrors.annualBenefits}</span>
+                    {formErrors.contractDate && (
+                      <span style={errorStyle}>{formErrors.contractDate}</span>
                     )}
                   </label>
                 </div>
 
                 <div style={sectionStyle}>
                   <label style={labelStyle}>
-                    {language === 'ar' ? 'عدد الحصص' : 'Total shares'}
-                    <input
-                      type="number"
-                      value={formValues.totalShares}
-                      onChange={e => handleFieldChange('totalShares', e.target.value)}
-                      style={{
-                        ...inputStyle,
-                        borderColor: formErrors.totalShares
-                          ? '#DC2626'
-                          : 'var(--color-brand-secondary-soft)',
-                      }}
-                    />
-                    {formErrors.totalShares && (
-                      <span style={errorStyle}>{formErrors.totalShares}</span>
+                    {language === 'ar' ? 'نسبة الإنجاز' : 'Completion Percentage'}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          step="1"
+                          value={formValues.completionPercentage}
+                          onChange={e => handleFieldChange('completionPercentage', e.target.value)}
+                          style={{
+                            flex: 1,
+                            height: '8px',
+                            borderRadius: '4px',
+                            background: `linear-gradient(to right, ${
+                              Number(formValues.completionPercentage) >= 80
+                                ? '#10B981'
+                                : Number(formValues.completionPercentage) >= 50
+                                ? '#F59E0B'
+                                : '#EF4444'
+                            } 0%, ${
+                              Number(formValues.completionPercentage) >= 80
+                                ? '#10B981'
+                                : Number(formValues.completionPercentage) >= 50
+                                ? '#F59E0B'
+                                : '#EF4444'
+                            } ${formValues.completionPercentage}%, ${palette.neutralBorderSoft} ${formValues.completionPercentage}%, ${palette.neutralBorderSoft} 100%)`,
+                            outline: 'none',
+                            cursor: 'pointer',
+                            WebkitAppearance: 'none',
+                            appearance: 'none',
+                          }}
+                        />
+                        <span
+                          style={{
+                            minWidth: '50px',
+                            textAlign: 'center',
+                            fontWeight: 600,
+                            fontSize: '1rem',
+                            color: palette.textPrimary,
+                          }}
+                        >
+                          {formValues.completionPercentage}%
+                        </span>
+                      </div>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={formValues.completionPercentage}
+                        onChange={e => {
+                          const val = e.target.value;
+                          if (val === '' || (Number(val) >= 0 && Number(val) <= 100)) {
+                            handleFieldChange('completionPercentage', val);
+                          }
+                        }}
+                        style={{
+                          ...inputStyle,
+                          width: '100px',
+                          borderColor: formErrors.completionPercentage
+                            ? '#DC2626'
+                            : 'var(--color-brand-secondary-soft)',
+                        }}
+                      />
+                    </div>
+                    {formErrors.completionPercentage && (
+                      <span style={errorStyle}>{formErrors.completionPercentage}</span>
                     )}
                   </label>
+                </div>
 
+                <div style={sectionStyle}>
                   <label style={labelStyle}>
-                    {language === 'ar' ? 'سعر الحصة (اختياري)' : 'Share price (optional)'}
+                    {language === 'ar' ? 'قيمة المشروع (ريال)' : 'Project Value (SAR)'}
                     <input
                       type="number"
+                      min="0"
                       step="0.01"
-                      value={formValues.sharePrice}
-                      onChange={e => handleFieldChange('sharePrice', e.target.value)}
-                      style={inputStyle}
+                      value={formValues.projectValue}
+                      onChange={e => handleFieldChange('projectValue', e.target.value)}
+                      placeholder={language === 'ar' ? 'أدخل قيمة المشروع' : 'Enter project value'}
+                      style={{
+                        ...inputStyle,
+                        borderColor: formErrors.projectValue ? '#DC2626' : 'var(--color-brand-secondary-soft)',
+                      }}
                     />
+                    {formErrors.projectValue && (
+                      <span style={errorStyle}>{formErrors.projectValue}</span>
+                    )}
                   </label>
                 </div>
 
                 <div style={sectionStyle}>
                   <label style={labelStyle}>
-                    {language === 'ar' ? 'حالة المشروع' : 'Project status'}
+                    {language === 'ar' ? 'مورد الشركة المالي' : 'Company Financial Resource'}
+                    <select
+                      value={formValues.companyResourceId}
+                      onChange={e => handleFieldChange('companyResourceId', e.target.value)}
+                      style={inputStyle}
+                    >
+                      <option value="">
+                        {language === 'ar' ? '-- اختر مورد الشركة --' : '-- Select Company Resource --'}
+                      </option>
+                      {companyResources?.map((resource) => (
+                        <option key={resource.id} value={resource.id}>
+                          {language === 'ar' ? resource.titleAr : resource.titleEn}
+                          {resource.value && ` (${new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
+                            style: 'currency',
+                            currency: resource.currency || 'SAR',
+                            maximumFractionDigits: 0,
+                          }).format(resource.value)})`}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+
+                <div style={sectionStyle}>
+                  <label style={labelStyle}>
+                    {language === 'ar' ? 'حالة المشروع' : 'Project Status'}
                     <select
                       value={formValues.status}
                       onChange={e =>
@@ -907,33 +953,6 @@ export function AdminProjectsPage() {
                         {language === 'ar' ? 'مؤرشف' : 'Archived'}
                       </option>
                     </select>
-                  </label>
-
-                  <label style={labelStyle}>
-                    {language === 'ar'
-                      ? 'مفتاح صورة الغلاف (من التخزين)'
-                      : 'Cover image storage key'}
-                    <input
-                      type="text"
-                      value={formValues.coverKey}
-                      onChange={e => handleFieldChange('coverKey', e.target.value)}
-                      style={inputStyle}
-                      placeholder={
-                        language === 'ar'
-                          ? 'path/to/image.jpg'
-                          : 'path/to/image.jpg'
-                      }
-                    />
-                    <small
-                      style={{
-                        color: palette.textSecondary,
-                        fontSize: '0.8rem',
-                      }}
-                    >
-                      {language === 'ar'
-                        ? 'يمكن ربط هذا الحقل بمرفوعات سوبابيز لاحقاً.'
-                        : 'You can later connect this to Supabase uploads.'}
-                    </small>
                   </label>
                 </div>
               </form>

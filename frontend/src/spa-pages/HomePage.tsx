@@ -3,11 +3,13 @@ import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
 import { useInvestorDashboardDirect } from '../hooks/useInvestorDashboardDirect';
 import { useNextNavigate } from '../utils/next-router';
+import { useIsMobile } from '../hooks/useMediaQuery';
 
 export function HomePage() {
   const { language, direction } = useLanguage();
   const navigate = useNextNavigate();
   const { data: dashboardData, isLoading } = useInvestorDashboardDirect();
+  const isMobile = useIsMobile();
 
   const quickActions = [
     {
@@ -84,7 +86,7 @@ export function HomePage() {
     <div
       style={{
         minHeight: '100vh',
-        padding: '2rem',
+        padding: isMobile ? '1rem' : '2rem',
         background: palette.backgroundSurface,
         direction,
       }}
@@ -95,13 +97,13 @@ export function HomePage() {
           margin: '0 auto',
           display: 'flex',
           flexDirection: 'column',
-          gap: '2rem',
+          gap: isMobile ? '1.25rem' : '2rem',
         }}
       >
         {/* Welcome header */}
         <header
           style={{
-            padding: '2rem',
+            padding: isMobile ? '1.5rem' : '2rem',
             borderRadius: radius.lg,
             background: `linear-gradient(135deg, ${palette.brandPrimary} 0%, ${palette.brandPrimaryStrong} 100%)`,
             color: palette.textOnBrand,
@@ -112,7 +114,7 @@ export function HomePage() {
             style={{
               margin: 0,
               marginBottom: '0.5rem',
-              fontSize: typography.sizes.heading,
+              fontSize: isMobile ? '1.5rem' : typography.sizes.heading,
               fontWeight: typography.weights.bold,
             }}
           >
@@ -123,7 +125,7 @@ export function HomePage() {
           <p
             style={{
               margin: 0,
-              fontSize: typography.sizes.body,
+              fontSize: isMobile ? '0.9rem' : typography.sizes.body,
               opacity: 0.9,
             }}
           >
@@ -138,8 +140,8 @@ export function HomePage() {
           <section
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: '1rem',
+              gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: isMobile ? '0.75rem' : '1rem',
             }}
           >
             <StatCard
@@ -174,8 +176,8 @@ export function HomePage() {
           <h2
             style={{
               margin: 0,
-              marginBottom: '1rem',
-              fontSize: typography.sizes.subheading,
+              marginBottom: isMobile ? '0.75rem' : '1rem',
+              fontSize: isMobile ? '1.25rem' : typography.sizes.subheading,
               fontWeight: 600,
               color: palette.textPrimary,
             }}
@@ -185,8 +187,8 @@ export function HomePage() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-              gap: '1.25rem',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: isMobile ? '0.75rem' : '1.25rem',
             }}
           >
             {quickActions.map((action, index) => (
@@ -199,7 +201,7 @@ export function HomePage() {
         {!isLoading && dashboardData && dashboardData.recentRequests.length > 0 && (
           <section
             style={{
-              padding: '1.5rem',
+              padding: isMobile ? '1rem' : '1.5rem',
               borderRadius: radius.lg,
               background: palette.backgroundBase,
               boxShadow: shadow.subtle,
@@ -217,7 +219,7 @@ export function HomePage() {
               <h2
                 style={{
                   margin: 0,
-                  fontSize: typography.sizes.subheading,
+                  fontSize: isMobile ? '1.25rem' : typography.sizes.subheading,
                   fontWeight: 600,
                   color: palette.textPrimary,
                 }}
@@ -227,14 +229,15 @@ export function HomePage() {
               <button
                 onClick={() => navigate('/requests')}
                 style={{
-                  padding: '0.5rem 1rem',
+                  padding: isMobile ? '0.5rem 0.75rem' : '0.5rem 1rem',
                   borderRadius: radius.md,
                   background: 'transparent',
                   color: palette.brandPrimary,
                   border: `1px solid ${palette.brandPrimary}`,
                   cursor: 'pointer',
-                  fontSize: typography.sizes.caption,
+                  fontSize: isMobile ? '0.8rem' : typography.sizes.caption,
                   fontWeight: 600,
+                  minHeight: isMobile ? '36px' : 'auto',
                 }}
               >
                 {language === 'ar' ? 'عرض الكل' : 'View all'}
@@ -251,44 +254,50 @@ export function HomePage() {
                 <div
                   key={request.id}
                   style={{
-                    padding: '0.75rem 1rem',
+                    padding: isMobile ? '0.75rem' : '0.75rem 1rem',
                     borderRadius: radius.md,
                     background: palette.backgroundSurface,
                     border: `1px solid ${palette.neutralBorderMuted}`,
                     display: 'flex',
                     justifyContent: 'space-between',
-                    alignItems: 'center',
+                    alignItems: isMobile ? 'flex-start' : 'center',
+                    flexDirection: isMobile ? 'column' : 'row',
+                    gap: isMobile ? '0.5rem' : 0,
                     cursor: 'pointer',
                     transition: 'background 0.15s ease',
                   }}
                   onMouseEnter={e => {
-                    e.currentTarget.style.background = palette.backgroundHighlight;
+                    if (!isMobile) {
+                      e.currentTarget.style.background = palette.backgroundHighlight;
+                    }
                   }}
                   onMouseLeave={e => {
-                    e.currentTarget.style.background = palette.backgroundSurface;
+                    if (!isMobile) {
+                      e.currentTarget.style.background = palette.backgroundSurface;
+                    }
                   }}
                   onClick={() => navigate(`/requests/${request.id}`)}
                 >
-                  <div>
-                    <span
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
                       style={{
-                        fontSize: typography.sizes.body,
+                        fontSize: isMobile ? '0.9rem' : typography.sizes.body,
                         fontWeight: 600,
                         color: palette.textPrimary,
+                        marginBottom: isMobile ? '0.25rem' : 0,
                       }}
                     >
                       #{request.requestNumber}
-                    </span>
+                    </div>
                     {request.amount && (
-                      <span
+                      <div
                         style={{
-                          fontSize: typography.sizes.caption,
+                          fontSize: isMobile ? '0.8rem' : typography.sizes.caption,
                           color: palette.textSecondary,
-                          marginLeft: '0.5rem',
                         }}
                       >
                         {formatCurrency(request.amount, request.currency || 'SAR')}
-                      </span>
+                      </div>
                     )}
                   </div>
                   <span
@@ -311,11 +320,12 @@ export function HomePage() {
 
 function StatCard({ title, value }: { title: string; value: number }) {
   const { palette, radius, shadow, typography } = require('../styles/theme');
+  const isMobile = window.innerWidth <= 640;
 
   return (
     <div
       style={{
-        padding: '1.25rem',
+        padding: isMobile ? '1rem' : '1.25rem',
         borderRadius: radius.lg,
         background: palette.backgroundBase,
         boxShadow: shadow.subtle,
@@ -327,7 +337,7 @@ function StatCard({ title, value }: { title: string; value: number }) {
     >
       <span
         style={{
-          fontSize: typography.sizes.caption,
+          fontSize: isMobile ? '0.75rem' : typography.sizes.caption,
           color: palette.textSecondary,
         }}
       >
@@ -335,7 +345,7 @@ function StatCard({ title, value }: { title: string; value: number }) {
       </span>
       <strong
         style={{
-          fontSize: '2rem',
+          fontSize: isMobile ? '1.5rem' : '2rem',
           fontWeight: 700,
           color: palette.textPrimary,
         }}
@@ -360,11 +370,12 @@ function QuickActionCard({
   navigate: (path: string) => void;
 }) {
   const { palette, radius, shadow, typography } = require('../styles/theme');
+  const isMobile = window.innerWidth <= 640;
 
   return (
     <div
       style={{
-        padding: '1.5rem',
+        padding: isMobile ? '1.25rem' : '1.5rem',
         borderRadius: radius.lg,
         background: palette.backgroundBase,
         boxShadow: shadow.subtle,
@@ -373,17 +384,22 @@ function QuickActionCard({
         transition: 'all 0.2s ease',
         display: 'flex',
         flexDirection: 'column',
-        gap: '0.75rem',
+        gap: isMobile ? '0.5rem' : '0.75rem',
+        minHeight: isMobile ? '120px' : 'auto',
       }}
       onMouseEnter={e => {
-        e.currentTarget.style.transform = 'translateY(-2px)';
-        e.currentTarget.style.boxShadow = shadow.medium;
-        e.currentTarget.style.borderColor = action.color;
+        if (!isMobile) {
+          e.currentTarget.style.transform = 'translateY(-2px)';
+          e.currentTarget.style.boxShadow = shadow.medium;
+          e.currentTarget.style.borderColor = action.color;
+        }
       }}
       onMouseLeave={e => {
-        e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = shadow.subtle;
-        e.currentTarget.style.borderColor = palette.neutralBorderMuted;
+        if (!isMobile) {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = shadow.subtle;
+          e.currentTarget.style.borderColor = palette.neutralBorderMuted;
+        }
       }}
       onClick={() => navigate(action.path)}
     >
@@ -391,12 +407,12 @@ function QuickActionCard({
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '1rem',
+          gap: isMobile ? '0.75rem' : '1rem',
         }}
       >
         <span
           style={{
-            fontSize: '2rem',
+            fontSize: isMobile ? '1.75rem' : '2rem',
             lineHeight: 1,
           }}
         >
@@ -405,7 +421,7 @@ function QuickActionCard({
         <h3
           style={{
             margin: 0,
-            fontSize: typography.sizes.subheading,
+            fontSize: isMobile ? '1.1rem' : typography.sizes.subheading,
             fontWeight: 600,
             color: palette.textPrimary,
           }}
@@ -416,7 +432,7 @@ function QuickActionCard({
       <p
         style={{
           margin: 0,
-          fontSize: typography.sizes.body,
+          fontSize: isMobile ? '0.9rem' : typography.sizes.body,
           color: palette.textSecondary,
         }}
       >

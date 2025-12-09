@@ -39,6 +39,11 @@ export function InvestorSidebarNav() {
     { to: '/requests', labelAr: 'طلباتي', labelEn: 'My Requests' },
     { to: '/requests/new', labelAr: 'طلب استثماري', labelEn: 'New Request' },
     {
+      to: '/projects',
+      labelAr: 'مشاريع الشركة',
+      labelEn: 'Company Projects',
+    },
+    {
       to: '/internal-news',
       labelAr: 'الأخبار الداخلية',
       labelEn: 'Internal News',

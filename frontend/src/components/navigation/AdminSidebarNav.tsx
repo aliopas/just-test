@@ -8,7 +8,7 @@ import { useLogout } from '@/hooks/useLogout';
 import { Logo } from '@/components/Logo';
 import { palette } from '@/styles/theme';
 import { useCompanyLogoUrl } from '@/hooks/useSupabaseTables';
-import { useNotifications } from '@/hooks/useNotifications';
+import { useNotificationsDirect } from '@/hooks/useNotificationsDirect';
 import { useAdminAccountRequestsUnreadCountDirect } from '@/hooks/useAdminAccountRequestsUnreadCountDirect';
 import { useClearCache } from '@/hooks/useClearCache';
 
@@ -89,7 +89,7 @@ export function AdminSidebarNav() {
   const isArabic = language === 'ar';
   
   // Get unread notifications count
-  const { meta: notificationsMeta } = useNotifications({ status: 'all', page: 1 });
+  const { meta: notificationsMeta } = useNotificationsDirect({ status: 'all', page: 1 });
   const unreadNotificationsCount = notificationsMeta.unreadCount ?? 0;
   
   // Get unread signup requests count

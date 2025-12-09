@@ -124,9 +124,9 @@ export const StatisticsSection = memo(function StatisticsSection() {
           gap: '2rem',
         }}
       >
-        {statistics.map((stat, index) => (
+        {statistics.map((stat) => (
           <div
-            key={index}
+            key={`${stat.value}-${stat.label}`}
             style={{
               padding: '2rem 1.5rem',
               borderRadius: '1.5rem',

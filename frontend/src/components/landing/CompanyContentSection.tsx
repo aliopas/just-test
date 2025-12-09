@@ -3,6 +3,7 @@ import { CompanyContentCard } from './CompanyContentCard';
 import { CompanyContentModal } from './CompanyContentModal';
 import { palette } from '../../styles/theme';
 import { useLanguage } from '../../context/LanguageContext';
+import { useIsMobile } from '../../hooks/useMediaQuery';
 import {
   useCompanyProfiles,
   useCompanyClients,
@@ -180,6 +181,7 @@ function getSectionIcon(sectionId: string, color: string): React.ReactElement | 
 export function CompanyContentSection() {
   const { language, direction } = useLanguage();
   const isArabic = language === 'ar';
+  const isMobile = useIsMobile();
 
   // Fetch all content directly from Supabase using new hooks
   const {
@@ -496,21 +498,21 @@ export function CompanyContentSection() {
           width: '100%',
           maxWidth: '1400px',
           margin: '0 auto',
-          padding: '4rem 2rem',
+          padding: isMobile ? '2rem 1rem' : '4rem 2rem',
           textAlign: 'center',
           direction,
         }}
       >
         <div
           style={{
-            padding: '3rem 2rem',
+            padding: isMobile ? '2rem 1rem' : '3rem 2rem',
             borderRadius: '1.5rem',
             background: palette.backgroundSurface,
             border: `2px dashed ${palette.brandSecondaryMuted}`,
             color: palette.textSecondary,
           }}
         >
-          <p style={{ margin: 0, fontSize: '1.1rem', lineHeight: 1.7 }}>
+          <p style={{ margin: 0, fontSize: isMobile ? '0.95rem' : '1.1rem', lineHeight: 1.7 }}>
             {hasAnyError
               ? isArabic
                 ? 'حدث خطأ في تحميل بعض البيانات. قد تظهر بعض الأقسام بشكل محدود.'
@@ -530,7 +532,7 @@ export function CompanyContentSection() {
         width: '100%',
         maxWidth: '1400px',
         margin: '0 auto',
-        padding: '3rem 2rem',
+        padding: isMobile ? '2rem 1rem' : '3rem 2rem',
         direction,
       }}
     >
@@ -538,7 +540,7 @@ export function CompanyContentSection() {
         <section
           key={section.id}
           style={{
-            marginBottom: '6rem',
+            marginBottom: isMobile ? '3rem' : '6rem',
             padding: '0',
             borderRadius: '0',
             border: 'none',
@@ -550,19 +552,19 @@ export function CompanyContentSection() {
           <div
             style={{
               display: 'flex',
-              flexDirection: isArabic ? 'row-reverse' : 'row',
-              alignItems: 'center',
-              gap: '1.5rem',
-              marginBottom: '3rem',
+              flexDirection: isMobile ? 'column' : (isArabic ? 'row-reverse' : 'row'),
+              alignItems: isMobile ? 'flex-start' : 'center',
+              gap: isMobile ? '1rem' : '1.5rem',
+              marginBottom: isMobile ? '1.5rem' : '3rem',
               flexWrap: 'wrap',
             }}
           >
             <div
               style={{
-                width: '80px',
-                height: '80px',
+                width: isMobile ? '64px' : '80px',
+                height: isMobile ? '64px' : '80px',
                 flexShrink: 0,
-                borderRadius: '20px',
+                borderRadius: isMobile ? '16px' : '20px',
               background: `linear-gradient(135deg, ${palette.brandPrimaryStrong}15 0%, ${palette.brandSecondarySoft}25 100%)`,
               border: `3px solid ${palette.brandPrimaryStrong}30`,
               display: 'flex',
@@ -632,12 +634,12 @@ export function CompanyContentSection() {
             <h2
               style={{
                 margin: 0,
-                fontSize: '1.75rem',
+                fontSize: isMobile ? '1.35rem' : '1.75rem',
                 fontWeight: 700,
                 color: palette.textPrimary,
                 letterSpacing: isArabic ? 0 : '-0.02em',
                 flex: 1,
-                minWidth: '200px',
+                minWidth: isMobile ? 'auto' : '200px',
               }}
             >
               {section.title}
@@ -647,8 +649,8 @@ export function CompanyContentSection() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-              gap: '3rem 2rem',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(320px, 1fr))',
+              gap: isMobile ? '1.5rem' : '3rem 2rem',
             }}
           >
             {section.cards.map((card) => (

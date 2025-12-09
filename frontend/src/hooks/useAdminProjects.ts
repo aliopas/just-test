@@ -18,6 +18,10 @@ export type Project = {
   totalShares: number;
   sharePrice: number;
   status: 'active' | 'inactive' | 'archived';
+  contractDate: string | null;
+  completionPercentage: number;
+  projectValue: number | null;
+  companyResourceId: string | null;
   createdBy: string | null;
   createdAt: string;
   updatedAt: string;
@@ -57,6 +61,10 @@ export type CreateProjectInput = {
   totalShares: number;
   sharePrice?: number;
   status?: 'active' | 'inactive' | 'archived';
+  contractDate?: string | null;
+  completionPercentage?: number;
+  projectValue?: number | null;
+  companyResourceId?: string | null;
 };
 
 export type ProjectImagePresignResponse = {

@@ -8,9 +8,11 @@ import {
   useRejectAccountRequestMutationDirect,
 } from '../hooks/useAdminAccountRequestsMutationsDirect';
 import { useAdminAccountRequestsDirect } from '../hooks/useAdminAccountRequestsDirect';
+import { useIsMobile } from '../hooks/useMediaQuery';
 
 export function AdminSignupRequestsPage() {
   const { language, direction } = useLanguage();
+  const isMobile = useIsMobile();
 
   const [filters, setFilters] = useState<AdminSignupRequestFilters>({
     page: 1,
@@ -48,13 +50,13 @@ export function AdminSignupRequestsPage() {
   async function handleApprove(request: AdminSignupRequest, event: FormEvent) {
     event.preventDefault();
     try {
-      await approveMutation.mutateAsync({
-        id: request.id,
-        note: decisionNote || undefined,
-        sendInvite: true,
-        locale: language,
-      });
-      setDecisionNote('');
+    await approveMutation.mutateAsync({
+      id: request.id,
+      note: decisionNote || undefined,
+      sendInvite: true,
+      locale: language,
+    });
+    setDecisionNote('');
       // إعادة تحميل القائمة
       await refetch();
     } catch (error) {
@@ -65,11 +67,11 @@ export function AdminSignupRequestsPage() {
   async function handleReject(request: AdminSignupRequest, event: FormEvent) {
     event.preventDefault();
     try {
-      await rejectMutation.mutateAsync({
-        id: request.id,
-        note: decisionNote || undefined,
-      });
-      setDecisionNote('');
+    await rejectMutation.mutateAsync({
+      id: request.id,
+      note: decisionNote || undefined,
+    });
+    setDecisionNote('');
       // إعادة تحميل القائمة
       await refetch();
     } catch (error) {
@@ -81,7 +83,7 @@ export function AdminSignupRequestsPage() {
     <div
       style={{
         minHeight: '100vh',
-        padding: '2rem',
+        padding: isMobile ? '1rem' : '2rem',
         background: palette.backgroundSurface,
         direction,
       }}
@@ -92,7 +94,7 @@ export function AdminSignupRequestsPage() {
           margin: '0 auto',
           display: 'flex',
           flexDirection: 'column',
-          gap: '1.5rem',
+          gap: isMobile ? '1rem' : '1.5rem',
         }}
       >
         {/* Header */}
@@ -100,7 +102,7 @@ export function AdminSignupRequestsPage() {
           <h1
             style={{
               margin: 0,
-              fontSize: typography.sizes.heading,
+              fontSize: isMobile ? '1.5rem' : typography.sizes.heading,
               fontWeight: typography.weights.bold,
               color: palette.textPrimary,
             }}
@@ -111,7 +113,7 @@ export function AdminSignupRequestsPage() {
             style={{
               marginTop: '0.35rem',
               marginBottom: 0,
-              fontSize: typography.sizes.body,
+              fontSize: isMobile ? '0.9rem' : typography.sizes.body,
               color: palette.textSecondary,
             }}
           >
@@ -124,15 +126,16 @@ export function AdminSignupRequestsPage() {
         {/* Filters */}
         <section
           style={{
-            padding: '1.25rem 1.5rem',
+            padding: isMobile ? '1rem' : '1.25rem 1.5rem',
             borderRadius: radius.lg,
             background: palette.backgroundBase,
             boxShadow: shadow.subtle,
             border: `1px solid ${palette.neutralBorderMuted}`,
             display: 'flex',
             flexWrap: 'wrap',
-            gap: '1rem',
+            gap: isMobile ? '0.75rem' : '1rem',
             alignItems: 'flex-end',
+            flexDirection: isMobile ? 'column' : 'row',
           }}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
@@ -170,7 +173,7 @@ export function AdminSignupRequestsPage() {
             </select>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', flex: 1 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', flex: isMobile ? 'none' : 1, width: isMobile ? '100%' : 'auto' }}>
             <label
               style={{
                 fontSize: '0.85rem',
@@ -196,6 +199,7 @@ export function AdminSignupRequestsPage() {
                 background: palette.backgroundSurface,
                 color: palette.textPrimary,
                 fontSize: '0.95rem',
+                width: '100%',
               }}
             />
           </div>
@@ -204,7 +208,7 @@ export function AdminSignupRequestsPage() {
         {/* List */}
         <section
           style={{
-            padding: '1.25rem 1.5rem',
+            padding: isMobile ? '1rem' : '1.25rem 1.5rem',
             borderRadius: radius.lg,
             background: palette.backgroundBase,
             boxShadow: shadow.subtle,
@@ -284,7 +288,7 @@ export function AdminSignupRequestsPage() {
                   style={{
                     borderRadius: radius.md,
                     border: `1px solid ${palette.neutralBorderMuted}`,
-                    padding: '0.9rem 1rem',
+                    padding: isMobile ? '0.75rem' : '0.9rem 1rem',
                     background: request.status === 'pending'
                       ? palette.backgroundHighlight
                       : palette.backgroundBase,
@@ -354,10 +358,11 @@ export function AdminSignupRequestsPage() {
                         style={{
                           fontSize: typography.sizes.caption,
                           color: palette.textMuted,
-                          maxWidth: '420px',
-                          whiteSpace: 'nowrap',
+                          maxWidth: isMobile ? '100%' : '420px',
+                          whiteSpace: isMobile ? 'normal' : 'nowrap',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
+                          display: isMobile ? 'block' : 'inline',
                         }}
                       >
                         {request.message}
@@ -397,8 +402,9 @@ export function AdminSignupRequestsPage() {
                         style={{
                           display: 'flex',
                           gap: '0.5rem',
-                          justifyContent: direction === 'rtl' ? 'flex-start' : 'flex-end',
+                          justifyContent: isMobile ? 'stretch' : (direction === 'rtl' ? 'flex-start' : 'flex-end'),
                           flexWrap: 'wrap',
+                          flexDirection: isMobile ? 'column' : 'row',
                         }}
                       >
                         <button
@@ -406,7 +412,7 @@ export function AdminSignupRequestsPage() {
                           onClick={event => handleReject(request, event)}
                           disabled={rejectMutation.isPending || approveMutation.isPending}
                           style={{
-                            padding: '0.45rem 1.1rem',
+                            padding: isMobile ? '0.75rem 1rem' : '0.45rem 1.1rem',
                             borderRadius: radius.md,
                             border: '1px solid #DC2626',
                             background: '#FEF2F2',
@@ -414,6 +420,8 @@ export function AdminSignupRequestsPage() {
                             fontSize: typography.sizes.caption,
                             fontWeight: typography.weights.semibold,
                             cursor: 'pointer',
+                            width: isMobile ? '100%' : 'auto',
+                            minHeight: isMobile ? '44px' : 'auto',
                           }}
                         >
                           {rejectMutation.isPending
@@ -427,7 +435,7 @@ export function AdminSignupRequestsPage() {
                           onClick={event => handleApprove(request, event)}
                           disabled={approveMutation.isPending || rejectMutation.isPending}
                           style={{
-                            padding: '0.45rem 1.1rem',
+                            padding: isMobile ? '0.75rem 1rem' : '0.45rem 1.1rem',
                             borderRadius: radius.md,
                             border: 'none',
                             background: palette.brandPrimaryStrong,
@@ -435,6 +443,8 @@ export function AdminSignupRequestsPage() {
                             fontSize: typography.sizes.caption,
                             fontWeight: typography.weights.semibold,
                             cursor: 'pointer',
+                            width: isMobile ? '100%' : 'auto',
+                            minHeight: isMobile ? '44px' : 'auto',
                           }}
                         >
                           {approveMutation.isPending
@@ -460,27 +470,31 @@ export function AdminSignupRequestsPage() {
             alignItems: 'center',
             justifyContent: 'space-between',
             color: palette.textSecondary,
-            fontSize: '0.9rem',
+            fontSize: isMobile ? '0.85rem' : '0.9rem',
+            flexWrap: 'wrap',
+            gap: isMobile ? '0.75rem' : '0',
           }}
         >
-          <span>
+          <span style={{ fontSize: isMobile ? '0.8rem' : '0.9rem' }}>
             {meta.total > 0
               ? `${meta.page} / ${meta.pageCount} (${meta.total})`
               : '0 / 0 (0)'}
           </span>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             <button
               type="button"
               onClick={() => handlePageChange(meta.page - 1)}
               disabled={meta.page <= 1}
               style={{
-                padding: '0.45rem 1rem',
+                padding: isMobile ? '0.65rem 1rem' : '0.45rem 1rem',
                 borderRadius: radius.md,
                 border: `1px solid ${palette.neutralBorderMuted}`,
                 background: meta.page <= 1
                   ? palette.backgroundSurface
                   : palette.backgroundBase,
                 cursor: meta.page <= 1 ? 'not-allowed' : 'pointer',
+                minHeight: isMobile ? '44px' : 'auto',
+                fontSize: isMobile ? '0.9rem' : 'inherit',
               }}
             >
               {tAdminRequests('pagination.previous', language)}
@@ -490,13 +504,15 @@ export function AdminSignupRequestsPage() {
               onClick={() => handlePageChange(meta.page + 1)}
               disabled={!meta.hasNext}
               style={{
-                padding: '0.45rem 1rem',
+                padding: isMobile ? '0.65rem 1rem' : '0.45rem 1rem',
                 borderRadius: radius.md,
                 border: `1px solid ${palette.neutralBorderMuted}`,
                 background: meta.hasNext
                   ? palette.backgroundBase
                   : palette.backgroundSurface,
                 cursor: meta.hasNext ? 'pointer' : 'not-allowed',
+                minHeight: isMobile ? '44px' : 'auto',
+                fontSize: isMobile ? '0.9rem' : 'inherit',
               }}
             >
               {tAdminRequests('pagination.next', language)}
