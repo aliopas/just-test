@@ -29,18 +29,6 @@ export function InvestorProjectDetailPage() {
 
   const { data: project, isLoading, isError } = usePublicProjectDetail(projectId);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
-      style: 'currency',
-      currency: 'SAR',
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const formatNumber = (num: number) => {
-    return new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US').format(num);
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', {
       dateStyle: 'long',
@@ -247,60 +235,16 @@ export function InvestorProjectDetailPage() {
           </div>
         </header>
 
-        {/* Main content grid */}
+        {/* Main content */}
         <div
           style={{
-            display: 'grid',
-            gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)',
+            display: 'flex',
+            flexDirection: 'column',
             gap: '1.5rem',
           }}
         >
-          {/* Left column - Description */}
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '1.5rem',
-            }}
-          >
-            {/* Description */}
-            {getProjectDescription(project) && (
-              <section
-                style={{
-                  padding: '1.5rem',
-                  borderRadius: radius.lg,
-                  background: palette.backgroundBase,
-                  boxShadow: shadow.subtle,
-                  border: `1px solid ${palette.neutralBorderMuted}`,
-                }}
-              >
-                <h2
-                  style={{
-                    margin: 0,
-                    marginBottom: '1rem',
-                    fontSize: typography.sizes.subheading,
-                    fontWeight: 600,
-                    color: palette.textPrimary,
-                  }}
-                >
-                  {language === 'ar' ? 'وصف المشروع' : 'Project Description'}
-                </h2>
-                <div
-                  style={{
-                    fontSize: typography.sizes.body,
-                    color: palette.textPrimary,
-                    lineHeight: 1.7,
-                    whiteSpace: 'pre-wrap',
-                  }}
-                >
-                  {getProjectDescription(project)}
-                </div>
-              </section>
-            )}
-          </div>
-
-          {/* Right column - Financial details */}
-          <div>
+          {/* Description */}
+          {getProjectDescription(project) && (
             <section
               style={{
                 padding: '1.5rem',
@@ -319,155 +263,73 @@ export function InvestorProjectDetailPage() {
                   color: palette.textPrimary,
                 }}
               >
-                {language === 'ar' ? 'التفاصيل المالية' : 'Financial Details'}
+                {language === 'ar' ? 'وصف المشروع' : 'Project Description'}
               </h2>
               <div
                 style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '1rem',
+                  fontSize: typography.sizes.body,
+                  color: palette.textPrimary,
+                  lineHeight: 1.7,
+                  whiteSpace: 'pre-wrap',
                 }}
               >
-                <FinancialRow
-                  label={language === 'ar' ? 'تكاليف التشغيل' : 'Operating Costs'}
-                  value={formatCurrency(project.operatingCosts)}
-                />
-                <FinancialRow
-                  label={language === 'ar' ? 'الفوائد السنوية' : 'Annual Benefits'}
-                  value={formatCurrency(project.annualBenefits)}
-                />
-                <FinancialRow
-                  label={language === 'ar' ? 'إجمالي الأسهم' : 'Total Shares'}
-                  value={formatNumber(project.totalShares)}
-                />
-                <FinancialRow
-                  label={language === 'ar' ? 'سعر السهم' : 'Share Price'}
-                  value={formatCurrency(project.sharePrice)}
-                />
-                <div
-                  style={{
-                    marginTop: '0.5rem',
-                    paddingTop: '1rem',
-                    borderTop: `1px solid ${palette.neutralBorderMuted}`,
-                  }}
-                >
-                  <FinancialRow
-                    label={
-                      language === 'ar'
-                        ? 'تكلفة التشغيل لكل سهم'
-                        : 'Operating Cost per Share'
-                    }
-                    value={formatCurrency(project.operatingCostPerShare)}
-                    highlight
-                  />
-                  <FinancialRow
-                    label={
-                      language === 'ar'
-                        ? 'الفائدة السنوية لكل سهم'
-                        : 'Annual Benefit per Share'
-                    }
-                    value={formatCurrency(project.annualBenefitPerShare)}
-                    highlight
-                  />
-                </div>
+                {getProjectDescription(project)}
               </div>
             </section>
+          )}
 
-            {/* Investment CTA */}
-            <section
+          {/* Investment CTA */}
+          <section
+            style={{
+              padding: '1.5rem',
+              borderRadius: radius.lg,
+              background: `linear-gradient(135deg, ${palette.brandPrimary} 0%, ${palette.brandPrimaryStrong} 100%)`,
+              boxShadow: shadow.medium,
+              color: palette.textOnBrand,
+              textAlign: 'center',
+            }}
+          >
+            <h3
               style={{
-                marginTop: '1.5rem',
-                padding: '1.5rem',
-                borderRadius: radius.lg,
-                background: `linear-gradient(135deg, ${palette.brandPrimary} 0%, ${palette.brandPrimaryStrong} 100%)`,
-                boxShadow: shadow.medium,
-                color: palette.textOnBrand,
-                textAlign: 'center',
+                margin: 0,
+                marginBottom: '0.5rem',
+                fontSize: typography.sizes.subheading,
+                fontWeight: 600,
               }}
             >
-              <h3
-                style={{
-                  margin: 0,
-                  marginBottom: '0.5rem',
-                  fontSize: typography.sizes.subheading,
-                  fontWeight: 600,
-                }}
-              >
-                {language === 'ar' ? 'مهتم بالاستثمار؟' : 'Interested in investing?'}
-              </h3>
-              <p
-                style={{
-                  margin: 0,
-                  marginBottom: '1rem',
-                  fontSize: typography.sizes.body,
-                  opacity: 0.9,
-                }}
-              >
-                {language === 'ar'
-                  ? 'قدّم طلب استثماري لهذا المشروع'
-                  : 'Submit an investment request for this project'}
-              </p>
-              <button
-                onClick={() => navigate('/requests/new')}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  borderRadius: radius.md,
-                  background: palette.textOnBrand,
-                  color: palette.brandPrimary,
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                  fontSize: typography.sizes.body,
-                }}
-              >
-                {language === 'ar' ? 'إنشاء طلب استثماري' : 'Create Investment Request'}
-              </button>
-            </section>
-          </div>
+              {language === 'ar' ? 'مهتم بالاستثمار؟' : 'Interested in investing?'}
+            </h3>
+            <p
+              style={{
+                margin: 0,
+                marginBottom: '1rem',
+                fontSize: typography.sizes.body,
+                opacity: 0.9,
+              }}
+            >
+              {language === 'ar'
+                ? 'قدّم طلب استثماري لهذا المشروع'
+                : 'Submit an investment request for this project'}
+            </p>
+            <button
+              onClick={() => navigate('/requests/new')}
+              style={{
+                padding: '0.75rem 1.5rem',
+                borderRadius: radius.md,
+                background: palette.textOnBrand,
+                color: palette.brandPrimary,
+                border: 'none',
+                cursor: 'pointer',
+                fontWeight: 600,
+                fontSize: typography.sizes.body,
+              }}
+            >
+              {language === 'ar' ? 'إنشاء طلب استثماري' : 'Create Investment Request'}
+            </button>
+          </section>
         </div>
       </div>
     </div>
   );
 }
 
-function FinancialRow({
-  label,
-  value,
-  highlight = false,
-}: {
-  label: string;
-  value: string;
-  highlight?: boolean;
-}) {
-  const { palette, typography } = require('../styles/theme');
-
-  return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: highlight ? '0.5rem 0' : '0.25rem 0',
-      }}
-    >
-      <span
-        style={{
-          fontSize: typography.sizes.body,
-          color: highlight ? palette.textPrimary : palette.textSecondary,
-          fontWeight: highlight ? 600 : 400,
-        }}
-      >
-        {label}
-      </span>
-      <strong
-        style={{
-          fontSize: highlight ? typography.sizes.subheading : typography.sizes.body,
-          color: palette.textPrimary,
-          fontWeight: 600,
-        }}
-      >
-        {value}
-      </strong>
-    </div>
-  );
-}
