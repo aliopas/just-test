@@ -1,7 +1,7 @@
 [build]
   # Use optimized build script with error handling and timeout protection
   # Install function dependencies first, then build
-  command = "cd ../netlify/functions && npm install --production && cd ../../frontend && chmod +x scripts/netlify-build.sh && bash scripts/netlify-build.sh"
+  command = "cd ../netlify/functions && npm install --production --no-audit --no-fund && cd ../../frontend && bash scripts/netlify-build.sh"
   functions = "../netlify/functions"
   publish = ".next"
   base = "frontend"
