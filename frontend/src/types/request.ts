@@ -25,6 +25,7 @@ export interface CreateRequestPayload {
   notes?: string | null;
   metadata?: Record<string, unknown>; // Additional data for specific request types
   documents?: File[];
+  projectId?: string | null; // Project ID for partnership requests
 }
 
 export interface CreateRequestResponse {

@@ -7,6 +7,7 @@ import { useToast } from '../../context/ToastContext';
 import { useCreateRequest } from '../../hooks/useCreateRequest';
 import { analytics } from '../../utils/analytics';
 import type { RequestType } from '../../types/request';
+import { useInvestorProjectsDirect } from '../../hooks/useInvestorProjectsDirect';
 
 interface PartnershipRequestFormProps {
   onSuccess?: () => void;
@@ -16,6 +17,7 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
   const { language, direction } = useLanguage();
   const { pushToast } = useToast();
   const createRequest = useCreateRequest();
+  const { data: projects, isLoading: isLoadingProjects } = useInvestorProjectsDirect();
 
   const {
     register,
@@ -27,6 +29,7 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
     defaultValues: {
       type: 'partnership',
       partnershipType: 'strategic',
+      projectId: '',
     },
   });
 
@@ -81,6 +84,10 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
           : {}),
         metadata: metadata,
         notes: values.partnershipDetails || undefined,
+        // Include project_id if selected
+        ...(values.projectId && values.projectId.trim() !== ''
+          ? { projectId: values.projectId.trim() }
+          : {}),
       });
 
       analytics.track('request_created', {
@@ -163,6 +170,28 @@ export function PartnershipRequestForm({ onSuccess }: PartnershipRequestFormProp
           style={inputStyle}
           placeholder={language === 'ar' ? 'أدخل اسم الشركة' : 'Enter company name'}
         />
+      </Field>
+
+      <Field
+        label={language === 'ar' ? 'المشروع' : 'Project'}
+        error={errors.projectId?.message}
+      >
+        <select 
+          {...register('projectId')} 
+          style={selectStyle}
+          disabled={isLoadingProjects}
+        >
+          <option value="">
+            {language === 'ar' 
+              ? isLoadingProjects ? 'جاري التحميل...' : 'اختر المشروع (اختياري)'
+              : isLoadingProjects ? 'Loading...' : 'Select Project (Optional)'}
+          </option>
+          {projects?.map((project) => (
+            <option key={project.id} value={project.id}>
+              {language === 'ar' && project.nameAr ? project.nameAr : project.name}
+            </option>
+          ))}
+        </select>
       </Field>
 
       <Field

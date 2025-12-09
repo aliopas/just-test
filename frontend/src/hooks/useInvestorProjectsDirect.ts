@@ -68,7 +68,13 @@ async function fetchInvestorProjectsDirect(): Promise<Project[]> {
     .order('created_at', { ascending: false });
 
   if (projectError) {
-    throw new Error(`خطأ في جلب المشاريع: ${projectError.message}`);
+    console.error('[useInvestorProjectsDirect] Supabase error:', {
+      message: projectError.message,
+      details: projectError.details,
+      hint: projectError.hint,
+      code: projectError.code,
+    });
+    throw new Error(`خطأ في جلب المشاريع: ${projectError.message}${projectError.hint ? ` - ${projectError.hint}` : ''}`);
   }
 
   const rows = (projectRows as ProjectRow[] | null) ?? [];

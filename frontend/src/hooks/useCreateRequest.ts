@@ -31,6 +31,9 @@ async function postRequest(payload: CreateRequestPayload) {
   if (payload.metadata !== undefined && payload.metadata !== null) {
     body.metadata = payload.metadata;
   }
+  if (payload.projectId !== undefined && payload.projectId !== null && payload.projectId !== '') {
+    body.projectId = payload.projectId;
+  }
 
   return apiClient<CreateRequestResponse>('/investor/requests', {
     method: 'POST',

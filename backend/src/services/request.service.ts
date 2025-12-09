@@ -76,6 +76,7 @@ export async function createInvestorRequest(params: {
       status: 'draft',
       notes: params.payload.notes ?? null,
       metadata: metadataValue,
+      project_id: params.payload.projectId ?? null,
     };
 
     // Log payload for debugging (sanitize sensitive data)

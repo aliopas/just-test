@@ -97,7 +97,13 @@ async function fetchAdminProjectsListDirect(
     .range(offset, offset + limit - 1);
 
   if (projectError) {
-    throw new Error(`خطأ في جلب المشاريع: ${projectError.message}`);
+    console.error('[useAdminProjectsDirect] Supabase error:', {
+      message: projectError.message,
+      details: projectError.details,
+      hint: projectError.hint,
+      code: projectError.code,
+    });
+    throw new Error(`خطأ في جلب المشاريع: ${projectError.message}${projectError.hint ? ` - ${projectError.hint}` : ''}`);
   }
 
   const rows = (projectRows as ProjectRow[] | null) ?? [];

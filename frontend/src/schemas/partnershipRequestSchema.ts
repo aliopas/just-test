@@ -2,6 +2,11 @@ import { z } from 'zod';
 
 export const partnershipRequestSchema = z.object({
   type: z.literal('partnership'),
+  projectId: z
+    .string()
+    .uuid('معرف المشروع غير صحيح')
+    .optional()
+    .or(z.literal('')),
   companyName: z
     .string()
     .min(1, 'اسم الشركة مطلوب')

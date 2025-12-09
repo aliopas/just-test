@@ -25,6 +25,7 @@ const baseRequestSchema = {
     .max(5000, 'Notes must be 5000 characters or fewer')
     .optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
+  projectId: z.string().uuid('Project ID must be a valid UUID').optional().nullable(),
 };
 
 // Schema for financial requests (buy, sell)
