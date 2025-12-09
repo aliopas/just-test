@@ -2,16 +2,24 @@ import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
 import { useInvestorDashboardDirect } from '../hooks/useInvestorDashboardDirect';
+import { useInvestorInternalNewsList } from '../hooks/useSupabaseNews';
 import type { DashboardRecentRequest, DashboardRequestSummary } from '../types/dashboard';
 import type { RequestStatus } from '../types/request';
 
 export function InvestorDashboardPage() {
   const { language, direction } = useLanguage();
   const { data, isLoading, isError, refetch } = useInvestorDashboardDirect();
+  
+  // Fetch all internal news (using a large limit to get all news)
+  const { data: newsData, isLoading: isLoadingNews } = useInvestorInternalNewsList({ 
+    page: 1, 
+    limit: 1000 // Large limit to fetch all news
+  });
 
   const summary: DashboardRequestSummary | undefined = data?.requestSummary;
   const recent = data?.recentRequests ?? [];
   const pendingItems = data?.pendingActions.items ?? [];
+  const news = newsData?.news ?? [];
 
   const statusOrder: RequestStatus[] = [
     'submitted',
@@ -456,6 +464,94 @@ export function InvestorDashboardPage() {
             )}
           </div>
         </section>
+
+        {/* Internal News Section */}
+        <section
+          style={{
+            padding: '1.25rem 1.5rem',
+            borderRadius: radius.lg,
+            background: palette.backgroundBase,
+            boxShadow: shadow.subtle,
+            border: `1px solid ${palette.neutralBorderMuted}`,
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '0.75rem',
+            }}
+          >
+            <h2
+              style={{
+                margin: 0,
+                fontSize: '1rem',
+                fontWeight: typography.weights.semibold,
+                color: palette.textPrimary,
+              }}
+            >
+              {language === 'ar' ? 'آخر الأخبار الداخلية' : 'Latest Internal News'}
+            </h2>
+            <a
+              href="/internal-news"
+              style={{
+                fontSize: '0.85rem',
+                color: palette.brandPrimaryStrong,
+                textDecoration: 'none',
+                fontWeight: 500,
+              }}
+            >
+              {language === 'ar' ? 'عرض الكل' : 'View all'}
+            </a>
+          </div>
+
+          {isLoadingNews ? (
+            <p
+              style={{
+                margin: 0,
+                padding: '1rem 0.25rem',
+                fontSize: '0.9rem',
+                color: palette.textSecondary,
+              }}
+            >
+              {language === 'ar' ? 'جارٍ تحميل الأخبار...' : 'Loading news...'}
+            </p>
+          ) : news.length === 0 ? (
+            <p
+              style={{
+                margin: 0,
+                padding: '1rem 0.25rem',
+                fontSize: '0.9rem',
+                color: palette.textSecondary,
+              }}
+            >
+              {language === 'ar'
+                ? 'لا توجد أخبار داخلية حالياً.'
+                : 'No internal news at the moment.'}
+            </p>
+          ) : (
+            <ul
+              style={{
+                listStyle: 'none',
+                margin: 0,
+                padding: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.65rem',
+              }}
+            >
+              {news.map(item => (
+                <NewsItem
+                  key={item.id}
+                  item={item}
+                  language={language}
+                  formatDateTime={formatDateTime}
+                />
+              ))}
+            </ul>
+          )}
+        </section>
       </div>
     </div>
   );
@@ -643,6 +739,103 @@ function RecentRequestItem({
         >
           {statusLabel}
         </span>
+      </div>
+    </li>
+  );
+}
+
+interface NewsItemProps {
+  item: {
+    id: string;
+    title: string;
+    excerpt: string | null;
+    publishedAt: string;
+  };
+  language: string;
+  formatDateTime: (value: string) => string;
+}
+
+function NewsItem({ item, language, formatDateTime }: NewsItemProps) {
+  return (
+    <li
+      style={{
+        borderRadius: radius.md,
+        border: `1px solid ${palette.neutralBorderMuted}`,
+        padding: '0.75rem 0.9rem',
+        background: palette.backgroundSurface,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.3rem',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          gap: '0.75rem',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.2rem',
+            flex: 1,
+          }}
+        >
+          <h3
+            style={{
+              margin: 0,
+              fontSize: '0.9rem',
+              color: palette.textPrimary,
+              fontWeight: 600,
+            }}
+          >
+            {item.title}
+          </h3>
+          {item.excerpt && (
+            <p
+              style={{
+                margin: 0,
+                fontSize: '0.8rem',
+                color: palette.textSecondary,
+                lineHeight: 1.4,
+              }}
+            >
+              {item.excerpt}
+            </p>
+          )}
+        </div>
+      </div>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: '0.75rem',
+          marginTop: '0.1rem',
+        }}
+      >
+        <span
+          style={{
+            fontSize: '0.75rem',
+            color: palette.textSecondary,
+          }}
+        >
+          {formatDateTime(item.publishedAt)}
+        </span>
+        <a
+          href={`/internal-news/${item.id}`}
+          style={{
+            fontSize: '0.8rem',
+            color: palette.brandPrimaryStrong,
+            textDecoration: 'none',
+            fontWeight: 500,
+          }}
+        >
+          {language === 'ar' ? 'قراءة المزيد' : 'Read more'}
+        </a>
       </div>
     </li>
   );

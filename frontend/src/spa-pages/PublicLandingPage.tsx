@@ -234,7 +234,7 @@ export function PublicLandingPage() {
               {isArabic ? 'قدّم طلب استثمار الآن' : 'Submit an investment request'}
             </a>
             <a
-              href="/home"
+              href="/dashboard"
               style={{
                 padding: '0.8rem 1.4rem',
                 borderRadius: '999px',

@@ -93,7 +93,7 @@ export function InvestorProjectDetailPage() {
             : 'Failed to load project. Please try again.'}
         </p>
         <button
-          onClick={() => navigate('/home')}
+          onClick={() => navigate('/dashboard')}
           style={{
             padding: '0.75rem 1.5rem',
             borderRadius: radius.md,
@@ -104,7 +104,7 @@ export function InvestorProjectDetailPage() {
             fontWeight: 600,
           }}
         >
-          {language === 'ar' ? 'العودة للصفحة الرئيسية' : 'Back to home'}
+          {language === 'ar' ? 'العودة للوحة التحكم' : 'Back to dashboard'}
         </button>
       </div>
     );

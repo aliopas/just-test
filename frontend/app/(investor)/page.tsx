@@ -15,7 +15,7 @@ function RedirectComponent() {
     if (user?.role === 'admin') {
       router.replace('/admin/dashboard');
     } else {
-      router.replace('/home');
+      router.replace('/dashboard');
     }
   }, [user, router]);
   

@@ -15,7 +15,7 @@ function AuthRedirect() {
     } else if (user?.role === 'admin') {
       router.push('/admin/dashboard');
     } else {
-      router.push('/home');
+      router.push('/dashboard');
     }
   }, [isAuthenticated, user, router]);
 

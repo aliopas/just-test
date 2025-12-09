@@ -51,7 +51,7 @@ export function HeaderNav() {
   }, [isMobileMenuOpen]);
 
   const navItems = [
-    { to: '/home', labelAr: 'الرئيسية', labelEn: 'Home' },
+    { to: '/dashboard', labelAr: 'لوحة التحكم', labelEn: 'Dashboard' },
     { to: '/requests', labelAr: 'طلباتي', labelEn: 'My Requests' },
     { to: '/requests/new', labelAr: 'طلب استثماري', labelEn: 'New Request' },
     {
@@ -179,7 +179,7 @@ export function HeaderNav() {
         }}
       >
         {navItems.map((item) => {
-          const isActive = pathname === item.to || (item.to === '/home' && pathname === '/');
+          const isActive = pathname === item.to || (item.to === '/dashboard' && pathname === '/');
           return (
             <Link
               key={item.to}
@@ -283,7 +283,7 @@ export function HeaderNav() {
           }}
         >
           {navItems.map((item) => {
-            const isActive = pathname === item.to || (item.to === '/home' && pathname === '/');
+            const isActive = pathname === item.to || (item.to === '/dashboard' && pathname === '/');
             return (
               <Link
                 key={item.to}

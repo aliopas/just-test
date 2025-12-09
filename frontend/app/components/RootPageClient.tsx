@@ -72,7 +72,7 @@ export function RootPageClient() {
       if (user?.role === 'admin') {
         router.replace('/admin/dashboard');
       } else {
-        router.replace('/home');
+        router.replace('/dashboard');
       }
     }
   }, [isAuthenticated, user, router]);
