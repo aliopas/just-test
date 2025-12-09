@@ -33,12 +33,20 @@ async function createRequestDirect(payload: CreateRequestPayload): Promise<Creat
     status: 'draft',
   };
 
-  // Only include amount and currency if they are provided
-  if (payload.amount !== undefined && payload.amount !== null) {
-    requestData.amount = payload.amount;
+  // Only include amount and currency if they are provided and valid
+  // For non-financial requests (partnership, board_nomination, feedback), don't include amount
+  if (payload.type === 'buy' || payload.type === 'sell') {
+    if (payload.amount !== undefined && payload.amount !== null && payload.amount > 0) {
+      requestData.amount = payload.amount;
+    }
+    if (payload.currency !== undefined && payload.currency !== null) {
+      requestData.currency = payload.currency;
+    }
   }
-  if (payload.currency !== undefined && payload.currency !== null) {
-    requestData.currency = payload.currency;
+  // For non-financial requests, explicitly set amount to NULL to avoid constraint violation
+  else {
+    requestData.amount = null;
+    requestData.currency = null;
   }
 
   // Include optional fields
