@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
@@ -15,6 +15,9 @@ export function InvestorProjectsPage() {
   const { data: projects, isLoading, isError } = useInvestorProjectsDirect();
   const { data: companyResources } = useCompanyResourcesForInvestor();
 
+  // Track if this is the initial mount to avoid updating URL on mount
+  const isInitialMount = useRef(true);
+  
   // Initialize search query from URL parameters
   const [searchQuery, setSearchQuery] = useState(() => {
     return searchParams?.get('search') || '';
@@ -22,12 +25,16 @@ export function InvestorProjectsPage() {
 
   // Update URL when search query changes (with debounce)
   useEffect(() => {
+    // Skip URL update on initial mount
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
     const timeoutId = setTimeout(() => {
-      const params = new URLSearchParams(searchParams?.toString() || '');
+      const params = new URLSearchParams();
       if (searchQuery.trim()) {
         params.set('search', searchQuery.trim());
-      } else {
-        params.delete('search');
       }
       const newSearch = params.toString();
       const newUrl = newSearch ? `${pathname}?${newSearch}` : pathname;
@@ -35,7 +42,7 @@ export function InvestorProjectsPage() {
     }, 300); // Debounce for 300ms
 
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, searchParams, pathname, router]);
+  }, [searchQuery, pathname, router]);
 
   const filteredProjects = projects?.filter((project) => {
     if (!searchQuery.trim()) return true;

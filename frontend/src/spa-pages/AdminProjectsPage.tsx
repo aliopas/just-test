@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
@@ -18,6 +18,9 @@ export function AdminProjectsPage() {
   const router = useRouter();
   const pathname = usePathname();
 
+  // Track if this is the initial mount to avoid updating URL on mount
+  const isInitialMount = useRef(true);
+  
   // Initialize filters from URL parameters
   const [filters, setFilters] = useState<ProjectListFilters>(() => {
     const page = searchParams?.get('page') ? parseInt(searchParams.get('page')!, 10) : 1;
@@ -37,37 +40,33 @@ export function AdminProjectsPage() {
 
   // Update URL when filters change (with debounce for search)
   useEffect(() => {
+    // Skip URL update on initial mount
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
     const timeoutId = setTimeout(() => {
-      const params = new URLSearchParams(searchParams?.toString() || '');
+      const params = new URLSearchParams();
       
       if (filters.page && filters.page > 1) {
         params.set('page', String(filters.page));
-      } else {
-        params.delete('page');
       }
       
       if (filters.status && filters.status !== 'all') {
         params.set('status', filters.status);
-      } else {
-        params.delete('status');
       }
       
       if (filters.search && filters.search.trim()) {
         params.set('search', filters.search.trim());
-      } else {
-        params.delete('search');
       }
       
       if (filters.sortBy && filters.sortBy !== 'created_at') {
         params.set('sortBy', filters.sortBy);
-      } else {
-        params.delete('sortBy');
       }
       
       if (filters.order && filters.order !== 'desc') {
         params.set('order', filters.order);
-      } else {
-        params.delete('order');
       }
       
       const newSearch = params.toString();
@@ -76,7 +75,7 @@ export function AdminProjectsPage() {
     }, filters.search ? 300 : 0); // Debounce only for search, immediate for other filters
 
     return () => clearTimeout(timeoutId);
-  }, [filters, searchParams, pathname, router]);
+  }, [filters.page, filters.status, filters.search, filters.sortBy, filters.order, pathname, router]);
 
   const { data, isLoading, isError, refetch } = useAdminProjectsListDirect(filters);
   const createMutation = useCreateProjectMutationDirect();
