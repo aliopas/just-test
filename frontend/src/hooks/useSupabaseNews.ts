@@ -320,6 +320,21 @@ export function useInvestorInternalNewsList(options?: {
   const queryResult = useQuery<InvestorInternalNewsListResponse>({
     queryKey: ['investorInternalNews', 'list', { page, limit }],
     queryFn: async () => {
+      // Handle case when data is still loading or not available
+      if (news === undefined || totalCount === undefined) {
+        // Return empty result while loading
+        return {
+          news: [],
+          meta: {
+            page,
+            limit,
+            total: 0,
+            pageCount: 0,
+            hasNext: false,
+          },
+        };
+      }
+
       if (!news || news.length === 0) {
         const total = totalCount || 0;
         const pageCount = Math.ceil(total / limit) || 0;
@@ -352,7 +367,7 @@ export function useInvestorInternalNewsList(options?: {
         },
       };
     },
-    enabled: typeof window !== 'undefined' && news !== undefined && totalCount !== undefined,
+    enabled: typeof window !== 'undefined',
     placeholderData: keepPreviousData,
     refetchInterval: 30000,
   });
