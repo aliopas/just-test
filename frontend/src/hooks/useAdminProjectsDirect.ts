@@ -24,6 +24,10 @@ type ProjectRow = {
   total_shares: number | string;
   share_price: number | string;
   status: string;
+  contract_date: string | null;
+  completion_percentage: number | null;
+  project_value: number | string | null;
+  company_resource_id: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -62,6 +66,10 @@ async function fetchAdminProjectsListDirect(
       total_shares,
       share_price,
       status,
+      contract_date,
+      completion_percentage,
+      project_value,
+      company_resource_id,
       created_by,
       created_at,
       updated_at
@@ -101,6 +109,13 @@ async function fetchAdminProjectsListDirect(
     const totalShares = typeof row.total_shares === 'string' ? Number(row.total_shares) : row.total_shares;
     const sharePrice = typeof row.share_price === 'string' ? Number(row.share_price) : row.share_price;
 
+    const projectValue = row.project_value !== null && row.project_value !== undefined
+      ? (typeof row.project_value === 'string' ? Number(row.project_value) : row.project_value)
+      : null;
+    const completionPercentage = row.completion_percentage !== null && row.completion_percentage !== undefined
+      ? Number(row.completion_percentage)
+      : 0;
+
     return {
       id: row.id,
       name: row.name,
@@ -113,10 +128,10 @@ async function fetchAdminProjectsListDirect(
       totalShares,
       sharePrice,
       status: toProjectStatus(row.status),
-      contractDate: null,
-      completionPercentage: 0,
-      projectValue: null,
-      companyResourceId: null,
+      contractDate: row.contract_date || null,
+      completionPercentage,
+      projectValue,
+      companyResourceId: row.company_resource_id || null,
       createdBy: row.created_by,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
@@ -183,6 +198,12 @@ async function fetchAdminProjectDetailDirect(projectId: string): Promise<Project
   const annualBenefits = typeof row.annual_benefits === 'string' ? Number(row.annual_benefits) : row.annual_benefits;
   const totalShares = typeof row.total_shares === 'string' ? Number(row.total_shares) : row.total_shares;
   const sharePrice = typeof row.share_price === 'string' ? Number(row.share_price) : row.share_price;
+  const projectValue = row.project_value !== null && row.project_value !== undefined
+    ? (typeof row.project_value === 'string' ? Number(row.project_value) : row.project_value)
+    : null;
+  const completionPercentage = row.completion_percentage !== null && row.completion_percentage !== undefined
+    ? Number(row.completion_percentage)
+    : 0;
 
   return {
     id: row.id,
@@ -196,10 +217,10 @@ async function fetchAdminProjectDetailDirect(projectId: string): Promise<Project
     totalShares,
     sharePrice,
     status: toProjectStatus(row.status),
-    contractDate: null,
-    completionPercentage: 0,
-    projectValue: null,
-    companyResourceId: null,
+    contractDate: row.contract_date || null,
+    completionPercentage,
+    projectValue,
+    companyResourceId: row.company_resource_id || null,
     createdBy: row.created_by,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -250,6 +271,10 @@ export function useCreateProjectMutationDirect() {
           total_shares: input.totalShares,
           share_price: input.sharePrice || 50000,
           status: input.status || 'active',
+          contract_date: input.contractDate || null,
+          completion_percentage: input.completionPercentage ?? 0,
+          project_value: input.projectValue || null,
+          company_resource_id: input.companyResourceId || null,
           created_by: user.id,
         })
         .select()
@@ -287,6 +312,10 @@ export function useUpdateProjectMutationDirect() {
       if (input.totalShares !== undefined) updateData.total_shares = input.totalShares;
       if (input.sharePrice !== undefined) updateData.share_price = input.sharePrice;
       if (input.status !== undefined) updateData.status = input.status;
+      if (input.contractDate !== undefined) updateData.contract_date = input.contractDate || null;
+      if (input.completionPercentage !== undefined) updateData.completion_percentage = input.completionPercentage;
+      if (input.projectValue !== undefined) updateData.project_value = input.projectValue || null;
+      if (input.companyResourceId !== undefined) updateData.company_resource_id = input.companyResourceId || null;
 
       const { error } = await supabase
         .from('projects')
