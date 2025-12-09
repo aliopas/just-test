@@ -228,7 +228,7 @@ export function useInvestorRequestsDirect(filters: RequestListFilters) {
     queryKey,
     queryFn: () => fetchInvestorRequestsDirect(filters),
     placeholderData: keepPreviousData,
-    refetchInterval: 30000, // Fallback polling every 30 seconds
+    // Removed refetchInterval to prevent automatic page refreshes
     enabled: typeof window !== 'undefined', // Only on client
   });
 

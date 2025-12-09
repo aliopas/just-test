@@ -107,7 +107,7 @@ export function useAdminRequests(filters: AdminRequestFilters) {
     queryKey,
     queryFn: () => fetchAdminRequests(filters),
     placeholderData: keepPreviousData,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    // Removed refetchInterval to prevent automatic page refreshes
   });
 
   return {

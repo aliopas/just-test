@@ -49,7 +49,7 @@ export function useAdminUsers(filters: AdminUserFilters) {
       return apiClient<AdminUserListResponse>(path);
     },
     placeholderData: keepPreviousData,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    // Removed refetchInterval to prevent automatic page refreshes
   });
 }
 

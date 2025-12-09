@@ -10,7 +10,7 @@ export function useInvestorStockFeed() {
     queryFn: () => apiClient<InvestorStockFeed>('/investor/stocks'),
     staleTime: 30_000,
     refetchOnWindowFocus: true,
-    refetchInterval: 60_000,
+    // Removed refetchInterval to prevent automatic page refreshes
   });
 }
 

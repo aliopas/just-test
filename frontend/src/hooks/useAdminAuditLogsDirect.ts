@@ -191,7 +191,7 @@ export function useAdminAuditLogsDirect(filters: AdminAuditLogFilters) {
     placeholderData: keepPreviousData,
     staleTime: 60_000,
     retry: 1,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    // Removed refetchInterval to prevent automatic page refreshes
     enabled: typeof window !== 'undefined', // Only on client
   });
 }

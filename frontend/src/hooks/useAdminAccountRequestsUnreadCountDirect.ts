@@ -54,7 +54,7 @@ export function useAdminAccountRequestsUnreadCountDirect() {
   return useQuery({
     queryKey: ['adminAccountRequestsUnreadCountDirect'],
     queryFn: fetchUnreadSignupRequestCountDirect,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    // Removed refetchInterval to prevent automatic page refreshes
     enabled: typeof window !== 'undefined', // Only on client
   });
 }

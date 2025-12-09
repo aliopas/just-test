@@ -84,7 +84,7 @@ export function useNotifications(filters: NotificationListFilters) {
     queryFn: () => fetchNotifications(filters),
     placeholderData: keepPreviousData,
     enabled: Boolean(userId),
-    refetchInterval: 30000, // Refetch every 30 seconds
+    // Removed refetchInterval to prevent automatic page refreshes
   });
 
   return {

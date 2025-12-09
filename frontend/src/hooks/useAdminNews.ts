@@ -51,7 +51,7 @@ export function useAdminNewsList(filters: AdminNewsListFilters) {
       return apiClient<AdminNewsListResponse>(path);
     },
     placeholderData: keepPreviousData,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    // Removed refetchInterval to prevent automatic page refreshes
   });
 }
 

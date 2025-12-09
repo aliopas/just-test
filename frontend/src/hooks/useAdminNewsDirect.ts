@@ -281,7 +281,7 @@ export function useAdminNewsListDirect(filters: AdminNewsListFilters) {
     queryKey,
     queryFn: () => fetchAdminNewsListDirect(filters),
     placeholderData: keepPreviousData,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    // Removed refetchInterval to prevent automatic page refreshes
     enabled: typeof window !== 'undefined', // Only on client
   });
 }

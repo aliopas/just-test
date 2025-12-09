@@ -124,7 +124,7 @@ export function useInvestorProjectsDirect() {
   return useQuery<Project[]>({
     queryKey: ['investorProjectsDirect'],
     queryFn: () => fetchInvestorProjectsDirect(),
-    refetchInterval: 60000, // Refetch every 60 seconds
+    // Removed refetchInterval to prevent automatic page refreshes
     enabled: typeof window !== 'undefined', // Only on client
   });
 }

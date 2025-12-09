@@ -140,7 +140,7 @@ export function useInvestorDashboardDirect() {
     queryFn: fetchInvestorDashboardDirect,
     staleTime: 30_000,
     refetchOnWindowFocus: true,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    // Removed refetchInterval to prevent automatic page refreshes
     enabled: typeof window !== 'undefined', // Only on client
   });
 }

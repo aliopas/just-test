@@ -194,7 +194,7 @@ export function useAdminRequestReportDirect(filters: AdminRequestReportFilters) 
     queryKey,
     queryFn: () => fetchAdminRequestReportDirect(filters),
     staleTime: 60_000,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    // Removed refetchInterval to prevent automatic page refreshes
     enabled: typeof window !== 'undefined', // Only on client
   });
 }

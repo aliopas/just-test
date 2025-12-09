@@ -169,7 +169,7 @@ export function useAdminAccountRequestsDirect(filters: AdminSignupRequestFilters
     queryKey,
     queryFn: () => fetchAdminAccountRequestsDirect(filters),
     placeholderData: keepPreviousData,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    // Removed refetchInterval to prevent automatic page refreshes
     enabled: typeof window !== 'undefined', // Only on client
   });
 

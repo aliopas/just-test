@@ -50,7 +50,7 @@ export function useAdminAccountRequests(filters: AdminSignupRequestFilters) {
       return apiClient<AdminSignupRequestListResponse>(path);
     },
     placeholderData: keepPreviousData,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    // Removed refetchInterval to prevent automatic page refreshes
   });
 }
 
@@ -99,7 +99,7 @@ export function useUnreadSignupRequestCount() {
   const query = useQuery({
     queryKey: [...ACCOUNT_REQUESTS_ROOT, 'unreadCount'] as const,
     queryFn: () => apiClient<{ unreadCount: number }>('/admin/account-requests/unread-count'),
-    refetchInterval: 30000, // Refetch every 30 seconds
+    // Removed refetchInterval to prevent automatic page refreshes
   });
 
   // Invalidate list queries when unread count changes

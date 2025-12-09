@@ -47,7 +47,7 @@ export function useInvestorRequests(filters: RequestListFilters) {
     queryKey,
     queryFn: () => fetchInvestorRequests(filters),
     placeholderData: keepPreviousData,
-    refetchInterval: 30000, // Fallback polling every 30 seconds
+    // Removed refetchInterval to prevent automatic page refreshes
   });
 
   // Subscribe to Supabase Realtime to get near-instant updates when requests change

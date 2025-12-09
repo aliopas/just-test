@@ -256,7 +256,7 @@ export function useInvestorNewsList(options?: {
     },
     enabled: typeof window !== 'undefined' && news !== undefined,
     placeholderData: keepPreviousData,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    // Removed refetchInterval to prevent automatic page refreshes
   });
 }
 
@@ -369,7 +369,7 @@ export function useInvestorInternalNewsList(options?: {
     },
     enabled: typeof window !== 'undefined',
     placeholderData: keepPreviousData,
-    refetchInterval: 30000,
+    // Removed refetchInterval to prevent automatic page refreshes
   });
 
   // Combine loading and error states from both hooks
