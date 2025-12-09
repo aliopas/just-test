@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
 import type { Project } from '../hooks/useAdminProjects';
@@ -8,10 +9,33 @@ import { useNextNavigate } from '../utils/next-router';
 export function InvestorProjectsPage() {
   const { language, direction } = useLanguage();
   const navigate = useNextNavigate();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const { data: projects, isLoading, isError } = useInvestorProjectsDirect();
   const { data: companyResources } = useCompanyResourcesForInvestor();
 
-  const [searchQuery, setSearchQuery] = useState('');
+  // Initialize search query from URL parameters
+  const [searchQuery, setSearchQuery] = useState(() => {
+    return searchParams?.get('search') || '';
+  });
+
+  // Update URL when search query changes (with debounce)
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      const params = new URLSearchParams(searchParams?.toString() || '');
+      if (searchQuery.trim()) {
+        params.set('search', searchQuery.trim());
+      } else {
+        params.delete('search');
+      }
+      const newSearch = params.toString();
+      const newUrl = newSearch ? `${pathname}?${newSearch}` : pathname;
+      router.replace(newUrl, { scroll: false });
+    }, 300); // Debounce for 300ms
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, searchParams, pathname, router]);
 
   const filteredProjects = projects?.filter((project) => {
     if (!searchQuery.trim()) return true;

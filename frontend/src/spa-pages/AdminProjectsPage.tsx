@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
 import type { ProjectListFilters, Project } from '../hooks/useAdminProjects';
@@ -13,14 +14,69 @@ import { useAdminProjectsListDirect } from '../hooks/useAdminProjectsDirect';
 
 export function AdminProjectsPage() {
   const { language, direction } = useLanguage();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
-  const [filters, setFilters] = useState<ProjectListFilters>({
-    page: 1,
-    status: 'all',
-    search: '',
-    sortBy: 'created_at',
-    order: 'desc',
+  // Initialize filters from URL parameters
+  const [filters, setFilters] = useState<ProjectListFilters>(() => {
+    const page = searchParams?.get('page') ? parseInt(searchParams.get('page')!, 10) : 1;
+    const status = (searchParams?.get('status') as ProjectListFilters['status']) || 'all';
+    const search = searchParams?.get('search') || '';
+    const sortBy = (searchParams?.get('sortBy') as ProjectListFilters['sortBy']) || 'created_at';
+    const order = (searchParams?.get('order') as ProjectListFilters['order']) || 'desc';
+    
+    return {
+      page,
+      status,
+      search,
+      sortBy,
+      order,
+    };
   });
+
+  // Update URL when filters change (with debounce for search)
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      const params = new URLSearchParams(searchParams?.toString() || '');
+      
+      if (filters.page && filters.page > 1) {
+        params.set('page', String(filters.page));
+      } else {
+        params.delete('page');
+      }
+      
+      if (filters.status && filters.status !== 'all') {
+        params.set('status', filters.status);
+      } else {
+        params.delete('status');
+      }
+      
+      if (filters.search && filters.search.trim()) {
+        params.set('search', filters.search.trim());
+      } else {
+        params.delete('search');
+      }
+      
+      if (filters.sortBy && filters.sortBy !== 'created_at') {
+        params.set('sortBy', filters.sortBy);
+      } else {
+        params.delete('sortBy');
+      }
+      
+      if (filters.order && filters.order !== 'desc') {
+        params.set('order', filters.order);
+      } else {
+        params.delete('order');
+      }
+      
+      const newSearch = params.toString();
+      const newUrl = newSearch ? `${pathname}?${newSearch}` : pathname;
+      router.replace(newUrl, { scroll: false });
+    }, filters.search ? 300 : 0); // Debounce only for search, immediate for other filters
+
+    return () => clearTimeout(timeoutId);
+  }, [filters, searchParams, pathname, router]);
 
   const { data, isLoading, isError, refetch } = useAdminProjectsListDirect(filters);
   const createMutation = useCreateProjectMutationDirect();

@@ -19,10 +19,6 @@ type ProjectRow = {
   total_shares: number | string;
   share_price: number | string;
   status: string;
-  contract_date: string | null;
-  completion_percentage: number | string | null;
-  project_value: number | string | null;
-  company_resource_id: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -55,10 +51,6 @@ async function fetchInvestorProjectsDirect(): Promise<Project[]> {
       total_shares,
       share_price,
       status,
-      contract_date,
-      completion_percentage,
-      project_value,
-      company_resource_id,
       created_by,
       created_at,
       updated_at
@@ -79,12 +71,6 @@ async function fetchInvestorProjectsDirect(): Promise<Project[]> {
     const annualBenefits = typeof row.annual_benefits === 'string' ? Number(row.annual_benefits) : row.annual_benefits;
     const totalShares = typeof row.total_shares === 'string' ? Number(row.total_shares) : row.total_shares;
     const sharePrice = typeof row.share_price === 'string' ? Number(row.share_price) : row.share_price;
-    const completionPercentage = typeof row.completion_percentage === 'string' 
-      ? Number(row.completion_percentage) 
-      : (row.completion_percentage ?? 0);
-    const projectValue = row.project_value 
-      ? (typeof row.project_value === 'string' ? Number(row.project_value) : row.project_value)
-      : null;
 
     return {
       id: row.id,
@@ -98,10 +84,10 @@ async function fetchInvestorProjectsDirect(): Promise<Project[]> {
       totalShares,
       sharePrice,
       status: toProjectStatus(row.status),
-      contractDate: row.contract_date,
-      completionPercentage,
-      projectValue,
-      companyResourceId: row.company_resource_id,
+      contractDate: null,
+      completionPercentage: 0,
+      projectValue: null,
+      companyResourceId: null,
       createdBy: row.created_by,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
@@ -145,12 +131,6 @@ async function fetchInvestorProjectDetailDirect(projectId: string): Promise<Proj
   const annualBenefits = typeof row.annual_benefits === 'string' ? Number(row.annual_benefits) : row.annual_benefits;
   const totalShares = typeof row.total_shares === 'string' ? Number(row.total_shares) : row.total_shares;
   const sharePrice = typeof row.share_price === 'string' ? Number(row.share_price) : row.share_price;
-  const completionPercentage = typeof row.completion_percentage === 'string' 
-    ? Number(row.completion_percentage) 
-    : (row.completion_percentage ?? 0);
-  const projectValue = row.project_value 
-    ? (typeof row.project_value === 'string' ? Number(row.project_value) : row.project_value)
-    : null;
 
   return {
     id: row.id,
@@ -164,10 +144,10 @@ async function fetchInvestorProjectDetailDirect(projectId: string): Promise<Proj
     totalShares,
     sharePrice,
     status: toProjectStatus(row.status),
-    contractDate: row.contract_date,
-    completionPercentage,
-    projectValue,
-    companyResourceId: row.company_resource_id,
+    contractDate: null,
+    completionPercentage: 0,
+    projectValue: null,
+    companyResourceId: null,
     createdBy: row.created_by,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
