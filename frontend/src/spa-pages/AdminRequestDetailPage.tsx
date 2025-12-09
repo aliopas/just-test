@@ -416,6 +416,14 @@ export function AdminRequestDetailPage() {
                         : '—'
                     }
                   />
+                  {request.type === 'partnership' && request.project && (
+                    <InfoRow
+                      label={language === 'ar' ? 'المشروع' : 'Project'}
+                      value={language === 'ar' && request.project.nameAr 
+                        ? request.project.nameAr 
+                        : request.project.name}
+                    />
+                  )}
                   <InfoRow
                     label={tAdminRequests('table.createdAt', language)}
                     value={new Date(request.createdAt).toLocaleString(

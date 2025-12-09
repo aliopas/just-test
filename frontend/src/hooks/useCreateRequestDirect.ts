@@ -54,6 +54,9 @@ async function createRequestDirect(payload: CreateRequestPayload): Promise<Creat
   if (payload.metadata !== undefined && payload.metadata !== null) {
     requestData.metadata = payload.metadata;
   }
+  if (payload.projectId !== undefined && payload.projectId !== null && payload.projectId !== '') {
+    requestData.project_id = payload.projectId;
+  }
 
   // Insert request (trigger will generate request_number automatically)
   const { data: request, error: requestError } = await supabase

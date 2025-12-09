@@ -24,10 +24,19 @@ type RequestRow = {
   created_at: string;
   updated_at: string;
   user_id: string;
+  project_id: string | null;
   settlement_started_at: string | null;
   settlement_completed_at: string | null;
   settlement_reference: string | null;
   settlement_notes: string | null;
+};
+
+type ProjectRow = {
+  id: string;
+  name: string;
+  name_ar: string | null;
+  description: string | null;
+  description_ar: string | null;
 };
 
 type AttachmentRow = {
@@ -200,7 +209,21 @@ async function fetchAdminRequestDetailDirect(requestId: string): Promise<AdminRe
     profileError: profileResult.error,
   });
 
-  // Step 3: جلب باقي البيانات (attachments, events, comments, view)
+  // Step 3: جلب معلومات المشروع إذا كان موجوداً
+  let project: ProjectRow | null = null;
+  if (request.project_id) {
+    const projectResult = await supabase
+      .from('projects')
+      .select('id, name, name_ar, description, description_ar')
+      .eq('id', request.project_id)
+      .maybeSingle<ProjectRow>();
+    
+    if (!projectResult.error && projectResult.data) {
+      project = projectResult.data;
+    }
+  }
+
+  // Step 4: جلب باقي البيانات (attachments, events, comments, view)
   const [attachmentsResult, eventsResult, commentsResult, viewResult] =
     await Promise.all([
       supabase
@@ -321,6 +344,14 @@ async function fetchAdminRequestDetailDirect(requestId: string): Promise<AdminRe
       isRead: view !== null,
       userId: request.user_id,
       notes: request.notes,
+      projectId: request.project_id,
+      project: project ? {
+        id: project.id,
+        name: project.name,
+        nameAr: project.name_ar,
+        description: project.description,
+        descriptionAr: project.description_ar,
+      } : null,
       settlement: {
         startedAt: request.settlement_started_at,
         completedAt: request.settlement_completed_at,

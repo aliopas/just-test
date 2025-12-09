@@ -25,6 +25,14 @@ export interface AdminRequestInvestor {
   userCreatedAt: string | null;
 }
 
+export interface AdminRequestProject {
+  id: string;
+  name: string;
+  nameAr: string | null;
+  description: string | null;
+  descriptionAr: string | null;
+}
+
 export interface AdminRequest {
   id: string;
   requestNumber: string;
@@ -39,6 +47,8 @@ export interface AdminRequest {
   updatedAt: string;
   isRead: boolean;
   investor: AdminRequestInvestor;
+  projectId?: string | null;
+  project?: AdminRequestProject | null;
 }
 
 export interface AdminRequestListMeta {

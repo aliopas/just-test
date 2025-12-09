@@ -7,6 +7,7 @@ import { tRequestList } from '../locales/requestList';
 import type { RequestType, RequestCurrency, CreateRequestPayload } from '../types/request';
 import { useNextNavigate } from '../utils/next-router';
 import { ApiError } from '../utils/api-client';
+import { useInvestorProjectsDirect } from '../hooks/useInvestorProjectsDirect';
 
 export function NewRequestPage() {
   const { language, direction } = useLanguage();
@@ -18,9 +19,13 @@ export function NewRequestPage() {
   const [targetPrice, setTargetPrice] = useState<string>('');
   const [expiryAt, setExpiryAt] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
+  const [projectId, setProjectId] = useState<string>('');
   const [documents, setDocuments] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // Fetch projects for partnership requests
+  const { data: projects, isLoading: isLoadingProjects } = useInvestorProjectsDirect();
 
   // Calculate total amount based on number of shares (50000 SAR per share)
   const SHARE_PRICE = 50000;
@@ -63,6 +68,7 @@ export function NewRequestPage() {
         targetPrice: targetPrice ? parseFloat(targetPrice) : null,
         expiryAt: expiryAt || null,
         notes: notes || null,
+        projectId: (type === 'partnership' && projectId) ? projectId : null,
         documents: documents.length > 0 ? documents : undefined,
       };
 
@@ -376,6 +382,54 @@ export function NewRequestPage() {
                     fontSize: typography.sizes.body,
                   }}
                 />
+              </div>
+            )}
+
+            {/* Project Selection (for partnership requests) */}
+            {type === 'partnership' && (
+              <div>
+                <label
+                  style={{
+                    display: 'block',
+                    marginBottom: '0.5rem',
+                    fontSize: typography.sizes.caption,
+                    fontWeight: 600,
+                    color: palette.textPrimary,
+                  }}
+                >
+                  {language === 'ar' ? 'المشروع' : 'Project'} {language === 'ar' ? '(اختياري)' : '(Optional)'}
+                </label>
+                <select
+                  value={projectId}
+                  onChange={e => setProjectId(e.target.value)}
+                  disabled={isLoadingProjects}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem 1rem',
+                    borderRadius: radius.md,
+                    border: `1px solid ${palette.neutralBorderSoft}`,
+                    background: palette.backgroundBase,
+                    color: palette.textPrimary,
+                    fontSize: typography.sizes.body,
+                    cursor: isLoadingProjects ? 'not-allowed' : 'pointer',
+                    opacity: isLoadingProjects ? 0.6 : 1,
+                  }}
+                >
+                  <option value="">
+                    {isLoadingProjects
+                      ? language === 'ar'
+                        ? 'جاري التحميل...'
+                        : 'Loading...'
+                      : language === 'ar'
+                      ? 'اختر المشروع (اختياري)'
+                      : 'Select Project (Optional)'}
+                  </option>
+                  {projects?.map((project) => (
+                    <option key={project.id} value={project.id}>
+                      {language === 'ar' && project.nameAr ? project.nameAr : project.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             )}
 
