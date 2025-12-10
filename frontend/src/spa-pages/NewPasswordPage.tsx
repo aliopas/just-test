@@ -16,8 +16,69 @@ export function NewPasswordPage() {
   const [isValidatingToken, setIsValidatingToken] = useState(true);
   const [tokenValid, setTokenValid] = useState(false);
 
-  // التحقق من صحة token عند تحميل الصفحة
+  // دالة لقراءة معاملات URL
+  function getUrlParams() {
+    if (typeof window === 'undefined') return {};
+    
+    const params: Record<string, string> = {};
+    const urlParams = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    
+    // قراءة من query string
+    urlParams.forEach((value, key) => {
+      params[key] = value;
+    });
+    
+    // قراءة من hash (Supabase قد يضع المعاملات في hash)
+    hashParams.forEach((value, key) => {
+      params[key] = value;
+    });
+    
+    return params;
+  }
+
+  // التحقق من معاملات الخطأ في URL أولاً
   useEffect(() => {
+    const params = getUrlParams();
+    const urlError = params.error;
+    const errorCode = params.error_code;
+    const errorDescription = params.error_description;
+
+    if (urlError || errorCode) {
+      let errorMessage = '';
+      
+      if (errorCode === 'otp_expired' || errorDescription?.includes('expired')) {
+        errorMessage = isArabic
+          ? 'رابط إعادة التعيين منتهي الصلاحية. يرجى طلب رابط جديد.'
+          : 'Reset link has expired. Please request a new link.';
+      } else if (errorCode === 'access_denied' || urlError === 'access_denied') {
+        errorMessage = isArabic
+          ? 'رابط إعادة التعيين غير صالح. يرجى طلب رابط جديد.'
+          : 'Reset link is invalid. Please request a new link.';
+      } else if (errorDescription) {
+        // Decode URL-encoded error description
+        const decodedDescription = decodeURIComponent(errorDescription.replace(/\+/g, ' '));
+        errorMessage = isArabic
+          ? `رابط إعادة التعيين غير صالح: ${decodedDescription}`
+          : `Reset link error: ${decodedDescription}`;
+      } else {
+        errorMessage = isArabic
+          ? 'رابط إعادة التعيين غير صالح أو منتهي الصلاحية. يرجى طلب رابط جديد.'
+          : 'Reset link is invalid or expired. Please request a new link.';
+      }
+
+      setError(errorMessage);
+      setTokenValid(false);
+      setIsValidatingToken(false);
+      
+      // تنظيف URL من معاملات الخطأ
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+      
+      return;
+    }
+
+    // التحقق من صحة token عند تحميل الصفحة
     async function validateToken() {
       const supabase = getSupabaseBrowserClient();
       if (!supabase) {

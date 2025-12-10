@@ -13,12 +13,20 @@ export function ForgotPasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  // Validate email format
+  function validateEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email.trim());
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
     setSuccess(false);
 
-    if (!email || !email.trim()) {
+    const trimmedEmail = email.trim();
+
+    if (!trimmedEmail) {
       setError(
         isArabic
           ? 'الرجاء إدخال البريد الإلكتروني.'
@@ -27,8 +35,17 @@ export function ForgotPasswordPage() {
       return;
     }
 
+    if (!validateEmail(trimmedEmail)) {
+      setError(
+        isArabic
+          ? 'البريد الإلكتروني غير صحيح. يرجى إدخال بريد إلكتروني صالح.'
+          : 'Invalid email address. Please enter a valid email.'
+      );
+      return;
+    }
+
     try {
-      await resetPasswordMutation.mutateAsync(email.trim());
+      await resetPasswordMutation.mutateAsync(trimmedEmail);
       setSuccess(true);
     } catch (err: any) {
       console.error('[ForgotPassword] Error:', err);
@@ -56,6 +73,12 @@ export function ForgotPasswordPage() {
         );
       }
     }
+  }
+
+  function handleReset() {
+    setSuccess(false);
+    setError(null);
+    setEmail('');
   }
 
   return (
@@ -253,14 +276,38 @@ export function ForgotPasswordPage() {
             <p
               style={{
                 margin: 0,
+                marginBottom: '1rem',
                 fontSize: typography.sizes.caption,
                 color: '#047857',
               }}
             >
               {isArabic
-                ? 'إذا كان هناك حساب مرتبط بهذا البريد الإلكتروني، سيتم إرسال رابط إعادة تعيين كلمة المرور. تحقق من بريدك الإلكتروني.'
-                : 'If an account exists with this email, a password reset link has been sent. Please check your email.'}
+                ? 'إذا كان هناك حساب مرتبط بهذا البريد الإلكتروني، سيتم إرسال رابط إعادة تعيين كلمة المرور. تحقق من بريدك الإلكتروني (والبريد المزعج أيضاً).'
+                : 'If an account exists with this email, a password reset link has been sent. Please check your email (and spam folder).'}
             </p>
+            <button
+              type="button"
+              onClick={handleReset}
+              style={{
+                padding: '0.5rem 1rem',
+                borderRadius: radius.md,
+                border: '1px solid #10B981',
+                background: 'transparent',
+                color: '#047857',
+                fontSize: typography.sizes.caption,
+                fontWeight: typography.weights.semibold,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#D1FAE5';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+              }}
+            >
+              {isArabic ? 'إرسال رابط آخر' : 'Send another link'}
+            </button>
           </div>
         ) : (
           <form
@@ -306,9 +353,15 @@ export function ForgotPasswordPage() {
                   e.target.style.boxShadow = 'none';
                 }}
                 value={email}
-                onChange={event => setEmail(event.target.value)}
+                onChange={event => {
+                  setEmail(event.target.value);
+                  // Clear error when user starts typing
+                  if (error) setError(null);
+                }}
                 required
                 disabled={resetPasswordMutation.isPending}
+                autoComplete="email"
+                autoFocus
               />
             </div>
 
