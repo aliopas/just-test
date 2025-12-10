@@ -1,30 +1,30 @@
 [build]
   # Optimized build command to prevent cancellation
-  # Install function dependencies, then build frontend with Next.js
-  # Note: base is "frontend", so we start from frontend directory
-  # Using && to ensure sequential execution and proper error handling
-  command = "cd ../netlify/functions && npm install --production --silent --no-optional && cd ../../frontend && npm ci --silent --no-optional && npm run build"
+  # Install function dependencies first (fast), then build frontend
+  # Note: base is "frontend", so paths are relative to frontend directory
+  # Sequential execution ensures proper dependency installation
+  command = "cd ../netlify/functions && npm install --production --silent && cd ../../frontend && npm ci --silent && npm run build"
   functions = "../netlify/functions"
   publish = ".next"
   base = "frontend"
-  # Increase build timeout to 20 minutes (1200 seconds) to prevent cancellation
-  # Free tier: 5 min, Pro: 15 min default, we set 20 min for safety
-  # Note: Maximum timeout for Pro/Team plans is 20 minutes
+  # Increase build timeout to maximum (20 minutes = 1200 seconds)
+  # This is the maximum allowed timeout for Pro/Team plans
   timeout = 1200
 
 [build.environment]
   NODE_VERSION = "22"
-  # Cache node_modules for faster builds
-  NPM_FLAGS = "--prefer-offline --no-audit --no-fund --silent --no-optional"
-  # Prevent build cancellation due to long-running processes
+  # Optimize npm for faster installs
+  NPM_FLAGS = "--prefer-offline --no-audit --no-fund --silent"
+  # Prevent build cancellation - critical settings
   NETLIFY_BUILD_TIMEOUT = "1200"
   NETLIFY_BUILD_NO_CANCEL = "true"
-  # Optimize build performance
+  # Optimize Node.js memory
   NODE_OPTIONS = "--max-old-space-size=4096"
-  # Reduce build verbosity
+  # CI mode for better caching and performance
   CI = "true"
-  # Prevent build cancellation
   NETLIFY_CI = "true"
+  # Enable build caching
+  NETLIFY_BUILD_CACHE = "true"
 
 # Netlify Next.js plugin - required for Next.js routing to work
 [[plugins]]
