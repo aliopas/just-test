@@ -313,9 +313,14 @@ export default async (event: any, context: any) => {
     }
     
     // Ensure we return a proper response object
+    // For 204 No Content, ensure body is empty string (not undefined/null)
+    const responseBody = allowsEmptyBody && (!result.body || result.body === null || result.body === undefined)
+      ? ''
+      : (result.body || '');
+    
     const response = {
       statusCode: result.statusCode,
-      body: result.body,
+      body: responseBody,
       headers: result.headers || {},
     };
     
@@ -323,6 +328,7 @@ export default async (event: any, context: any) => {
       statusCode: response.statusCode,
       hasBody: !!response.body,
       bodyLength: typeof response.body === 'string' ? response.body.length : 0,
+      allowsEmptyBody,
     });
     
     return response;
