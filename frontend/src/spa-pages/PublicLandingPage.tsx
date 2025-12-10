@@ -37,16 +37,9 @@ export function PublicLandingPage() {
   }, [mainProfile?.icon_key]);
 
 
-  const heroTitle =
-    mainPartnership && (isArabic ? mainPartnership.title_ar : mainPartnership.title_en).length > 0
-      ? (isArabic ? mainPartnership.title_ar : mainPartnership.title_en)
-      : isArabic
-        ? 'كن شريكًا في باكورة'
-        : 'Become a partner in Bakura';
-
-  const heroDescription = isArabic
-    ? 'قدّم طلب الاستثمار الخاص بك وتابع أخبار الشركة، المشاريع، والتقارير في مكان واحد مصمم للمستثمرين.'
-    : 'Submit your investment request and follow company news, projects, and reports in a single portal built for investors.';
+  const heroTitle = isArabic
+    ? 'منصة شركاء باكورة'
+    : 'Bacura Partners Platform';
 
   return (
     <div
@@ -185,16 +178,6 @@ export function PublicLandingPage() {
             >
               {heroTitle}
             </h1>
-            <p
-              style={{
-                margin: 0,
-                fontSize: isMobile ? '0.95rem' : '1.05rem',
-                lineHeight: 1.8,
-                color: palette.textSecondary,
-              }}
-            >
-              {heroDescription}
-            </p>
           </div>
 
           {/* Primary CTA: investment request */}

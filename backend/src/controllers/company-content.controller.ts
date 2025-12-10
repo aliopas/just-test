@@ -73,7 +73,8 @@ export const companyContentController = {
     try {
       const includeInactive = req.query.includeInactive === 'true';
       const profiles = await listCompanyProfiles(includeInactive);
-      return res.status(200).json({ profiles });
+      res.status(200).json({ profiles });
+      return;
     } catch (error) {
       console.error('Failed to list company profiles:', error);
       
@@ -83,13 +84,14 @@ export const companyContentController = {
         ? 'CONFIGURATION_ERROR' 
         : 'INTERNAL_ERROR';
       
-      return res.status(500).json({
+      res.status(500).json({
         error: {
           code: errorCode,
           message: 'Failed to list company profiles',
           details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
         },
       });
+      return;
     }
   },
 
@@ -98,26 +100,29 @@ export const companyContentController = {
       const { id } = req.params;
       
       if (!id || typeof id !== 'string') {
-        return res.status(400).json({
+        res.status(400).json({
           error: {
             code: 'VALIDATION_ERROR',
             message: 'Invalid profile ID',
           },
         });
+        return;
       }
 
       const profile = await getCompanyProfileById(id);
 
       if (!profile) {
-        return res.status(404).json({
+        res.status(404).json({
           error: {
             code: 'NOT_FOUND',
             message: 'Company profile not found',
           },
         });
+        return;
       }
 
-      return res.status(200).json(profile);
+      res.status(200).json(profile);
+      return;
     } catch (error) {
       console.error('Failed to get company profile:', error);
       
@@ -127,13 +132,14 @@ export const companyContentController = {
         ? 'CONFIGURATION_ERROR' 
         : 'INTERNAL_ERROR';
       
-      return res.status(500).json({
+      res.status(500).json({
         error: {
           code: errorCode,
           message: 'Failed to get company profile',
           details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
         },
       });
+      return;
     }
   },
 
@@ -141,7 +147,7 @@ export const companyContentController = {
     try {
       const validation = companyProfileCreateSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({
+        res.status(400).json({
           error: {
             code: 'VALIDATION_ERROR',
             message: 'Invalid request payload',
@@ -151,18 +157,21 @@ export const companyContentController = {
             })),
           },
         });
+        return;
       }
 
       const profile = await createCompanyProfile(validation.data);
-      return res.status(201).json(profile);
+      res.status(201).json(profile);
+      return;
     } catch (error) {
       console.error('Failed to create company profile:', error);
-      return res.status(500).json({
+      res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to create company profile',
         },
       });
+      return;
     }
   },
 
@@ -171,7 +180,7 @@ export const companyContentController = {
       const { id } = req.params;
       const validation = companyProfileUpdateSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({
+        res.status(400).json({
           error: {
             code: 'VALIDATION_ERROR',
             message: 'Invalid request payload',
@@ -181,29 +190,33 @@ export const companyContentController = {
             })),
           },
         });
+        return;
       }
 
       const profile = await updateCompanyProfile(id, validation.data);
-      return res.status(200).json(profile);
+      res.status(200).json(profile);
+      return;
     } catch (error) {
       if (
         error instanceof Error &&
         error.message === 'COMPANY_PROFILE_NOT_FOUND'
       ) {
-        return res.status(404).json({
+        res.status(404).json({
           error: {
             code: 'NOT_FOUND',
             message: 'Company profile not found',
           },
         });
+        return;
       }
       console.error('Failed to update company profile:', error);
-      return res.status(500).json({
+      res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to update company profile',
         },
       });
+      return;
     }
   },
 
@@ -218,20 +231,22 @@ export const companyContentController = {
         error instanceof Error &&
         error.message === 'COMPANY_PROFILE_NOT_FOUND'
       ) {
-        return res.status(404).json({
+        res.status(404).json({
           error: {
             code: 'NOT_FOUND',
             message: 'Company profile not found',
           },
         });
+        return;
       }
       console.error('Failed to delete company profile:', error);
-      return res.status(500).json({
+      res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to delete company profile',
         },
       });
+      return;
     }
   },
 
@@ -239,15 +254,17 @@ export const companyContentController = {
   async listPartners(_req: AuthenticatedRequest, res: Response) {
     try {
       const partners = await listCompanyPartners();
-      return res.status(200).json({ partners });
+      res.status(200).json({ partners });
+      return;
     } catch (error) {
       console.error('Failed to list company partners:', error);
-      return res.status(500).json({
+      res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to list company partners',
         },
       });
+      return;
     }
   },
 
@@ -257,23 +274,26 @@ export const companyContentController = {
       const partner = await getCompanyPartnerById(id);
 
       if (!partner) {
-        return res.status(404).json({
+        res.status(404).json({
           error: {
             code: 'NOT_FOUND',
             message: 'Company partner not found',
           },
         });
+        return;
       }
 
-      return res.status(200).json(partner);
+      res.status(200).json(partner);
+      return;
     } catch (error) {
       console.error('Failed to get company partner:', error);
-      return res.status(500).json({
+      res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to get company partner',
         },
       });
+      return;
     }
   },
 
@@ -281,7 +301,7 @@ export const companyContentController = {
     try {
       const validation = companyPartnersCreateSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({
+        res.status(400).json({
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
@@ -289,18 +309,21 @@ export const companyContentController = {
             message: issue.message,
           })),
         });
+        return;
       }
 
       const partner = await createCompanyPartner(validation.data);
-      return res.status(201).json(partner);
+      res.status(201).json(partner);
+      return;
     } catch (error) {
       console.error('Failed to create company partner:', error);
-      return res.status(500).json({
+      res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to create company partner',
         },
       });
+      return;
     }
   },
 
@@ -309,7 +332,7 @@ export const companyContentController = {
       const { id } = req.params;
       const validation = companyPartnersUpdateSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({
+        res.status(400).json({
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
@@ -317,29 +340,33 @@ export const companyContentController = {
             message: issue.message,
           })),
         });
+        return;
       }
 
       const partner = await updateCompanyPartner(id, validation.data);
-      return res.status(200).json(partner);
+      res.status(200).json(partner);
+      return;
     } catch (error) {
       if (
         error instanceof Error &&
         error.message === 'COMPANY_PARTNER_NOT_FOUND'
       ) {
-        return res.status(404).json({
+        res.status(404).json({
           error: {
             code: 'NOT_FOUND',
             message: 'Company partner not found',
           },
         });
+        return;
       }
       console.error('Failed to update company partner:', error);
-      return res.status(500).json({
+      res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to update company partner',
         },
       });
+      return;
     }
   },
 
@@ -354,20 +381,22 @@ export const companyContentController = {
         error instanceof Error &&
         error.message === 'COMPANY_PARTNER_NOT_FOUND'
       ) {
-        return res.status(404).json({
+        res.status(404).json({
           error: {
             code: 'NOT_FOUND',
             message: 'Company partner not found',
           },
         });
+        return;
       }
       console.error('Failed to delete company partner:', error);
-      return res.status(500).json({
+      res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to delete company partner',
         },
       });
+      return;
     }
   },
 
@@ -375,15 +404,17 @@ export const companyContentController = {
   async listClients(_req: AuthenticatedRequest, res: Response) {
     try {
       const clients = await listCompanyClients();
-      return res.status(200).json({ clients });
+      res.status(200).json({ clients });
+      return;
     } catch (error) {
       console.error('Failed to list company clients:', error);
-      return res.status(500).json({
+      res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to list company clients',
         },
       });
+      return;
     }
   },
 
@@ -393,23 +424,26 @@ export const companyContentController = {
       const client = await getCompanyClientById(id);
 
       if (!client) {
-        return res.status(404).json({
+        res.status(404).json({
           error: {
             code: 'NOT_FOUND',
             message: 'Company client not found',
           },
         });
+        return;
       }
 
-      return res.status(200).json(client);
+      res.status(200).json(client);
+      return;
     } catch (error) {
       console.error('Failed to get company client:', error);
-      return res.status(500).json({
+      res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to get company client',
         },
       });
+      return;
     }
   },
 
@@ -417,7 +451,7 @@ export const companyContentController = {
     try {
       const validation = companyClientsCreateSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({
+        res.status(400).json({
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
@@ -425,18 +459,21 @@ export const companyContentController = {
             message: issue.message,
           })),
         });
+        return;
       }
 
       const client = await createCompanyClient(validation.data);
-      return res.status(201).json(client);
+      res.status(201).json(client);
+      return;
     } catch (error) {
       console.error('Failed to create company client:', error);
-      return res.status(500).json({
+      res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to create company client',
         },
       });
+      return;
     }
   },
 
@@ -445,7 +482,7 @@ export const companyContentController = {
       const { id } = req.params;
       const validation = companyClientsUpdateSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({
+        res.status(400).json({
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
@@ -453,29 +490,33 @@ export const companyContentController = {
             message: issue.message,
           })),
         });
+        return;
       }
 
       const client = await updateCompanyClient(id, validation.data);
-      return res.status(200).json(client);
+      res.status(200).json(client);
+      return;
     } catch (error) {
       if (
         error instanceof Error &&
         error.message === 'COMPANY_CLIENT_NOT_FOUND'
       ) {
-        return res.status(404).json({
+        res.status(404).json({
           error: {
             code: 'NOT_FOUND',
             message: 'Company client not found',
           },
         });
+        return;
       }
       console.error('Failed to update company client:', error);
-      return res.status(500).json({
+      res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to update company client',
         },
       });
+      return;
     }
   },
 
@@ -553,7 +594,7 @@ export const companyContentController = {
     try {
       const validation = companyResourcesCreateSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({
+        res.status(400).json({
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
@@ -561,18 +602,21 @@ export const companyContentController = {
             message: issue.message,
           })),
         });
+        return;
       }
 
       const resource = await createCompanyResource(validation.data);
-      return res.status(201).json(resource);
+      res.status(201).json(resource);
+      return;
     } catch (error) {
       console.error('Failed to create company resource:', error);
-      return res.status(500).json({
+      res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to create company resource',
         },
       });
+      return;
     }
   },
 
@@ -581,7 +625,7 @@ export const companyContentController = {
       const { id } = req.params;
       const validation = companyResourcesUpdateSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({
+        res.status(400).json({
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
@@ -589,29 +633,33 @@ export const companyContentController = {
             message: issue.message,
           })),
         });
+        return;
       }
 
       const resource = await updateCompanyResource(id, validation.data);
-      return res.status(200).json(resource);
+      res.status(200).json(resource);
+      return;
     } catch (error) {
       if (
         error instanceof Error &&
         error.message === 'COMPANY_RESOURCE_NOT_FOUND'
       ) {
-        return res.status(404).json({
+        res.status(404).json({
           error: {
             code: 'NOT_FOUND',
             message: 'Company resource not found',
           },
         });
+        return;
       }
       console.error('Failed to update company resource:', error);
-      return res.status(500).json({
+      res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to update company resource',
         },
       });
+      return;
     }
   },
 
@@ -689,7 +737,7 @@ export const companyContentController = {
     try {
       const validation = companyStrengthsCreateSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({
+        res.status(400).json({
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
@@ -697,18 +745,21 @@ export const companyContentController = {
             message: issue.message,
           })),
         });
+        return;
       }
 
       const strength = await createCompanyStrength(validation.data);
-      return res.status(201).json(strength);
+      res.status(201).json(strength);
+      return;
     } catch (error) {
       console.error('Failed to create company strength:', error);
-      return res.status(500).json({
+      res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to create company strength',
         },
       });
+      return;
     }
   },
 
@@ -717,7 +768,7 @@ export const companyContentController = {
       const { id } = req.params;
       const validation = companyStrengthsUpdateSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({
+        res.status(400).json({
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
@@ -725,29 +776,33 @@ export const companyContentController = {
             message: issue.message,
           })),
         });
+        return;
       }
 
       const strength = await updateCompanyStrength(id, validation.data);
-      return res.status(200).json(strength);
+      res.status(200).json(strength);
+      return;
     } catch (error) {
       if (
         error instanceof Error &&
         error.message === 'COMPANY_STRENGTH_NOT_FOUND'
       ) {
-        return res.status(404).json({
+        res.status(404).json({
           error: {
             code: 'NOT_FOUND',
             message: 'Company strength not found',
           },
         });
+        return;
       }
       console.error('Failed to update company strength:', error);
-      return res.status(500).json({
+      res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to update company strength',
         },
       });
+      return;
     }
   },
 
@@ -825,7 +880,7 @@ export const companyContentController = {
     try {
       const validation = partnershipInfoCreateSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({
+        res.status(400).json({
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
@@ -833,18 +888,21 @@ export const companyContentController = {
             message: issue.message,
           })),
         });
+        return;
       }
 
       const info = await createPartnershipInfo(validation.data);
-      return res.status(201).json(info);
+      res.status(201).json(info);
+      return;
     } catch (error) {
       console.error('Failed to create partnership info:', error);
-      return res.status(500).json({
+      res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to create partnership info',
         },
       });
+      return;
     }
   },
 
@@ -853,7 +911,7 @@ export const companyContentController = {
       const { id } = req.params;
       const validation = partnershipInfoUpdateSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({
+        res.status(400).json({
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
@@ -861,29 +919,33 @@ export const companyContentController = {
             message: issue.message,
           })),
         });
+        return;
       }
 
       const info = await updatePartnershipInfo(id, validation.data);
-      return res.status(200).json(info);
+      res.status(200).json(info);
+      return;
     } catch (error) {
       if (
         error instanceof Error &&
         error.message === 'PARTNERSHIP_INFO_NOT_FOUND'
       ) {
-        return res.status(404).json({
+        res.status(404).json({
           error: {
             code: 'NOT_FOUND',
             message: 'Partnership info not found',
           },
         });
+        return;
       }
       console.error('Failed to update partnership info:', error);
-      return res.status(500).json({
+      res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to update partnership info',
         },
       });
+      return;
     }
   },
 
@@ -962,7 +1024,7 @@ export const companyContentController = {
     try {
       const validation = marketValueCreateSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({
+        res.status(400).json({
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
@@ -970,18 +1032,21 @@ export const companyContentController = {
             message: issue.message,
           })),
         });
+        return;
       }
 
       const marketValue = await createMarketValue(validation.data);
-      return res.status(201).json(marketValue);
+      res.status(201).json(marketValue);
+      return;
     } catch (error) {
       console.error('Failed to create market value:', error);
-      return res.status(500).json({
+      res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to create market value',
         },
       });
+      return;
     }
   },
 
@@ -990,7 +1055,7 @@ export const companyContentController = {
       const { id } = req.params;
       const validation = marketValueUpdateSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({
+        res.status(400).json({
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
@@ -998,29 +1063,33 @@ export const companyContentController = {
             message: issue.message,
           })),
         });
+        return;
       }
 
       const marketValue = await updateMarketValue(id, validation.data);
-      return res.status(200).json(marketValue);
+      res.status(200).json(marketValue);
+      return;
     } catch (error) {
       if (
         error instanceof Error &&
         error.message === 'MARKET_VALUE_NOT_FOUND'
       ) {
-        return res.status(404).json({
+        res.status(404).json({
           error: {
             code: 'NOT_FOUND',
             message: 'Market value not found',
           },
         });
+        return;
       }
       console.error('Failed to update market value:', error);
-      return res.status(500).json({
+      res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to update market value',
         },
       });
+      return;
     }
   },
 
@@ -1098,7 +1167,7 @@ export const companyContentController = {
     try {
       const validation = companyGoalsCreateSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({
+        res.status(400).json({
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
@@ -1106,18 +1175,21 @@ export const companyContentController = {
             message: issue.message,
           })),
         });
+        return;
       }
 
       const goal = await createCompanyGoal(validation.data);
-      return res.status(201).json(goal);
+      res.status(201).json(goal);
+      return;
     } catch (error) {
       console.error('Failed to create company goal:', error);
-      return res.status(500).json({
+      res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to create company goal',
         },
       });
+      return;
     }
   },
 
@@ -1126,7 +1198,7 @@ export const companyContentController = {
       const { id } = req.params;
       const validation = companyGoalsUpdateSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({
+        res.status(400).json({
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
@@ -1134,29 +1206,33 @@ export const companyContentController = {
             message: issue.message,
           })),
         });
+        return;
       }
 
       const goal = await updateCompanyGoal(id, validation.data);
-      return res.status(200).json(goal);
+      res.status(200).json(goal);
+      return;
     } catch (error) {
       if (
         error instanceof Error &&
         error.message === 'COMPANY_GOAL_NOT_FOUND'
       ) {
-        return res.status(404).json({
+        res.status(404).json({
           error: {
             code: 'NOT_FOUND',
             message: 'Company goal not found',
           },
         });
+        return;
       }
       console.error('Failed to update company goal:', error);
-      return res.status(500).json({
+      res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to update company goal',
         },
       });
+      return;
     }
   },
 
