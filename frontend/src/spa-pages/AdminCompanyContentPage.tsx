@@ -27,17 +27,15 @@ import {
   useCreatePartnershipInfoMutation,
   useUpdatePartnershipInfoMutation,
   useDeletePartnershipInfoMutation,
+  useAdminCompanyProfiles,
+  useAdminCompanyPartners,
+  useAdminCompanyClients,
+  useAdminMarketValue,
+  useAdminCompanyGoals,
+  useAdminCompanyStrengths,
+  useAdminCompanyResources,
+  useAdminPartnershipInfo,
 } from '../hooks/useAdminCompanyContent';
-import {
-  useCompanyProfiles,
-  useCompanyPartners,
-  useCompanyClients,
-  useMarketValue,
-  useCompanyGoals,
-  useCompanyStrengths,
-  useCompanyResources,
-  usePartnershipInfo,
-} from '../hooks/useSupabaseTables';
 import { CompanyProfilesTable } from '../components/admin/company-content/CompanyProfilesTable';
 import { CompanyProfileFormDrawer } from '../components/admin/company-content/CompanyProfileFormDrawer';
 import { CompanyPartnersTable } from '../components/admin/company-content/CompanyPartnersTable';
@@ -66,29 +64,18 @@ export function AdminCompanyContentPage() {
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
 
   const {
-    data: profilesData,
+    data: profilesResponse,
     isLoading: isLoadingProfiles,
     isError: isErrorProfiles,
     refetch: refetchProfiles,
-  } = useCompanyProfiles();
+  } = useAdminCompanyProfiles(false);
 
   const createProfile = useCreateCompanyProfileMutation();
   const updateProfile = useUpdateCompanyProfileMutation();
   const deleteProfile = useDeleteCompanyProfileMutation();
   const presignImage = useCompanyContentImagePresignMutation();
 
-  const profiles = (profilesData ?? []).map((p) => ({
-    id: p.id,
-    titleAr: p.title_ar,
-    titleEn: p.title_en,
-    contentAr: p.content_ar,
-    contentEn: p.content_en,
-    iconKey: p.icon_key,
-    displayOrder: p.display_order,
-    isActive: p.is_active,
-    createdAt: p.created_at,
-    updatedAt: p.updated_at,
-  }));
+  const profiles = profilesResponse?.profiles ?? [];
 
   // Partners
   const [isPartnerDrawerOpen, setIsPartnerDrawerOpen] = useState(false);
@@ -96,28 +83,17 @@ export function AdminCompanyContentPage() {
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
 
   const {
-    data: partnersData,
+    data: partnersResponse,
     isLoading: isLoadingPartners,
     isError: isErrorPartners,
     refetch: refetchPartners,
-  } = useCompanyPartners();
+  } = useAdminCompanyPartners();
 
   const createPartner = useCreateCompanyPartnerMutation();
   const updatePartner = useUpdateCompanyPartnerMutation();
   const deletePartner = useDeleteCompanyPartnerMutation();
 
-  const partners = (partnersData ?? []).map((p) => ({
-    id: p.id,
-    nameAr: p.name_ar,
-    nameEn: p.name_en,
-    logoKey: p.logo_key,
-    descriptionAr: p.description_ar,
-    descriptionEn: p.description_en,
-    websiteUrl: p.website_url,
-    displayOrder: p.display_order,
-    createdAt: p.created_at,
-    updatedAt: p.updated_at,
-  }));
+  const partners = partnersResponse?.partners ?? [];
 
   // Clients / business model
   const [isClientDrawerOpen, setIsClientDrawerOpen] = useState(false);
@@ -125,54 +101,34 @@ export function AdminCompanyContentPage() {
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
 
   const {
-    data: clientsData,
+    data: clientsResponse,
     isLoading: isLoadingClients,
     isError: isErrorClients,
     refetch: refetchClients,
-  } = useCompanyClients();
+  } = useAdminCompanyClients();
 
   const createClient = useCreateCompanyClientMutation();
   const updateClient = useUpdateCompanyClientMutation();
   const deleteClient = useDeleteCompanyClientMutation();
 
-  const clients = (clientsData ?? []).map((c) => ({
-    id: c.id,
-    nameAr: c.name_ar,
-    nameEn: c.name_en,
-    logoKey: c.logo_key,
-    descriptionAr: c.description_ar,
-    descriptionEn: c.description_en,
-    displayOrder: c.display_order,
-    createdAt: c.created_at,
-    updatedAt: c.updated_at,
-  }));
+  const clients = clientsResponse?.clients ?? [];
 
   // Market value
   const [isMarketDrawerOpen, setIsMarketDrawerOpen] = useState(false);
   const [marketDrawerMode, setMarketDrawerMode] = useState<'create' | 'edit'>('create');
 
   const {
-    data: marketData,
+    data: marketResponse,
     isLoading: isLoadingMarket,
     isError: isErrorMarket,
     refetch: refetchMarket,
-  } = useMarketValue();
+  } = useAdminMarketValue();
 
   const createMarket = useCreateMarketValueMutation();
   const updateMarket = useUpdateMarketValueMutation();
   const deleteMarket = useDeleteMarketValueMutation();
 
-  const marketValue = marketData ? {
-    id: marketData.id,
-    value: marketData.value,
-    currency: marketData.currency,
-    valuationDate: marketData.valuation_date,
-    source: marketData.source,
-    isVerified: marketData.is_verified,
-    verifiedAt: marketData.verified_at,
-    createdAt: marketData.created_at,
-    updatedAt: marketData.updated_at,
-  } : null;
+  const marketValue = marketResponse?.marketValue ?? null;
 
   // Goals
   const [isGoalDrawerOpen, setIsGoalDrawerOpen] = useState(false);
@@ -180,28 +136,17 @@ export function AdminCompanyContentPage() {
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
 
   const {
-    data: goalsData,
+    data: goalsResponse,
     isLoading: isLoadingGoals,
     isError: isErrorGoals,
     refetch: refetchGoals,
-  } = useCompanyGoals();
+  } = useAdminCompanyGoals();
 
   const createGoal = useCreateCompanyGoalMutation();
   const updateGoal = useUpdateCompanyGoalMutation();
   const deleteGoal = useDeleteCompanyGoalMutation();
 
-  const goals = (goalsData ?? []).map((g) => ({
-    id: g.id,
-    titleAr: g.title_ar,
-    titleEn: g.title_en,
-    descriptionAr: g.description_ar,
-    descriptionEn: g.description_en,
-    targetDate: g.target_date,
-    iconKey: g.icon_key,
-    displayOrder: g.display_order,
-    createdAt: g.created_at,
-    updatedAt: g.updated_at,
-  }));
+  const goals = goalsResponse?.goals ?? [];
 
   // Strengths
   const [isStrengthDrawerOpen, setIsStrengthDrawerOpen] = useState(false);
@@ -209,27 +154,17 @@ export function AdminCompanyContentPage() {
   const [selectedStrengthId, setSelectedStrengthId] = useState<string | null>(null);
 
   const {
-    data: strengthsData,
+    data: strengthsResponse,
     isLoading: isLoadingStrengths,
     isError: isErrorStrengths,
     refetch: refetchStrengths,
-  } = useCompanyStrengths();
+  } = useAdminCompanyStrengths();
 
   const createStrength = useCreateCompanyStrengthMutation();
   const updateStrength = useUpdateCompanyStrengthMutation();
   const deleteStrength = useDeleteCompanyStrengthMutation();
 
-  const strengths = (strengthsData ?? []).map((s) => ({
-    id: s.id,
-    titleAr: s.title_ar,
-    titleEn: s.title_en,
-    descriptionAr: s.description_ar,
-    descriptionEn: s.description_en,
-    iconKey: s.icon_key,
-    displayOrder: s.display_order,
-    createdAt: s.created_at,
-    updatedAt: s.updated_at,
-  }));
+  const strengths = strengthsResponse?.strengths ?? [];
 
   // Resources
   const [isResourceDrawerOpen, setIsResourceDrawerOpen] = useState(false);
@@ -237,29 +172,17 @@ export function AdminCompanyContentPage() {
   const [selectedResourceId, setSelectedResourceId] = useState<string | null>(null);
 
   const {
-    data: resourcesData,
+    data: resourcesResponse,
     isLoading: isLoadingResources,
     isError: isErrorResources,
     refetch: refetchResources,
-  } = useCompanyResources();
+  } = useAdminCompanyResources();
 
   const createResource = useCreateCompanyResourceMutation();
   const updateResource = useUpdateCompanyResourceMutation();
   const deleteResource = useDeleteCompanyResourceMutation();
 
-  const resources = (resourcesData ?? []).map((r) => ({
-    id: r.id,
-    titleAr: r.title_ar,
-    titleEn: r.title_en,
-    descriptionAr: r.description_ar,
-    descriptionEn: r.description_en,
-    iconKey: r.icon_key,
-    value: typeof r.value === 'string' ? Number.parseFloat(r.value) : r.value,
-    currency: r.currency || 'SAR',
-    displayOrder: r.display_order,
-    createdAt: r.created_at,
-    updatedAt: r.updated_at,
-  }));
+  const resources = resourcesResponse?.resources ?? [];
 
   // Partnership Info
   const [isPartnershipDrawerOpen, setIsPartnershipDrawerOpen] = useState(false);
@@ -267,33 +190,17 @@ export function AdminCompanyContentPage() {
   const [selectedPartnershipId, setSelectedPartnershipId] = useState<string | null>(null);
 
   const {
-    data: partnershipData,
+    data: partnershipResponse,
     isLoading: isLoadingPartnership,
     isError: isErrorPartnership,
     refetch: refetchPartnership,
-  } = usePartnershipInfo();
+  } = useAdminPartnershipInfo();
 
   const createPartnership = useCreatePartnershipInfoMutation();
   const updatePartnership = useUpdatePartnershipInfoMutation();
   const deletePartnership = useDeletePartnershipInfoMutation();
 
-  const partnershipInfo = (partnershipData ?? []).map((p) => ({
-    id: p.id,
-    titleAr: p.title_ar,
-    titleEn: p.title_en,
-    contentAr: p.content_ar,
-    contentEn: p.content_en,
-    stepsAr: Array.isArray(p.steps_ar) 
-      ? (p.steps_ar as string[])
-      : (typeof p.steps_ar === 'string' ? [p.steps_ar] : null),
-    stepsEn: Array.isArray(p.steps_en)
-      ? (p.steps_en as string[])
-      : (typeof p.steps_en === 'string' ? [p.steps_en] : null),
-    iconKey: p.icon_key,
-    displayOrder: p.display_order,
-    createdAt: p.created_at,
-    updatedAt: p.updated_at,
-  }));
+  const partnershipInfo = partnershipResponse?.partnershipInfo ?? [];
 
   const openCreateProfile = () => {
     setActiveTab('profiles');
