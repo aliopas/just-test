@@ -12,13 +12,6 @@ import {
   usePartnershipInfo,
   useMarketValue,
   useCompanyGoals,
-  type CompanyProfile,
-  type CompanyClient,
-  type CompanyResource,
-  type CompanyStrength,
-  type PartnershipInfo,
-  type MarketValue,
-  type CompanyGoal,
 } from '../../hooks/useSupabaseTables';
 import { SectionSkeleton } from './SectionSkeleton';
 
@@ -261,32 +254,32 @@ export function CompanyContentSection({ showOnlyProfile = false, excludeProfile 
   // Sections: Profiles, Business Model (Clients), Resources, Strengths, Partnership Info, Market Value, Goals
   const sections = useMemo<ContentSection[]>(() => {
     const sectionsList: ContentSection[] = [];
-    const profilesList: CompanyProfile[] = profiles ?? [];
-    const clientsList: CompanyClient[] = clients ?? [];
-    const resourcesList: CompanyResource[] = resources ?? [];
-    const strengthsList: CompanyStrength[] = strengths ?? [];
-    const partnershipInfoList: PartnershipInfo[] = partnershipInfo ?? [];
-    const marketValueData: MarketValue | null = marketValue;
-    const goalsList: CompanyGoal[] = goals ?? [];
+    const profilesList = profiles ?? [];
+    const clientsList = clients ?? [];
+    const resourcesList = resources ?? [];
+    const strengthsList = strengths ?? [];
+    const partnershipInfoList = partnershipInfo ?? [];
+    const marketValueData = marketValue;
+    const goalsList = goals ?? [];
 
     // 1. البروفايل التعريفي (Company Profile)
     if (profilesList.length > 0) {
       const profileCards: SectionCard[] = profilesList
-        .sort((a, b) => a.display_order - b.display_order)
+        .sort((a, b) => a.displayOrder - b.displayOrder)
         .map((profile) => {
-          const title = isArabic ? profile.title_ar : profile.title_en;
-          const content = isArabic ? profile.content_ar : profile.content_en;
+          const title = isArabic ? profile.titleAr : profile.titleEn;
+          const content = isArabic ? profile.contentAr : profile.contentEn;
           return {
             id: `profile-${profile.id}`,
             title,
             description: content.substring(0, 100) + (content.length > 100 ? '...' : ''),
-            iconKey: profile.icon_key,
-            displayOrder: profile.display_order,
+            iconKey: profile.iconKey,
+            displayOrder: profile.displayOrder,
             onClick: () => setSelectedSection(`profile-${profile.id}`),
           };
         });
 
-      const minDisplayOrder = Math.min(...profilesList.map((p) => p.display_order), Infinity);
+      const minDisplayOrder = Math.min(...profilesList.map((p) => p.displayOrder), Infinity);
       sectionsList.push({
         id: 'company-profile',
         title: isArabic ? 'البروفايل التعريفي' : 'Company Profile',
@@ -298,23 +291,23 @@ export function CompanyContentSection({ showOnlyProfile = false, excludeProfile 
     // 2. نموذج العمل التجاري (Business Model - Clients)
     if (clientsList.length > 0) {
       const businessModelCards: SectionCard[] = clientsList
-        .sort((a, b) => a.display_order - b.display_order)
+        .sort((a, b) => a.displayOrder - b.displayOrder)
         .map((client) => {
-          const name = isArabic ? client.name_ar : client.name_en;
-          const description = isArabic ? client.description_ar : client.description_en;
+          const name = isArabic ? client.nameAr : client.nameEn;
+          const description = isArabic ? client.descriptionAr : client.descriptionEn;
           return {
             id: `client-${client.id}`,
             title: name,
             description: description
               ? description.substring(0, 100) + (description.length > 100 ? '...' : '')
               : null,
-            iconKey: client.logo_key,
-            displayOrder: client.display_order,
+            iconKey: client.logoKey,
+            displayOrder: client.displayOrder,
             onClick: () => setSelectedSection(`client-${client.id}`),
           };
         });
 
-      const minDisplayOrder = Math.min(...clientsList.map((c) => c.display_order), Infinity);
+      const minDisplayOrder = Math.min(...clientsList.map((c) => c.displayOrder), Infinity);
       sectionsList.push({
         id: 'business-model',
         title: isArabic ? 'نموذج العمل التجاري' : 'Business Model',
@@ -326,10 +319,10 @@ export function CompanyContentSection({ showOnlyProfile = false, excludeProfile 
     // 3. الموارد المالية
     if (resourcesList.length > 0) {
       const resourceCards: SectionCard[] = resourcesList
-        .sort((a, b) => a.display_order - b.display_order)
+        .sort((a, b) => a.displayOrder - b.displayOrder)
         .map((resource) => {
-          const title = isArabic ? resource.title_ar : resource.title_en;
-          const description = isArabic ? resource.description_ar : resource.description_en;
+          const title = isArabic ? resource.titleAr : resource.titleEn;
+          const description = isArabic ? resource.descriptionAr : resource.descriptionEn;
           const displayDescription = description
             ? description.substring(0, 100) + (description.length > 100 ? '...' : '')
             : resource.value
@@ -344,13 +337,13 @@ export function CompanyContentSection({ showOnlyProfile = false, excludeProfile 
             id: `resource-${resource.id}`,
             title,
             description: displayDescription,
-            iconKey: resource.icon_key,
-            displayOrder: resource.display_order,
+            iconKey: resource.iconKey,
+            displayOrder: resource.displayOrder,
             onClick: () => setSelectedSection(`resource-${resource.id}`),
           };
         });
 
-      const minDisplayOrder = Math.min(...resourcesList.map((r) => r.display_order), Infinity);
+      const minDisplayOrder = Math.min(...resourcesList.map((r) => r.displayOrder), Infinity);
       sectionsList.push({
         id: 'resources',
         title: isArabic ? 'الموارد المالية' : 'Financial Resources',
@@ -362,23 +355,23 @@ export function CompanyContentSection({ showOnlyProfile = false, excludeProfile 
     // 4. نقاط قوة الشركة
     if (strengthsList.length > 0) {
       const strengthCards: SectionCard[] = strengthsList
-        .sort((a, b) => a.display_order - b.display_order)
+        .sort((a, b) => a.displayOrder - b.displayOrder)
         .map((strength) => {
-          const title = isArabic ? strength.title_ar : strength.title_en;
-          const description = isArabic ? strength.description_ar : strength.description_en;
+          const title = isArabic ? strength.titleAr : strength.titleEn;
+          const description = isArabic ? strength.descriptionAr : strength.descriptionEn;
           return {
             id: `strength-${strength.id}`,
             title,
             description: description
               ? description.substring(0, 100) + (description.length > 100 ? '...' : '')
               : null,
-            iconKey: strength.icon_key,
-            displayOrder: strength.display_order,
+            iconKey: strength.iconKey,
+            displayOrder: strength.displayOrder,
             onClick: () => setSelectedSection(`strength-${strength.id}`),
           };
         });
 
-      const minDisplayOrder = Math.min(...strengthsList.map((s) => s.display_order), Infinity);
+      const minDisplayOrder = Math.min(...strengthsList.map((s) => s.displayOrder), Infinity);
       sectionsList.push({
         id: 'strengths',
         title: isArabic ? 'نقاط قوة الشركة' : 'Company Strengths',
@@ -390,21 +383,21 @@ export function CompanyContentSection({ showOnlyProfile = false, excludeProfile 
     // 5. كيف تكون شريك في باكورة
     if (partnershipInfoList.length > 0) {
       const partnershipCards: SectionCard[] = partnershipInfoList
-        .sort((a, b) => a.display_order - b.display_order)
+        .sort((a, b) => a.displayOrder - b.displayOrder)
         .map((info) => {
-          const title = isArabic ? info.title_ar : info.title_en;
-          const content = isArabic ? info.content_ar : info.content_en;
+          const title = isArabic ? info.titleAr : info.titleEn;
+          const content = isArabic ? info.contentAr : info.contentEn;
           return {
             id: `partnership-${info.id}`,
             title,
             description: content.substring(0, 120) + (content.length > 120 ? '...' : ''),
-            iconKey: info.icon_key,
-            displayOrder: info.display_order,
+            iconKey: info.iconKey,
+            displayOrder: info.displayOrder,
             onClick: () => setSelectedSection(`partnership-${info.id}`),
           };
         });
 
-      const minDisplayOrder = Math.min(...partnershipInfoList.map((i) => i.display_order), Infinity);
+      const minDisplayOrder = Math.min(...partnershipInfoList.map((i) => i.displayOrder), Infinity);
       sectionsList.push({
         id: 'partnership',
         title: isArabic ? 'كيف تكون شريك في باكورة' : 'How to Become a Partner in Bacura',
@@ -423,7 +416,7 @@ export function CompanyContentSection({ showOnlyProfile = false, excludeProfile 
 
       const formattedDate = new Intl.DateTimeFormat(isArabic ? 'ar-SA' : 'en-US', {
         dateStyle: 'medium',
-      }).format(new Date(marketValueData.valuation_date));
+      }).format(new Date(marketValueData.valuationDate));
 
       sectionsList.push({
         id: 'market-value',
@@ -445,29 +438,29 @@ export function CompanyContentSection({ showOnlyProfile = false, excludeProfile 
     // 7. الأهداف العامة للشركة
     if (goalsList.length > 0) {
       const goalCards: SectionCard[] = goalsList
-        .sort((a, b) => a.display_order - b.display_order)
+        .sort((a, b) => a.displayOrder - b.displayOrder)
         .map((goal) => {
-          const title = isArabic ? goal.title_ar : goal.title_en;
-          const description = isArabic ? goal.description_ar : goal.description_en;
+          const title = isArabic ? goal.titleAr : goal.titleEn;
+          const description = isArabic ? goal.descriptionAr : goal.descriptionEn;
           const displayDescription = description
             ? description.substring(0, 100) + (description.length > 100 ? '...' : '')
-            : goal.target_date
+            : goal.targetDate
               ? new Intl.DateTimeFormat(isArabic ? 'ar-SA' : 'en-US', {
                   dateStyle: 'medium',
-                }).format(new Date(goal.target_date))
+                }).format(new Date(goal.targetDate))
               : null;
 
           return {
             id: `goal-${goal.id}`,
             title,
             description: displayDescription,
-            iconKey: goal.icon_key,
-            displayOrder: goal.display_order,
+            iconKey: goal.iconKey,
+            displayOrder: goal.displayOrder,
             onClick: () => setSelectedSection(`goal-${goal.id}`),
           };
         });
 
-      const minDisplayOrder = Math.min(...goalsList.map((g) => g.display_order), Infinity);
+      const minDisplayOrder = Math.min(...goalsList.map((g) => g.displayOrder), Infinity);
       sectionsList.push({
         id: 'goals',
         title: isArabic ? 'الأهداف العامة للشركة' : 'Company General Goals',

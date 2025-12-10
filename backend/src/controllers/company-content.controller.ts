@@ -327,12 +327,14 @@ export const companyContentController = {
       const validation = companyPartnersCreateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
+          error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
             field: issue.path.join('.'),
             message: issue.message,
           })),
+          },
         });
       }
 
@@ -355,12 +357,14 @@ export const companyContentController = {
       const validation = companyPartnersUpdateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
+          error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
             field: issue.path.join('.'),
             message: issue.message,
           })),
+          },
         });
       }
 
@@ -462,12 +466,14 @@ export const companyContentController = {
       const validation = companyClientsCreateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
+          error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
             field: issue.path.join('.'),
             message: issue.message,
           })),
+          },
         });
       }
 
@@ -490,12 +496,14 @@ export const companyContentController = {
       const validation = companyClientsUpdateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
+          error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
             field: issue.path.join('.'),
             message: issue.message,
           })),
+          },
         });
       }
 
@@ -551,7 +559,7 @@ export const companyContentController = {
   },
 
   // Company Resources endpoints
-  async listResources(_req: AuthenticatedRequest, res: Response) {
+  async listResources(_req: AuthenticatedRequest, res: Response): Promise<Response> {
     try {
       const resources = await listCompanyResources();
       return res.status(200).json({ resources });
@@ -566,7 +574,7 @@ export const companyContentController = {
     }
   },
 
-  async getResourceById(req: AuthenticatedRequest, res: Response) {
+  async getResourceById(req: AuthenticatedRequest, res: Response): Promise<Response> {
     try {
       const { id } = req.params;
       const resource = await getCompanyResourceById(id);
@@ -597,12 +605,14 @@ export const companyContentController = {
       const validation = companyResourcesCreateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
+          error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
             field: issue.path.join('.'),
             message: issue.message,
           })),
+          },
         });
       }
 
@@ -625,12 +635,14 @@ export const companyContentController = {
       const validation = companyResourcesUpdateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
+          error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
             field: issue.path.join('.'),
             message: issue.message,
           })),
+          },
         });
       }
 
@@ -686,7 +698,7 @@ export const companyContentController = {
   },
 
   // Company Strengths endpoints
-  async listStrengths(_req: AuthenticatedRequest, res: Response) {
+  async listStrengths(_req: AuthenticatedRequest, res: Response): Promise<Response> {
     try {
       const strengths = await listCompanyStrengths();
       return res.status(200).json({ strengths });
@@ -701,7 +713,7 @@ export const companyContentController = {
     }
   },
 
-  async getStrengthById(req: AuthenticatedRequest, res: Response) {
+  async getStrengthById(req: AuthenticatedRequest, res: Response): Promise<Response> {
     try {
       const { id } = req.params;
       const strength = await getCompanyStrengthById(id);
@@ -732,12 +744,14 @@ export const companyContentController = {
       const validation = companyStrengthsCreateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
+          error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
             field: issue.path.join('.'),
             message: issue.message,
           })),
+          },
         });
       }
 
@@ -760,12 +774,14 @@ export const companyContentController = {
       const validation = companyStrengthsUpdateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
+          error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
             field: issue.path.join('.'),
             message: issue.message,
           })),
+          },
         });
       }
 
@@ -821,7 +837,7 @@ export const companyContentController = {
   },
 
   // Partnership Info endpoints
-  async listPartnershipInfo(_req: AuthenticatedRequest, res: Response) {
+  async listPartnershipInfo(_req: AuthenticatedRequest, res: Response): Promise<Response> {
     try {
       const partnershipInfo = await listPartnershipInfo();
       return res.status(200).json({ partnershipInfo });
@@ -836,7 +852,7 @@ export const companyContentController = {
     }
   },
 
-  async getPartnershipInfoById(req: AuthenticatedRequest, res: Response) {
+  async getPartnershipInfoById(req: AuthenticatedRequest, res: Response): Promise<Response> {
     try {
       const { id } = req.params;
       const info = await getPartnershipInfoById(id);
@@ -867,12 +883,14 @@ export const companyContentController = {
       const validation = partnershipInfoCreateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
+          error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
             field: issue.path.join('.'),
             message: issue.message,
           })),
+          },
         });
       }
 
@@ -895,12 +913,14 @@ export const companyContentController = {
       const validation = partnershipInfoUpdateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
+          error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
             field: issue.path.join('.'),
             message: issue.message,
           })),
+          },
         });
       }
 
@@ -928,12 +948,11 @@ export const companyContentController = {
     }
   },
 
-  async deletePartnershipInfo(req: AuthenticatedRequest, res: Response) {
+  async deletePartnershipInfo(req: AuthenticatedRequest, res: Response): Promise<Response> {
     try {
       const { id } = req.params;
       await deletePartnershipInfo(id);
-      res.status(204).end();
-      return;
+      return res.status(204).end();
     } catch (error) {
       if (
         error instanceof Error &&
@@ -957,7 +976,7 @@ export const companyContentController = {
   },
 
   // Market Value endpoints
-  async listMarketValues(req: AuthenticatedRequest, res: Response) {
+  async listMarketValues(req: AuthenticatedRequest, res: Response): Promise<Response> {
     try {
       const includeUnverified = req.query.includeUnverified === 'true';
       const marketValues = await listMarketValues(includeUnverified);
@@ -973,7 +992,7 @@ export const companyContentController = {
     }
   },
 
-  async getMarketValueById(req: AuthenticatedRequest, res: Response) {
+  async getMarketValueById(req: AuthenticatedRequest, res: Response): Promise<Response> {
     try {
       const { id } = req.params;
       const marketValue = await getMarketValueById(id);
@@ -1004,12 +1023,14 @@ export const companyContentController = {
       const validation = marketValueCreateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
+          error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
             field: issue.path.join('.'),
             message: issue.message,
           })),
+          },
         });
       }
 
@@ -1032,12 +1053,14 @@ export const companyContentController = {
       const validation = marketValueUpdateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
+          error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
             field: issue.path.join('.'),
             message: issue.message,
           })),
+          },
         });
       }
 
@@ -1093,7 +1116,7 @@ export const companyContentController = {
   },
 
   // Company Goals endpoints
-  async listGoals(_req: AuthenticatedRequest, res: Response) {
+  async listGoals(_req: AuthenticatedRequest, res: Response): Promise<Response> {
     try {
       const goals = await listCompanyGoals();
       return res.status(200).json({ goals });
@@ -1108,7 +1131,7 @@ export const companyContentController = {
     }
   },
 
-  async getGoalById(req: AuthenticatedRequest, res: Response) {
+  async getGoalById(req: AuthenticatedRequest, res: Response): Promise<Response> {
     try {
       const { id } = req.params;
       const goal = await getCompanyGoalById(id);
@@ -1139,12 +1162,14 @@ export const companyContentController = {
       const validation = companyGoalsCreateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
+          error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
             field: issue.path.join('.'),
             message: issue.message,
           })),
+          },
         });
       }
 
@@ -1167,12 +1192,14 @@ export const companyContentController = {
       const validation = companyGoalsUpdateSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
+          error: {
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
             field: issue.path.join('.'),
             message: issue.message,
           })),
+          },
         });
       }
 
@@ -1228,7 +1255,7 @@ export const companyContentController = {
   },
 
   // Presigned URL for image/icon uploads
-  async presignImage(req: AuthenticatedRequest, res: Response) {
+  async presignImage(req: AuthenticatedRequest, res: Response): Promise<Response> {
     try {
       const validation = companyContentImagePresignSchema.safeParse(req.body);
       if (!validation.success) {

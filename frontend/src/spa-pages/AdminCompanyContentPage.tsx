@@ -5,7 +5,6 @@ import {
   useCreateCompanyProfileMutation,
   useUpdateCompanyProfileMutation,
   useDeleteCompanyProfileMutation,
-  useCompanyContentImagePresignMutation,
   useCreateCompanyPartnerMutation,
   useUpdateCompanyPartnerMutation,
   useDeleteCompanyPartnerMutation,
@@ -27,15 +26,16 @@ import {
   useCreatePartnershipInfoMutation,
   useUpdatePartnershipInfoMutation,
   useDeletePartnershipInfoMutation,
-  useAdminCompanyProfiles,
-  useAdminCompanyPartners,
-  useAdminCompanyClients,
-  useAdminMarketValue,
-  useAdminCompanyGoals,
-  useAdminCompanyStrengths,
-  useAdminCompanyResources,
-  useAdminPartnershipInfo,
-} from '../hooks/useAdminCompanyContent';
+  useCompanyProfiles,
+  useCompanyPartners,
+  useCompanyClients,
+  useMarketValue,
+  useCompanyGoals,
+  useCompanyStrengths,
+  useCompanyResources,
+  usePartnershipInfo,
+} from '../hooks/useSupabaseTables';
+import { useCompanyContentImagePresignMutation } from '../hooks/useAdminCompanyContent';
 import { CompanyProfilesTable } from '../components/admin/company-content/CompanyProfilesTable';
 import { CompanyProfileFormDrawer } from '../components/admin/company-content/CompanyProfileFormDrawer';
 import { CompanyPartnersTable } from '../components/admin/company-content/CompanyPartnersTable';
@@ -64,18 +64,16 @@ export function AdminCompanyContentPage() {
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
 
   const {
-    data: profilesResponse,
+    data: profiles,
     isLoading: isLoadingProfiles,
     isError: isErrorProfiles,
     refetch: refetchProfiles,
-  } = useAdminCompanyProfiles(false);
+  } = useCompanyProfiles(false);
 
   const createProfile = useCreateCompanyProfileMutation();
   const updateProfile = useUpdateCompanyProfileMutation();
   const deleteProfile = useDeleteCompanyProfileMutation();
   const presignImage = useCompanyContentImagePresignMutation();
-
-  const profiles = profilesResponse?.profiles ?? [];
 
   // Partners
   const [isPartnerDrawerOpen, setIsPartnerDrawerOpen] = useState(false);
@@ -83,17 +81,15 @@ export function AdminCompanyContentPage() {
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
 
   const {
-    data: partnersResponse,
+    data: partners,
     isLoading: isLoadingPartners,
     isError: isErrorPartners,
     refetch: refetchPartners,
-  } = useAdminCompanyPartners();
+  } = useCompanyPartners();
 
   const createPartner = useCreateCompanyPartnerMutation();
   const updatePartner = useUpdateCompanyPartnerMutation();
   const deletePartner = useDeleteCompanyPartnerMutation();
-
-  const partners = partnersResponse?.partners ?? [];
 
   // Clients / business model
   const [isClientDrawerOpen, setIsClientDrawerOpen] = useState(false);
@@ -101,34 +97,30 @@ export function AdminCompanyContentPage() {
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
 
   const {
-    data: clientsResponse,
+    data: clients,
     isLoading: isLoadingClients,
     isError: isErrorClients,
     refetch: refetchClients,
-  } = useAdminCompanyClients();
+  } = useCompanyClients();
 
   const createClient = useCreateCompanyClientMutation();
   const updateClient = useUpdateCompanyClientMutation();
   const deleteClient = useDeleteCompanyClientMutation();
-
-  const clients = clientsResponse?.clients ?? [];
 
   // Market value
   const [isMarketDrawerOpen, setIsMarketDrawerOpen] = useState(false);
   const [marketDrawerMode, setMarketDrawerMode] = useState<'create' | 'edit'>('create');
 
   const {
-    data: marketResponse,
+    data: marketValue,
     isLoading: isLoadingMarket,
     isError: isErrorMarket,
     refetch: refetchMarket,
-  } = useAdminMarketValue();
+  } = useMarketValue();
 
   const createMarket = useCreateMarketValueMutation();
   const updateMarket = useUpdateMarketValueMutation();
   const deleteMarket = useDeleteMarketValueMutation();
-
-  const marketValue = marketResponse?.marketValue ?? null;
 
   // Goals
   const [isGoalDrawerOpen, setIsGoalDrawerOpen] = useState(false);
@@ -136,17 +128,15 @@ export function AdminCompanyContentPage() {
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
 
   const {
-    data: goalsResponse,
+    data: goals,
     isLoading: isLoadingGoals,
     isError: isErrorGoals,
     refetch: refetchGoals,
-  } = useAdminCompanyGoals();
+  } = useCompanyGoals();
 
   const createGoal = useCreateCompanyGoalMutation();
   const updateGoal = useUpdateCompanyGoalMutation();
   const deleteGoal = useDeleteCompanyGoalMutation();
-
-  const goals = goalsResponse?.goals ?? [];
 
   // Strengths
   const [isStrengthDrawerOpen, setIsStrengthDrawerOpen] = useState(false);
@@ -154,17 +144,15 @@ export function AdminCompanyContentPage() {
   const [selectedStrengthId, setSelectedStrengthId] = useState<string | null>(null);
 
   const {
-    data: strengthsResponse,
+    data: strengths,
     isLoading: isLoadingStrengths,
     isError: isErrorStrengths,
     refetch: refetchStrengths,
-  } = useAdminCompanyStrengths();
+  } = useCompanyStrengths();
 
   const createStrength = useCreateCompanyStrengthMutation();
   const updateStrength = useUpdateCompanyStrengthMutation();
   const deleteStrength = useDeleteCompanyStrengthMutation();
-
-  const strengths = strengthsResponse?.strengths ?? [];
 
   // Resources
   const [isResourceDrawerOpen, setIsResourceDrawerOpen] = useState(false);
@@ -172,17 +160,15 @@ export function AdminCompanyContentPage() {
   const [selectedResourceId, setSelectedResourceId] = useState<string | null>(null);
 
   const {
-    data: resourcesResponse,
+    data: resources,
     isLoading: isLoadingResources,
     isError: isErrorResources,
     refetch: refetchResources,
-  } = useAdminCompanyResources();
+  } = useCompanyResources();
 
   const createResource = useCreateCompanyResourceMutation();
   const updateResource = useUpdateCompanyResourceMutation();
   const deleteResource = useDeleteCompanyResourceMutation();
-
-  const resources = resourcesResponse?.resources ?? [];
 
   // Partnership Info
   const [isPartnershipDrawerOpen, setIsPartnershipDrawerOpen] = useState(false);
@@ -190,17 +176,15 @@ export function AdminCompanyContentPage() {
   const [selectedPartnershipId, setSelectedPartnershipId] = useState<string | null>(null);
 
   const {
-    data: partnershipResponse,
+    data: partnershipInfo,
     isLoading: isLoadingPartnership,
     isError: isErrorPartnership,
     refetch: refetchPartnership,
-  } = useAdminPartnershipInfo();
+  } = usePartnershipInfo();
 
   const createPartnership = useCreatePartnershipInfoMutation();
   const updatePartnership = useUpdatePartnershipInfoMutation();
   const deletePartnership = useDeletePartnershipInfoMutation();
-
-  const partnershipInfo = partnershipResponse?.partnershipInfo ?? [];
 
   const openCreateProfile = () => {
     setActiveTab('profiles');

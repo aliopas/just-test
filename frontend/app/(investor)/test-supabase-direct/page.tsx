@@ -49,9 +49,9 @@ export default function TestSupabaseDirectPage() {
               {marketValue.value.toLocaleString()} {marketValue.currency}
             </p>
             <p style={{ color: '#666', fontSize: '0.9rem' }}>
-              {isArabic ? 'تاريخ التقييم:' : 'Valuation Date:'} {new Date(marketValue.valuation_date).toLocaleDateString()}
+              {isArabic ? 'تاريخ التقييم:' : 'Valuation Date:'} {new Date(marketValue.valuationDate).toLocaleDateString()}
             </p>
-            {marketValue.is_verified && (
+            {marketValue.isVerified && (
               <span style={{ color: 'green', fontSize: '0.9rem' }}>
                 {isArabic ? '✓ تم التحقق' : '✓ Verified'}
               </span>
@@ -81,18 +81,18 @@ export default function TestSupabaseDirectPage() {
                   boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                 }}
               >
-                {profile.icon_key && (
+                {profile.iconKey && (
                   <img
-                    src={getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, profile.icon_key) ?? undefined}
-                    alt={isArabic ? profile.title_ar : profile.title_en}
+                    src={getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, profile.iconKey) ?? undefined}
+                    alt={isArabic ? profile.titleAr : profile.titleEn}
                     style={{ width: '64px', height: '64px', marginBottom: '1rem', objectFit: 'contain' }}
                   />
                 )}
                 <h3 style={{ marginBottom: '0.5rem', fontSize: '1.1rem', fontWeight: 'bold' }}>
-                  {isArabic ? profile.title_ar : profile.title_en}
+                  {isArabic ? profile.titleAr : profile.titleEn}
                 </h3>
                 <p style={{ color: '#666', fontSize: '0.9rem' }}>
-                  {isArabic ? profile.content_ar : profile.content_en}
+                  {isArabic ? profile.contentAr : profile.contentEn}
                 </p>
               </div>
             ))}

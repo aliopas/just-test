@@ -6,6 +6,49 @@
 
 import { useSupabaseData, useSupabaseSingle, useSupabaseCount } from './useSupabaseData';
 import { useLanguage } from '../context/LanguageContext';
+// Import camelCase types from useAdminCompanyContent for compatibility
+import type {
+  CompanyProfile as CompanyProfileCamel,
+  CompanyPartner as CompanyPartnerCamel,
+  CompanyClient as CompanyClientCamel,
+  CompanyResource as CompanyResourceCamel,
+  CompanyStrength as CompanyStrengthCamel,
+  PartnershipInfo as PartnershipInfoCamel,
+  MarketValue as MarketValueCamel,
+  CompanyGoal as CompanyGoalCamel,
+} from './useAdminCompanyContent';
+
+// ========== Utility Functions for Data Transformation ==========
+
+/**
+ * Convert snake_case object to camelCase
+ */
+function snakeToCamel(obj: any): any {
+  if (obj === null || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(snakeToCamel);
+  
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+    result[camelKey] = snakeToCamel(value);
+  }
+  return result;
+}
+
+/**
+ * Convert camelCase object to snake_case
+ */
+function camelToSnake(obj: any): any {
+  if (obj === null || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(camelToSnake);
+  
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+    result[snakeKey] = camelToSnake(value);
+  }
+  return result;
+}
 
 // ========== News (الأخبار) ==========
 
@@ -245,67 +288,106 @@ export interface CompanyGoal {
 
 /**
  * Hook لجلب ملفات الشركة (Company Profiles)
+ * يحول البيانات من snake_case إلى camelCase تلقائياً
  */
-export function useCompanyProfiles() {
-  return useSupabaseData<CompanyProfile>({
+export function useCompanyProfiles(includeInactive = false) {
+  const filters = includeInactive ? [] : [{ column: 'is_active', value: true }];
+  const query = useSupabaseData<CompanyProfile>({
     table: 'company_profile',
-    filters: [{ column: 'is_active', value: true }],
+    filters,
     orderBy: { column: 'display_order', ascending: true },
   });
+  
+  // Convert snake_case to camelCase
+  return {
+    ...query,
+    data: query.data ? query.data.map(snakeToCamel) as CompanyProfileCamel[] : [],
+  };
 }
 
 /**
  * Hook لجلب شركاء الشركة
+ * يحول البيانات من snake_case إلى camelCase تلقائياً
  */
 export function useCompanyPartners() {
-  return useSupabaseData<CompanyPartner>({
+  const query = useSupabaseData<CompanyPartner>({
     table: 'company_partners',
     orderBy: { column: 'display_order', ascending: true },
   });
+  
+  return {
+    ...query,
+    data: query.data ? query.data.map(snakeToCamel) as CompanyPartnerCamel[] : [],
+  };
 }
 
 /**
  * Hook لجلب عملاء الشركة
+ * يحول البيانات من snake_case إلى camelCase تلقائياً
  */
 export function useCompanyClients() {
-  return useSupabaseData<CompanyClient>({
+  const query = useSupabaseData<CompanyClient>({
     table: 'company_clients',
     orderBy: { column: 'display_order', ascending: true },
   });
+  
+  return {
+    ...query,
+    data: query.data ? query.data.map(snakeToCamel) as CompanyClientCamel[] : [],
+  };
 }
 
 /**
  * Hook لجلب موارد الشركة
+ * يحول البيانات من snake_case إلى camelCase تلقائياً
  */
 export function useCompanyResources() {
-  return useSupabaseData<CompanyResource>({
+  const query = useSupabaseData<CompanyResource>({
     table: 'company_resources',
     orderBy: { column: 'display_order', ascending: true },
   });
+  
+  return {
+    ...query,
+    data: query.data ? query.data.map(snakeToCamel) as CompanyResourceCamel[] : [],
+  };
 }
 
 /**
  * Hook لجلب نقاط قوة الشركة
+ * يحول البيانات من snake_case إلى camelCase تلقائياً
  */
 export function useCompanyStrengths() {
-  return useSupabaseData<CompanyStrength>({
+  const query = useSupabaseData<CompanyStrength>({
     table: 'company_strengths',
     orderBy: { column: 'display_order', ascending: true },
   });
+  
+  return {
+    ...query,
+    data: query.data ? query.data.map(snakeToCamel) as CompanyStrengthCamel[] : [],
+  };
 }
 
 /**
  * Hook لجلب معلومات الشراكة
+ * يحول البيانات من snake_case إلى camelCase تلقائياً
  */
 export function usePartnershipInfo() {
-  return useSupabaseData<PartnershipInfo>({
+  const query = useSupabaseData<PartnershipInfo>({
     table: 'partnership_info',
     orderBy: { column: 'display_order', ascending: true },
   });
+  
+  return {
+    ...query,
+    data: query.data ? query.data.map(snakeToCamel) as PartnershipInfoCamel[] : [],
+  };
 }
 
 /**
  * Hook لجلب القيمة السوقية
+ * يحول البيانات من snake_case إلى camelCase تلقائياً
  */
 export function useMarketValue() {
   const { data, ...rest } = useSupabaseData<MarketValue>({
@@ -317,18 +399,24 @@ export function useMarketValue() {
 
   return {
     ...rest,
-    data: (data && data.length > 0 ? data[0] : null) as MarketValue | null,
+    data: (data && data.length > 0 ? snakeToCamel(data[0]) : null) as MarketValueCamel | null,
   };
 }
 
 /**
  * Hook لجلب أهداف الشركة
+ * يحول البيانات من snake_case إلى camelCase تلقائياً
  */
 export function useCompanyGoals() {
-  return useSupabaseData<CompanyGoal>({
+  const query = useSupabaseData<CompanyGoal>({
     table: 'company_goals',
     orderBy: { column: 'display_order', ascending: true },
   });
+  
+  return {
+    ...query,
+    data: query.data ? query.data.map(snakeToCamel) as CompanyGoalCamel[] : [],
+  };
 }
 
 // ========== Users (المستخدمون) ==========
@@ -432,15 +520,648 @@ export function useCompanyLogoUrl(): string | null {
     return null;
   }
   
-  // Get the first profile with an icon_key, sorted by display_order
+  // Get the first profile with an iconKey, sorted by displayOrder
   const profileWithLogo = profiles
-    .filter(p => p.icon_key)
-    .sort((a, b) => a.display_order - b.display_order)[0];
+    .filter(p => p.iconKey)
+    .sort((a, b) => a.displayOrder - b.displayOrder)[0];
   
-  if (!profileWithLogo?.icon_key) {
+  if (!profileWithLogo?.iconKey) {
     return null;
   }
   
-  return getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, profileWithLogo.icon_key);
+  return getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, profileWithLogo.iconKey);
+}
+
+// ========== Mutations Hooks (للتعامل المباشر مع Supabase) ==========
+
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { getSupabaseBrowserClient } from '../utils/supabase-client';
+
+/**
+ * Hook لإنشاء ملف شركة جديد
+ * يقبل بيانات camelCase ويحولها إلى snake_case تلقائياً
+ */
+export function useCreateCompanyProfileMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: Record<string, unknown>) => {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client غير متاح');
+      }
+      // Convert camelCase to snake_case
+      const snakePayload = camelToSnake(payload);
+      const { data, error } = await supabase
+        .from('company_profile')
+        .insert(snakePayload)
+        .select()
+        .single();
+      if (error) throw error;
+      // Convert snake_case back to camelCase
+      return snakeToCamel(data) as CompanyProfileCamel;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'company_profile'] });
+    },
+  });
+}
+
+/**
+ * Hook لتحديث ملف شركة
+ * يقبل بيانات camelCase ويحولها إلى snake_case تلقائياً
+ */
+export function useUpdateCompanyProfileMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, payload }: { id: string; payload: Record<string, unknown> }) => {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client غير متاح');
+      }
+      // Convert camelCase to snake_case
+      const snakePayload = camelToSnake(payload);
+      const { data, error } = await supabase
+        .from('company_profile')
+        .update(snakePayload)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      // Convert snake_case back to camelCase
+      return snakeToCamel(data) as CompanyProfileCamel;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'company_profile'] });
+    },
+  });
+}
+
+/**
+ * Hook لحذف ملف شركة
+ */
+export function useDeleteCompanyProfileMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client غير متاح');
+      }
+      const { error } = await supabase
+        .from('company_profile')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'company_profile'] });
+    },
+  });
+}
+
+/**
+ * Hook لإنشاء شريك جديد
+ * يقبل بيانات camelCase ويحولها إلى snake_case تلقائياً
+ */
+export function useCreateCompanyPartnerMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: Record<string, unknown>) => {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client غير متاح');
+      }
+      const snakePayload = camelToSnake(payload);
+      const { data, error } = await supabase
+        .from('company_partners')
+        .insert(snakePayload)
+        .select()
+        .single();
+      if (error) throw error;
+      return snakeToCamel(data) as CompanyPartnerCamel;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'company_partners'] });
+    },
+  });
+}
+
+/**
+ * Hook لتحديث شريك
+ * يقبل بيانات camelCase ويحولها إلى snake_case تلقائياً
+ */
+export function useUpdateCompanyPartnerMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, payload }: { id: string; payload: Record<string, unknown> }) => {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client غير متاح');
+      }
+      const snakePayload = camelToSnake(payload);
+      const { data, error } = await supabase
+        .from('company_partners')
+        .update(snakePayload)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return snakeToCamel(data) as CompanyPartnerCamel;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'company_partners'] });
+    },
+  });
+}
+
+/**
+ * Hook لحذف شريك
+ */
+export function useDeleteCompanyPartnerMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client غير متاح');
+      }
+      const { error } = await supabase
+        .from('company_partners')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'company_partners'] });
+    },
+  });
+}
+
+/**
+ * Hook لإنشاء عميل جديد
+ * يقبل بيانات camelCase ويحولها إلى snake_case تلقائياً
+ */
+export function useCreateCompanyClientMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: Record<string, unknown>) => {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client غير متاح');
+      }
+      const snakePayload = camelToSnake(payload);
+      const { data, error } = await supabase
+        .from('company_clients')
+        .insert(snakePayload)
+        .select()
+        .single();
+      if (error) throw error;
+      return snakeToCamel(data) as any;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'company_clients'] });
+    },
+  });
+}
+
+/**
+ * Hook لتحديث عميل
+ * يقبل بيانات camelCase ويحولها إلى snake_case تلقائياً
+ */
+export function useUpdateCompanyClientMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, payload }: { id: string; payload: Record<string, unknown> }) => {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client غير متاح');
+      }
+      const snakePayload = camelToSnake(payload);
+      const { data, error } = await supabase
+        .from('company_clients')
+        .update(snakePayload)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return snakeToCamel(data) as any;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'company_clients'] });
+    },
+  });
+}
+
+/**
+ * Hook لحذف عميل
+ */
+export function useDeleteCompanyClientMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client غير متاح');
+      }
+      const { error } = await supabase
+        .from('company_clients')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'company_clients'] });
+    },
+  });
+}
+
+/**
+ * Hook لإنشاء مورد جديد
+ * يقبل بيانات camelCase ويحولها إلى snake_case تلقائياً
+ */
+export function useCreateCompanyResourceMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: Record<string, unknown>) => {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client غير متاح');
+      }
+      const snakePayload = camelToSnake(payload);
+      const { data, error } = await supabase
+        .from('company_resources')
+        .insert(snakePayload)
+        .select()
+        .single();
+      if (error) throw error;
+      return snakeToCamel(data) as any;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'company_resources'] });
+    },
+  });
+}
+
+/**
+ * Hook لتحديث مورد
+ * يقبل بيانات camelCase ويحولها إلى snake_case تلقائياً
+ */
+export function useUpdateCompanyResourceMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, payload }: { id: string; payload: Record<string, unknown> }) => {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client غير متاح');
+      }
+      const snakePayload = camelToSnake(payload);
+      const { data, error } = await supabase
+        .from('company_resources')
+        .update(snakePayload)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return snakeToCamel(data) as any;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'company_resources'] });
+    },
+  });
+}
+
+/**
+ * Hook لحذف مورد
+ */
+export function useDeleteCompanyResourceMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client غير متاح');
+      }
+      const { error } = await supabase
+        .from('company_resources')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'company_resources'] });
+    },
+  });
+}
+
+/**
+ * Hook لإنشاء قوة جديدة
+ * يقبل بيانات camelCase ويحولها إلى snake_case تلقائياً
+ */
+export function useCreateCompanyStrengthMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: Record<string, unknown>) => {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client غير متاح');
+      }
+      const snakePayload = camelToSnake(payload);
+      const { data, error } = await supabase
+        .from('company_strengths')
+        .insert(snakePayload)
+        .select()
+        .single();
+      if (error) throw error;
+      return snakeToCamel(data) as any;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'company_strengths'] });
+    },
+  });
+}
+
+/**
+ * Hook لتحديث قوة
+ * يقبل بيانات camelCase ويحولها إلى snake_case تلقائياً
+ */
+export function useUpdateCompanyStrengthMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, payload }: { id: string; payload: Record<string, unknown> }) => {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client غير متاح');
+      }
+      const snakePayload = camelToSnake(payload);
+      const { data, error } = await supabase
+        .from('company_strengths')
+        .update(snakePayload)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return snakeToCamel(data) as any;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'company_strengths'] });
+    },
+  });
+}
+
+/**
+ * Hook لحذف قوة
+ */
+export function useDeleteCompanyStrengthMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client غير متاح');
+      }
+      const { error } = await supabase
+        .from('company_strengths')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'company_strengths'] });
+    },
+  });
+}
+
+/**
+ * Hook لإنشاء معلومات شراكة جديدة
+ * يقبل بيانات camelCase ويحولها إلى snake_case تلقائياً
+ */
+export function useCreatePartnershipInfoMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: Record<string, unknown>) => {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client غير متاح');
+      }
+      const snakePayload = camelToSnake(payload);
+      const { data, error } = await supabase
+        .from('partnership_info')
+        .insert(snakePayload)
+        .select()
+        .single();
+      if (error) throw error;
+      return snakeToCamel(data) as any;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'partnership_info'] });
+    },
+  });
+}
+
+/**
+ * Hook لتحديث معلومات شراكة
+ * يقبل بيانات camelCase ويحولها إلى snake_case تلقائياً
+ */
+export function useUpdatePartnershipInfoMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, payload }: { id: string; payload: Record<string, unknown> }) => {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client غير متاح');
+      }
+      const snakePayload = camelToSnake(payload);
+      const { data, error } = await supabase
+        .from('partnership_info')
+        .update(snakePayload)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return snakeToCamel(data) as any;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'partnership_info'] });
+    },
+  });
+}
+
+/**
+ * Hook لحذف معلومات شراكة
+ */
+export function useDeletePartnershipInfoMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client غير متاح');
+      }
+      const { error } = await supabase
+        .from('partnership_info')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'partnership_info'] });
+    },
+  });
+}
+
+/**
+ * Hook لإنشاء قيمة سوقية جديدة
+ * يقبل بيانات camelCase ويحولها إلى snake_case تلقائياً
+ */
+export function useCreateMarketValueMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: Record<string, unknown>) => {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client غير متاح');
+      }
+      const snakePayload = camelToSnake(payload);
+      const { data, error } = await supabase
+        .from('market_value')
+        .insert(snakePayload)
+        .select()
+        .single();
+      if (error) throw error;
+      return snakeToCamel(data) as any;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'market_value'] });
+    },
+  });
+}
+
+/**
+ * Hook لتحديث قيمة سوقية
+ * يقبل بيانات camelCase ويحولها إلى snake_case تلقائياً
+ */
+export function useUpdateMarketValueMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, payload }: { id: string; payload: Record<string, unknown> }) => {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client غير متاح');
+      }
+      const snakePayload = camelToSnake(payload);
+      const { data, error } = await supabase
+        .from('market_value')
+        .update(snakePayload)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return snakeToCamel(data) as any;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'market_value'] });
+    },
+  });
+}
+
+/**
+ * Hook لحذف قيمة سوقية
+ */
+export function useDeleteMarketValueMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client غير متاح');
+      }
+      const { error } = await supabase
+        .from('market_value')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'market_value'] });
+    },
+  });
+}
+
+/**
+ * Hook لإنشاء هدف جديد
+ * يقبل بيانات camelCase ويحولها إلى snake_case تلقائياً
+ */
+export function useCreateCompanyGoalMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: Record<string, unknown>) => {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client غير متاح');
+      }
+      const snakePayload = camelToSnake(payload);
+      const { data, error } = await supabase
+        .from('company_goals')
+        .insert(snakePayload)
+        .select()
+        .single();
+      if (error) throw error;
+      return snakeToCamel(data) as any;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'company_goals'] });
+    },
+  });
+}
+
+/**
+ * Hook لتحديث هدف
+ * يقبل بيانات camelCase ويحولها إلى snake_case تلقائياً
+ */
+export function useUpdateCompanyGoalMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, payload }: { id: string; payload: Record<string, unknown> }) => {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client غير متاح');
+      }
+      const snakePayload = camelToSnake(payload);
+      const { data, error } = await supabase
+        .from('company_goals')
+        .update(snakePayload)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return snakeToCamel(data) as any;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'company_goals'] });
+    },
+  });
+}
+
+/**
+ * Hook لحذف هدف
+ */
+export function useDeleteCompanyGoalMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client غير متاح');
+      }
+      const { error } = await supabase
+        .from('company_goals')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'company_goals'] });
+    },
+  });
 }
 

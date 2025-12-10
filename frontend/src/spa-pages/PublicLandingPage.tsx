@@ -25,16 +25,16 @@ export function PublicLandingPage() {
   const { data: partnershipInfo } = usePartnershipInfo();
 
   const mainProfile = profiles && profiles.length > 0 
-    ? profiles.sort((a, b) => a.display_order - b.display_order)[0]
+    ? profiles.sort((a, b) => a.displayOrder - b.displayOrder)[0]
     : null;
   const mainPartnership = partnershipInfo && partnershipInfo.length > 0
-    ? partnershipInfo.sort((a, b) => a.display_order - b.display_order)[0]
+    ? partnershipInfo.sort((a, b) => a.displayOrder - b.displayOrder)[0]
     : null;
 
   const mainProfileIconUrl = useMemo(() => {
-    if (!mainProfile?.icon_key) return null;
-    return getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, mainProfile.icon_key);
-  }, [mainProfile?.icon_key]);
+    if (!mainProfile?.iconKey) return null;
+    return getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, mainProfile.iconKey);
+  }, [mainProfile?.iconKey]);
 
 
   const heroTitle = isArabic
@@ -267,7 +267,7 @@ export function PublicLandingPage() {
                   >
                     <OptimizedImage
                       src={mainProfileIconUrl}
-                      alt={isArabic ? mainProfile.title_ar : mainProfile.title_en}
+                      alt={isArabic ? mainProfile.titleAr : mainProfile.titleEn}
                       aspectRatio={1}
                       objectFit="contain"
                       style={{
@@ -285,7 +285,7 @@ export function PublicLandingPage() {
                     letterSpacing: isArabic ? 0 : '-0.02em',
                   }}
                 >
-                  {isArabic ? mainProfile.title_ar : mainProfile.title_en}
+                  {isArabic ? mainProfile.titleAr : mainProfile.titleEn}
                 </h2>
               </div>
               <div
@@ -296,7 +296,7 @@ export function PublicLandingPage() {
                   whiteSpace: 'pre-wrap',
                 }}
               >
-                {isArabic ? mainProfile.content_ar : mainProfile.content_en}
+                {isArabic ? mainProfile.contentAr : mainProfile.contentEn}
               </div>
             </div>
           </section>

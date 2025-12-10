@@ -78,9 +78,9 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
       if (!profile) return null;
       return {
         type: 'profile' as const,
-        title: isArabic ? profile.title_ar : profile.title_en,
-        content: isArabic ? profile.content_ar : profile.content_en,
-        iconKey: profile.icon_key,
+        title: isArabic ? profile.titleAr : profile.titleEn,
+        content: isArabic ? profile.contentAr : profile.contentEn,
+        iconKey: profile.iconKey,
       };
     }
 
@@ -94,10 +94,10 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
       }
       return {
         type: 'partner' as const,
-        name: isArabic ? partner.name_ar : partner.name_en,
-        description: isArabic ? partner.description_ar : partner.description_en,
-        logoKey: partner.logo_key,
-        websiteUrl: partner.website_url,
+        name: isArabic ? partner.nameAr : partner.nameEn,
+        description: isArabic ? partner.descriptionAr : partner.descriptionEn,
+        logoKey: partner.logoKey,
+        websiteUrl: partner.websiteUrl,
       };
     }
 
@@ -111,9 +111,9 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
       }
       return {
         type: 'client' as const,
-        name: isArabic ? client.name_ar : client.name_en,
-        description: isArabic ? client.description_ar : client.description_en,
-        logoKey: client.logo_key,
+        name: isArabic ? client.nameAr : client.nameEn,
+        description: isArabic ? client.descriptionAr : client.descriptionEn,
+        logoKey: client.logoKey,
       };
     }
 
@@ -122,16 +122,16 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
       // Transform partners and clients to match expected format
       const transformedPartners = (partners || []).map(p => ({
         id: p.id,
-        name: isArabic ? p.name_ar : p.name_en,
-        description: isArabic ? p.description_ar : p.description_en,
-        logoKey: p.logo_key,
-        websiteUrl: p.website_url,
+        name: isArabic ? p.nameAr : p.nameEn,
+        description: isArabic ? p.descriptionAr : p.descriptionEn,
+        logoKey: p.logoKey,
+        websiteUrl: p.websiteUrl,
       }));
       const transformedClients = (clients || []).map(c => ({
         id: c.id,
-        name: isArabic ? c.name_ar : c.name_en,
-        description: isArabic ? c.description_ar : c.description_en,
-        logoKey: c.logo_key,
+        name: isArabic ? c.nameAr : c.nameEn,
+        description: isArabic ? c.descriptionAr : c.descriptionEn,
+        logoKey: c.logoKey,
       }));
       return {
         type: 'partners-clients' as const,
@@ -147,11 +147,11 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
       if (!resource) return null;
       return {
         type: 'resource' as const,
-        title: isArabic ? resource.title_ar : resource.title_en,
-        description: isArabic ? resource.description_ar : resource.description_en,
+        title: isArabic ? resource.titleAr : resource.titleEn,
+        description: isArabic ? resource.descriptionAr : resource.descriptionEn,
         value: resource.value ? Number(resource.value) : null,
         currency: resource.currency,
-        iconKey: resource.icon_key,
+        iconKey: resource.iconKey,
       };
     }
 
@@ -162,9 +162,9 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
       if (!strength) return null;
       return {
         type: 'strength' as const,
-        title: isArabic ? strength.title_ar : strength.title_en,
-        description: isArabic ? strength.description_ar : strength.description_en,
-        iconKey: strength.icon_key,
+        title: isArabic ? strength.titleAr : strength.titleEn,
+        description: isArabic ? strength.descriptionAr : strength.descriptionEn,
+        iconKey: strength.iconKey,
       };
     }
 
@@ -175,10 +175,10 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
       if (!info) return null;
       return {
         type: 'partnership' as const,
-        title: isArabic ? info.title_ar : info.title_en,
-        content: isArabic ? info.content_ar : info.content_en,
-        steps: (isArabic ? info.steps_ar : info.steps_en) as string[] | null,
-        iconKey: info.icon_key,
+        title: isArabic ? info.titleAr : info.titleEn,
+        content: isArabic ? info.contentAr : info.contentEn,
+        steps: (isArabic ? info.stepsAr : info.stepsEn) as string[] | null,
+        iconKey: info.iconKey,
       };
     }
 
@@ -189,10 +189,10 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
         type: 'market-value' as const,
         value: Number(marketValue.value),
         currency: marketValue.currency,
-        valuationDate: marketValue.valuation_date,
+        valuationDate: marketValue.valuationDate,
         source: marketValue.source,
-        isVerified: marketValue.is_verified,
-        verifiedAt: marketValue.verified_at,
+        isVerified: marketValue.isVerified,
+        verifiedAt: marketValue.verifiedAt,
       };
     }
 
@@ -203,10 +203,10 @@ export function CompanyContentModal({ sectionId, isOpen, onClose }: CompanyConte
       if (!goal) return null;
       return {
         type: 'goal' as const,
-        title: isArabic ? goal.title_ar : goal.title_en,
-        description: isArabic ? goal.description_ar : goal.description_en,
-        targetDate: goal.target_date,
-        iconKey: goal.icon_key,
+        title: isArabic ? goal.titleAr : goal.titleEn,
+        description: isArabic ? goal.descriptionAr : goal.descriptionEn,
+        targetDate: goal.targetDate,
+        iconKey: goal.iconKey,
       };
     }
 

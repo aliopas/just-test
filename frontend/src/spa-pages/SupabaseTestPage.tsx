@@ -51,10 +51,10 @@ export function SupabaseTestPage() {
   // Transform profiles to match expected format
   const profilesData = profiles ? { profiles: profiles.map(p => ({
     id: p.id,
-    title: language === 'ar' ? p.title_ar : p.title_en,
-    content: language === 'ar' ? p.content_ar : p.content_en,
-    iconKey: p.icon_key,
-    displayOrder: p.display_order,
+    title: language === 'ar' ? p.titleAr : p.titleEn,
+    content: language === 'ar' ? p.contentAr : p.contentEn,
+    iconKey: p.iconKey,
+    displayOrder: p.displayOrder,
   })) } : null;
 
   // Test POST operation - إرسال البيانات
