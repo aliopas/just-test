@@ -144,7 +144,8 @@ export const projectController = {
     try {
       const { id } = req.params;
       await deleteProject(id);
-      return res.status(204).send();
+      res.status(204).send();
+      return;
     } catch (error) {
       console.error('Failed to delete project:', error);
       return res.status(500).json({

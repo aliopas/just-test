@@ -211,7 +211,8 @@ export const companyContentController = {
     try {
       const { id } = req.params;
       await deleteCompanyProfile(id);
-      return res.status(204).send();
+      res.status(204).send();
+      return;
     } catch (error) {
       console.error('Failed to delete company profile:', error);
       return res.status(500).json({
@@ -335,7 +336,8 @@ export const companyContentController = {
     try {
       const { id } = req.params;
       await deleteCompanyPartner(id);
-      return res.status(204).send();
+      res.status(204).send();
+      return;
     } catch (error) {
       console.error('Failed to delete company partner:', error);
       return res.status(500).json({
@@ -459,7 +461,8 @@ export const companyContentController = {
     try {
       const { id } = req.params;
       await deleteCompanyClient(id);
-      return res.status(204).send();
+      res.status(204).send();
+      return;
     } catch (error) {
       console.error('Failed to delete company client:', error);
       return res.status(500).json({
@@ -583,7 +586,8 @@ export const companyContentController = {
     try {
       const { id } = req.params;
       await deleteCompanyResource(id);
-      return res.status(204).send();
+      res.status(204).send();
+      return;
     } catch (error) {
       console.error('Failed to delete company resource:', error);
       return res.status(500).json({
@@ -707,7 +711,8 @@ export const companyContentController = {
     try {
       const { id } = req.params;
       await deleteCompanyStrength(id);
-      return res.status(204).send();
+      res.status(204).send();
+      return;
     } catch (error) {
       console.error('Failed to delete company strength:', error);
       return res.status(500).json({
@@ -831,7 +836,8 @@ export const companyContentController = {
     try {
       const { id } = req.params;
       await deletePartnershipInfo(id);
-      return res.status(204).send();
+      res.status(204).send();
+      return;
     } catch (error) {
       console.error('Failed to delete partnership info:', error);
       return res.status(500).json({
@@ -956,7 +962,8 @@ export const companyContentController = {
     try {
       const { id } = req.params;
       await deleteMarketValue(id);
-      return res.status(204).send();
+      res.status(204).send();
+      return;
     } catch (error) {
       console.error('Failed to delete market value:', error);
       return res.status(500).json({
@@ -1080,7 +1087,8 @@ export const companyContentController = {
     try {
       const { id } = req.params;
       await deleteCompanyGoal(id);
-      return res.status(204).send();
+      res.status(204).send();
+      return;
     } catch (error) {
       console.error('Failed to delete company goal:', error);
       return res.status(500).json({
