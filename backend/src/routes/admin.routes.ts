@@ -17,11 +17,40 @@ const adminRouter = Router();
 
 // Async error wrapper to catch errors from async route handlers
 // This ensures all unhandled promise rejections are caught and passed to Express error handler
+// IMPORTANT: Must ensure response is always sent, otherwise Netlify will throw "unsupported value" error
 const asyncHandler = (
   fn: (req: Request, res: Response, next?: NextFunction) => Promise<any> | any
 ): RequestHandler => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req as any, res, next)).catch(next);
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await Promise.resolve(fn(req as any, res, next));
+      // Express handlers typically don't return values, they use res.json() or res.send()
+      // But if a handler does return a value and response wasn't sent, we need to handle it
+      // However, we should NOT return the result if response was already sent
+      // The key is ensuring res.json() or res.send() was called
+      if (result !== undefined && !res.headersSent) {
+        console.warn('[asyncHandler] Handler returned value but response not sent, sending result');
+        res.json(result);
+        return;
+      }
+      // If response was sent, we don't need to return anything
+      // Express will handle the response
+      return;
+    } catch (error) {
+      // Ensure response is sent even if handler throws an error
+      if (!res.headersSent) {
+        console.error('[asyncHandler] Unhandled error:', error);
+        res.status(500).json({
+          error: {
+            code: 'INTERNAL_ERROR',
+            message: error instanceof Error ? error.message : 'An unexpected error occurred',
+          },
+        });
+        return;
+      }
+      // If headers were already sent, pass error to Express error handler
+      return next(error);
+    }
   };
 };
 
