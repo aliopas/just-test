@@ -1,8 +1,9 @@
 [build]
   # Simplified build command to prevent cancellation
   # Install function dependencies, then build frontend with Next.js
-  command = "cd netlify/functions && npm install --production --silent && cd ../../frontend && npm ci --silent && npm run build"
-  functions = "netlify/functions"
+  # Note: base is "frontend", so paths are relative to frontend directory
+  command = "cd ../netlify/functions && npm install --production --silent && cd ../../frontend && npm ci --silent && npm run build"
+  functions = "../netlify/functions"
   publish = ".next"
   base = "frontend"
   # Increase build timeout to 20 minutes (1200 seconds) to prevent cancellation
