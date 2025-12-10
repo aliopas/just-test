@@ -7,6 +7,7 @@
   base = "frontend"
   # Increase build timeout to 20 minutes (1200 seconds) to prevent cancellation
   # Free tier: 5 min, Pro: 15 min default, we set 20 min for safety
+  # Note: Maximum timeout for Pro/Team plans is 20 minutes
   timeout = 1200
 
 [build.environment]
@@ -15,6 +16,8 @@
   NPM_FLAGS = "--prefer-offline --no-audit --no-fund"
   # Prevent build cancellation due to long-running processes
   NETLIFY_BUILD_TIMEOUT = "1200"
+  # Disable build cancellation warnings
+  NETLIFY_BUILD_NO_CANCEL = "true"
 
 # Netlify Next.js plugin - required for Next.js routing to work
 [[plugins]]
