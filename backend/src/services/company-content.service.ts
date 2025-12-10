@@ -510,13 +510,22 @@ export async function updateCompanyProfile(
 
 export async function deleteCompanyProfile(id: string): Promise<void> {
   const adminClient = requireSupabaseAdmin();
-  const { error } = await adminClient
+  const { data, error } = await adminClient
     .from('company_profile')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .select('id')
+    .single<{ id: string }>();
 
   if (error) {
+    if (error.code === 'PGRST116') {
+      throw new Error('COMPANY_PROFILE_NOT_FOUND');
+    }
     throw new Error(`Failed to delete company profile: ${error.message}`);
+  }
+
+  if (!data) {
+    throw new Error('COMPANY_PROFILE_NOT_FOUND');
   }
 }
 
@@ -628,13 +637,22 @@ export async function updateCompanyPartner(
 
 export async function deleteCompanyPartner(id: string): Promise<void> {
   const adminClient = requireSupabaseAdmin();
-  const { error } = await adminClient
+  const { data, error } = await adminClient
     .from('company_partners')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .select('id')
+    .single<{ id: string }>();
 
   if (error) {
+    if (error.code === 'PGRST116') {
+      throw new Error('COMPANY_PARTNER_NOT_FOUND');
+    }
     throw new Error(`Failed to delete company partner: ${error.message}`);
+  }
+
+  if (!data) {
+    throw new Error('COMPANY_PARTNER_NOT_FOUND');
   }
 }
 
@@ -760,13 +778,22 @@ export async function updateCompanyClient(
 
 export async function deleteCompanyClient(id: string): Promise<void> {
   const adminClient = requireSupabaseAdmin();
-  const { error } = await adminClient
+  const { data, error } = await adminClient
     .from('company_clients')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .select('id')
+    .single<{ id: string }>();
 
   if (error) {
+    if (error.code === 'PGRST116') {
+      throw new Error('COMPANY_CLIENT_NOT_FOUND');
+    }
     throw new Error(`Failed to delete company client: ${error.message}`);
+  }
+
+  if (!data) {
+    throw new Error('COMPANY_CLIENT_NOT_FOUND');
   }
 }
 
@@ -896,13 +923,22 @@ export async function updateCompanyResource(
 
 export async function deleteCompanyResource(id: string): Promise<void> {
   const adminClient = requireSupabaseAdmin();
-  const { error } = await adminClient
+  const { data, error } = await adminClient
     .from('company_resources')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .select('id')
+    .single<{ id: string }>();
 
   if (error) {
+    if (error.code === 'PGRST116') {
+      throw new Error('COMPANY_RESOURCE_NOT_FOUND');
+    }
     throw new Error(`Failed to delete company resource: ${error.message}`);
+  }
+
+  if (!data) {
+    throw new Error('COMPANY_RESOURCE_NOT_FOUND');
   }
 }
 
@@ -1028,13 +1064,22 @@ export async function updateCompanyStrength(
 
 export async function deleteCompanyStrength(id: string): Promise<void> {
   const adminClient = requireSupabaseAdmin();
-  const { error } = await adminClient
+  const { data, error } = await adminClient
     .from('company_strengths')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .select('id')
+    .single<{ id: string }>();
 
   if (error) {
+    if (error.code === 'PGRST116') {
+      throw new Error('COMPANY_STRENGTH_NOT_FOUND');
+    }
     throw new Error(`Failed to delete company strength: ${error.message}`);
+  }
+
+  if (!data) {
+    throw new Error('COMPANY_STRENGTH_NOT_FOUND');
   }
 }
 
@@ -1163,13 +1208,22 @@ export async function updatePartnershipInfo(
 
 export async function deletePartnershipInfo(id: string): Promise<void> {
   const adminClient = requireSupabaseAdmin();
-  const { error } = await adminClient
+  const { data, error } = await adminClient
     .from('partnership_info')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .select('id')
+    .single<{ id: string }>();
 
   if (error) {
+    if (error.code === 'PGRST116') {
+      throw new Error('PARTNERSHIP_INFO_NOT_FOUND');
+    }
     throw new Error(`Failed to delete partnership info: ${error.message}`);
+  }
+
+  if (!data) {
+    throw new Error('PARTNERSHIP_INFO_NOT_FOUND');
   }
 }
 
@@ -1313,13 +1367,22 @@ export async function updateMarketValue(
 
 export async function deleteMarketValue(id: string): Promise<void> {
   const adminClient = requireSupabaseAdmin();
-  const { error } = await adminClient
+  const { data, error } = await adminClient
     .from('market_value')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .select('id')
+    .single<{ id: string }>();
 
   if (error) {
+    if (error.code === 'PGRST116') {
+      throw new Error('MARKET_VALUE_NOT_FOUND');
+    }
     throw new Error(`Failed to delete market value: ${error.message}`);
+  }
+
+  if (!data) {
+    throw new Error('MARKET_VALUE_NOT_FOUND');
   }
 }
 
@@ -1448,13 +1511,22 @@ export async function updateCompanyGoal(
 
 export async function deleteCompanyGoal(id: string): Promise<void> {
   const adminClient = requireSupabaseAdmin();
-  const { error } = await adminClient
+  const { data, error } = await adminClient
     .from('company_goals')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .select('id')
+    .single<{ id: string }>();
 
   if (error) {
+    if (error.code === 'PGRST116') {
+      throw new Error('COMPANY_GOAL_NOT_FOUND');
+    }
     throw new Error(`Failed to delete company goal: ${error.message}`);
+  }
+
+  if (!data) {
+    throw new Error('COMPANY_GOAL_NOT_FOUND');
   }
 }
 

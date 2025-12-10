@@ -148,9 +148,20 @@ export const homepageSectionsController = {
     try {
       const { id } = req.params;
       await deleteHomepageSection(id);
-      res.status(204).send();
+      res.status(204).end();
       return;
     } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === 'HOMEPAGE_SECTION_NOT_FOUND'
+      ) {
+        return res.status(404).json({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Homepage section not found',
+          },
+        });
+      }
       console.error('Failed to delete homepage section:', error);
       return res.status(500).json({
         error: {

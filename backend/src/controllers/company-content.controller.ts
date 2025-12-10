@@ -211,9 +211,20 @@ export const companyContentController = {
     try {
       const { id } = req.params;
       await deleteCompanyProfile(id);
-      res.status(204).send();
+      res.status(204).end();
       return;
     } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === 'COMPANY_PROFILE_NOT_FOUND'
+      ) {
+        return res.status(404).json({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Company profile not found',
+          },
+        });
+      }
       console.error('Failed to delete company profile:', error);
       return res.status(500).json({
         error: {
@@ -336,9 +347,20 @@ export const companyContentController = {
     try {
       const { id } = req.params;
       await deleteCompanyPartner(id);
-      res.status(204).send();
+      res.status(204).end();
       return;
     } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === 'COMPANY_PARTNER_NOT_FOUND'
+      ) {
+        return res.status(404).json({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Company partner not found',
+          },
+        });
+      }
       console.error('Failed to delete company partner:', error);
       return res.status(500).json({
         error: {
@@ -461,9 +483,20 @@ export const companyContentController = {
     try {
       const { id } = req.params;
       await deleteCompanyClient(id);
-      res.status(204).send();
+      res.status(204).end();
       return;
     } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === 'COMPANY_CLIENT_NOT_FOUND'
+      ) {
+        return res.status(404).json({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Company client not found',
+          },
+        });
+      }
       console.error('Failed to delete company client:', error);
       return res.status(500).json({
         error: {
@@ -586,9 +619,20 @@ export const companyContentController = {
     try {
       const { id } = req.params;
       await deleteCompanyResource(id);
-      res.status(204).send();
+      res.status(204).end();
       return;
     } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === 'COMPANY_RESOURCE_NOT_FOUND'
+      ) {
+        return res.status(404).json({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Company resource not found',
+          },
+        });
+      }
       console.error('Failed to delete company resource:', error);
       return res.status(500).json({
         error: {
@@ -711,9 +755,20 @@ export const companyContentController = {
     try {
       const { id } = req.params;
       await deleteCompanyStrength(id);
-      res.status(204).send();
+      res.status(204).end();
       return;
     } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === 'COMPANY_STRENGTH_NOT_FOUND'
+      ) {
+        return res.status(404).json({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Company strength not found',
+          },
+        });
+      }
       console.error('Failed to delete company strength:', error);
       return res.status(500).json({
         error: {
@@ -836,9 +891,20 @@ export const companyContentController = {
     try {
       const { id } = req.params;
       await deletePartnershipInfo(id);
-      res.status(204).send();
+      res.status(204).end();
       return;
     } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === 'PARTNERSHIP_INFO_NOT_FOUND'
+      ) {
+        return res.status(404).json({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Partnership info not found',
+          },
+        });
+      }
       console.error('Failed to delete partnership info:', error);
       return res.status(500).json({
         error: {
@@ -962,9 +1028,20 @@ export const companyContentController = {
     try {
       const { id } = req.params;
       await deleteMarketValue(id);
-      res.status(204).send();
+      res.status(204).end();
       return;
     } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === 'MARKET_VALUE_NOT_FOUND'
+      ) {
+        return res.status(404).json({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Market value not found',
+          },
+        });
+      }
       console.error('Failed to delete market value:', error);
       return res.status(500).json({
         error: {
@@ -1087,9 +1164,20 @@ export const companyContentController = {
     try {
       const { id } = req.params;
       await deleteCompanyGoal(id);
-      res.status(204).send();
+      res.status(204).end();
       return;
     } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === 'COMPANY_GOAL_NOT_FOUND'
+      ) {
+        return res.status(404).json({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Company goal not found',
+          },
+        });
+      }
       console.error('Failed to delete company goal:', error);
       return res.status(500).json({
         error: {

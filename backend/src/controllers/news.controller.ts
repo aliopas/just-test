@@ -209,7 +209,7 @@ export const newsController = {
 
       await deleteNews(newsId);
 
-      res.status(204).send();
+      res.status(204).end();
       return;
     } catch (error) {
       if (error instanceof Error && error.message === 'NEWS_NOT_FOUND') {

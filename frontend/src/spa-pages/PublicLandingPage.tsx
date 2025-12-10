@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { CompanyContentSection } from '../components/landing/CompanyContentSection';
 import { StatisticsSection } from '../components/landing/StatisticsSection';
 import { PublicNewsSection } from '../components/landing/PublicNewsSection';
@@ -12,6 +12,8 @@ import {
   usePartnershipInfo,
 } from '../hooks/useSupabaseTables';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import { getStoragePublicUrl, COMPANY_CONTENT_IMAGES_BUCKET } from '../utils/supabase-storage';
+import { OptimizedImage } from '../components/OptimizedImage';
 
 export function PublicLandingPage() {
   const { language, direction } = useLanguage();
@@ -29,6 +31,11 @@ export function PublicLandingPage() {
     ? partnershipInfo.sort((a, b) => a.display_order - b.display_order)[0]
     : null;
 
+  const mainProfileIconUrl = useMemo(() => {
+    if (!mainProfile?.icon_key) return null;
+    return getStoragePublicUrl(COMPANY_CONTENT_IMAGES_BUCKET, mainProfile.icon_key);
+  }, [mainProfile?.icon_key]);
+
 
   const heroTitle =
     mainPartnership && (isArabic ? mainPartnership.title_ar : mainPartnership.title_en).length > 0
@@ -37,12 +44,9 @@ export function PublicLandingPage() {
         ? 'كن شريكًا في باكورة'
         : 'Become a partner in Bakura';
 
-  const heroDescription =
-    mainProfile && (isArabic ? mainProfile.content_ar : mainProfile.content_en).length > 0
-      ? (isArabic ? mainProfile.content_ar : mainProfile.content_en)
-      : isArabic
-        ? 'قدّم طلب الاستثمار الخاص بك وتابع أخبار الشركة، المشاريع، والتقارير في مكان واحد مصمم للمستثمرين.'
-        : 'Submit your investment request and follow company news, projects, and reports in a single portal built for investors.';
+  const heroDescription = isArabic
+    ? 'قدّم طلب الاستثمار الخاص بك وتابع أخبار الشركة، المشاريع، والتقارير في مكان واحد مصمم للمستثمرين.'
+    : 'Submit your investment request and follow company news, projects, and reports in a single portal built for investors.';
 
   return (
     <div
@@ -235,6 +239,86 @@ export function PublicLandingPage() {
           </div>
         </section>
 
+        {/* Company Profile Section - First profile displayed as intro section */}
+        {mainProfile && (
+          <section
+            style={{
+              maxWidth: '1200px',
+              margin: '0 auto',
+              padding: isMobile ? '2rem 1rem' : '3rem 1.5rem',
+            }}
+          >
+            <div
+              style={{
+                background: palette.backgroundSurface,
+                borderRadius: isMobile ? '1rem' : '1.5rem',
+                padding: isMobile ? '1.5rem' : '2.5rem',
+                border: `1px solid ${palette.neutralBorderSoft}`,
+                boxShadow: `0 4px 16px ${palette.neutralBorderSoft}20`,
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '1rem',
+                  marginBottom: '1.5rem',
+                  flexWrap: 'wrap',
+                }}
+              >
+                {mainProfileIconUrl && (
+                  <div
+                    style={{
+                      width: isMobile ? '64px' : '80px',
+                      height: isMobile ? '64px' : '80px',
+                      borderRadius: '1rem',
+                      background: `linear-gradient(135deg, ${palette.brandPrimaryStrong}15 0%, ${palette.brandSecondarySoft}25 100%)`,
+                      border: `2px solid ${palette.brandPrimaryStrong}30`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      padding: '0.75rem',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <OptimizedImage
+                      src={mainProfileIconUrl}
+                      alt={isArabic ? mainProfile.title_ar : mainProfile.title_en}
+                      aspectRatio={1}
+                      objectFit="contain"
+                      style={{
+                        background: 'transparent',
+                      }}
+                    />
+                  </div>
+                )}
+                <h2
+                  style={{
+                    margin: 0,
+                    fontSize: isMobile ? '1.5rem' : '2rem',
+                    fontWeight: 700,
+                    color: palette.textPrimary,
+                    letterSpacing: isArabic ? 0 : '-0.02em',
+                  }}
+                >
+                  {isArabic ? mainProfile.title_ar : mainProfile.title_en}
+                </h2>
+              </div>
+              <div
+                style={{
+                  fontSize: isMobile ? '1rem' : '1.1rem',
+                  lineHeight: 1.8,
+                  color: palette.textSecondary,
+                  whiteSpace: 'pre-wrap',
+                }}
+              >
+                {isArabic ? mainProfile.content_ar : mainProfile.content_en}
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Statistics & company public content from Supabase */}
         <section
           style={{
@@ -256,7 +340,7 @@ export function PublicLandingPage() {
             padding: '0 1.5rem',
           }}
         >
-          <CompanyContentSection />
+          <CompanyContentSection excludeProfile={true} />
         </section>
       </main>
 

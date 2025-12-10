@@ -144,9 +144,20 @@ export const projectController = {
     try {
       const { id } = req.params;
       await deleteProject(id);
-      res.status(204).send();
+      res.status(204).end();
       return;
     } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === 'PROJECT_NOT_FOUND'
+      ) {
+        return res.status(404).json({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Project not found',
+          },
+        });
+      }
       console.error('Failed to delete project:', error);
       return res.status(500).json({
         error: {
