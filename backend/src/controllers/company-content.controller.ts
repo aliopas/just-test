@@ -357,12 +357,12 @@ export const companyContentController = {
     }
   },
 
-  async updatePartner(req: AuthenticatedRequest, res: Response) {
+  async updatePartner(req: AuthenticatedRequest, res: Response): Promise<Response> {
     try {
       const { id } = req.params;
       const validation = companyPartnersUpdateSchema.safeParse(req.body);
       if (!validation.success) {
-        res.status(400).json({
+        return res.status(400).json({
           code: 'VALIDATION_ERROR',
           message: 'Invalid request payload',
           details: validation.error.issues.map(issue => ({
@@ -370,33 +370,29 @@ export const companyContentController = {
             message: issue.message,
           })),
         });
-        return;
       }
 
       const partner = await updateCompanyPartner(id, validation.data);
-      res.status(200).json(partner);
-      return;
+      return res.status(200).json(partner);
     } catch (error) {
       if (
         error instanceof Error &&
         error.message === 'COMPANY_PARTNER_NOT_FOUND'
       ) {
-        res.status(404).json({
+        return res.status(404).json({
           error: {
             code: 'NOT_FOUND',
             message: 'Company partner not found',
           },
         });
-        return;
       }
       console.error('Failed to update company partner:', error);
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to update company partner',
         },
       });
-      return;
     }
   },
 
