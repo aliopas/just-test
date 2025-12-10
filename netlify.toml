@@ -4,8 +4,9 @@
   # Note: base is "frontend", so paths are relative to frontend directory
   # Sequential execution ensures proper dependency installation
   # Simplified command to reduce build time and prevent cancellation
+  # Since we use npm workspaces, install from root first, then build frontend
   # Split into separate steps with error handling
-  command = "echo 'Starting build...' && cd ../netlify/functions && echo 'Installing function dependencies...' && npm install --production --no-optional --legacy-peer-deps && cd ../../frontend && echo 'Installing frontend dependencies...' && npm ci --prefer-offline --legacy-peer-deps && echo 'Building frontend...' && npm run build"
+  command = "echo 'Starting build...' && cd .. && echo 'Installing root dependencies (workspace)...' && npm install --legacy-peer-deps && cd netlify/functions && echo 'Installing function dependencies...' && npm install --production --no-optional --legacy-peer-deps && cd ../../frontend && echo 'Building frontend...' && npm run build"
   functions = "../netlify/functions"
   publish = ".next"
   base = "frontend"
