@@ -121,12 +121,40 @@ export const investorProfileController = {
         profile: mapViewToResponse(profile),
       });
     } catch (error) {
+      // Ensure response hasn't been sent yet
+      if (res.headersSent) {
+        console.error('Response already sent, cannot send error response');
+        return;
+      }
+
+      // Handle Supabase connection errors
+      if (error instanceof Error) {
+        const errorMessage = error.message.toLowerCase();
+        if (
+          errorMessage.includes('service role key') ||
+          errorMessage.includes('supabase') ||
+          errorMessage.includes('connection') ||
+          errorMessage.includes('network') ||
+          errorMessage.includes('database')
+        ) {
+          console.error('Supabase connection error:', error);
+          return res.status(503).json({
+            error: {
+              code: 'SERVICE_UNAVAILABLE',
+              message: 'Database service is temporarily unavailable',
+              details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+            },
+          });
+        }
+      }
+
       // eslint-disable-next-line no-console
       console.error('Failed to get investor profile:', error);
       return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to fetch investor profile',
+          details: process.env.NODE_ENV === 'development' && error instanceof Error ? error.message : undefined,
         },
       });
     }
@@ -158,44 +186,82 @@ export const investorProfileController = {
 
       // Update user email/phone if provided
       if (payload.email !== undefined || payload.phone !== undefined) {
-        const adminClient = requireSupabaseAdmin();
-        const userUpdate: { email?: string; phone?: string | null } = {};
+        try {
+          const adminClient = requireSupabaseAdmin();
+          const userUpdate: { email?: string; phone?: string | null } = {};
 
-        if (payload.email !== undefined) {
-          userUpdate.email = payload.email ?? undefined;
-        }
-        if (payload.phone !== undefined) {
-          userUpdate.phone = payload.phone ?? null;
-        }
-
-        const { error: userUpdateError } = await adminClient
-          .from('users')
-          .update(userUpdate)
-          .eq('id', req.user.id);
-
-        if (userUpdateError) {
-          console.error('Failed to update user email/phone:', userUpdateError);
-          return res.status(500).json({
-            error: {
-              code: 'USER_UPDATE_ERROR',
-              message: 'Failed to update user email or phone',
-            },
-          });
-        }
-
-        // Also update in Supabase Auth if email changed
-        if (payload.email !== undefined && payload.email) {
-          try {
-            const { error: authUpdateError } =
-              await adminClient.auth.admin.updateUserById(req.user.id, {
-                email: payload.email,
-              });
-            if (authUpdateError) {
-              console.error('Failed to update auth email:', authUpdateError);
-            }
-          } catch (authError) {
-            console.error('Error updating auth email:', authError);
+          if (payload.email !== undefined) {
+            userUpdate.email = payload.email ?? undefined;
           }
+          if (payload.phone !== undefined) {
+            userUpdate.phone = payload.phone ?? null;
+          }
+
+          const { error: userUpdateError } = await adminClient
+            .from('users')
+            .update(userUpdate)
+            .eq('id', req.user.id);
+
+          if (userUpdateError) {
+            console.error('Failed to update user email/phone:', userUpdateError);
+            // Check if response already sent
+            if (res.headersSent) {
+              return;
+            }
+            // Handle Supabase connection errors
+            const errorMessage = userUpdateError.message?.toLowerCase() || '';
+            if (
+              errorMessage.includes('connection') ||
+              errorMessage.includes('network') ||
+              errorMessage.includes('fetch')
+            ) {
+              return res.status(503).json({
+                error: {
+                  code: 'SERVICE_UNAVAILABLE',
+                  message: 'Database service is temporarily unavailable',
+                  details: process.env.NODE_ENV === 'development' ? userUpdateError.message : undefined,
+                },
+              });
+            }
+            return res.status(500).json({
+              error: {
+                code: 'USER_UPDATE_ERROR',
+                message: 'Failed to update user email or phone',
+                details: process.env.NODE_ENV === 'development' ? userUpdateError.message : undefined,
+              },
+            });
+          }
+
+          // Also update in Supabase Auth if email changed
+          if (payload.email !== undefined && payload.email) {
+            try {
+              const { error: authUpdateError } =
+                await adminClient.auth.admin.updateUserById(req.user.id, {
+                  email: payload.email,
+                });
+              if (authUpdateError) {
+                console.error('Failed to update auth email:', authUpdateError);
+              }
+            } catch (authError) {
+              console.error('Error updating auth email:', authError);
+            }
+          }
+        } catch (supabaseError) {
+          // Handle Supabase initialization errors
+          if (res.headersSent) {
+            return;
+          }
+          const errorMessage = supabaseError instanceof Error ? supabaseError.message : String(supabaseError);
+          if (errorMessage.includes('service role key') || errorMessage.includes('SUPABASE')) {
+            return res.status(503).json({
+              error: {
+                code: 'SERVICE_UNAVAILABLE',
+                message: 'Database service is temporarily unavailable',
+                details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
+              },
+            });
+          }
+          throw supabaseError;
         }
       }
 
@@ -275,6 +341,11 @@ export const investorProfileController = {
         }
       }
 
+      // Ensure response hasn't been sent yet
+      if (res.headersSent) {
+        return;
+      }
+
       return res.status(200).json({
         message:
           Object.keys(diff).length === 0
@@ -283,12 +354,40 @@ export const investorProfileController = {
         profile: mapViewToResponse(view),
       });
     } catch (error) {
+      // Ensure response hasn't been sent yet
+      if (res.headersSent) {
+        console.error('Response already sent, cannot send error response');
+        return;
+      }
+
+      // Handle Supabase connection errors
+      if (error instanceof Error) {
+        const errorMessage = error.message.toLowerCase();
+        if (
+          errorMessage.includes('service role key') ||
+          errorMessage.includes('supabase') ||
+          errorMessage.includes('connection') ||
+          errorMessage.includes('network') ||
+          errorMessage.includes('database')
+        ) {
+          console.error('Supabase connection error:', error);
+          return res.status(503).json({
+            error: {
+              code: 'SERVICE_UNAVAILABLE',
+              message: 'Database service is temporarily unavailable',
+              details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+            },
+          });
+        }
+      }
+
       // eslint-disable-next-line no-console
       console.error('Failed to update investor profile:', error);
       return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to update investor profile',
+          details: process.env.NODE_ENV === 'development' && error instanceof Error ? error.message : undefined,
         },
       });
     }

@@ -475,6 +475,7 @@ export async function updateCompanyProfile(
   id: string,
   input: CompanyProfileUpdateInput
 ): Promise<CompanyProfile> {
+  try {
   const adminClient = requireSupabaseAdmin();
   const updateData: Record<string, unknown> = {};
 
@@ -498,14 +499,31 @@ export async function updateCompanyProfile(
     if (error.code === 'PGRST116') {
       throw new Error('COMPANY_PROFILE_NOT_FOUND');
     }
+      // Handle connection errors
+      if (error.message?.toLowerCase().includes('connection') || 
+          error.message?.toLowerCase().includes('network') ||
+          error.message?.toLowerCase().includes('fetch')) {
+        throw new Error(`Database connection error: ${error.message}`);
+      }
     throw new Error(`Failed to update company profile: ${error.message}`);
   }
 
   if (!data) {
-    throw new Error('Failed to update company profile: no data returned');
+      throw new Error('COMPANY_PROFILE_NOT_FOUND');
   }
 
   return mapCompanyProfile(data);
+  } catch (error) {
+    // Re-throw known errors as-is
+    if (error instanceof Error && error.message === 'COMPANY_PROFILE_NOT_FOUND') {
+      throw error;
+    }
+    // Wrap other errors to ensure they're Error instances
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error(`Failed to update company profile: ${String(error)}`);
+  }
 }
 
 export async function deleteCompanyProfile(id: string): Promise<void> {

@@ -178,9 +178,19 @@ export const companyContentController = {
   async updateProfile(req: AuthenticatedRequest, res: Response) {
     try {
       const { id } = req.params;
+      
+      if (!id || typeof id !== 'string') {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid profile ID',
+          },
+        });
+      }
+      
       const validation = companyProfileUpdateSchema.safeParse(req.body);
       if (!validation.success) {
-        res.status(400).json({
+        return res.status(400).json({
           error: {
             code: 'VALIDATION_ERROR',
             message: 'Invalid request payload',
@@ -190,33 +200,57 @@ export const companyContentController = {
             })),
           },
         });
-        return;
       }
 
       const profile = await updateCompanyProfile(id, validation.data);
-      res.status(200).json(profile);
-      return;
+      return res.status(200).json(profile);
     } catch (error) {
+      // Ensure response hasn't been sent yet
+      if (res.headersSent) {
+        console.error('Response already sent, cannot send error response');
+        return;
+      }
+      
       if (
         error instanceof Error &&
         error.message === 'COMPANY_PROFILE_NOT_FOUND'
       ) {
-        res.status(404).json({
+        return res.status(404).json({
           error: {
             code: 'NOT_FOUND',
             message: 'Company profile not found',
           },
         });
-        return;
       }
+      
+      // Handle Supabase connection errors
+      if (error instanceof Error) {
+        const errorMessage = error.message.toLowerCase();
+        if (
+          errorMessage.includes('service role key') ||
+          errorMessage.includes('supabase') ||
+          errorMessage.includes('connection') ||
+          errorMessage.includes('network')
+        ) {
+          console.error('Supabase connection error:', error);
+          return res.status(503).json({
+            error: {
+              code: 'SERVICE_UNAVAILABLE',
+              message: 'Database service is temporarily unavailable',
+              details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+            },
+          });
+        }
+      }
+      
       console.error('Failed to update company profile:', error);
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to update company profile',
+          details: process.env.NODE_ENV === 'development' && error instanceof Error ? error.message : undefined,
         },
       });
-      return;
     }
   },
 

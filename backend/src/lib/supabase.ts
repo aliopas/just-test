@@ -54,7 +54,10 @@ export function requireSupabaseAdmin() {
   if (!supabaseAdmin) {
     const errorMessage = 'Supabase service role key is required for this operation. Please set SUPABASE_SERVICE_ROLE_KEY in Netlify Dashboard.';
     console.error('[Supabase] Admin Client Error:', errorMessage);
-    throw new Error(errorMessage);
+    const error = new Error(errorMessage);
+    // Add a code property to help identify this error type
+    (error as any).code = 'SUPABASE_CONFIG_ERROR';
+    throw error;
   }
   return supabaseAdmin;
 }
