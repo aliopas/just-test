@@ -4,9 +4,9 @@
   # Note: base is "frontend", so paths are relative to frontend directory
   # Sequential execution ensures proper dependency installation
   # Simplified command to reduce build time and prevent cancellation
-  # Since we use npm workspaces, install from root first, then build frontend
-  # Split into separate steps with error handling
-  command = "echo 'Starting build...' && cd .. && echo 'Installing root dependencies (workspace)...' && npm install --legacy-peer-deps && cd netlify/functions && echo 'Installing function dependencies...' && npm install --production --no-optional --legacy-peer-deps && cd ../../frontend && echo 'Building frontend...' && npm run build"
+  # Since we use npm workspaces, install from root first, then ensure frontend dependencies are available
+  # Next.js needs react/react-dom in frontend/node_modules, so we install them there too
+  command = "echo 'Starting build...' && cd .. && echo 'Installing root dependencies (workspace)...' && npm install --legacy-peer-deps && cd frontend && echo 'Ensuring frontend dependencies are installed...' && npm install --legacy-peer-deps && cd ../netlify/functions && echo 'Installing function dependencies...' && npm install --production --no-optional --legacy-peer-deps && cd ../../frontend && echo 'Building frontend...' && npm run build"
   functions = "../netlify/functions"
   publish = ".next"
   base = "frontend"
