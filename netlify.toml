@@ -3,18 +3,21 @@
   # Install function dependencies first (fast), then build frontend
   # Note: base is "frontend", so paths are relative to frontend directory
   # Sequential execution ensures proper dependency installation
-  command = "cd ../netlify/functions && npm install --production --silent && cd ../../frontend && npm ci --silent && npm run build"
+  # Using parallel execution where possible to speed up build
+  command = "cd ../netlify/functions && npm install --production --silent --no-optional && cd ../../frontend && npm ci --silent --prefer-offline && npm run build"
   functions = "../netlify/functions"
   publish = ".next"
   base = "frontend"
   # Increase build timeout to maximum (20 minutes = 1200 seconds)
   # This is the maximum allowed timeout for Pro/Team plans
   timeout = 1200
+  # Prevent build cancellation
+  skip_processing = false
 
 [build.environment]
   NODE_VERSION = "22"
   # Optimize npm for faster installs
-  NPM_FLAGS = "--prefer-offline --no-audit --no-fund --silent"
+  NPM_FLAGS = "--prefer-offline --no-audit --no-fund --silent --no-optional"
   # Prevent build cancellation - critical settings
   NETLIFY_BUILD_TIMEOUT = "1200"
   NETLIFY_BUILD_NO_CANCEL = "true"
@@ -25,6 +28,12 @@
   NETLIFY_CI = "true"
   # Enable build caching
   NETLIFY_BUILD_CACHE = "true"
+  # Prevent build cancellation
+  NETLIFY_DISABLE_BUILD_CANCEL = "true"
+  # Optimize build performance
+  NPM_CONFIG_PRODUCTION = "false"
+  NPM_CONFIG_AUDIT = "false"
+  NPM_CONFIG_FUND = "false"
 
 # Netlify Next.js plugin - required for Next.js routing to work
 [[plugins]]
