@@ -178,7 +178,12 @@ function getSectionIcon(sectionId: string, color: string): React.ReactElement | 
   }
 }
 
-export function CompanyContentSection() {
+interface CompanyContentSectionProps {
+  showOnlyProfile?: boolean;
+  excludeProfile?: boolean;
+}
+
+export function CompanyContentSection({ showOnlyProfile = false, excludeProfile = false }: CompanyContentSectionProps = {}) {
   const { language, direction } = useLanguage();
   const isArabic = language === 'ar';
   const isMobile = useIsMobile();
@@ -472,7 +477,16 @@ export function CompanyContentSection() {
     }
 
     // Sort sections by displayOrder
-    return sectionsList.sort((a, b) => a.displayOrder - b.displayOrder);
+    let sortedSections = sectionsList.sort((a, b) => a.displayOrder - b.displayOrder);
+    
+    // Filter sections based on props
+    if (showOnlyProfile) {
+      sortedSections = sortedSections.filter(section => section.id === 'company-profile');
+    } else if (excludeProfile) {
+      sortedSections = sortedSections.filter(section => section.id !== 'company-profile');
+    }
+    
+    return sortedSections;
   }, [
     profiles,
     clients,
@@ -483,6 +497,8 @@ export function CompanyContentSection() {
     goals,
     language,
     isArabic,
+    showOnlyProfile,
+    excludeProfile,
   ]);
 
   // Show loading skeleton only if we're loading and have no data at all
