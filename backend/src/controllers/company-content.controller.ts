@@ -69,12 +69,11 @@ import {
 
 export const companyContentController = {
   // Company Profile endpoints
-  async listProfiles(req: AuthenticatedRequest, res: Response) {
+  async listProfiles(req: AuthenticatedRequest, res: Response): Promise<Response> {
     try {
       const includeInactive = req.query.includeInactive === 'true';
       const profiles = await listCompanyProfiles(includeInactive);
-      res.status(200).json({ profiles });
-      return;
+      return res.status(200).json({ profiles });
     } catch (error) {
       console.error('Failed to list company profiles:', error);
       
@@ -84,45 +83,41 @@ export const companyContentController = {
         ? 'CONFIGURATION_ERROR' 
         : 'INTERNAL_ERROR';
       
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: errorCode,
           message: 'Failed to list company profiles',
           details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
         },
       });
-      return;
     }
   },
 
-  async getProfileById(req: AuthenticatedRequest, res: Response) {
+  async getProfileById(req: AuthenticatedRequest, res: Response): Promise<Response> {
     try {
       const { id } = req.params;
       
       if (!id || typeof id !== 'string') {
-        res.status(400).json({
+        return res.status(400).json({
           error: {
             code: 'VALIDATION_ERROR',
             message: 'Invalid profile ID',
           },
         });
-        return;
       }
 
       const profile = await getCompanyProfileById(id);
 
       if (!profile) {
-        res.status(404).json({
+        return res.status(404).json({
           error: {
             code: 'NOT_FOUND',
             message: 'Company profile not found',
           },
         });
-        return;
       }
 
-      res.status(200).json(profile);
-      return;
+      return res.status(200).json(profile);
     } catch (error) {
       console.error('Failed to get company profile:', error);
       
@@ -132,22 +127,21 @@ export const companyContentController = {
         ? 'CONFIGURATION_ERROR' 
         : 'INTERNAL_ERROR';
       
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: errorCode,
           message: 'Failed to get company profile',
           details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
         },
       });
-      return;
     }
   },
 
-  async createProfile(req: AuthenticatedRequest, res: Response) {
+  async createProfile(req: AuthenticatedRequest, res: Response): Promise<Response> {
     try {
       const validation = companyProfileCreateSchema.safeParse(req.body);
       if (!validation.success) {
-        res.status(400).json({
+        return res.status(400).json({
           error: {
             code: 'VALIDATION_ERROR',
             message: 'Invalid request payload',
@@ -157,41 +151,37 @@ export const companyContentController = {
             })),
           },
         });
-        return;
       }
 
       const profile = await createCompanyProfile(validation.data);
-      res.status(201).json(profile);
-      return;
+      return res.status(201).json(profile);
     } catch (error) {
       console.error('Failed to create company profile:', error);
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to create company profile',
         },
       });
-      return;
     }
   },
 
-  async updateProfile(req: AuthenticatedRequest, res: Response): Promise<Response | void> {
+  async updateProfile(req: AuthenticatedRequest, res: Response): Promise<Response> {
     try {
       const { id } = req.params;
       
       if (!id || typeof id !== 'string') {
-        const response = res.status(400).json({
+        return res.status(400).json({
           error: {
             code: 'VALIDATION_ERROR',
             message: 'Invalid profile ID',
           },
         });
-        return response;
       }
       
       const validation = companyProfileUpdateSchema.safeParse(req.body);
       if (!validation.success) {
-        const response = res.status(400).json({
+        return res.status(400).json({
           error: {
             code: 'VALIDATION_ERROR',
             message: 'Invalid request payload',
@@ -201,30 +191,34 @@ export const companyContentController = {
             })),
           },
         });
-        return response;
       }
 
       const profile = await updateCompanyProfile(id, validation.data);
-      const response = res.status(200).json(profile);
-      return response;
+      return res.status(200).json(profile);
     } catch (error) {
       // Ensure response hasn't been sent yet
       if (res.headersSent) {
         console.error('Response already sent, cannot send error response');
-        return;
+        // Return a minimal response even if headers are sent
+        // This should not happen in normal flow, but ensures we always return Response
+        return res.status(500).json({
+          error: {
+            code: 'INTERNAL_ERROR',
+            message: 'Response already sent',
+          },
+        });
       }
       
       if (
         error instanceof Error &&
         error.message === 'COMPANY_PROFILE_NOT_FOUND'
       ) {
-        const response = res.status(404).json({
+        return res.status(404).json({
           error: {
             code: 'NOT_FOUND',
             message: 'Company profile not found',
           },
         });
-        return response;
       }
       
       // Handle Supabase connection errors
@@ -238,56 +232,51 @@ export const companyContentController = {
           errorMessage.includes('database')
         ) {
           console.error('Supabase connection error:', error);
-          const response = res.status(503).json({
+          return res.status(503).json({
             error: {
               code: 'SERVICE_UNAVAILABLE',
               message: 'Database service is temporarily unavailable',
               details: process.env.NODE_ENV === 'development' ? error.message : undefined,
             },
           });
-          return response;
         }
       }
       
       console.error('Failed to update company profile:', error);
-      const response = res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to update company profile',
           details: process.env.NODE_ENV === 'development' && error instanceof Error ? error.message : undefined,
         },
       });
-      return response;
     }
   },
 
-  async deleteProfile(req: AuthenticatedRequest, res: Response) {
+  async deleteProfile(req: AuthenticatedRequest, res: Response): Promise<Response> {
     try {
       const { id } = req.params;
       await deleteCompanyProfile(id);
-      res.status(204).end();
-      return;
+      return res.status(204).end();
     } catch (error) {
       if (
         error instanceof Error &&
         error.message === 'COMPANY_PROFILE_NOT_FOUND'
       ) {
-        res.status(404).json({
+        return res.status(404).json({
           error: {
             code: 'NOT_FOUND',
             message: 'Company profile not found',
           },
         });
-        return;
       }
       console.error('Failed to delete company profile:', error);
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to delete company profile',
         },
       });
-      return;
     }
   },
 
