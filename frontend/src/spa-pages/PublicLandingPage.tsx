@@ -29,14 +29,6 @@ export function PublicLandingPage() {
     ? partnershipInfo.sort((a, b) => a.display_order - b.display_order)[0]
     : null;
 
-  const headerSubtitle =
-    mainProfile && (isArabic ? mainProfile.content_ar : mainProfile.content_en).length > 0
-      ? `${(isArabic ? mainProfile.content_ar : mainProfile.content_en).slice(0, 110)}${
-          (isArabic ? mainProfile.content_ar : mainProfile.content_en).length > 110 ? '…' : ''
-        }`
-      : isArabic
-        ? 'بوابة موحدة لاستقبال المستثمرين وتقديم طلبات الاستثمار.'
-        : 'Unified portal for investor onboarding and investment requests.';
 
   const heroTitle =
     mainPartnership && (isArabic ? mainPartnership.title_ar : mainPartnership.title_en).length > 0
@@ -99,16 +91,7 @@ export function PublicLandingPage() {
                   letterSpacing: isArabic ? 0 : '0.02em',
                 }}
               >
-                {isArabic ? 'شركاء باكورة' : 'Bacura Partners'}
-              </div>
-              <div
-                style={{
-                  fontSize: isMobile ? '0.8rem' : '0.9rem',
-                  color: palette.textSecondary,
-                  display: isMobile ? 'none' : 'block',
-                }}
-              >
-                {headerSubtitle}
+                {isArabic ? 'منصة شركاء باكورة' : 'Bacura Partners Platform'}
               </div>
             </div>
           </div>

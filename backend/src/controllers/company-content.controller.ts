@@ -76,10 +76,18 @@ export const companyContentController = {
       return res.status(200).json({ profiles });
     } catch (error) {
       console.error('Failed to list company profiles:', error);
+      
+      // Ensure we always send a valid JSON response
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorCode = error instanceof Error && error.message.includes('service role key') 
+        ? 'CONFIGURATION_ERROR' 
+        : 'INTERNAL_ERROR';
+      
       return res.status(500).json({
         error: {
-          code: 'INTERNAL_ERROR',
+          code: errorCode,
           message: 'Failed to list company profiles',
+          details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
         },
       });
     }
@@ -88,6 +96,16 @@ export const companyContentController = {
   async getProfileById(req: AuthenticatedRequest, res: Response) {
     try {
       const { id } = req.params;
+      
+      if (!id || typeof id !== 'string') {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid profile ID',
+          },
+        });
+      }
+
       const profile = await getCompanyProfileById(id);
 
       if (!profile) {
@@ -102,10 +120,18 @@ export const companyContentController = {
       return res.status(200).json(profile);
     } catch (error) {
       console.error('Failed to get company profile:', error);
+      
+      // Ensure we always send a valid JSON response
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorCode = error instanceof Error && error.message.includes('service role key') 
+        ? 'CONFIGURATION_ERROR' 
+        : 'INTERNAL_ERROR';
+      
       return res.status(500).json({
         error: {
-          code: 'INTERNAL_ERROR',
+          code: errorCode,
           message: 'Failed to get company profile',
+          details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
         },
       });
     }

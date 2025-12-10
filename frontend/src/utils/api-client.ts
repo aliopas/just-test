@@ -172,6 +172,15 @@ async function parseResponsePayload(response: Response): Promise<unknown> {
     const text = await response.text();
     
     if (!text || text.trim() === '') {
+      // For error status codes, return a structured error object instead of null
+      if (!response.ok) {
+        return {
+          error: {
+            code: 'EMPTY_RESPONSE',
+            message: `Server returned empty response with status ${response.status}`,
+          },
+        };
+      }
       return null;
     }
 
@@ -179,8 +188,25 @@ async function parseResponsePayload(response: Response): Promise<unknown> {
       try {
         return JSON.parse(text);
       } catch (parseError) {
-        console.warn('[apiClient] Failed to parse JSON response:', parseError);
-        // Return the raw text if JSON parsing fails
+        console.warn('[apiClient] Failed to parse JSON response:', {
+          parseError,
+          text: text.substring(0, 200), // Log first 200 chars for debugging
+          status: response.status,
+          statusText: response.statusText,
+        });
+        
+        // For error status codes, return a structured error object
+        if (!response.ok) {
+          return {
+            error: {
+              code: 'INVALID_JSON_RESPONSE',
+              message: `Server returned invalid JSON with status ${response.status}`,
+              details: text.substring(0, 500), // Include first 500 chars for debugging
+            },
+          };
+        }
+        
+        // Return the raw text if JSON parsing fails for non-error responses
         return text;
       }
     }
@@ -188,6 +214,17 @@ async function parseResponsePayload(response: Response): Promise<unknown> {
     return text;
   } catch (textError) {
     console.warn('[apiClient] Failed to read response text:', textError);
+    
+    // For error status codes, return a structured error object
+    if (!response.ok) {
+      return {
+        error: {
+          code: 'RESPONSE_READ_ERROR',
+          message: `Failed to read response body: ${textError instanceof Error ? textError.message : 'Unknown error'}`,
+        },
+      };
+    }
+    
     return null;
   }
 }

@@ -402,21 +402,44 @@ export async function listCompanyProfiles(
 export async function getCompanyProfileById(
   id: string
 ): Promise<CompanyProfile | null> {
-  const adminClient = requireSupabaseAdmin();
-  const { data, error } = await adminClient
-    .from('company_profile')
-    .select('*')
-    .eq('id', id)
-    .single();
-
-  if (error) {
-    if (error.code === 'PGRST116') {
-      return null;
+  try {
+    if (!id || typeof id !== 'string' || id.trim() === '') {
+      throw new Error('Invalid profile ID: ID is required and must be a non-empty string');
     }
-    throw new Error(`Failed to get company profile: ${error.message}`);
-  }
 
-  return data ? mapCompanyProfile(data) : null;
+    const adminClient = requireSupabaseAdmin();
+    const { data, error } = await adminClient
+      .from('company_profile')
+      .select('*')
+      .eq('id', id.trim())
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null;
+      }
+      
+      // Log detailed error information for debugging
+      console.error('[Company Content Service] Failed to get company profile:', {
+        id,
+        errorCode: error.code,
+        errorMessage: error.message,
+        errorDetails: error.details,
+        errorHint: error.hint,
+      });
+      
+      throw new Error(`Failed to get company profile: ${error.message} (code: ${error.code || 'unknown'})`);
+    }
+
+    return data ? mapCompanyProfile(data) : null;
+  } catch (error) {
+    // Re-throw with more context if it's a Supabase admin client error
+    if (error instanceof Error && error.message.includes('service role key')) {
+      console.error('[Company Content Service] Supabase Admin Client Error:', error.message);
+      throw new Error('Database access error: Service role key is required. Please set SUPABASE_SERVICE_ROLE_KEY in environment variables.');
+    }
+    throw error;
+  }
 }
 
 export async function createCompanyProfile(

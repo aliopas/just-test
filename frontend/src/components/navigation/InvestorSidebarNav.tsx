@@ -27,11 +27,7 @@ export function InvestorSidebarNav() {
   const pathname = usePathname();
   const companyLogoUrl = useCompanyLogoUrl();
   const portalName =
-    language === 'ar' ? 'شركاء باكورة التقنيات' : 'Bacura Technologies Partners';
-  const portalSubtitle =
-    language === 'ar'
-      ? 'تجربة موحدة لاستقبال المستثمرين.'
-      : 'Investor onboarding, profiling, and request submission experiences.';
+    language === 'ar' ? 'منصة شركاء باكورة' : 'Bacura Partners Platform';
   const isArabic = language === 'ar';
 
   const navItems = [
@@ -103,15 +99,6 @@ export function InvestorSidebarNav() {
               }}
             >
               {portalName}
-            </span>
-            <span
-              style={{
-                fontSize: '0.9rem',
-                color: palette.textSecondary,
-                lineHeight: 1.4,
-              }}
-            >
-              {portalSubtitle}
             </span>
           </div>
         </div>

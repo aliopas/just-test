@@ -28,11 +28,7 @@ export function HeaderNav() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const companyLogoUrl = useCompanyLogoUrl();
   const portalName =
-    language === 'ar' ? 'شركاء باكورة التقنيات' : 'Bacura Technologies Partners';
-  const portalSubtitle =
-    language === 'ar'
-      ? 'تجربة موحدة لاستقبال المستثمرين.'
-      : 'Investor onboarding, profiling, and request submission experiences.';
+    language === 'ar' ? 'منصة شركاء باكورة' : 'Bacura Partners Platform';
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -125,14 +121,6 @@ export function HeaderNav() {
               }}
             >
               {portalName}
-            </span>
-            <span
-              style={{
-                fontSize: '0.95rem',
-                color: palette.textSecondary,
-              }}
-            >
-              {portalSubtitle}
             </span>
           </div>
         </div>

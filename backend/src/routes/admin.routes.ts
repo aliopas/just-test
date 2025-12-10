@@ -351,35 +351,35 @@ adminRouter.get(
   '/company-profile',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.listProfiles
+  asyncHandler(companyContentController.listProfiles as any)
 );
 
 adminRouter.get(
   '/company-profile/:id',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.getProfileById
+  asyncHandler(companyContentController.getProfileById as any)
 );
 
 adminRouter.post(
   '/company-profile',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.createProfile
+  asyncHandler(companyContentController.createProfile as any)
 );
 
 adminRouter.patch(
   '/company-profile/:id',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.updateProfile
+  asyncHandler(companyContentController.updateProfile as any)
 );
 
 adminRouter.delete(
   '/company-profile/:id',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.deleteProfile
+  asyncHandler(companyContentController.deleteProfile as any)
 );
 
 // Company Partners routes
@@ -387,35 +387,35 @@ adminRouter.get(
   '/company-partners',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.listPartners
+  asyncHandler(companyContentController.listPartners as any)
 );
 
 adminRouter.get(
   '/company-partners/:id',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.getPartnerById
+  asyncHandler(companyContentController.getPartnerById as any)
 );
 
 adminRouter.post(
   '/company-partners',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.createPartner
+  asyncHandler(companyContentController.createPartner as any)
 );
 
 adminRouter.patch(
   '/company-partners/:id',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.updatePartner
+  asyncHandler(companyContentController.updatePartner as any)
 );
 
 adminRouter.delete(
   '/company-partners/:id',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.deletePartner
+  asyncHandler(companyContentController.deletePartner as any)
 );
 
 // Company Clients routes
@@ -423,35 +423,35 @@ adminRouter.get(
   '/company-clients',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.listClients
+  asyncHandler(companyContentController.listClients as any)
 );
 
 adminRouter.get(
   '/company-clients/:id',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.getClientById
+  asyncHandler(companyContentController.getClientById as any)
 );
 
 adminRouter.post(
   '/company-clients',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.createClient
+  asyncHandler(companyContentController.createClient as any)
 );
 
 adminRouter.patch(
   '/company-clients/:id',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.updateClient
+  asyncHandler(companyContentController.updateClient as any)
 );
 
 adminRouter.delete(
   '/company-clients/:id',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.deleteClient
+  asyncHandler(companyContentController.deleteClient as any)
 );
 
 // Company Resources routes
@@ -459,35 +459,35 @@ adminRouter.get(
   '/company-resources',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.listResources
+  asyncHandler(companyContentController.listResources as any)
 );
 
 adminRouter.get(
   '/company-resources/:id',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.getResourceById
+  asyncHandler(companyContentController.getResourceById as any)
 );
 
 adminRouter.post(
   '/company-resources',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.createResource
+  asyncHandler(companyContentController.createResource as any)
 );
 
 adminRouter.patch(
   '/company-resources/:id',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.updateResource
+  asyncHandler(companyContentController.updateResource as any)
 );
 
 adminRouter.delete(
   '/company-resources/:id',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.deleteResource
+  asyncHandler(companyContentController.deleteResource as any)
 );
 
 // Company Strengths routes
@@ -495,35 +495,35 @@ adminRouter.get(
   '/company-strengths',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.listStrengths
+  asyncHandler(companyContentController.listStrengths as any)
 );
 
 adminRouter.get(
   '/company-strengths/:id',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.getStrengthById
+  asyncHandler(companyContentController.getStrengthById as any)
 );
 
 adminRouter.post(
   '/company-strengths',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.createStrength
+  asyncHandler(companyContentController.createStrength as any)
 );
 
 adminRouter.patch(
   '/company-strengths/:id',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.updateStrength
+  asyncHandler(companyContentController.updateStrength as any)
 );
 
 adminRouter.delete(
   '/company-strengths/:id',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.deleteStrength
+  asyncHandler(companyContentController.deleteStrength as any)
 );
 
 // Partnership Info routes
@@ -531,35 +531,35 @@ adminRouter.get(
   '/partnership-info',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.listPartnershipInfo
+  asyncHandler(companyContentController.listPartnershipInfo as any)
 );
 
 adminRouter.get(
   '/partnership-info/:id',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.getPartnershipInfoById
+  asyncHandler(companyContentController.getPartnershipInfoById as any)
 );
 
 adminRouter.post(
   '/partnership-info',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.createPartnershipInfo
+  asyncHandler(companyContentController.createPartnershipInfo as any)
 );
 
 adminRouter.patch(
   '/partnership-info/:id',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.updatePartnershipInfo
+  asyncHandler(companyContentController.updatePartnershipInfo as any)
 );
 
 adminRouter.delete(
   '/partnership-info/:id',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.deletePartnershipInfo
+  asyncHandler(companyContentController.deletePartnershipInfo as any)
 );
 
 // Market Value routes
@@ -567,35 +567,35 @@ adminRouter.get(
   '/market-value',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.listMarketValues
+  asyncHandler(companyContentController.listMarketValues as any)
 );
 
 adminRouter.get(
   '/market-value/:id',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.getMarketValueById
+  asyncHandler(companyContentController.getMarketValueById as any)
 );
 
 adminRouter.post(
   '/market-value',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.createMarketValue
+  asyncHandler(companyContentController.createMarketValue as any)
 );
 
 adminRouter.patch(
   '/market-value/:id',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.updateMarketValue
+  asyncHandler(companyContentController.updateMarketValue as any)
 );
 
 adminRouter.delete(
   '/market-value/:id',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.deleteMarketValue
+  asyncHandler(companyContentController.deleteMarketValue as any)
 );
 
 // Company Goals routes
@@ -603,35 +603,35 @@ adminRouter.get(
   '/company-goals',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.listGoals
+  asyncHandler(companyContentController.listGoals as any)
 );
 
 adminRouter.get(
   '/company-goals/:id',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.getGoalById
+  asyncHandler(companyContentController.getGoalById as any)
 );
 
 adminRouter.post(
   '/company-goals',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.createGoal
+  asyncHandler(companyContentController.createGoal as any)
 );
 
 adminRouter.patch(
   '/company-goals/:id',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.updateGoal
+  asyncHandler(companyContentController.updateGoal as any)
 );
 
 adminRouter.delete(
   '/company-goals/:id',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.deleteGoal
+  asyncHandler(companyContentController.deleteGoal as any)
 );
 
 // Presigned URL for company content images/icons
@@ -639,7 +639,7 @@ adminRouter.post(
   '/company-content/images/presign',
   authenticate,
   requirePermission('admin.content.manage'),
-  companyContentController.presignImage
+  asyncHandler(companyContentController.presignImage as any)
 );
 
 export { adminRouter };
