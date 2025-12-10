@@ -3,8 +3,9 @@
   # Install function dependencies first (fast), then build frontend
   # Note: base is "frontend", so paths are relative to frontend directory
   # Sequential execution ensures proper dependency installation
-  # Using parallel execution where possible to speed up build
-  command = "cd ../netlify/functions && npm install --production --silent --no-optional && cd ../../frontend && npm ci --silent --prefer-offline && npm run build"
+  # Simplified command to reduce build time and prevent cancellation
+  # Split into separate steps with error handling
+  command = "echo 'Starting build...' && cd ../netlify/functions && echo 'Installing function dependencies...' && npm install --production --no-optional --legacy-peer-deps && cd ../../frontend && echo 'Installing frontend dependencies...' && npm ci --prefer-offline --legacy-peer-deps && echo 'Building frontend...' && npm run build"
   functions = "../netlify/functions"
   publish = ".next"
   base = "frontend"
@@ -13,11 +14,13 @@
   timeout = 1200
   # Prevent build cancellation
   skip_processing = false
+  # Enable build logs to debug cancellation issues
+  processing = { css = { bundle = true }, js = { bundle = true } }
 
 [build.environment]
   NODE_VERSION = "22"
   # Optimize npm for faster installs
-  NPM_FLAGS = "--prefer-offline --no-audit --no-fund --silent --no-optional"
+  NPM_FLAGS = "--prefer-offline --no-audit --no-fund --no-optional"
   # Prevent build cancellation - critical settings
   NETLIFY_BUILD_TIMEOUT = "1200"
   NETLIFY_BUILD_NO_CANCEL = "true"
@@ -34,6 +37,10 @@
   NPM_CONFIG_PRODUCTION = "false"
   NPM_CONFIG_AUDIT = "false"
   NPM_CONFIG_FUND = "false"
+  # Keep build alive - prevent timeout
+  NETLIFY_KEEP_ALIVE = "true"
+  # Disable build cancellation completely
+  NETLIFY_CANCEL_BUILD = "false"
 
 # Netlify Next.js plugin - required for Next.js routing to work
 [[plugins]]
