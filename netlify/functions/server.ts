@@ -242,56 +242,61 @@ export default async (event: any, context: any) => {
     const statusCode = result.statusCode;
     const allowsEmptyBody = statusCodesWithoutBody.includes(statusCode);
     
-    // Ensure body is a valid JSON string
-    if (result.body !== undefined && result.body !== null) {
-      try {
-        // Validate that body is valid JSON if it's a string
-        if (typeof result.body === 'string') {
-          // For status codes that allow empty body (like 204), skip validation if empty
-          if (result.body.trim() !== '') {
-            // Only validate JSON if body is not empty
-            JSON.parse(result.body);
-          } else if (!allowsEmptyBody) {
-            // Empty body is not allowed for this status code
-            console.error('[Server Function] Empty body not allowed for status code:', statusCode);
-            return {
-              statusCode: 500,
-              body: JSON.stringify({
-                error: {
-                  code: 'INTERNAL_ERROR',
-                  message: 'Response body is empty but required for this status code',
-                },
-              }),
-              headers: {
-                'Content-Type': 'application/json',
-              },
-            };
-          }
-        } else if (typeof result.body === 'object') {
-          // If body is an object, stringify it
-          result.body = JSON.stringify(result.body);
-        }
-      } catch (parseError) {
-        console.error('[Server Function] Invalid JSON in response body:', parseError);
-        return {
-          statusCode: 500,
-          body: JSON.stringify({
-            error: {
-              code: 'INTERNAL_ERROR',
-              message: 'Response body contains invalid JSON',
-            },
-          }),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        };
+    // For 204 No Content, handle immediately without JSON validation
+    if (allowsEmptyBody) {
+      // Force empty body and remove Content-Type header
+      result.body = '';
+      if (!result.headers || typeof result.headers !== 'object') {
+        result.headers = {};
       }
+      delete result.headers['Content-Type'];
+      delete result.headers['content-type'];
     } else {
-      // If body is missing, check if status code allows empty body
-      if (allowsEmptyBody) {
-        result.body = '';
+      // For other status codes, ensure body is a valid JSON string
+      if (result.body !== undefined && result.body !== null) {
+        try {
+          // Validate that body is valid JSON if it's a string
+          if (typeof result.body === 'string') {
+            // Only validate JSON if body is not empty
+            if (result.body.trim() !== '') {
+              JSON.parse(result.body);
+            } else {
+              // Empty body is not allowed for this status code
+              console.error('[Server Function] Empty body not allowed for status code:', statusCode);
+              return {
+                statusCode: 500,
+                body: JSON.stringify({
+                  error: {
+                    code: 'INTERNAL_ERROR',
+                    message: 'Response body is empty but required for this status code',
+                  },
+                }),
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+              };
+            }
+          } else if (typeof result.body === 'object') {
+            // If body is an object, stringify it
+            result.body = JSON.stringify(result.body);
+          }
+        } catch (parseError) {
+          console.error('[Server Function] Invalid JSON in response body:', parseError);
+          return {
+            statusCode: 500,
+            body: JSON.stringify({
+              error: {
+                code: 'INTERNAL_ERROR',
+                message: 'Response body contains invalid JSON',
+              },
+            }),
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          };
+        }
       } else {
-        // For other status codes, ensure we have a valid JSON body
+        // If body is missing, ensure we have a valid JSON body
         result.body = JSON.stringify({
           error: {
             code: 'INTERNAL_ERROR',
@@ -301,20 +306,19 @@ export default async (event: any, context: any) => {
       }
     }
     
-    // Ensure Content-Type header is set for JSON responses (unless empty body is allowed)
+    // Ensure headers object exists
     if (!result.headers || typeof result.headers !== 'object') {
       result.headers = {};
     }
-    if (!result.headers['Content-Type'] && !result.headers['content-type']) {
-      // For status codes with empty body, don't set Content-Type
-      if (!allowsEmptyBody || (result.body && result.body.trim() !== '')) {
-        result.headers['Content-Type'] = 'application/json';
-      }
+    
+    // For non-204 responses, set Content-Type if not already set
+    if (!allowsEmptyBody && !result.headers['Content-Type'] && !result.headers['content-type']) {
+      result.headers['Content-Type'] = 'application/json';
     }
     
     // Ensure we return a proper response object
     // For 204 No Content, ensure body is empty string (not undefined/null)
-    const responseBody = allowsEmptyBody && (!result.body || result.body === null || result.body === undefined)
+    const responseBody = allowsEmptyBody
       ? ''
       : (result.body || '');
     
@@ -329,6 +333,7 @@ export default async (event: any, context: any) => {
       hasBody: !!response.body,
       bodyLength: typeof response.body === 'string' ? response.body.length : 0,
       allowsEmptyBody,
+      headers: Object.keys(response.headers),
     });
     
     return response;
