@@ -54,6 +54,7 @@ export interface SendMessageRequest {
   conversationId?: string;
   content: string;
   adminId?: string;
+  investorId?: string;
 }
 
 export interface SendMessageResponse {

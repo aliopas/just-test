@@ -3,8 +3,10 @@
  * بديل لـ useAdminInvestors الذي يستخدم API backend
  */
 
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useEffect, useRef } from 'react';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '../utils/supabase-client';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export type InvestorListItem = {
   id: string;
@@ -107,10 +109,11 @@ async function fetchAdminInvestorsDirect(
     });
   }
 
-  // Step 3: Query ALL users from users table
+  // Step 3: Query investors from users table (role = 'investor')
   let query = supabase
-      .from('users')
-    .select('id, email, phone, phone_cc, status, created_at, updated_at', { count: 'exact' });
+    .from('users')
+    .select('id, email, phone, phone_cc, status, created_at, updated_at', { count: 'exact' })
+    .eq('role', 'investor');
 
   // Apply status filter
   if (filters.status && filters.status !== 'all') {
@@ -273,6 +276,9 @@ async function fetchAdminInvestorsDirect(
 }
 
 export function useAdminInvestorsDirect(filters: InvestorListFilters) {
+  const queryClient = useQueryClient();
+  const channelRef = useRef<RealtimeChannel | null>(null);
+  
   const queryKey = [
     'adminInvestorsDirect',
     filters.page ?? 1,
@@ -283,6 +289,56 @@ export function useAdminInvestorsDirect(filters: InvestorListFilters) {
     filters.sortBy ?? 'created_at',
     filters.order ?? 'desc',
   ] as const;
+
+  // Set up realtime subscription for users and investor_profiles
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      return;
+    }
+
+    const channel = supabase
+      .channel('admin-investors-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'users',
+          filter: 'role=eq.investor',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['adminInvestorsDirect'] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'investor_profiles',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['adminInvestorsDirect'] });
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('[useAdminInvestorsDirect] Subscribed to realtime updates');
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('[useAdminInvestorsDirect] Error subscribing to realtime updates');
+        }
+      });
+
+    channelRef.current = channel;
+
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [queryClient]);
 
   return useQuery<InvestorListResponse>({
     queryKey,
