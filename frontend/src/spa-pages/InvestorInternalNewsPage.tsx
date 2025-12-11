@@ -42,7 +42,7 @@ export function InvestorInternalNewsPage() {
     >
       <div
         style={{
-          maxWidth: '1100px',
+          maxWidth: '1400px',
           margin: '0 auto',
           display: 'flex',
           flexDirection: 'column',
@@ -228,9 +228,9 @@ export function InvestorInternalNewsPage() {
           {!isLoading && !isError && news.length > 0 && (
             <div
               style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.85rem',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                gap: '1.25rem',
               }}
             >
               {news.map(item => {
@@ -241,12 +241,13 @@ export function InvestorInternalNewsPage() {
                       borderRadius: radius.lg,
                       border: `1px solid ${palette.neutralBorderMuted}`,
                       background: palette.backgroundBase,
-                      padding: '1rem 1.25rem',
+                      padding: '1.25rem 1.5rem',
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '0.75rem',
                       transition: 'all 0.2s ease',
                       boxShadow: shadow.subtle,
+                      height: '100%',
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.borderColor = palette.brandPrimary;
@@ -260,33 +261,30 @@ export function InvestorInternalNewsPage() {
                     }}
                   >
                     <header>
-                      <div
+                      <h3
                         style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'flex-start',
-                          gap: '1rem',
-                          marginBottom: '0.5rem',
+                          margin: 0,
+                          marginBottom: '0.75rem',
+                          fontSize: '1.15rem',
+                          fontWeight: typography.weights.semibold,
+                          color: palette.textPrimary,
+                          lineHeight: typography.lineHeights.tight,
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
                         }}
                       >
-                        <h3
-                          style={{
-                            margin: 0,
-                            fontSize: '1.1rem',
-                            fontWeight: typography.weights.semibold,
-                            color: palette.textPrimary,
-                            flex: 1,
-                          }}
-                        >
-                          {item.title}
-                        </h3>
-                      </div>
+                        {item.title}
+                      </h3>
                       <div
                         style={{
                           display: 'flex',
                           alignItems: 'center',
                           gap: '0.75rem',
                           flexWrap: 'wrap',
+                          marginBottom: '0.5rem',
                         }}
                       >
                         <p
@@ -326,88 +324,101 @@ export function InvestorInternalNewsPage() {
                       <p
                         style={{
                           margin: 0,
-                          fontSize: '0.95rem',
+                          fontSize: '0.9rem',
                           color: palette.textSecondary,
                           lineHeight: typography.lineHeights.relaxed,
+                          display: '-webkit-box',
+                          WebkitLineClamp: 3,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          flex: 1,
                         }}
                       >
                         {item.excerpt}
                       </p>
                     )}
 
-                    {item.attachments.length > 0 && (
-                      <div
-                        style={{
-                          marginTop: '0.5rem',
-                          display: 'flex',
-                          flexWrap: 'wrap',
-                          gap: '0.5rem',
-                        }}
-                      >
-                        {item.attachments.map((attachment: { id: string; name?: string; downloadUrl: string | null }) => (
-                          <a
-                            key={attachment.id}
-                            href={attachment.downloadUrl ?? '#'}
-                            target="_blank"
-                            rel="noreferrer"
-                            style={{
-                              padding: '0.4rem 0.875rem',
-                              borderRadius: radius.md,
-                              border: `1px solid ${palette.brandPrimary}`,
-                              background: `${palette.brandPrimary}10`,
-                              fontSize: '0.85rem',
-                              color: palette.brandPrimaryStrong,
-                              textDecoration: 'none',
-                              fontWeight: typography.weights.medium,
-                              transition: 'all 0.2s ease',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '0.375rem',
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.background = palette.brandPrimary;
-                              e.currentTarget.style.color = '#ffffff';
-                              e.currentTarget.style.transform = 'translateY(-1px)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.background = `${palette.brandPrimary}10`;
-                              e.currentTarget.style.color = palette.brandPrimaryStrong;
-                              e.currentTarget.style.transform = 'translateY(0)';
-                            }}
-                          >
-                            <span>📎</span>
-                            {attachment.name || tInvestorInternalNews('attachments.download', language)}
-                          </a>
-                        ))}
-                      </div>
-                    )}
-                    <a
-                      href={`/internal-news/${item.id}`}
+                    <div
                       style={{
-                        marginTop: '0.5rem',
-                        padding: '0.5rem 1rem',
-                        borderRadius: radius.md,
-                        background: `linear-gradient(135deg, ${palette.brandPrimary} 0%, ${palette.brandPrimaryStrong} 100%)`,
-                        color: '#ffffff',
-                        textDecoration: 'none',
-                        fontSize: '0.9rem',
-                        fontWeight: typography.weights.semibold,
-                        textAlign: 'center',
-                        transition: 'all 0.2s ease',
-                        display: 'inline-block',
-                        width: 'fit-content',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = shadow.medium;
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = 'none';
+                        marginTop: 'auto',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.75rem',
                       }}
                     >
-                      {language === 'ar' ? 'قراءة المزيد' : 'Read More'}
-                    </a>
+                      {item.attachments.length > 0 && (
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: '0.5rem',
+                          }}
+                        >
+                          {item.attachments.map((attachment: { id: string; name?: string; downloadUrl: string | null }) => (
+                            <a
+                              key={attachment.id}
+                              href={attachment.downloadUrl ?? '#'}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{
+                                padding: '0.35rem 0.75rem',
+                                borderRadius: radius.md,
+                                border: `1px solid ${palette.brandPrimary}`,
+                                background: `${palette.brandPrimary}10`,
+                                fontSize: '0.8rem',
+                                color: palette.brandPrimaryStrong,
+                                textDecoration: 'none',
+                                fontWeight: typography.weights.medium,
+                                transition: 'all 0.2s ease',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.375rem',
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = palette.brandPrimary;
+                                e.currentTarget.style.color = '#ffffff';
+                                e.currentTarget.style.transform = 'translateY(-1px)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = `${palette.brandPrimary}10`;
+                                e.currentTarget.style.color = palette.brandPrimaryStrong;
+                                e.currentTarget.style.transform = 'translateY(0)';
+                              }}
+                            >
+                              <span>📎</span>
+                              {attachment.name || tInvestorInternalNews('attachments.download', language)}
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                      <a
+                        href={`/internal-news/${item.id}`}
+                        style={{
+                          padding: '0.65rem 1.25rem',
+                          borderRadius: radius.md,
+                          background: `linear-gradient(135deg, ${palette.brandPrimary} 0%, ${palette.brandPrimaryStrong} 100%)`,
+                          color: '#ffffff',
+                          textDecoration: 'none',
+                          fontSize: '0.9rem',
+                          fontWeight: typography.weights.semibold,
+                          textAlign: 'center',
+                          transition: 'all 0.2s ease',
+                          display: 'block',
+                          width: '100%',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = shadow.medium;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = 'none';
+                        }}
+                      >
+                        {language === 'ar' ? 'قراءة المزيد' : 'Read More'}
+                      </a>
+                    </div>
                   </article>
                 );
               })}
