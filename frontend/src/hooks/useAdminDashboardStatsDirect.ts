@@ -170,7 +170,9 @@ export function useAdminDashboardStatsDirect() {
     queryKey: ['adminDashboardStatsDirect'],
     queryFn: fetchAdminDashboardStatsDirect,
     staleTime: 60_000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false, // Prevent automatic refetch when window gains focus
+    refetchOnMount: false, // Prevent refetch on component mount if data exists
+    refetchOnReconnect: false, // Prevent refetch on network reconnect
     // Removed refetchInterval to prevent automatic page refreshes
     enabled: typeof window !== 'undefined', // Only on client
   });

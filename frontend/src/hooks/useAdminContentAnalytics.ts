@@ -36,7 +36,9 @@ export function useAdminContentAnalytics(params?: ContentAnalyticsParams) {
     queryKey: ['adminContentAnalytics', params ?? {}],
     queryFn: () => fetchAdminContentAnalytics(params),
     staleTime: 60_000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false, // Prevent automatic refetch when window gains focus
+    refetchOnMount: false, // Prevent refetch on component mount if data exists
+    refetchOnReconnect: false, // Prevent refetch on network reconnect
   });
 }
 

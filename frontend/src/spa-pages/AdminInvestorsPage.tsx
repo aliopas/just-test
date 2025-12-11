@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
 import {
@@ -13,6 +14,7 @@ import type { AdminUser } from '../types/admin-users';
 
 export function AdminInvestorsPage() {
   const { language, direction } = useLanguage();
+  const queryClient = useQueryClient();
 
   const [filters, setFilters] = useState<InvestorListFilters>({
     page: 1,
@@ -29,6 +31,14 @@ export function AdminInvestorsPage() {
   const [deletingUser, setDeletingUser] = useState<AdminUser | null>(null);
 
   const { data, isLoading, isError, refetch } = useAdminInvestorsDirect(filters);
+
+  // Function to refresh the investors list
+  const handleRefresh = async () => {
+    // Invalidate all adminInvestorsDirect queries to force refetch
+    await queryClient.invalidateQueries({ queryKey: ['adminInvestorsDirect'] });
+    // Also call refetch to ensure immediate update
+    await refetch();
+  };
 
   const investors = data?.investors ?? [];
   const meta = data?.meta ?? {
@@ -288,7 +298,7 @@ export function AdminInvestorsPage() {
               {language === 'ar' ? 'حدث خطأ في جلب البيانات' : 'Error loading data'}
               <button
                 type="button"
-                onClick={() => refetch()}
+                onClick={() => handleRefresh()}
                 style={{
                   marginInlineStart: '0.75rem',
                   padding: '0.4rem 0.9rem',
@@ -745,7 +755,7 @@ export function AdminInvestorsPage() {
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onSuccess={() => {
-          refetch();
+          handleRefresh();
         }}
       />
 
@@ -754,7 +764,7 @@ export function AdminInvestorsPage() {
         user={editingUser}
         onClose={() => setEditingUser(null)}
         onSuccess={() => {
-          refetch();
+          handleRefresh();
           setEditingUser(null);
         }}
       />
@@ -764,7 +774,7 @@ export function AdminInvestorsPage() {
         user={deletingUser}
         onClose={() => setDeletingUser(null)}
         onSuccess={() => {
-          refetch();
+          handleRefresh();
           setDeletingUser(null);
         }}
       />
