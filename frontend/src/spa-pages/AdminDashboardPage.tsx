@@ -89,7 +89,7 @@ export function AdminDashboardPage() {
               count={unreadNotificationCount}
               language={language}
               onClick={() => {
-                window.location.href = '/admin/admin/notifications';
+                window.location.href = '/admin/notifications';
               }}
               isActive={showNotifications}
             />
