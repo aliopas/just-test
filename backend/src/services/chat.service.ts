@@ -1,5 +1,4 @@
 import { requireSupabaseAdmin } from '../lib/supabase';
-import type { AuthenticatedRequest } from '../middleware/auth.middleware';
 
 export interface Conversation {
   id: string;
@@ -181,7 +180,7 @@ export async function listConversations(params: {
 
       return {
         ...conv,
-        participant,
+        participant: participant || undefined,
         unreadCount: unreadCount ?? 0,
         lastMessage,
       };
