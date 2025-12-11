@@ -44,6 +44,7 @@ export function useSupabaseUser(userId?: string | null): UseSupabaseUserReturn {
     setError(null);
 
     try {
+      // جلب بيانات المستخدم من جدول users
       const { data, error: fetchError } = await supabase
         .from('users')
         .select('id, email, role, status, phone, phone_cc, mfa_enabled, created_at, updated_at')
@@ -60,6 +61,37 @@ export function useSupabaseUser(userId?: string | null): UseSupabaseUserReturn {
           throw new Error(fetchError.message);
         }
       } else {
+        // إذا كان role null أو ليس admin، تحقق من جدول user_roles (RBAC)
+        if (data && (!data.role || data.role !== 'admin')) {
+          try {
+            const { data: userRolesData, error: rolesError } = await supabase
+              .from('user_roles')
+              .select(`
+                roles:role_id (
+                  name,
+                  slug
+                )
+              `)
+              .eq('user_id', userId);
+
+            if (!rolesError && userRolesData && userRolesData.length > 0) {
+              // التحقق من وجود role 'admin' في user_roles
+              const hasAdminRole = userRolesData.some((ur: any) => 
+                ur.roles?.name === 'admin' || ur.roles?.slug === 'admin'
+              );
+              
+              if (hasAdminRole) {
+                // تحديث role إلى admin
+                data.role = 'admin';
+                console.log('[Supabase User] Role updated to admin from user_roles table');
+              }
+            }
+          } catch (rolesErr) {
+            // لا نتعامل مع هذا كخطأ، فقط log
+            console.warn('[Supabase User] Could not check user_roles table:', rolesErr);
+          }
+        }
+        
         setUserRecord(data);
         setError(null);
       }

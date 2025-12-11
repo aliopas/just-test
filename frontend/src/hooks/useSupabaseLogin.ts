@@ -66,26 +66,63 @@ export function useSupabaseLogin() {
       }
 
       // الحصول على role من قاعدة البيانات
-      // نستخدم fallback chain: DB role -> user_metadata -> app_metadata -> default
+      // نستخدم fallback chain: DB role column -> user_roles table -> user_metadata -> app_metadata -> default
       let userRole: 'investor' | 'admin' = 'investor';
       
       // محاولة جلب role من قاعدة البيانات (مع معالجة الأخطاء)
       try {
+        // أولاً: محاولة جلب role من عمود role في جدول users
         const { data: userData, error: userError } = await supabase
           .from('users')
           .select('role')
           .eq('id', data.user.id)
           .maybeSingle(); // استخدام maybeSingle بدلاً من single لتجنب الأخطاء
 
-        if (!userError && userData?.role === 'admin') {
-          userRole = 'admin';
-          console.log('[Login] Role from database:', userRole);
+        if (!userError && userData?.role) {
+          if (userData.role === 'admin') {
+            userRole = 'admin';
+            console.log('[Login] Role from database column:', userRole);
+          }
         } else if (userError) {
-          console.warn('[Login] Failed to fetch role from database (RLS or other issue):', {
+          console.warn('[Login] Failed to fetch role from users table (RLS or other issue):', {
             error: userError.message,
             code: userError.code,
             hint: userError.hint,
           });
+        }
+
+        // ثانياً: إذا لم نجد admin في عمود role، تحقق من جدول user_roles (RBAC)
+        if (userRole === 'investor') {
+          try {
+            const { data: userRolesData, error: rolesError } = await supabase
+              .from('user_roles')
+              .select(`
+                roles:role_id (
+                  name,
+                  slug
+                )
+              `)
+              .eq('user_id', data.user.id);
+
+            if (!rolesError && userRolesData && userRolesData.length > 0) {
+              // التحقق من وجود role 'admin' في user_roles
+              const hasAdminRole = userRolesData.some((ur: any) => 
+                ur.roles?.name === 'admin' || ur.roles?.slug === 'admin'
+              );
+              
+              if (hasAdminRole) {
+                userRole = 'admin';
+                console.log('[Login] Role from user_roles table (RBAC):', userRole);
+              }
+            } else if (rolesError) {
+              console.warn('[Login] Failed to fetch role from user_roles table:', {
+                error: rolesError.message,
+                code: rolesError.code,
+              });
+            }
+          } catch (rolesErr) {
+            console.warn('[Login] Exception fetching user roles from user_roles table:', rolesErr);
+          }
         }
       } catch (err) {
         console.warn('[Login] Exception fetching user role from database:', err);
@@ -101,6 +138,13 @@ export function useSupabaseLogin() {
           console.log('[Login] Role from metadata:', userRole);
         }
       }
+
+      // Log final role determination
+      console.log('[Login] Final determined role:', {
+        userId: data.user.id,
+        email: data.user.email,
+        role: userRole,
+      });
 
       // تحديث حالة المستخدم في AuthContext
       setUser({
