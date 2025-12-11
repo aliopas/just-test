@@ -7,7 +7,7 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useNews, useNewsById, useNewsBySlug, useNewsCount, type NewsItem } from './useSupabaseTables';
 import { getStoragePublicUrl, getStorageSignedUrl, NEWS_IMAGES_BUCKET } from '../utils/supabase-storage';
-import type { InvestorInternalNewsAttachment, InvestorInternalNewsListResponse } from '../types/news';
+import type { InvestorInternalNewsAttachment, InvestorInternalNewsListResponse, InvestorInternalNewsDetail } from '../types/news';
 
 // Helper function to create excerpt from markdown
 function createExcerpt(bodyMd: string, maxLength: number = 150): string {
@@ -393,6 +393,43 @@ export function useInvestorInternalNewsList(options?: {
  * Hook لجلب تفاصيل خبر داخلي واحد
  */
 export function useInvestorInternalNewsDetail(newsId?: string | null) {
-  return useInvestorNewsDetail(newsId); // نفس الـ hook، فقط audience مختلف
+  const { data: newsItem, isLoading, isError, error } = useNewsById(newsId || '');
+
+  return useQuery<InvestorInternalNewsDetail>({
+    queryKey: ['investorInternalNews', 'detail', newsId],
+    queryFn: async () => {
+      if (!newsItem) {
+        throw new Error('News not found');
+      }
+
+      // Parse attachments for internal news
+      const attachments = await parseAttachments(newsItem.attachments, true);
+
+      // Get cover URL if cover_key exists
+      let coverUrl: string | null = null;
+      if (newsItem.cover_key) {
+        try {
+          // For internal news, cover images might be in news-covers bucket (public) or internal-news-assets (private)
+          // Try public first, then signed URL if needed
+          coverUrl = getStoragePublicUrl(NEWS_IMAGES_BUCKET, newsItem.cover_key);
+        } catch (error) {
+          console.warn('Failed to get cover URL:', error);
+        }
+      }
+
+      return {
+        id: newsItem.id,
+        title: newsItem.title,
+        slug: newsItem.slug,
+        bodyMd: newsItem.body_md,
+        coverKey: newsItem.cover_key,
+        publishedAt: newsItem.published_at || newsItem.created_at,
+        createdAt: newsItem.created_at,
+        updatedAt: newsItem.updated_at,
+        attachments,
+      };
+    },
+    enabled: Boolean(newsId) && typeof window !== 'undefined',
+  });
 }
 
