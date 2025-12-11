@@ -1,13 +1,15 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.43.5';
 
 Deno.serve(async (req) => {
+  // Enhanced CORS headers
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, accept',
     'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS',
     'Access-Control-Max-Age': '86400',
   };
 
+  // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
     return new Response(null, {
       status: 200,
@@ -94,7 +96,20 @@ Deno.serve(async (req) => {
       );
     }
 
-    const body = await req.json();
+    // Parse request body safely
+    let body: any = {};
+    try {
+      const bodyText = await req.text();
+      if (bodyText && bodyText.trim()) {
+        body = JSON.parse(bodyText);
+      }
+    } catch (parseError) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON in request body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { email, phone, fullName, role, status, locale, investorProfile } = body;
 
     // Fetch current user data
