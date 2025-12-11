@@ -21,14 +21,29 @@ async function fetchAdminDashboardStatsDirect(): Promise<AdminDashboardStats> {
     throw new Error('يجب تسجيل الدخول كـ admin لعرض لوحة التحكم');
   }
 
+  console.log('[AdminDashboard] Fetching stats for user:', {
+    userId: authData.user.id,
+    email: authData.user.email,
+  });
+
   // Fetch status counts
   const statusResult = await supabase
     .from('requests')
     .select('status');
 
   if (statusResult.error) {
+    console.error('[AdminDashboard] Error fetching status counts:', {
+      error: statusResult.error.message,
+      code: statusResult.error.code,
+      hint: statusResult.error.hint,
+      details: statusResult.error.details,
+    });
     throw new Error(`خطأ في جلب إحصائيات الحالة: ${statusResult.error.message}`);
   }
+
+  console.log('[AdminDashboard] Status counts fetched successfully:', {
+    count: statusResult.data?.length ?? 0,
+  });
 
   // Process status summary
   const statusCounts: Record<string, number> = {};
@@ -70,6 +85,14 @@ async function fetchAdminDashboardStatsDirect(): Promise<AdminDashboardStats> {
     .lt('updated_at', stuckThreshold)
     .order('updated_at', { ascending: true })
     .limit(15);
+
+  if (stuckResult.error) {
+    console.warn('[AdminDashboard] Error fetching stuck requests:', {
+      error: stuckResult.error.message,
+      code: stuckResult.error.code,
+    });
+    // Continue with empty array instead of throwing
+  }
 
   const stuckRequests = (stuckResult.data ?? []).map((row: any) => ({
     id: row.id,

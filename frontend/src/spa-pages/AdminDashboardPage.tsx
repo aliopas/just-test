@@ -108,9 +108,10 @@ export function AdminDashboardPage() {
               padding: '0.85rem 1rem',
               borderRadius: radius.md,
               background: '#FEF2F2',
-              color: palette.error,
-              fontSize: typography.sizes.caption,
               border: `1px solid ${palette.error}33`,
+              color: palette.error,
+              marginBottom: '1rem',
+              fontSize: typography.sizes.caption,
             }}
           >
             {tAdminDashboard('toast.error', language)}

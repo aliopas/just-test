@@ -145,10 +145,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // User is authenticated via Supabase
       if (userRecord) {
         // We have the full user record - use it (database is source of truth for role)
+        const determinedRole = userRecord.role === 'admin' ? 'admin' : 'investor';
+        
+        console.log('[AuthContext] Updating user from database:', {
+          userId: supabaseUser.id,
+          userRecordRole: userRecord.role,
+          determinedRole,
+        });
+        
         const authUser: AuthUser = {
           id: supabaseUser.id,
           email: supabaseUser.email || userRecord.email,
-          role: (userRecord.role === 'admin' ? 'admin' : 'investor') as UserRole,
+          role: determinedRole as UserRole,
         };
         
         // Only update if role changed to avoid unnecessary re-renders
@@ -156,6 +164,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (prev?.id === authUser.id && prev?.role === authUser.role) {
             return prev; // No change
           }
+          console.log('[AuthContext] Role changed:', {
+            from: prev?.role,
+            to: authUser.role,
+            userId: authUser.id,
+          });
           return authUser;
         });
         

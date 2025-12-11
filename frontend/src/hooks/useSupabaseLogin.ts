@@ -78,17 +78,27 @@ export function useSupabaseLogin() {
           .eq('id', data.user.id)
           .maybeSingle(); // استخدام maybeSingle بدلاً من single لتجنب الأخطاء
 
-        if (!userError && userData?.role) {
+        if (!userError && userData) {
+          console.log('[Login] User data from database:', {
+            userId: data.user.id,
+            role: userData.role,
+          });
+          
           if (userData.role === 'admin') {
             userRole = 'admin';
-            console.log('[Login] Role from database column:', userRole);
+            console.log('[Login] ✅ Role from database column: admin');
+          } else {
+            console.log('[Login] Role from database column:', userData.role || 'null', '(defaulting to investor)');
           }
         } else if (userError) {
-          console.warn('[Login] Failed to fetch role from users table (RLS or other issue):', {
+          console.warn('[Login] ❌ Failed to fetch role from users table (RLS or other issue):', {
             error: userError.message,
             code: userError.code,
             hint: userError.hint,
+            userId: data.user.id,
           });
+        } else {
+          console.warn('[Login] ⚠️ No user data returned from database (userData is null)');
         }
 
         // ثانياً: إذا لم نجد admin في عمود role، تحقق من جدول user_roles (RBAC)
@@ -105,20 +115,35 @@ export function useSupabaseLogin() {
               .eq('user_id', data.user.id);
 
             if (!rolesError && userRolesData && userRolesData.length > 0) {
+              console.log('[Login] User roles data:', userRolesData);
+              
               // التحقق من وجود role 'admin' في user_roles
-              const hasAdminRole = userRolesData.some((ur: any) => 
-                ur.roles?.name === 'admin' || ur.roles?.slug === 'admin'
-              );
+              const hasAdminRole = userRolesData.some((ur: any) => {
+                const roleName = ur.roles?.name;
+                const roleSlug = ur.roles?.slug;
+                const isAdmin = roleName === 'admin' || roleSlug === 'admin';
+                
+                if (isAdmin) {
+                  console.log('[Login] Found admin role:', { roleName, roleSlug });
+                }
+                
+                return isAdmin;
+              });
               
               if (hasAdminRole) {
                 userRole = 'admin';
-                console.log('[Login] Role from user_roles table (RBAC):', userRole);
+                console.log('[Login] ✅ Role from user_roles table (RBAC): admin');
+              } else {
+                console.log('[Login] No admin role found in user_roles, roles:', userRolesData.map((ur: any) => ur.roles?.name || ur.roles?.slug));
               }
             } else if (rolesError) {
-              console.warn('[Login] Failed to fetch role from user_roles table:', {
+              console.warn('[Login] ❌ Failed to fetch role from user_roles table:', {
                 error: rolesError.message,
                 code: rolesError.code,
+                userId: data.user.id,
               });
+            } else {
+              console.log('[Login] No roles found in user_roles table for user');
             }
           } catch (rolesErr) {
             console.warn('[Login] Exception fetching user roles from user_roles table:', rolesErr);
@@ -133,9 +158,33 @@ export function useSupabaseLogin() {
         const userMetadataRole = (data.user.user_metadata as { role?: string })?.role;
         const appMetadataRole = (data.user.app_metadata as { role?: string })?.role;
         
+        console.log('[Login] Checking metadata for role:', {
+          userMetadataRole,
+          appMetadataRole,
+        });
+        
         if (userMetadataRole === 'admin' || appMetadataRole === 'admin') {
           userRole = 'admin';
-          console.log('[Login] Role from metadata:', userRole);
+          console.log('[Login] ✅ Role from metadata: admin');
+        } else {
+          console.log('[Login] No admin role in metadata, defaulting to investor');
+        }
+      }
+      
+      // محاولة أخيرة: قراءة role من JWT token إذا كان متاحاً
+      if (userRole === 'investor' && data.session?.access_token) {
+        try {
+          // Decode JWT token (base64)
+          const payload = JSON.parse(atob(data.session.access_token.split('.')[1]));
+          const tokenRole = payload.role || payload.user_role || payload.app_metadata?.role || payload.user_metadata?.role;
+          
+          if (tokenRole === 'admin') {
+            userRole = 'admin';
+            console.log('[Login] ✅ Role from JWT token: admin');
+          }
+        } catch (e) {
+          // Ignore JWT decode errors
+          console.warn('[Login] Could not decode JWT token:', e);
         }
       }
 
@@ -146,12 +195,25 @@ export function useSupabaseLogin() {
         role: userRole,
       });
 
-      // تحديث حالة المستخدم في AuthContext
+      // تحديث حالة المستخدم في AuthContext أولاً
       setUser({
         id: data.user.id,
         email: data.user.email || '',
         role: userRole,
       });
+
+      // حفظ role في localStorage فوراً للتأكد من أنه متاح
+      if (typeof window !== 'undefined') {
+        try {
+          window.localStorage.setItem('auth_user', JSON.stringify({
+            id: data.user.id,
+            email: data.user.email || '',
+            role: userRole,
+          }));
+        } catch (e) {
+          console.warn('[Login] Failed to save user to localStorage:', e);
+        }
+      }
 
       return {
         user: {
@@ -169,6 +231,10 @@ export function useSupabaseLogin() {
         role: data.user.role,
       });
 
+      // التأكد من أن role محدث قبل التوجيه
+      const userRole = data.user.role || 'investor';
+      console.log('[Login] Redirecting with role:', userRole);
+
       // التوجيه حسب الدور بعد نجاح تسجيل الدخول
       const redirectPath = typeof window !== 'undefined' 
         ? sessionStorage.getItem('redirectAfterLogin')
@@ -176,18 +242,26 @@ export function useSupabaseLogin() {
 
       if (redirectPath) {
         sessionStorage.removeItem('redirectAfterLogin');
-        router.push(redirectPath);
+        // تأخير بسيط للتأكد من تحديث AuthContext
+        setTimeout(() => {
+          router.replace(redirectPath);
+        }, 100);
         return;
       }
 
       // التوجيه الافتراضي حسب الدور
       // Admin → لوحة تحكم الأدمن | Investor → لوحة تحكم المستثمر
-      const dashboardPath = data.user.role === 'admin' 
+      const dashboardPath = userRole === 'admin' 
         ? '/admin/dashboard' 
         : '/dashboard';
       
-      // استخدام replace بدلاً من push لتجنب إضافة صفحة تسجيل الدخول للتاريخ
-      router.replace(dashboardPath);
+      console.log('[Login] Redirecting to:', dashboardPath, 'for role:', userRole);
+      
+      // تأخير بسيط للتأكد من تحديث AuthContext قبل التوجيه
+      setTimeout(() => {
+        // استخدام replace بدلاً من push لتجنب إضافة صفحة تسجيل الدخول للتاريخ
+        router.replace(dashboardPath);
+      }, 100);
     },
     onError: (error: LoginError | Error | unknown) => {
       console.error('[Login] خطأ في تسجيل الدخول:', error);
