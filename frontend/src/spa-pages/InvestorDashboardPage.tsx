@@ -47,6 +47,20 @@ export function InvestorDashboardPage() {
   const formatNumber = (value: number) =>
     new Intl.NumberFormat(isArabic ? 'ar-SA' : 'en-US').format(value);
 
+  const summary: DashboardRequestSummary | undefined = data?.requestSummary;
+  const recent = data?.recentRequests ?? [];
+  const pendingItems = data?.pendingActions.items ?? [];
+  const insights = data?.insights;
+
+  // Calculate statistics
+  const underReviewCount = (summary?.byStatus.submitted ?? 0) +
+    (summary?.byStatus.screening ?? 0) +
+    (summary?.byStatus.pending_info ?? 0) +
+    (summary?.byStatus.compliance_review ?? 0);
+
+  const approvedCompletedCount = (summary?.byStatus.approved ?? 0) +
+    (summary?.byStatus.completed ?? 0);
+
   // Show loading skeleton
   if (!mounted || isLoading) {
     return <DashboardSkeleton isArabic={isArabic} direction={direction} />;
@@ -314,6 +328,246 @@ export function InvestorDashboardPage() {
                 : `Last updated: ${formatDateTime(data.generatedAt)}`}
             </div>
           )}
+        </section>
+
+        {/* Summary cards */}
+        <section
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
+            gap: '1.25rem',
+            animation: 'slideUp 0.5s ease-out',
+          }}
+        >
+          <SummaryCard
+            title={isArabic ? 'إجمالي الطلبات' : 'Total Requests'}
+            value={summary?.total ?? 0}
+            highlight
+            icon="📊"
+          />
+
+          <SummaryCard
+            title={isArabic ? 'قيد المراجعة' : 'Under Review'}
+            value={underReviewCount}
+            icon="⏳"
+            color={palette.brandSecondary}
+          />
+
+          <SummaryCard
+            title={isArabic ? 'معتمدة / مكتملة' : 'Approved / Completed'}
+            value={approvedCompletedCount}
+            icon="✅"
+            color="#10B981"
+          />
+
+          <SummaryCard
+            title={isArabic ? 'تنبيهات غير مقروءة' : 'Unread Alerts'}
+            value={unreadNotificationCount}
+            icon="🔔"
+            color={unreadNotificationCount ? '#F59E0B' : palette.textSecondary}
+            badge={unreadNotificationCount > 0 ? unreadNotificationCount : undefined}
+          />
+        </section>
+
+        {/* Recent requests + pending actions */}
+        <section
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))',
+            gap: '1.5rem',
+            animation: 'slideUp 0.6s ease-out',
+          }}
+        >
+          {/* Recent requests */}
+          <div
+            style={{
+              padding: '1.25rem 1.5rem',
+              borderRadius: radius.lg,
+              background: palette.backgroundBase,
+              boxShadow: shadow.subtle,
+              border: `1px solid ${palette.neutralBorderMuted}`,
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '0.75rem',
+              }}
+            >
+              <h2
+                style={{
+                  margin: 0,
+                  fontSize: '1.1rem',
+                  fontWeight: typography.weights.semibold,
+                  color: palette.textPrimary,
+                }}
+              >
+                {isArabic ? 'آخر الطلبات' : 'Recent Requests'}
+              </h2>
+              <a
+                href="/my-requests"
+                style={{
+                  fontSize: '0.85rem',
+                  color: palette.brandPrimaryStrong,
+                  textDecoration: 'none',
+                  fontWeight: 500,
+                }}
+              >
+                {isArabic ? 'عرض الكل →' : 'View All →'}
+              </a>
+            </div>
+
+            {recent.length === 0 ? (
+              <p
+                style={{
+                  margin: 0,
+                  padding: '1rem 0.25rem',
+                  fontSize: '0.9rem',
+                  color: palette.textSecondary,
+                }}
+              >
+                {isArabic
+                  ? 'لا توجد طلبات حديثة.'
+                  : 'No recent requests.'}
+              </p>
+            ) : (
+              <ul
+                style={{
+                  listStyle: 'none',
+                  margin: 0,
+                  padding: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.65rem',
+                }}
+              >
+                {recent.map(item => (
+                  <RecentRequestItem
+                    key={item.id}
+                    item={item}
+                    language={language}
+                    formatCurrency={formatCurrency}
+                    formatDateTime={formatDateTime}
+                  />
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* Pending actions */}
+          <div
+            style={{
+              padding: '1.25rem 1.5rem',
+              borderRadius: radius.lg,
+              background: palette.backgroundBase,
+              boxShadow: shadow.subtle,
+              border: `1px solid ${palette.neutralBorderMuted}`,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.75rem',
+            }}
+          >
+            <h2
+              style={{
+                margin: 0,
+                fontSize: '1.1rem',
+                fontWeight: typography.weights.semibold,
+                color: palette.textPrimary,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+              }}
+            >
+              {isArabic ? 'إجراءات مطلوبة' : 'Pending Actions'}
+              {pendingItems.length > 0 && (
+                <span
+                  style={{
+                    padding: '0.25rem 0.6rem',
+                    borderRadius: '999px',
+                    background: '#FEF2F2',
+                    color: '#DC2626',
+                    fontSize: '0.75rem',
+                    fontWeight: typography.weights.bold,
+                  }}
+                >
+                  {pendingItems.length}
+                </span>
+              )}
+            </h2>
+            {pendingItems.length === 0 ? (
+              <p
+                style={{
+                  margin: 0,
+                  padding: '0.5rem 0',
+                  fontSize: '0.9rem',
+                  color: palette.textSecondary,
+                }}
+              >
+                {isArabic
+                  ? 'لا توجد عناصر تتطلب إجراء حالياً.'
+                  : 'No items require your action at the moment.'}
+              </p>
+            ) : (
+              <ul
+                style={{
+                  listStyle: 'none',
+                  margin: 0,
+                  padding: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.5rem',
+                }}
+              >
+                {pendingItems.map(item => (
+                  <li
+                    key={item.id}
+                    style={{
+                      borderRadius: radius.md,
+                      border: `1px solid ${palette.neutralBorderMuted}`,
+                      padding: '0.6rem 0.75rem',
+                      background: palette.backgroundHighlight,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.25rem',
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: '0.9rem',
+                        color: palette.textPrimary,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {isArabic ? 'طلب' : 'Request'} #{item.requestNumber}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '0.8rem',
+                        color: palette.textSecondary,
+                      }}
+                    >
+                      {isArabic
+                        ? `آخر تحديث: ${formatDateTime(item.updatedAt)}`
+                        : `Last updated: ${formatDateTime(item.updatedAt)}`}
+                    </span>
+                    <a
+                      href={`/requests/${item.id}`}
+                      style={{
+                        fontSize: '0.8rem',
+                        color: palette.brandPrimaryStrong,
+                        textDecoration: 'none',
+                        fontWeight: 500,
+                      }}
+                    >
+                      {isArabic ? 'فتح التفاصيل →' : 'View Details →'}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </section>
       </div>
       
