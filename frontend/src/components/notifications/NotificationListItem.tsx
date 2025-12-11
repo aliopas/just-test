@@ -1,6 +1,7 @@
 import type { InvestorLanguage } from '../../types/investor';
 import type { NotificationItem } from '../../types/notification';
 import { tNotifications } from '../../locales/notifications';
+import { palette, radius, shadow, typography } from '../../styles/theme';
 
 type NotificationListItemProps = {
   notification: NotificationItem;
@@ -79,100 +80,183 @@ export function NotificationListItem({
       ? payload.note
       : null;
 
+  // Get icon based on notification type
+  const getNotificationIcon = (type: string) => {
+    const icons: Record<string, string> = {
+      request_pending: '📋',
+      request_approved: '✅',
+      request_rejected: '❌',
+      request_pending_info: 'ℹ️',
+      request_status_changed: '🔄',
+      chat_message: '💬',
+      system: '⚙️',
+    };
+    return icons[type] || '🔔';
+  };
+
   return (
     <article
       style={{
-        borderRadius: '1.25rem',
+        borderRadius: radius.lg,
         border: isUnread
-          ? '1px solid var(--color-brand-primary-soft)'
-          : '1px solid var(--color-border)',
+          ? `2px solid ${palette.brandPrimary}`
+          : `1px solid ${palette.neutralBorderMuted}`,
         backgroundColor: isUnread
-          ? 'rgba(37, 99, 235, 0.06)'
-          : 'var(--color-background-surface)',
-        padding: '1.35rem 1.5rem',
+          ? `${palette.brandPrimary}08`
+          : palette.backgroundBase,
+        padding: '1.5rem 1.75rem',
         display: 'flex',
         flexDirection: 'column',
-        gap: '0.75rem',
-        transition: 'background-color 0.2s ease, border-color 0.2s ease',
+        gap: '1rem',
+        transition: 'all 0.2s ease',
+        boxShadow: isUnread ? shadow.medium : shadow.subtle,
+        position: 'relative',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = palette.brandPrimaryStrong;
+        e.currentTarget.style.boxShadow = shadow.medium;
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.backgroundColor = isUnread
+          ? `${palette.brandPrimary}12`
+          : palette.backgroundSurface;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = isUnread
+          ? palette.brandPrimary
+          : palette.neutralBorderMuted;
+        e.currentTarget.style.boxShadow = isUnread ? shadow.medium : shadow.subtle;
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.backgroundColor = isUnread
+          ? `${palette.brandPrimary}08`
+          : palette.backgroundBase;
       }}
     >
+      {isUnread && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '1rem',
+            [direction === 'rtl' ? 'right' : 'left']: '1rem',
+            width: '8px',
+            height: '8px',
+            borderRadius: '50%',
+            backgroundColor: palette.brandPrimaryStrong,
+            boxShadow: `0 0 0 4px ${palette.brandPrimary}20`,
+            animation: 'pulse-dot 2s ease-in-out infinite',
+          }}
+          aria-hidden="true"
+        />
+      )}
       <header
         style={{
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'center',
+          alignItems: 'flex-start',
           flexWrap: 'wrap',
-          gap: '0.75rem',
+          gap: '1rem',
         }}
       >
         <div
           style={{
             display: 'flex',
-            flexDirection: 'column',
-            gap: '0.25rem',
-            maxWidth: '80%',
+            alignItems: 'flex-start',
+            gap: '1rem',
+            flex: 1,
+            minWidth: 0,
           }}
         >
-          <span
+          <div
             style={{
-              fontSize: '0.75rem',
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              color: isUnread
-                ? 'var(--color-brand-primary-strong)'
-                : 'var(--color-text-tertiary)',
-              fontWeight: 700,
+              fontSize: '2rem',
+              lineHeight: 1,
+              flexShrink: 0,
+              marginTop: '0.25rem',
+            }}
+            aria-hidden="true"
+          >
+            {getNotificationIcon(notification.type)}
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.5rem',
+              flex: 1,
+              minWidth: 0,
             }}
           >
-            {createdAtLabel}
-          </span>
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              padding: '0.2rem 0.75rem',
-              borderRadius: '999px',
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              backgroundColor: isUnread
-                ? 'rgba(37, 99, 235, 0.12)'
-                : 'rgba(34, 197, 94, 0.12)',
-              color: isUnread
-                ? 'var(--color-brand-primary-strong)'
-                : 'var(--color-success-strong, #166534)',
-              width: 'fit-content',
-            }}
-          >
-            <span
+            <div
               style={{
-                display: 'inline-block',
-                width: '0.5rem',
-                height: '0.5rem',
-                borderRadius: '50%',
-                backgroundColor: isUnread
-                  ? 'var(--color-brand-primary-strong)'
-                  : 'var(--color-success-strong, #166534)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                flexWrap: 'wrap',
               }}
-            />
-            {isUnread
-              ? language === 'ar'
-                ? 'غير مقروء'
-                : 'Unread'
-              : language === 'ar'
-                ? 'مقروء'
-                : 'Read'}
-          </span>
-          <h3
-            style={{
-              margin: 0,
-              fontSize: '1.05rem',
-              color: 'var(--color-text-primary)',
-              fontWeight: 700,
-            }}
-          >
-            {title}
-          </h3>
+            >
+              <span
+                style={{
+                  fontSize: typography.sizes.caption,
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase',
+                  color: isUnread
+                    ? palette.brandPrimaryStrong
+                    : palette.textMuted,
+                  fontWeight: typography.weights.bold,
+                }}
+              >
+                {createdAtLabel}
+              </span>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.25rem 0.75rem',
+                  borderRadius: radius.pill,
+                  fontSize: typography.sizes.caption,
+                  fontWeight: typography.weights.semibold,
+                  backgroundColor: isUnread
+                    ? `${palette.brandPrimary}15`
+                    : `${palette.success}15`,
+                  color: isUnread
+                    ? palette.brandPrimaryStrong
+                    : palette.success,
+                  border: `1px solid ${isUnread ? palette.brandPrimary : palette.success}30`,
+                  width: 'fit-content',
+                }}
+              >
+                <span
+                  style={{
+                    display: 'inline-block',
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    backgroundColor: isUnread
+                      ? palette.brandPrimaryStrong
+                      : palette.success,
+                  }}
+                />
+                {isUnread
+                  ? language === 'ar'
+                    ? 'غير مقروء'
+                    : 'Unread'
+                  : language === 'ar'
+                    ? 'مقروء'
+                    : 'Read'}
+              </span>
+            </div>
+            <h3
+              style={{
+                margin: 0,
+                fontSize: typography.sizes.subheading,
+                color: palette.textPrimary,
+                fontWeight: typography.weights.bold,
+                lineHeight: typography.lineHeights.tight,
+              }}
+            >
+              {title}
+            </h3>
+          </div>
         </div>
 
         {onMarkRead && isUnread && (
@@ -181,19 +265,45 @@ export function NotificationListItem({
             onClick={() => onMarkRead(notification.id)}
             disabled={isMarking}
             style={{
-              padding: '0.45rem 0.9rem',
-              borderRadius: '999px',
-              border: '1px solid var(--color-brand-primary-strong)',
+              padding: '0.65rem 1.25rem',
+              borderRadius: radius.md,
+              border: `1px solid ${palette.brandPrimaryStrong}`,
               backgroundColor: isMarking
-                ? 'var(--color-brand-primary-soft)'
-                : '#ffffff',
-              color: 'var(--color-brand-primary-strong)',
-              fontWeight: 600,
-              cursor: isMarking ? 'progress' : 'pointer',
+                ? palette.backgroundHighlight
+                : palette.backgroundBase,
+              color: palette.brandPrimaryStrong,
+              fontWeight: typography.weights.semibold,
+              fontSize: typography.sizes.body,
+              cursor: isMarking ? 'not-allowed' : 'pointer',
               direction,
+              transition: 'all 0.2s ease',
+              boxShadow: shadow.subtle,
+              opacity: isMarking ? 0.7 : 1,
+            }}
+            onMouseEnter={(e) => {
+              if (!isMarking) {
+                e.currentTarget.style.backgroundColor = palette.brandPrimaryStrong;
+                e.currentTarget.style.color = palette.textOnBrand;
+                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.boxShadow = shadow.medium;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isMarking) {
+                e.currentTarget.style.backgroundColor = palette.backgroundBase;
+                e.currentTarget.style.color = palette.brandPrimaryStrong;
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = shadow.subtle;
+              }
             }}
           >
-            {language === 'ar' ? 'تحديد كمقروء' : 'Mark as read'}
+            {isMarking
+              ? language === 'ar'
+                ? 'جاري...'
+                : 'Marking...'
+              : language === 'ar'
+                ? 'تحديد كمقروء'
+                : 'Mark as read'}
           </button>
         )}
       </header>
@@ -201,9 +311,9 @@ export function NotificationListItem({
       <p
         style={{
           margin: 0,
-          color: 'var(--color-text-secondary)',
-          fontSize: '0.95rem',
-          lineHeight: 1.6,
+          color: palette.textSecondary,
+          fontSize: typography.sizes.body,
+          lineHeight: typography.lineHeights.relaxed,
         }}
       >
         {description}
@@ -213,16 +323,20 @@ export function NotificationListItem({
         <blockquote
           style={{
             margin: 0,
-            padding: '0.9rem 1rem',
-            borderRadius: '1rem',
-            backgroundColor: 'rgba(99, 102, 241, 0.08)',
-            border: '1px solid rgba(79, 70, 229, 0.2)',
-            color: 'var(--color-text-secondary)',
-            fontSize: '0.9rem',
+            padding: '1rem 1.25rem',
+            borderRadius: radius.md,
+            backgroundColor: `${palette.brandPrimary}08`,
+            border: `1px solid ${palette.brandPrimary}30`,
+            color: palette.textSecondary,
+            fontSize: typography.sizes.body,
             direction,
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '0.75rem',
           }}
         >
-          {infoMessage}
+          <span style={{ fontSize: '1.25rem', lineHeight: 1, flexShrink: 0 }}>ℹ️</span>
+          <span style={{ flex: 1 }}>{infoMessage}</span>
         </blockquote>
       ) : null}
 
@@ -230,18 +344,36 @@ export function NotificationListItem({
         <blockquote
           style={{
             margin: 0,
-            padding: '0.85rem 1rem',
-            borderRadius: '1rem',
-            backgroundColor: 'rgba(34, 197, 94, 0.08)',
-            border: '1px solid rgba(21, 128, 61, 0.2)',
-            color: 'var(--color-text-secondary)',
-            fontSize: '0.88rem',
+            padding: '1rem 1.25rem',
+            borderRadius: radius.md,
+            backgroundColor: `${palette.success}08`,
+            border: `1px solid ${palette.success}30`,
+            color: palette.textSecondary,
+            fontSize: typography.sizes.body,
             direction,
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '0.75rem',
           }}
         >
-          {decisionNote}
+          <span style={{ fontSize: '1.25rem', lineHeight: 1, flexShrink: 0 }}>📝</span>
+          <span style={{ flex: 1 }}>{decisionNote}</span>
         </blockquote>
       ) : null}
+      <style>
+        {`
+          @keyframes pulse-dot {
+            0%, 100% {
+              opacity: 1;
+              transform: scale(1);
+            }
+            50% {
+              opacity: 0.7;
+              transform: scale(1.2);
+            }
+          }
+        `}
+      </style>
     </article>
   );
 }

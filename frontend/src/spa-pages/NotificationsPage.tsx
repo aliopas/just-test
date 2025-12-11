@@ -62,26 +62,41 @@ export function NotificationsPage() {
             justifyContent: 'space-between',
             alignItems: 'flex-start',
             flexWrap: 'wrap',
-            gap: '1rem',
+            gap: '1.5rem',
+            padding: '1.5rem',
+            borderRadius: radius.lg,
+            background: `linear-gradient(135deg, ${palette.backgroundBase} 0%, ${palette.backgroundSurface} 100%)`,
+            border: `1px solid ${palette.neutralBorderMuted}`,
+            boxShadow: shadow.subtle,
           }}
         >
-          <div>
-            <h1
+          <div style={{ flex: 1 }}>
+            <div
               style={{
-                margin: 0,
-                fontSize: 'clamp(1.5rem, 4vw, 2rem)',
-                fontWeight: typography.weights.bold,
-                color: palette.textPrimary,
-                marginBottom: '0.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '1rem',
+                marginBottom: '0.75rem',
               }}
             >
-              {isArabic ? 'الإشعارات' : 'Notifications'}
-            </h1>
+              <span style={{ fontSize: '2.5rem', lineHeight: 1 }}>🔔</span>
+              <h1
+                style={{
+                  margin: 0,
+                  fontSize: 'clamp(1.5rem, 4vw, 2rem)',
+                  fontWeight: typography.weights.bold,
+                  color: palette.textPrimary,
+                }}
+              >
+                {isArabic ? 'الإشعارات' : 'Notifications'}
+              </h1>
+            </div>
             <p
               style={{
                 margin: 0,
                 fontSize: typography.sizes.body,
                 color: palette.textSecondary,
+                paddingLeft: '3.5rem',
               }}
             >
               {isArabic
@@ -95,17 +110,35 @@ export function NotificationsPage() {
               onClick={handleMarkAllRead}
               disabled={markAllReadMutation.isPending}
               style={{
-                padding: '0.65rem 1.25rem',
+                padding: '0.75rem 1.5rem',
                 borderRadius: radius.md,
-                border: `1px solid ${palette.brandPrimaryStrong}`,
-                background: palette.brandPrimaryStrong,
+                border: `2px solid ${palette.brandPrimaryStrong}`,
+                background: markAllReadMutation.isPending
+                  ? palette.backgroundHighlight
+                  : `linear-gradient(135deg, ${palette.brandPrimaryStrong} 0%, ${palette.brandPrimary} 100%)`,
                 color: palette.textOnBrand,
                 fontSize: typography.sizes.body,
                 fontWeight: typography.weights.semibold,
                 cursor: markAllReadMutation.isPending ? 'not-allowed' : 'pointer',
                 opacity: markAllReadMutation.isPending ? 0.7 : 1,
+                transition: 'all 0.2s ease',
+                boxShadow: shadow.medium,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+              }}
+              onMouseEnter={(e) => {
+                if (!markAllReadMutation.isPending) {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = shadow.medium;
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = shadow.medium;
               }}
             >
+              <span>{markAllReadMutation.isPending ? '⏳' : '✓'}</span>
               {markAllReadMutation.isPending
                 ? (isArabic ? 'جاري...' : 'Marking...')
                 : isArabic
@@ -122,54 +155,143 @@ export function NotificationsPage() {
             gap: '0.75rem',
             flexWrap: 'wrap',
             alignItems: 'center',
+            padding: '1rem 1.5rem',
+            borderRadius: radius.lg,
+            background: palette.backgroundBase,
+            border: `1px solid ${palette.neutralBorderMuted}`,
+            boxShadow: shadow.subtle,
           }}
         >
           <button
             type="button"
-            onClick={() => setStatusFilter('all')}
+            onClick={() => {
+              setStatusFilter('all');
+              setPage(1);
+            }}
             style={{
-              padding: '0.5rem 1rem',
+              padding: '0.65rem 1.25rem',
               borderRadius: radius.md,
-              border: `1px solid ${statusFilter === 'all' ? palette.brandPrimaryStrong : palette.neutralBorderMuted}`,
-              background: statusFilter === 'all' ? palette.backgroundHighlight : palette.backgroundBase,
+              border: `2px solid ${statusFilter === 'all' ? palette.brandPrimaryStrong : palette.neutralBorderMuted}`,
+              background: statusFilter === 'all'
+                ? `${palette.brandPrimary}08`
+                : palette.backgroundSurface,
               color: statusFilter === 'all' ? palette.brandPrimaryStrong : palette.textSecondary,
               fontSize: typography.sizes.body,
-              fontWeight: statusFilter === 'all' ? typography.weights.semibold : typography.weights.regular,
+              fontWeight: statusFilter === 'all' ? typography.weights.semibold : typography.weights.medium,
               cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}
+            onMouseEnter={(e) => {
+              if (statusFilter !== 'all') {
+                e.currentTarget.style.borderColor = palette.brandPrimary;
+                e.currentTarget.style.backgroundColor = palette.backgroundHighlight;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (statusFilter !== 'all') {
+                e.currentTarget.style.borderColor = palette.neutralBorderMuted;
+                e.currentTarget.style.backgroundColor = palette.backgroundSurface;
+              }
             }}
           >
+            <span>📋</span>
             {isArabic ? 'الكل' : 'All'} ({meta.total})
           </button>
           <button
             type="button"
-            onClick={() => setStatusFilter('unread')}
+            onClick={() => {
+              setStatusFilter('unread');
+              setPage(1);
+            }}
             style={{
-              padding: '0.5rem 1rem',
+              padding: '0.65rem 1.25rem',
               borderRadius: radius.md,
-              border: `1px solid ${statusFilter === 'unread' ? palette.brandPrimaryStrong : palette.neutralBorderMuted}`,
-              background: statusFilter === 'unread' ? palette.backgroundHighlight : palette.backgroundBase,
+              border: `2px solid ${statusFilter === 'unread' ? palette.brandPrimaryStrong : palette.neutralBorderMuted}`,
+              background: statusFilter === 'unread'
+                ? `${palette.brandPrimary}08`
+                : palette.backgroundSurface,
               color: statusFilter === 'unread' ? palette.brandPrimaryStrong : palette.textSecondary,
               fontSize: typography.sizes.body,
-              fontWeight: statusFilter === 'unread' ? typography.weights.semibold : typography.weights.regular,
+              fontWeight: statusFilter === 'unread' ? typography.weights.semibold : typography.weights.medium,
               cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              position: 'relative',
+            }}
+            onMouseEnter={(e) => {
+              if (statusFilter !== 'unread') {
+                e.currentTarget.style.borderColor = palette.brandPrimary;
+                e.currentTarget.style.backgroundColor = palette.backgroundHighlight;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (statusFilter !== 'unread') {
+                e.currentTarget.style.borderColor = palette.neutralBorderMuted;
+                e.currentTarget.style.backgroundColor = palette.backgroundSurface;
+              }
             }}
           >
+            <span>🔔</span>
             {isArabic ? 'غير مقروء' : 'Unread'} ({meta.unreadCount})
+            {meta.unreadCount > 0 && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '-6px',
+                  right: language === 'ar' ? '-6px' : 'auto',
+                  left: language === 'ar' ? 'auto' : '-6px',
+                  width: '12px',
+                  height: '12px',
+                  borderRadius: '50%',
+                  backgroundColor: palette.error,
+                  border: `2px solid ${palette.backgroundBase}`,
+                  animation: 'pulse 2s ease-in-out infinite',
+                }}
+                aria-hidden="true"
+              />
+            )}
           </button>
           <button
             type="button"
-            onClick={() => setStatusFilter('read')}
+            onClick={() => {
+              setStatusFilter('read');
+              setPage(1);
+            }}
             style={{
-              padding: '0.5rem 1rem',
+              padding: '0.65rem 1.25rem',
               borderRadius: radius.md,
-              border: `1px solid ${statusFilter === 'read' ? palette.brandPrimaryStrong : palette.neutralBorderMuted}`,
-              background: statusFilter === 'read' ? palette.backgroundHighlight : palette.backgroundBase,
-              color: statusFilter === 'read' ? palette.brandPrimaryStrong : palette.textSecondary,
+              border: `2px solid ${statusFilter === 'read' ? palette.success : palette.neutralBorderMuted}`,
+              background: statusFilter === 'read'
+                ? `${palette.success}08`
+                : palette.backgroundSurface,
+              color: statusFilter === 'read' ? palette.success : palette.textSecondary,
               fontSize: typography.sizes.body,
-              fontWeight: statusFilter === 'read' ? typography.weights.semibold : typography.weights.regular,
+              fontWeight: statusFilter === 'read' ? typography.weights.semibold : typography.weights.medium,
               cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}
+            onMouseEnter={(e) => {
+              if (statusFilter !== 'read') {
+                e.currentTarget.style.borderColor = palette.success;
+                e.currentTarget.style.backgroundColor = `${palette.success}08`;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (statusFilter !== 'read') {
+                e.currentTarget.style.borderColor = palette.neutralBorderMuted;
+                e.currentTarget.style.backgroundColor = palette.backgroundSurface;
+              }
             }}
           >
+            <span>✓</span>
             {isArabic ? 'مقروء' : 'Read'} ({meta.total - meta.unreadCount})
           </button>
         </div>
@@ -225,7 +347,7 @@ export function NotificationsPage() {
             style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: '1rem',
+              gap: '1.25rem',
             }}
           >
             {notifications.map(notification => (
@@ -300,6 +422,20 @@ export function NotificationsPage() {
           </div>
         )}
       </div>
+      <style>
+        {`
+          @keyframes pulse {
+            0%, 100% {
+              opacity: 1;
+              transform: scale(1);
+            }
+            50% {
+              opacity: 0.7;
+              transform: scale(1.1);
+            }
+          }
+        `}
+      </style>
     </div>
   );
 }
