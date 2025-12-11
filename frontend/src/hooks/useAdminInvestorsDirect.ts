@@ -55,61 +55,8 @@ async function fetchAdminInvestorsDirect(
   const limit = filters.limit ?? 25;
   const offset = (page - 1) * limit;
 
-  // Step 1: Get all investor_profiles to create a map for later lookup
-  const { data: investorProfiles, error: investorProfilesError } = await supabase
-    .from('investor_profiles')
-    .select('user_id, full_name, preferred_name, kyc_status');
-
-  // If we can't fetch profiles, continue with empty map (users without profiles will have null values)
-  const profilesMap = new Map(
-    (investorProfiles ?? []).map(p => [p.user_id, p])
-  );
-
-  if (investorProfilesError) {
-    console.warn('[useAdminInvestorsDirect] Could not fetch investor profiles:', investorProfilesError);
-    // Continue anyway - we'll just show users without profile data
-  }
-
-  // Debug logging
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[useAdminInvestorsDirect] Found investor profiles:', {
-      count: profilesMap.size,
-    });
-  }
-
-  // Step 2: If search includes profile names or KYC filter, find matching user IDs first
-  let searchUserIds: string[] | null = null;
-  let kycMatchingUserIds: string[] | null = null;
-
-  if (filters.search && filters.search.trim().length > 0) {
-    const searchTerm = filters.search.trim().toLowerCase();
-    // Find profiles matching the search term
-    const matchingProfileUserIds: string[] = [];
-    profilesMap.forEach((profile, userId) => {
-      if (
-        (profile.full_name && profile.full_name.toLowerCase().includes(searchTerm)) ||
-        (profile.preferred_name && profile.preferred_name.toLowerCase().includes(searchTerm))
-      ) {
-        matchingProfileUserIds.push(userId);
-      }
-    });
-    
-    if (matchingProfileUserIds.length > 0) {
-      searchUserIds = matchingProfileUserIds;
-    }
-  }
-
-  // Get user IDs with matching KYC status if filter is applied
-  if (filters.kycStatus && filters.kycStatus !== 'all') {
-    kycMatchingUserIds = [];
-    profilesMap.forEach((profile, userId) => {
-      if (profile.kyc_status === filters.kycStatus) {
-        kycMatchingUserIds!.push(userId);
-      }
-    });
-  }
-
-  // Step 3: Query investors from users table (role = 'investor')
+  // Step 1: Query investors from users table (role = 'investor')
+  // Simplified: Just get all investors first, we'll filter client-side
   let query = supabase
     .from('users')
     .select('id, email, phone, phone_cc, status, created_at, updated_at', { count: 'exact' })
@@ -120,59 +67,10 @@ async function fetchAdminInvestorsDirect(
     query = query.eq('status', filters.status);
   }
 
-  // Combine search and KYC filters
-  let finalUserIds: string[] | null = null;
-  
-  if (searchUserIds && kycMatchingUserIds) {
-    // Intersect both filters
-    finalUserIds = searchUserIds.filter(id => kycMatchingUserIds!.includes(id));
-    if (finalUserIds.length === 0) {
-      // No intersection, return empty result
-      return {
-        investors: [],
-        meta: {
-          page,
-          limit,
-          total: 0,
-          pageCount: 0,
-          hasNext: false,
-          hasPrev: false,
-        },
-      };
-    }
-  } else if (searchUserIds) {
-    finalUserIds = searchUserIds;
-  } else if (kycMatchingUserIds) {
-    finalUserIds = kycMatchingUserIds;
-    if (finalUserIds.length === 0) {
-      // No users match KYC filter, return empty result
-      return {
-        investors: [],
-        meta: {
-          page,
-          limit,
-          total: 0,
-          pageCount: 0,
-          hasNext: false,
-          hasPrev: false,
-        },
-      };
-    }
-  }
-
-  // Apply user ID filter if we have one
-  if (finalUserIds && finalUserIds.length > 0) {
-    query = query.in('id', finalUserIds);
-  }
-
-  // Apply search filter on email/phone (in addition to profile name search)
+  // Apply search filter on email/phone (profile name search will be done client-side)
   if (filters.search && filters.search.trim().length > 0) {
     const pattern = `%${filters.search.trim()}%`;
-    // If we already have user IDs from profile search, we need to combine
-    // For now, we'll search in email/phone and filter results later
-    if (!finalUserIds) {
     query = query.or(`email.ilike.${pattern},phone.ilike.${pattern}`);
-    }
   }
 
   // Apply sorting
@@ -188,10 +86,19 @@ async function fetchAdminInvestorsDirect(
     console.error('[useAdminInvestorsDirect] Error fetching users:', usersError);
     console.error('[useAdminInvestorsDirect] Query details:', {
       filters,
-      finalUserIds: finalUserIds?.length,
       hasSearch: !!filters.search,
       hasKycFilter: filters.kycStatus !== 'all',
+      errorCode: usersError.code,
+      errorMessage: usersError.message,
+      errorDetails: usersError.details,
+      errorHint: usersError.hint,
     });
+    
+    // Check if it's an RLS policy error
+    if (usersError.code === '42501' || usersError.message?.includes('permission denied') || usersError.message?.includes('policy')) {
+      throw new Error(`خطأ في الصلاحيات: لا يمكنك الوصول إلى بيانات المستخدمين. تأكد من أن لديك صلاحيات الإدارة.`);
+    }
+    
     throw new Error(`خطأ في جلب المستخدمين: ${usersError.message}`);
   }
 
@@ -206,9 +113,28 @@ async function fetchAdminInvestorsDirect(
 
   let userRows = (users as any[] | null) ?? [];
 
-  // Step 4: Apply additional client-side filtering for search (profile names)
-  // This handles cases where search matches profile names but we couldn't filter at query level
-  if (filters.search && filters.search.trim().length > 0 && !searchUserIds) {
+  // Step 2: Fetch profiles for the users we got
+  const profilesMap = new Map<string, { user_id: string; full_name: string | null; preferred_name: string | null; kyc_status: string | null }>();
+  
+  if (userRows.length > 0) {
+    const userIds = userRows.map(u => u.id);
+    const { data: userProfiles, error: profilesError } = await supabase
+      .from('investor_profiles')
+      .select('user_id, full_name, preferred_name, kyc_status')
+      .in('user_id', userIds);
+    
+    if (!profilesError && userProfiles) {
+      userProfiles.forEach(p => {
+        profilesMap.set(p.user_id, p);
+      });
+    } else if (profilesError) {
+      console.warn('[useAdminInvestorsDirect] Could not fetch investor profiles:', profilesError);
+      // Continue without profiles - users will show without profile data
+    }
+  }
+
+  // Step 3: Apply client-side filtering for search (profile names)
+  if (filters.search && filters.search.trim().length > 0) {
     const searchTerm = filters.search.trim().toLowerCase();
     userRows = userRows.filter((user) => {
       const profile = profilesMap.get(user.id);
@@ -220,8 +146,20 @@ async function fetchAdminInvestorsDirect(
       return matchesEmail || matchesPhone || matchesFullName || matchesPreferredName;
     });
   }
+  
+  // Step 4: Apply KYC filter client-side
+  if (filters.kycStatus && filters.kycStatus !== 'all') {
+    userRows = userRows.filter((user) => {
+      const profile = profilesMap.get(user.id);
+      // If no profile, exclude from results unless KYC status is null and filter is 'pending'
+      if (!profile) {
+        return filters.kycStatus === 'pending'; // null kyc_status can be considered pending
+      }
+      return profile.kyc_status === filters.kycStatus;
+    });
+  }
 
-  // Step 5: Transform to InvestorListItem format
+  // Step 6: Transform to InvestorListItem format
   const investors: InvestorListItem[] = userRows.map((user) => {
     const profile = profilesMap.get(user.id);
     
