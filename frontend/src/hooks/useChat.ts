@@ -34,11 +34,11 @@ async function fetchConversationsFromSupabase(
   const offset = (page - 1) * limit;
 
   let query = supabase
-    .from('chat_conversations')
+    .from('conversations')
     .select('*', { count: 'exact' });
 
   if (role === 'investor') {
-    query = query.eq('user_id', userId);
+    query = query.eq('investor_id', userId);
   }
   // Admin can see all conversations (no filter needed - RLS policy handles access)
 
@@ -55,7 +55,7 @@ async function fetchConversationsFromSupabase(
 
   const conversations = (data || []).map(conv => ({
     id: conv.id,
-    investorId: conv.user_id,
+    investorId: conv.investor_id,
     adminId: conv.admin_id,
     lastMessageAt: conv.last_message_at,
     createdAt: conv.created_at,
@@ -92,15 +92,15 @@ async function fetchConversationsFromSupabase(
 
       // Get unread count
       const { count: unreadCount } = await supabase
-        .from('chat_messages')
+        .from('messages')
         .select('id', { count: 'exact', head: true })
         .eq('conversation_id', conv.id)
-        .eq('is_read', false)
+        .is('read_at', null)
         .neq('sender_id', userId);
 
       // Get last message
       const { data: lastMessageData } = await supabase
-        .from('chat_messages')
+        .from('messages')
         .select('*')
         .eq('conversation_id', conv.id)
         .order('created_at', { ascending: false })
@@ -111,8 +111,8 @@ async function fetchConversationsFromSupabase(
         id: lastMessageData.id,
         conversationId: lastMessageData.conversation_id,
         senderId: lastMessageData.sender_id,
-        content: lastMessageData.message,
-        readAt: lastMessageData.is_read ? lastMessageData.updated_at : null,
+        content: lastMessageData.content,
+        readAt: lastMessageData.read_at || null,
         createdAt: lastMessageData.created_at,
       } : undefined;
 
@@ -145,7 +145,7 @@ async function fetchMessagesFromSupabase(
   const offset = (page - 1) * limit;
 
   const { data, error, count } = await supabase
-    .from('chat_messages')
+    .from('messages')
     .select('*', { count: 'exact' })
     .eq('conversation_id', conversationId)
     .order('created_at', { ascending: false })
@@ -159,8 +159,8 @@ async function fetchMessagesFromSupabase(
     id: msg.id,
     conversationId: msg.conversation_id,
     senderId: msg.sender_id,
-    content: msg.message,
-    readAt: msg.is_read ? msg.updated_at : null,
+    content: msg.content,
+    readAt: msg.read_at || null,
     createdAt: msg.created_at,
   }));
 
@@ -190,7 +190,7 @@ function useMessagesRealtime(conversationId: string | undefined) {
         {
           event: '*',
           schema: 'public',
-          table: 'chat_messages',
+          table: 'messages',
           filter: `conversation_id=eq.${conversationId}`,
         },
         () => {
@@ -235,7 +235,7 @@ function useConversationsRealtime(userId: string | undefined) {
         {
           event: '*',
           schema: 'public',
-          table: 'chat_conversations',
+          table: 'conversations',
         },
         () => {
           queryClient.invalidateQueries({ queryKey: CONVERSATIONS_QUERY_KEY });
@@ -359,9 +359,9 @@ export function useSendMessage() {
 
         // Try to find existing conversation
         let query = supabase
-          .from('chat_conversations')
+          .from('conversations')
           .select('*')
-          .eq('user_id', investorId);
+          .eq('investor_id', investorId);
 
         if (adminId) {
           query = query.eq('admin_id', adminId);
@@ -376,9 +376,9 @@ export function useSendMessage() {
         } else {
           // Create new conversation
           const { data: created, error: createError } = await supabase
-            .from('chat_conversations')
+            .from('conversations')
             .insert({
-              user_id: investorId,
+              investor_id: investorId,
               admin_id: adminId || null,
             })
             .select()
@@ -394,8 +394,8 @@ export function useSendMessage() {
 
       // Verify access to conversation
       const { data: conv, error: convError } = await supabase
-        .from('chat_conversations')
-        .select('user_id, admin_id')
+        .from('conversations')
+        .select('investor_id, admin_id')
         .eq('id', conversationId)
         .single();
 
@@ -403,17 +403,17 @@ export function useSendMessage() {
         throw new Error('Conversation not found');
       }
 
-      if (conv.user_id !== userId && conv.admin_id !== userId) {
+      if (conv.investor_id !== userId && conv.admin_id !== userId) {
         throw new Error('Access denied');
       }
 
       // Create message
       const { data: messageData, error: messageError } = await supabase
-        .from('chat_messages')
+        .from('messages')
         .insert({
           conversation_id: conversationId,
           sender_id: userId,
-          message: payload.content.trim(),
+          content: payload.content.trim(),
         })
         .select()
         .single();
@@ -426,28 +426,28 @@ export function useSendMessage() {
         id: messageData.id,
         conversationId: messageData.conversation_id,
         senderId: messageData.sender_id,
-        content: messageData.message,
-        readAt: messageData.is_read ? messageData.updated_at : null,
+        content: messageData.content,
+        readAt: messageData.read_at || null,
         createdAt: messageData.created_at,
       };
 
       // Get updated conversation
       const { data: updatedConv } = await supabase
-        .from('chat_conversations')
+        .from('conversations')
         .select('*')
         .eq('id', conversationId)
         .single();
 
       const conversation: Conversation = updatedConv ? {
         id: updatedConv.id,
-        investorId: updatedConv.user_id,
+        investorId: updatedConv.investor_id,
         adminId: updatedConv.admin_id,
         lastMessageAt: updatedConv.last_message_at,
         createdAt: updatedConv.created_at,
         updatedAt: updatedConv.updated_at,
       } : {
         id: conversationId,
-        investorId: conv.user_id,
+        investorId: conv.investor_id,
         adminId: conv.admin_id || null,
         lastMessageAt: null,
         createdAt: new Date().toISOString(),
@@ -479,8 +479,8 @@ export function useMarkMessagesRead() {
 
       // Verify access
       const { data: conv, error: convError } = await supabase
-        .from('chat_conversations')
-        .select('user_id, admin_id')
+        .from('conversations')
+        .select('investor_id, admin_id')
         .eq('id', conversationId)
         .single();
 
@@ -488,16 +488,16 @@ export function useMarkMessagesRead() {
         throw new Error('Conversation not found');
       }
 
-      if (conv.user_id !== userId && conv.admin_id !== userId) {
+      if (conv.investor_id !== userId && conv.admin_id !== userId) {
         throw new Error('Access denied');
       }
 
       // Mark all messages from other users as read
       const { data, error } = await supabase
-        .from('chat_messages')
-        .update({ is_read: true })
+        .from('messages')
+        .update({ read_at: new Date().toISOString() })
         .eq('conversation_id', conversationId)
-        .eq('is_read', false)
+        .is('read_at', null)
         .neq('sender_id', userId)
         .select();
 
