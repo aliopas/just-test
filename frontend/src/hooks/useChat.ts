@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   keepPreviousData,
   useMutation,
@@ -6,7 +6,6 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '../utils/supabase-client';
-import { getCurrentUserIdFromToken } from '../utils/auth-token';
 import { useAuth } from '../context/AuthContext';
 import type {
   Conversation,
@@ -264,9 +263,26 @@ export function useConversations(page?: number, limit?: number) {
     [page, limit]
   );
 
-  const userId = getCurrentUserIdFromToken();
   const { user } = useAuth();
   const role = user?.role === 'admin' ? 'admin' : 'investor';
+  const supabase = getSupabaseBrowserClient();
+  const [userId, setUserId] = useState<string | undefined>(undefined);
+
+  // Get user ID from Supabase session
+  useEffect(() => {
+    if (!supabase) {
+      setUserId(undefined);
+      return;
+    }
+
+    supabase.auth.getUser().then(({ data: { user: supabaseUser }, error }) => {
+      if (!error && supabaseUser) {
+        setUserId(supabaseUser.id);
+      } else {
+        setUserId(undefined);
+      }
+    });
+  }, [supabase]);
   
   useConversationsRealtime(userId);
 
@@ -332,7 +348,6 @@ export function useMessages(conversationId: string | undefined, page?: number, l
 
 export function useSendMessage() {
   const queryClient = useQueryClient();
-  const userId = getCurrentUserIdFromToken();
   const { user } = useAuth();
 
   return useMutation({
@@ -341,9 +356,13 @@ export function useSendMessage() {
       if (!supabase) {
         throw new Error('Supabase client not available');
       }
-      if (!userId) {
-        throw new Error('User ID required');
+
+      // Get current user from Supabase session
+      const { data: { user: supabaseUser }, error: userError } = await supabase.auth.getUser();
+      if (userError || !supabaseUser) {
+        throw new Error('User not authenticated');
       }
+      const userId = supabaseUser.id;
 
       let conversationId = payload.conversationId;
 
@@ -465,7 +484,6 @@ export function useSendMessage() {
 
 export function useMarkMessagesRead() {
   const queryClient = useQueryClient();
-  const userId = getCurrentUserIdFromToken();
 
   return useMutation({
     mutationFn: async (conversationId: string) => {
@@ -473,9 +491,13 @@ export function useMarkMessagesRead() {
       if (!supabase) {
         throw new Error('Supabase client not available');
       }
-      if (!userId) {
-        throw new Error('User ID required');
+
+      // Get current user from Supabase session
+      const { data: { user: supabaseUser }, error: userError } = await supabase.auth.getUser();
+      if (userError || !supabaseUser) {
+        throw new Error('User not authenticated');
       }
+      const userId = supabaseUser.id;
 
       // Verify access
       const { data: conv, error: convError } = await supabase
