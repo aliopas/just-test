@@ -1,27 +1,58 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
 import { useConversations, useInvestorsForChat } from '../../hooks/useChat';
 import { ChatWindow } from './ChatWindow';
+import { Avatar } from './Avatar';
 import { palette, radius, shadow, typography } from '../../styles/theme';
-import type { Conversation } from '../../types/chat';
+import type { Conversation, ConversationWithParticipant } from '../../types/chat';
 
 interface ChatModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+function formatTime(dateString: string | null | undefined): string {
+  if (!dateString) return '';
+  
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return 'now';
+  if (diffMins < 60) return `${diffMins}m`;
+  if (diffHours < 24) return `${diffHours}h`;
+  if (diffDays < 7) return `${diffDays}d`;
+  
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
 export function ChatModal({ isOpen, onClose }: ChatModalProps) {
   const { language, direction } = useLanguage();
   const { user } = useAuth();
   const isArabic = language === 'ar';
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [selectedConversation, setSelectedConversation] = useState<ConversationWithParticipant | Conversation | null>(null);
   const [activeTab, setActiveTab] = useState<'conversations' | 'users'>('conversations');
   const [userSearch, setUserSearch] = useState('');
-  const { conversations, isLoading } = useConversations();
+  const { conversations, isLoading, error, isError } = useConversations();
   const { data: investors, isLoading: isLoadingInvestors } = useInvestorsForChat(
     user?.role === 'admin' ? userSearch : undefined
   );
+
+  // Debug logging
+  useEffect(() => {
+    console.log('[ChatModal] Conversations state:', {
+      conversations: conversations.length,
+      isLoading,
+      isError,
+      error: error instanceof Error ? error.message : error,
+      user: user?.id,
+      role: user?.role,
+    });
+  }, [conversations, isLoading, isError, error, user]);
 
   if (!isOpen) {
     return null;
@@ -30,11 +61,8 @@ export function ChatModal({ isOpen, onClose }: ChatModalProps) {
   // Get or create conversation for investor
   const getOrCreateConversation = (): Conversation | null => {
     if (user?.role === 'admin') {
-      // Admin can select from list
       return null;
     }
-    // Investor uses first conversation or creates new one
-    // If no conversation exists, create a placeholder that will be created on first message
     return conversations[0] || (user?.id ? {
       id: '',
       investorId: user.id,
@@ -50,12 +78,10 @@ export function ChatModal({ isOpen, onClose }: ChatModalProps) {
   };
 
   const handleUserSelect = (investorId: string) => {
-    // Find existing conversation or create placeholder
     const existingConv = conversations.find(c => c.investorId === investorId);
     if (existingConv) {
       setSelectedConversation(existingConv);
     } else {
-      // Create placeholder conversation that will be created on first message
       setSelectedConversation({
         id: '',
         investorId,
@@ -82,13 +108,15 @@ export function ChatModal({ isOpen, onClose }: ChatModalProps) {
         left: 0,
         right: 0,
         bottom: 0,
-        background: 'rgba(0, 0, 0, 0.5)',
+        background: 'rgba(0, 0, 0, 0.6)',
+        backdropFilter: 'blur(4px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 1000,
         padding: '1rem',
         direction,
+        animation: 'fadeIn 0.2s ease-out',
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
@@ -96,10 +124,22 @@ export function ChatModal({ isOpen, onClose }: ChatModalProps) {
         }
       }}
     >
+      <style>
+        {`
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+          }
+        `}
+      </style>
       <div
         style={{
           width: '100%',
-          maxWidth: '800px',
+          maxWidth: '900px',
           maxHeight: '90vh',
           background: palette.backgroundBase,
           borderRadius: radius.lg,
@@ -107,56 +147,72 @@ export function ChatModal({ isOpen, onClose }: ChatModalProps) {
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
+          animation: 'slideUp 0.3s ease-out',
         }}
         onClick={(e) => e.stopPropagation()}
       >
         {user?.role === 'admin' && !currentConversation ? (
-          // Admin conversation list and users list
           <div
             style={{
               display: 'flex',
               flexDirection: 'column',
-              height: '600px',
-              maxHeight: '80vh',
+              height: '650px',
+              maxHeight: '85vh',
             }}
           >
+            {/* Header */}
             <div
               style={{
-                padding: '1rem 1.5rem',
+                padding: '1.25rem 1.5rem',
                 borderBottom: `1px solid ${palette.neutralBorderMuted}`,
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                background: palette.backgroundSurface,
+                background: `linear-gradient(135deg, ${palette.backgroundSurface} 0%, ${palette.backgroundBase} 100%)`,
               }}
             >
-              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flex: 1 }}>
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flex: 1 }}>
                 <button
                   type="button"
                   onClick={() => setActiveTab('conversations')}
                   style={{
-                    padding: '0.5rem 1rem',
+                    padding: '0.625rem 1.25rem',
                     border: 'none',
-                    background: activeTab === 'conversations' ? palette.brandPrimary : 'transparent',
+                    background: activeTab === 'conversations' 
+                      ? `linear-gradient(135deg, ${palette.brandPrimary} 0%, ${palette.brandPrimaryStrong} 100%)`
+                      : 'transparent',
                     color: activeTab === 'conversations' ? '#ffffff' : palette.textSecondary,
                     cursor: 'pointer',
                     borderRadius: radius.md,
-                    fontWeight: typography.weights.medium,
+                    fontWeight: typography.weights.semibold,
+                    fontSize: typography.sizes.body,
+                    transition: 'all 0.2s ease',
+                    boxShadow: activeTab === 'conversations' ? shadow.subtle : 'none',
                   }}
                 >
                   {isArabic ? 'المحادثات' : 'Conversations'}
+                  {conversations.length > 0 && (
+                    <span style={{ marginLeft: '0.5rem', opacity: 0.8 }}>
+                      ({conversations.length})
+                    </span>
+                  )}
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveTab('users')}
                   style={{
-                    padding: '0.5rem 1rem',
+                    padding: '0.625rem 1.25rem',
                     border: 'none',
-                    background: activeTab === 'users' ? palette.brandPrimary : 'transparent',
+                    background: activeTab === 'users'
+                      ? `linear-gradient(135deg, ${palette.brandPrimary} 0%, ${palette.brandPrimaryStrong} 100%)`
+                      : 'transparent',
                     color: activeTab === 'users' ? '#ffffff' : palette.textSecondary,
                     cursor: 'pointer',
                     borderRadius: radius.md,
-                    fontWeight: typography.weights.medium,
+                    fontWeight: typography.weights.semibold,
+                    fontSize: typography.sizes.body,
+                    transition: 'all 0.2s ease',
+                    boxShadow: activeTab === 'users' ? shadow.subtle : 'none',
                   }}
                 >
                   {isArabic ? 'جميع المستخدمين' : 'All Users'}
@@ -174,38 +230,83 @@ export function ChatModal({ isOpen, onClose }: ChatModalProps) {
                   borderRadius: radius.md,
                   fontSize: '1.5rem',
                   lineHeight: 1,
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = palette.backgroundSurface;
+                  e.currentTarget.style.color = palette.textPrimary;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.color = palette.textSecondary;
                 }}
               >
                 ×
               </button>
             </div>
+
+            {/* Search Bar */}
             {activeTab === 'users' && (
               <div
                 style={{
-                  padding: '1rem',
+                  padding: '1rem 1.5rem',
                   borderBottom: `1px solid ${palette.neutralBorderMuted}`,
+                  background: palette.backgroundSurface,
                 }}
               >
-                <input
-                  type="text"
-                  placeholder={isArabic ? 'ابحث عن مستخدم...' : 'Search users...'}
-                  value={userSearch}
-                  onChange={(e) => setUserSearch(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    borderRadius: radius.md,
-                    border: `1px solid ${palette.neutralBorderMuted}`,
-                    fontSize: typography.sizes.body,
-                  }}
-                />
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="text"
+                    placeholder={isArabic ? 'ابحث عن مستخدم...' : 'Search users...'}
+                    value={userSearch}
+                    onChange={(e) => setUserSearch(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem 1rem 0.75rem 2.5rem',
+                      borderRadius: radius.md,
+                      border: `1px solid ${palette.neutralBorderMuted}`,
+                      fontSize: typography.sizes.body,
+                      background: palette.backgroundBase,
+                      color: palette.textPrimary,
+                      transition: 'all 0.2s ease',
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = palette.brandPrimary;
+                      e.currentTarget.style.boxShadow = shadow.focus;
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = palette.neutralBorderMuted;
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  />
+                  <span
+                    style={{
+                      position: 'absolute',
+                      left: '0.875rem',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: palette.textSecondary,
+                      fontSize: '1.125rem',
+                    }}
+                  >
+                    🔍
+                  </span>
+                </div>
               </div>
             )}
+
+            {/* Content */}
             <div
               style={{
                 flex: 1,
                 overflowY: 'auto',
                 padding: '1rem',
+                background: palette.backgroundSurface,
               }}
             >
               {activeTab === 'conversations' ? (
@@ -214,95 +315,174 @@ export function ChatModal({ isOpen, onClose }: ChatModalProps) {
                     <div
                       style={{
                         textAlign: 'center',
-                        padding: '2rem',
+                        padding: '3rem',
                         color: palette.textSecondary,
                       }}
                     >
+                      <div
+                        style={{
+                          width: '40px',
+                          height: '40px',
+                          border: `3px solid ${palette.neutralBorderMuted}`,
+                          borderTopColor: palette.brandPrimary,
+                          borderRadius: '50%',
+                          animation: 'spin 1s linear infinite',
+                          margin: '0 auto 1rem',
+                        }}
+                      />
                       {isArabic ? 'جاري التحميل...' : 'Loading...'}
+                    </div>
+                  ) : isError ? (
+                    <div
+                      style={{
+                        textAlign: 'center',
+                        padding: '2rem',
+                        color: palette.error,
+                        background: `${palette.error}15`,
+                        borderRadius: radius.md,
+                        margin: '1rem',
+                      }}
+                    >
+                      {isArabic
+                        ? `خطأ في تحميل المحادثات: ${error instanceof Error ? error.message : 'خطأ غير معروف'}`
+                        : `Error loading conversations: ${error instanceof Error ? error.message : 'Unknown error'}`}
                     </div>
                   ) : conversations.length === 0 ? (
                     <div
                       style={{
                         textAlign: 'center',
-                        padding: '2rem',
+                        padding: '3rem',
                         color: palette.textSecondary,
                       }}
                     >
-                      {isArabic
-                        ? 'لا توجد محادثات'
-                        : 'No conversations'}
+                      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💬</div>
+                      <p style={{ fontSize: typography.sizes.body, margin: 0 }}>
+                        {isArabic ? 'لا توجد محادثات' : 'No conversations'}
+                      </p>
                     </div>
                   ) : (
                     <div
                       style={{
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '0.5rem',
+                        gap: '0.75rem',
                       }}
                     >
-                      {conversations.map((conv) => (
-                        <button
-                          key={conv.id}
-                          type="button"
-                          onClick={() => handleConversationSelect(conv)}
-                          style={{
-                            padding: '1rem',
-                            borderRadius: radius.md,
-                            border: `1px solid ${palette.neutralBorderMuted}`,
-                            background: palette.backgroundBase,
-                            textAlign: 'left',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = palette.backgroundSurface;
-                            e.currentTarget.style.borderColor = palette.brandPrimary;
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = palette.backgroundBase;
-                            e.currentTarget.style.borderColor = palette.neutralBorderMuted;
-                          }}
-                        >
-                          <div
+                      {conversations.map((conv) => {
+                        const participantName = conv.participant?.fullName || conv.participant?.email || 'Unknown';
+                        const participantEmail = conv.participant?.email || '';
+                        const isSelected = Boolean(
+                          selectedConversation && 
+                          conv.id && 
+                          (selectedConversation as Conversation).id === conv.id
+                        );
+                        
+                        return (
+                          <button
+                            key={conv.id || `conv-${conv.investorId}-${conv.adminId}`}
+                            type="button"
+                            onClick={() => handleConversationSelect(conv)}
                             style={{
-                              fontWeight: typography.weights.semibold,
-                              color: palette.textPrimary,
-                              marginBottom: '0.25rem',
+                              padding: '1rem',
+                              borderRadius: radius.lg,
+                              border: `1px solid ${isSelected ? palette.brandPrimary : palette.neutralBorderMuted}`,
+                              background: isSelected 
+                                ? `${palette.brandPrimary}10`
+                                : palette.backgroundBase,
+                              textAlign: 'left',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease',
+                              display: 'flex',
+                              gap: '0.75rem',
+                              alignItems: 'flex-start',
+                              boxShadow: isSelected ? shadow.subtle : 'none',
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!isSelected) {
+                                e.currentTarget.style.background = palette.backgroundSurface;
+                                e.currentTarget.style.borderColor = palette.brandPrimary;
+                                e.currentTarget.style.boxShadow = shadow.subtle;
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!isSelected) {
+                                e.currentTarget.style.background = palette.backgroundBase;
+                                e.currentTarget.style.borderColor = palette.neutralBorderMuted;
+                                e.currentTarget.style.boxShadow = 'none';
+                              }
                             }}
                           >
-                            {conv.participant?.fullName || conv.participant?.email || 'Unknown'}
-                          </div>
-                          {conv.lastMessage && (
-                            <div
-                              style={{
-                                fontSize: typography.sizes.caption,
-                                color: palette.textSecondary,
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                              }}
-                            >
-                              {conv.lastMessage.content}
+                            <Avatar
+                              name={participantName}
+                              email={participantEmail}
+                              size={48}
+                            />
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'flex-start',
+                                  marginBottom: '0.25rem',
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    fontWeight: typography.weights.semibold,
+                                    color: palette.textPrimary,
+                                    fontSize: typography.sizes.body,
+                                  }}
+                                >
+                                  {participantName}
+                                </div>
+                                {conv.lastMessageAt && (
+                                  <span
+                                    style={{
+                                      fontSize: typography.sizes.caption,
+                                      color: palette.textMuted,
+                                      whiteSpace: 'nowrap',
+                                      marginLeft: '0.5rem',
+                                    }}
+                                  >
+                                    {formatTime(conv.lastMessageAt)}
+                                  </span>
+                                )}
+                              </div>
+                              {conv.lastMessage && (
+                                <div
+                                  style={{
+                                    fontSize: typography.sizes.caption,
+                                    color: palette.textSecondary,
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                    marginBottom: '0.25rem',
+                                  }}
+                                >
+                                  {conv.lastMessage.content}
+                                </div>
+                              )}
+                              {conv.unreadCount !== undefined && conv.unreadCount > 0 && (
+                                <div
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    padding: '0.125rem 0.5rem',
+                                    borderRadius: radius.pill,
+                                    background: palette.brandPrimaryStrong,
+                                    color: '#ffffff',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 700,
+                                    marginTop: '0.25rem',
+                                  }}
+                                >
+                                  {conv.unreadCount}
+                                </div>
+                              )}
                             </div>
-                          )}
-                          {conv.unreadCount && conv.unreadCount > 0 && (
-                            <div
-                              style={{
-                                marginTop: '0.5rem',
-                                display: 'inline-block',
-                                padding: '0.25rem 0.5rem',
-                                borderRadius: '999px',
-                                background: palette.brandPrimaryStrong,
-                                color: '#ffffff',
-                                fontSize: '0.75rem',
-                                fontWeight: 700,
-                              }}
-                            >
-                              {conv.unreadCount}
-                            </div>
-                          )}
-                        </button>
-                      ))}
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
                 </>
@@ -312,30 +492,42 @@ export function ChatModal({ isOpen, onClose }: ChatModalProps) {
                     <div
                       style={{
                         textAlign: 'center',
-                        padding: '2rem',
+                        padding: '3rem',
                         color: palette.textSecondary,
                       }}
                     >
+                      <div
+                        style={{
+                          width: '40px',
+                          height: '40px',
+                          border: `3px solid ${palette.neutralBorderMuted}`,
+                          borderTopColor: palette.brandPrimary,
+                          borderRadius: '50%',
+                          animation: 'spin 1s linear infinite',
+                          margin: '0 auto 1rem',
+                        }}
+                      />
                       {isArabic ? 'جاري التحميل...' : 'Loading...'}
                     </div>
                   ) : !investors || investors.length === 0 ? (
                     <div
                       style={{
                         textAlign: 'center',
-                        padding: '2rem',
+                        padding: '3rem',
                         color: palette.textSecondary,
                       }}
                     >
-                      {isArabic
-                        ? 'لا يوجد مستخدمون'
-                        : 'No users found'}
+                      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>👥</div>
+                      <p style={{ fontSize: typography.sizes.body, margin: 0 }}>
+                        {isArabic ? 'لا يوجد مستخدمون' : 'No users found'}
+                      </p>
                     </div>
                   ) : (
                     <div
                       style={{
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '0.5rem',
+                        gap: '0.75rem',
                       }}
                     >
                       {investors.map((investor) => {
@@ -347,43 +539,72 @@ export function ChatModal({ isOpen, onClose }: ChatModalProps) {
                             onClick={() => handleUserSelect(investor.id)}
                             style={{
                               padding: '1rem',
-                              borderRadius: radius.md,
+                              borderRadius: radius.lg,
                               border: `1px solid ${palette.neutralBorderMuted}`,
-                              background: existingConv ? palette.backgroundBase : palette.backgroundSurface,
+                              background: existingConv 
+                                ? `${palette.brandPrimary}08`
+                                : palette.backgroundBase,
                               textAlign: 'left',
                               cursor: 'pointer',
                               transition: 'all 0.2s ease',
+                              display: 'flex',
+                              gap: '0.75rem',
+                              alignItems: 'center',
                             }}
                             onMouseEnter={(e) => {
                               e.currentTarget.style.background = palette.backgroundSurface;
                               e.currentTarget.style.borderColor = palette.brandPrimary;
+                              e.currentTarget.style.boxShadow = shadow.subtle;
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.background = existingConv ? palette.backgroundBase : palette.backgroundSurface;
+                              e.currentTarget.style.background = existingConv 
+                                ? `${palette.brandPrimary}08`
+                                : palette.backgroundBase;
                               e.currentTarget.style.borderColor = palette.neutralBorderMuted;
+                              e.currentTarget.style.boxShadow = 'none';
                             }}
                           >
-                            <div
-                              style={{
-                                fontWeight: typography.weights.semibold,
-                                color: palette.textPrimary,
-                                marginBottom: '0.25rem',
-                              }}
-                            >
-                              {investor.fullName || investor.email}
-                            </div>
-                            <div
-                              style={{
-                                fontSize: typography.sizes.caption,
-                                color: palette.textSecondary,
-                              }}
-                            >
-                              {investor.email}
-                              {existingConv && (
-                                <span style={{ marginLeft: '0.5rem', color: palette.brandPrimary }}>
-                                  ({isArabic ? 'محادثة موجودة' : 'Has conversation'})
-                                </span>
-                              )}
+                            <Avatar
+                              name={investor.fullName}
+                              email={investor.email}
+                              size={48}
+                            />
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div
+                                style={{
+                                  fontWeight: typography.weights.semibold,
+                                  color: palette.textPrimary,
+                                  marginBottom: '0.25rem',
+                                  fontSize: typography.sizes.body,
+                                }}
+                              >
+                                {investor.fullName || investor.email}
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: typography.sizes.caption,
+                                  color: palette.textSecondary,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '0.5rem',
+                                }}
+                              >
+                                <span>{investor.email}</span>
+                                {existingConv && (
+                                  <span
+                                    style={{
+                                      padding: '0.125rem 0.5rem',
+                                      borderRadius: radius.pill,
+                                      background: palette.brandPrimary,
+                                      color: '#ffffff',
+                                      fontSize: '0.7rem',
+                                      fontWeight: 600,
+                                    }}
+                                  >
+                                    {isArabic ? 'محادثة' : 'Chat'}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </button>
                         );
@@ -395,7 +616,6 @@ export function ChatModal({ isOpen, onClose }: ChatModalProps) {
             </div>
           </div>
         ) : currentConversation ? (
-          // Chat window
           <div style={{ position: 'relative' }}>
             {selectedConversation && user?.role === 'admin' && (
               <button
@@ -404,7 +624,7 @@ export function ChatModal({ isOpen, onClose }: ChatModalProps) {
                 style={{
                   position: 'absolute',
                   top: '1rem',
-                  left: '1rem',
+                  [direction === 'rtl' ? 'right' : 'left']: '1rem',
                   zIndex: 10,
                   padding: '0.5rem 1rem',
                   borderRadius: radius.md,
@@ -412,9 +632,23 @@ export function ChatModal({ isOpen, onClose }: ChatModalProps) {
                   background: palette.backgroundBase,
                   color: palette.textPrimary,
                   cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  boxShadow: shadow.subtle,
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = palette.backgroundSurface;
+                  e.currentTarget.style.borderColor = palette.brandPrimary;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = palette.backgroundBase;
+                  e.currentTarget.style.borderColor = palette.neutralBorderMuted;
                 }}
               >
-                ← {isArabic ? 'رجوع' : 'Back'}
+                <span>{direction === 'rtl' ? '→' : '←'}</span>
+                {isArabic ? 'رجوع' : 'Back'}
               </button>
             )}
             <ChatWindow
@@ -423,7 +657,6 @@ export function ChatModal({ isOpen, onClose }: ChatModalProps) {
             />
           </div>
         ) : (
-          // Empty state for investor
           <div
             style={{
               padding: '3rem',
@@ -431,11 +664,18 @@ export function ChatModal({ isOpen, onClose }: ChatModalProps) {
               color: palette.textSecondary,
             }}
           >
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💬</div>
             <p>{isArabic ? 'لا توجد محادثة' : 'No conversation'}</p>
           </div>
         )}
       </div>
+      <style>
+        {`
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}
+      </style>
     </div>
   );
 }
-

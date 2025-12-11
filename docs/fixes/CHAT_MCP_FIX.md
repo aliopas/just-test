@@ -71,10 +71,55 @@ ORDER BY cc.last_message_at DESC;
 
 هناك تحذيرات أمنية حول `search_path` في بعض الدوال، لكنها تحذيرات وليست أخطاء. يمكن معالجتها لاحقاً لتحسين الأمان.
 
+## إصلاح إضافي: مشكلة "User ID required"
+
+### المشكلة
+عند محاولة إرسال رسالة، كان يحدث خطأ:
+```
+Failed to send message: Error: User ID required
+```
+
+### السبب
+الدوال `useSendMessage` و `useMarkMessagesRead` و `useConversations` كانت تعتمد فقط على `supabase.auth.getUser()` للحصول على `userId`. إذا فشل هذا الطلب (مثلاً بسبب انتهاء الجلسة أو مشكلة في الاتصال)، كان `userId` يصبح `undefined`.
+
+### الحل
+تم إضافة fallback mechanism لاستخدام `user.id` من `AuthContext` إذا فشل `supabase.auth.getUser()`:
+
+1. **في `useSendMessage`**: استخدام `user.id` من `AuthContext` كبديل
+2. **في `useMarkMessagesRead`**: نفس الإصلاح
+3. **في `useConversations`**: استخدام `user.id` كقيمة افتراضية وإضافة fallback في `useEffect`
+
+### الكود المحدث
+
+```typescript
+// Get current user from Supabase session, fallback to AuthContext user
+let userId: string | undefined;
+
+try {
+  const { data: { user: supabaseUser }, error: userError } = await supabase.auth.getUser();
+  if (!userError && supabaseUser) {
+    userId = supabaseUser.id;
+  }
+} catch (error) {
+  console.warn('[useSendMessage] Failed to get user from Supabase:', error);
+}
+
+// Fallback to AuthContext user if Supabase auth fails
+if (!userId && user?.id) {
+  userId = user.id;
+}
+
+if (!userId) {
+  throw new Error('User ID required');
+}
+```
+
 ## الحالة النهائية
 
 ✅ **تم إصلاح المشكلة بنجاح**  
 ✅ **نظام الدردشة يعمل بشكل صحيح**  
 ✅ **جميع الرسائل التجريبية تم إدراجها**  
-✅ **الإشعارات تعمل بشكل صحيح**
+✅ **الإشعارات تعمل بشكل صحيح**  
+✅ **تم إصلاح مشكلة "User ID required"**  
+✅ **تم إضافة fallback mechanism للحصول على User ID**
 

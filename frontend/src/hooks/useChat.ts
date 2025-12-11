@@ -98,13 +98,16 @@ async function fetchConversationsFromSupabase(
         .neq('sender_id', userId);
 
       // Get last message
-      const { data: lastMessageData } = await supabase
+      const { data: lastMessageDataArray, error: lastMessageError } = await supabase
         .from('chat_messages')
         .select('*')
         .eq('conversation_id', conv.id)
         .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+        .limit(1);
+
+      const lastMessageData = lastMessageDataArray && lastMessageDataArray.length > 0 
+        ? lastMessageDataArray[0] 
+        : null;
 
       const lastMessage = lastMessageData ? {
         id: lastMessageData.id,
@@ -266,12 +269,13 @@ export function useConversations(page?: number, limit?: number) {
   const { user } = useAuth();
   const role = user?.role === 'admin' ? 'admin' : 'investor';
   const supabase = getSupabaseBrowserClient();
-  const [userId, setUserId] = useState<string | undefined>(undefined);
+  const [userId, setUserId] = useState<string | undefined>(user?.id);
 
-  // Get user ID from Supabase session
+  // Get user ID from Supabase session, fallback to AuthContext user
   useEffect(() => {
     if (!supabase) {
-      setUserId(undefined);
+      // Fallback to AuthContext user if Supabase client not available
+      setUserId(user?.id);
       return;
     }
 
@@ -279,23 +283,42 @@ export function useConversations(page?: number, limit?: number) {
       if (!error && supabaseUser) {
         setUserId(supabaseUser.id);
       } else {
-        setUserId(undefined);
+        // Fallback to AuthContext user if Supabase auth fails
+        setUserId(user?.id);
       }
+    }).catch((error) => {
+      console.warn('[useConversations] Failed to get user from Supabase:', error);
+      // Fallback to AuthContext user
+      setUserId(user?.id);
     });
-  }, [supabase]);
+  }, [supabase, user?.id]);
   
   useConversationsRealtime(userId);
 
   const query = useQuery({
     queryKey,
-    queryFn: () => {
+    queryFn: async () => {
       if (!userId) {
         throw new Error('User ID required');
       }
-      return fetchConversationsFromSupabase(userId, role, page, limit);
+      try {
+        const result = await fetchConversationsFromSupabase(userId, role, page, limit);
+        console.log('[useConversations] Fetched conversations:', {
+          count: result.conversations.length,
+          total: result.total,
+          userId,
+          role,
+        });
+        return result;
+      } catch (error) {
+        console.error('[useConversations] Failed to fetch conversations:', error);
+        throw error;
+      }
     },
     placeholderData: keepPreviousData,
     enabled: Boolean(userId),
+    retry: 2,
+    retryDelay: 1000,
   });
 
   return {
@@ -357,12 +380,26 @@ export function useSendMessage() {
         throw new Error('Supabase client not available');
       }
 
-      // Get current user from Supabase session
-      const { data: { user: supabaseUser }, error: userError } = await supabase.auth.getUser();
-      if (userError || !supabaseUser) {
-        throw new Error('User not authenticated');
+      // Get current user from Supabase session, fallback to AuthContext user
+      let userId: string | undefined;
+      
+      try {
+        const { data: { user: supabaseUser }, error: userError } = await supabase.auth.getUser();
+        if (!userError && supabaseUser) {
+          userId = supabaseUser.id;
+        }
+      } catch (error) {
+        console.warn('[useSendMessage] Failed to get user from Supabase:', error);
       }
-      const userId = supabaseUser.id;
+
+      // Fallback to AuthContext user if Supabase auth fails
+      if (!userId && user?.id) {
+        userId = user.id;
+      }
+
+      if (!userId) {
+        throw new Error('User ID required');
+      }
 
       let conversationId = payload.conversationId;
 
@@ -484,6 +521,7 @@ export function useSendMessage() {
 
 export function useMarkMessagesRead() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (conversationId: string) => {
@@ -492,12 +530,26 @@ export function useMarkMessagesRead() {
         throw new Error('Supabase client not available');
       }
 
-      // Get current user from Supabase session
-      const { data: { user: supabaseUser }, error: userError } = await supabase.auth.getUser();
-      if (userError || !supabaseUser) {
-        throw new Error('User not authenticated');
+      // Get current user from Supabase session, fallback to AuthContext user
+      let userId: string | undefined;
+      
+      try {
+        const { data: { user: supabaseUser }, error: userError } = await supabase.auth.getUser();
+        if (!userError && supabaseUser) {
+          userId = supabaseUser.id;
+        }
+      } catch (error) {
+        console.warn('[useMarkMessagesRead] Failed to get user from Supabase:', error);
       }
-      const userId = supabaseUser.id;
+
+      // Fallback to AuthContext user if Supabase auth fails
+      if (!userId && user?.id) {
+        userId = user.id;
+      }
+
+      if (!userId) {
+        throw new Error('User ID required');
+      }
 
       // Verify access
       const { data: conv, error: convError } = await supabase
