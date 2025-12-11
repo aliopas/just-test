@@ -17,6 +17,7 @@ import type {
 
 const CONVERSATIONS_QUERY_KEY = ['chat', 'conversations'];
 const MESSAGES_QUERY_KEY = ['chat', 'messages'];
+const INVESTORS_QUERY_KEY = ['chat', 'investors'];
 
 // Fetch conversations directly from Supabase
 async function fetchConversationsFromSupabase(
@@ -38,10 +39,8 @@ async function fetchConversationsFromSupabase(
 
   if (role === 'investor') {
     query = query.eq('user_id', userId);
-  } else {
-    // Admin can see all conversations
-    query = query.not('admin_id', 'is', null);
   }
+  // Admin can see all conversations (no filter needed - RLS policy handles access)
 
   query = query
     .order('last_message_at', { ascending: false, nullsFirst: false })
@@ -512,5 +511,59 @@ export function useMarkMessagesRead() {
       queryClient.invalidateQueries({ queryKey: [...MESSAGES_QUERY_KEY, conversationId] });
       queryClient.invalidateQueries({ queryKey: CONVERSATIONS_QUERY_KEY });
     },
+  });
+}
+
+// Fetch all investors for admin to start new conversations
+async function fetchInvestorsForChat(search?: string, limit: number = 50) {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) {
+    throw new Error('Supabase client not available');
+  }
+
+  let query = supabase
+    .from('users')
+    .select('id, email, created_at')
+    .eq('role', 'investor')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (search && search.trim().length > 0) {
+    const pattern = `%${search.trim()}%`;
+    query = query.or(`email.ilike.${pattern}`);
+  }
+
+  const { data: users, error } = await query;
+
+  if (error) {
+    throw new Error(`Failed to fetch investors: ${error.message}`);
+  }
+
+  // Get profile data for each user
+  const investorsWithProfiles = await Promise.all(
+    (users || []).map(async (user) => {
+      const { data: profile } = await supabase
+        .from('investor_profiles')
+        .select('full_name')
+        .eq('user_id', user.id)
+        .single();
+
+      return {
+        id: user.id,
+        email: user.email,
+        fullName: profile?.full_name || undefined,
+      };
+    })
+  );
+
+  return investorsWithProfiles;
+}
+
+export function useInvestorsForChat(search?: string) {
+  return useQuery({
+    queryKey: [...INVESTORS_QUERY_KEY, search ?? ''],
+    queryFn: () => fetchInvestorsForChat(search),
+    enabled: true,
+    staleTime: 30000, // Cache for 30 seconds
   });
 }

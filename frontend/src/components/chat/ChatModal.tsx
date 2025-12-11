@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
-import { useConversations } from '../../hooks/useChat';
+import { useConversations, useInvestorsForChat } from '../../hooks/useChat';
 import { ChatWindow } from './ChatWindow';
 import { palette, radius, shadow, typography } from '../../styles/theme';
 import type { Conversation } from '../../types/chat';
@@ -16,7 +16,12 @@ export function ChatModal({ isOpen, onClose }: ChatModalProps) {
   const { user } = useAuth();
   const isArabic = language === 'ar';
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [activeTab, setActiveTab] = useState<'conversations' | 'users'>('conversations');
+  const [userSearch, setUserSearch] = useState('');
   const { conversations, isLoading } = useConversations();
+  const { data: investors, isLoading: isLoadingInvestors } = useInvestorsForChat(
+    user?.role === 'admin' ? userSearch : undefined
+  );
 
   if (!isOpen) {
     return null;
@@ -44,8 +49,27 @@ export function ChatModal({ isOpen, onClose }: ChatModalProps) {
     setSelectedConversation(conversation);
   };
 
+  const handleUserSelect = (investorId: string) => {
+    // Find existing conversation or create placeholder
+    const existingConv = conversations.find(c => c.investorId === investorId);
+    if (existingConv) {
+      setSelectedConversation(existingConv);
+    } else {
+      // Create placeholder conversation that will be created on first message
+      setSelectedConversation({
+        id: '',
+        investorId,
+        adminId: user?.id || null,
+        lastMessageAt: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+    }
+  };
+
   const handleBack = () => {
     setSelectedConversation(null);
+    setActiveTab('conversations');
   };
 
   const currentConversation = selectedConversation || getOrCreateConversation();
@@ -87,7 +111,7 @@ export function ChatModal({ isOpen, onClose }: ChatModalProps) {
         onClick={(e) => e.stopPropagation()}
       >
         {user?.role === 'admin' && !currentConversation ? (
-          // Admin conversation list
+          // Admin conversation list and users list
           <div
             style={{
               display: 'flex',
@@ -106,16 +130,38 @@ export function ChatModal({ isOpen, onClose }: ChatModalProps) {
                 background: palette.backgroundSurface,
               }}
             >
-              <h3
-                style={{
-                  margin: 0,
-                  fontSize: typography.sizes.heading,
-                  fontWeight: typography.weights.semibold,
-                  color: palette.textPrimary,
-                }}
-              >
-                {isArabic ? 'المحادثات' : 'Conversations'}
-              </h3>
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flex: 1 }}>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('conversations')}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    border: 'none',
+                    background: activeTab === 'conversations' ? palette.brandPrimary : 'transparent',
+                    color: activeTab === 'conversations' ? '#ffffff' : palette.textSecondary,
+                    cursor: 'pointer',
+                    borderRadius: radius.md,
+                    fontWeight: typography.weights.medium,
+                  }}
+                >
+                  {isArabic ? 'المحادثات' : 'Conversations'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('users')}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    border: 'none',
+                    background: activeTab === 'users' ? palette.brandPrimary : 'transparent',
+                    color: activeTab === 'users' ? '#ffffff' : palette.textSecondary,
+                    cursor: 'pointer',
+                    borderRadius: radius.md,
+                    fontWeight: typography.weights.medium,
+                  }}
+                >
+                  {isArabic ? 'جميع المستخدمين' : 'All Users'}
+                </button>
+              </div>
               <button
                 type="button"
                 onClick={onClose}
@@ -133,6 +179,28 @@ export function ChatModal({ isOpen, onClose }: ChatModalProps) {
                 ×
               </button>
             </div>
+            {activeTab === 'users' && (
+              <div
+                style={{
+                  padding: '1rem',
+                  borderBottom: `1px solid ${palette.neutralBorderMuted}`,
+                }}
+              >
+                <input
+                  type="text"
+                  placeholder={isArabic ? 'ابحث عن مستخدم...' : 'Search users...'}
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: radius.md,
+                    border: `1px solid ${palette.neutralBorderMuted}`,
+                    fontSize: typography.sizes.body,
+                  }}
+                />
+              </div>
+            )}
             <div
               style={{
                 flex: 1,
@@ -140,100 +208,189 @@ export function ChatModal({ isOpen, onClose }: ChatModalProps) {
                 padding: '1rem',
               }}
             >
-              {isLoading ? (
-                <div
-                  style={{
-                    textAlign: 'center',
-                    padding: '2rem',
-                    color: palette.textSecondary,
-                  }}
-                >
-                  {isArabic ? 'جاري التحميل...' : 'Loading...'}
-                </div>
-              ) : conversations.length === 0 ? (
-                <div
-                  style={{
-                    textAlign: 'center',
-                    padding: '2rem',
-                    color: palette.textSecondary,
-                  }}
-                >
-                  {isArabic
-                    ? 'لا توجد محادثات'
-                    : 'No conversations'}
-                </div>
-              ) : (
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.5rem',
-                  }}
-                >
-                  {conversations.map((conv) => (
-                    <button
-                      key={conv.id}
-                      type="button"
-                      onClick={() => handleConversationSelect(conv)}
+              {activeTab === 'conversations' ? (
+                <>
+                  {isLoading ? (
+                    <div
                       style={{
-                        padding: '1rem',
-                        borderRadius: radius.md,
-                        border: `1px solid ${palette.neutralBorderMuted}`,
-                        background: palette.backgroundBase,
-                        textAlign: 'left',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = palette.backgroundSurface;
-                        e.currentTarget.style.borderColor = palette.brandPrimary;
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = palette.backgroundBase;
-                        e.currentTarget.style.borderColor = palette.neutralBorderMuted;
+                        textAlign: 'center',
+                        padding: '2rem',
+                        color: palette.textSecondary,
                       }}
                     >
-                      <div
-                        style={{
-                          fontWeight: typography.weights.semibold,
-                          color: palette.textPrimary,
-                          marginBottom: '0.25rem',
-                        }}
-                      >
-                        {conv.participant?.fullName || conv.participant?.email || 'Unknown'}
-                      </div>
-                      {conv.lastMessage && (
-                        <div
+                      {isArabic ? 'جاري التحميل...' : 'Loading...'}
+                    </div>
+                  ) : conversations.length === 0 ? (
+                    <div
+                      style={{
+                        textAlign: 'center',
+                        padding: '2rem',
+                        color: palette.textSecondary,
+                      }}
+                    >
+                      {isArabic
+                        ? 'لا توجد محادثات'
+                        : 'No conversations'}
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.5rem',
+                      }}
+                    >
+                      {conversations.map((conv) => (
+                        <button
+                          key={conv.id}
+                          type="button"
+                          onClick={() => handleConversationSelect(conv)}
                           style={{
-                            fontSize: typography.sizes.caption,
-                            color: palette.textSecondary,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
+                            padding: '1rem',
+                            borderRadius: radius.md,
+                            border: `1px solid ${palette.neutralBorderMuted}`,
+                            background: palette.backgroundBase,
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = palette.backgroundSurface;
+                            e.currentTarget.style.borderColor = palette.brandPrimary;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = palette.backgroundBase;
+                            e.currentTarget.style.borderColor = palette.neutralBorderMuted;
                           }}
                         >
-                          {conv.lastMessage.content}
-                        </div>
-                      )}
-                      {conv.unreadCount && conv.unreadCount > 0 && (
-                        <div
-                          style={{
-                            marginTop: '0.5rem',
-                            display: 'inline-block',
-                            padding: '0.25rem 0.5rem',
-                            borderRadius: '999px',
-                            background: palette.brandPrimaryStrong,
-                            color: '#ffffff',
-                            fontSize: '0.75rem',
-                            fontWeight: 700,
-                          }}
-                        >
-                          {conv.unreadCount}
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
+                          <div
+                            style={{
+                              fontWeight: typography.weights.semibold,
+                              color: palette.textPrimary,
+                              marginBottom: '0.25rem',
+                            }}
+                          >
+                            {conv.participant?.fullName || conv.participant?.email || 'Unknown'}
+                          </div>
+                          {conv.lastMessage && (
+                            <div
+                              style={{
+                                fontSize: typography.sizes.caption,
+                                color: palette.textSecondary,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              {conv.lastMessage.content}
+                            </div>
+                          )}
+                          {conv.unreadCount && conv.unreadCount > 0 && (
+                            <div
+                              style={{
+                                marginTop: '0.5rem',
+                                display: 'inline-block',
+                                padding: '0.25rem 0.5rem',
+                                borderRadius: '999px',
+                                background: palette.brandPrimaryStrong,
+                                color: '#ffffff',
+                                fontSize: '0.75rem',
+                                fontWeight: 700,
+                              }}
+                            >
+                              {conv.unreadCount}
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  {isLoadingInvestors ? (
+                    <div
+                      style={{
+                        textAlign: 'center',
+                        padding: '2rem',
+                        color: palette.textSecondary,
+                      }}
+                    >
+                      {isArabic ? 'جاري التحميل...' : 'Loading...'}
+                    </div>
+                  ) : !investors || investors.length === 0 ? (
+                    <div
+                      style={{
+                        textAlign: 'center',
+                        padding: '2rem',
+                        color: palette.textSecondary,
+                      }}
+                    >
+                      {isArabic
+                        ? 'لا يوجد مستخدمون'
+                        : 'No users found'}
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.5rem',
+                      }}
+                    >
+                      {investors.map((investor) => {
+                        const existingConv = conversations.find(c => c.investorId === investor.id);
+                        return (
+                          <button
+                            key={investor.id}
+                            type="button"
+                            onClick={() => handleUserSelect(investor.id)}
+                            style={{
+                              padding: '1rem',
+                              borderRadius: radius.md,
+                              border: `1px solid ${palette.neutralBorderMuted}`,
+                              background: existingConv ? palette.backgroundBase : palette.backgroundSurface,
+                              textAlign: 'left',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = palette.backgroundSurface;
+                              e.currentTarget.style.borderColor = palette.brandPrimary;
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = existingConv ? palette.backgroundBase : palette.backgroundSurface;
+                              e.currentTarget.style.borderColor = palette.neutralBorderMuted;
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontWeight: typography.weights.semibold,
+                                color: palette.textPrimary,
+                                marginBottom: '0.25rem',
+                              }}
+                            >
+                              {investor.fullName || investor.email}
+                            </div>
+                            <div
+                              style={{
+                                fontSize: typography.sizes.caption,
+                                color: palette.textSecondary,
+                              }}
+                            >
+                              {investor.email}
+                              {existingConv && (
+                                <span style={{ marginLeft: '0.5rem', color: palette.brandPrimary }}>
+                                  ({isArabic ? 'محادثة موجودة' : 'Has conversation'})
+                                </span>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
