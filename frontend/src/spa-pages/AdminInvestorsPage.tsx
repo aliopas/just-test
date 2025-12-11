@@ -9,7 +9,6 @@ import {
 import { CreateUserModal } from '../components/admin/users/CreateUserModal';
 import { EditUserModal } from '../components/admin/users/EditUserModal';
 import { DeleteUserDialog } from '../components/admin/users/DeleteUserDialog';
-import { useAdminUsers } from '../hooks/useAdminUsers';
 import type { AdminUser } from '../types/admin-users';
 
 export function AdminInvestorsPage() {
@@ -756,7 +755,6 @@ export function AdminInvestorsPage() {
         onClose={() => setEditingUser(null)}
         onSuccess={() => {
           refetch();
-          refetchApiUsers();
           setEditingUser(null);
         }}
       />
@@ -767,7 +765,6 @@ export function AdminInvestorsPage() {
         onClose={() => setDeletingUser(null)}
         onSuccess={() => {
           refetch();
-          refetchApiUsers();
           setDeletingUser(null);
         }}
       />
