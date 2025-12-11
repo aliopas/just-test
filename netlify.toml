@@ -1,8 +1,8 @@
 [build]
-  # Simplified and optimized build command
-  # Install dependencies in parallel where possible, then build
+  # Install dependencies and build Next.js
   # Note: base is "frontend", so paths are relative to frontend directory
-  command = "cd .. && npm ci --legacy-peer-deps --prefer-offline --no-audit && cd frontend && npm ci --legacy-peer-deps --prefer-offline --no-audit && npm run build"
+  # We need to install frontend dependencies locally (not hoisted) for Next.js to find react/react-dom
+  command = "cd .. && npm install --legacy-peer-deps --prefer-offline --no-audit && cd frontend && npm install --legacy-peer-deps --prefer-offline --no-audit --no-workspaces && npm run build"
   functions = "../netlify/functions"
   publish = ".next"
   base = "frontend"
