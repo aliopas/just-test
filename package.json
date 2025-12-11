@@ -23,7 +23,15 @@
     "clean": "npm run clean:backend && npm run clean:frontend && npm run clean:cache",
     "clean:backend": "node -e \"require('fs').rmSync('backend/dist', {recursive: true, force: true}); require('fs').rmSync('backend/.tsbuildinfo', {force: true})\"",
     "clean:frontend": "npm run clean --workspace frontend",
-    "clean:cache": "node -e \"const fs=require('fs'); ['node_modules/.cache', 'frontend/node_modules/.vite', 'frontend/dist', '.vite'].forEach(p=>fs.rmSync(p,{recursive:true,force:true}))\""
+    "clean:cache": "node -e \"const fs=require('fs'); ['node_modules/.cache', 'frontend/node_modules/.vite', 'frontend/dist', '.vite'].forEach(p=>fs.rmSync(p,{recursive:true,force:true}))\"",
+    "supabase:deploy": "supabase functions deploy",
+    "supabase:deploy:create": "supabase functions deploy admin-create-user",
+    "supabase:deploy:update": "supabase functions deploy admin-update-user",
+    "supabase:deploy:delete": "supabase functions deploy admin-delete-user",
+    "supabase:deploy:approve": "supabase functions deploy approve-signup-request",
+    "supabase:deploy:notifications": "supabase functions deploy notification-dispatch",
+    "supabase:logs": "supabase functions logs",
+    "supabase:list": "supabase functions list"
   },
   "keywords": [],
   "author": "Bacura Technologies Team",
