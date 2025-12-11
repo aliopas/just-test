@@ -137,13 +137,13 @@ export function useSupabaseLogin() {
       }
 
       // التوجيه الافتراضي حسب الدور
-      setTimeout(() => {
-        if (data.user.role === 'admin') {
-          router.push('/admin/dashboard');
-        } else {
-          router.push('/dashboard');
-        }
-      }, 300);
+      // Admin → لوحة تحكم الأدمن | Investor → لوحة تحكم المستثمر
+      const dashboardPath = data.user.role === 'admin' 
+        ? '/admin/dashboard' 
+        : '/dashboard';
+      
+      // استخدام replace بدلاً من push لتجنب إضافة صفحة تسجيل الدخول للتاريخ
+      router.replace(dashboardPath);
     },
     onError: (error: LoginError | Error | unknown) => {
       console.error('[Login] خطأ في تسجيل الدخول:', error);

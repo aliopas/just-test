@@ -100,6 +100,15 @@ async function fetchAdminInvestorsDirect(
   // Apply pagination
   let result = await query.range(offset, offset + limit - 1);
   
+  // Log query result for debugging
+  console.log('[useAdminInvestorsDirect] Query result:', {
+    hasData: !!result.data,
+    dataLength: result.data?.length ?? 0,
+    count: result.count,
+    error: result.error,
+    rolesInResult: result.data?.map((u: any) => u.role),
+  });
+  
   // If view fails, try users table as fallback
   if (result.error && (result.error.code === '42P01' || result.error.message?.includes('does not exist') || result.error.message?.includes('permission'))) {
     console.warn('[useAdminInvestorsDirect] View access failed, falling back to users table:', result.error);
@@ -157,7 +166,8 @@ async function fetchAdminInvestorsDirect(
       count: users?.length ?? 0,
       totalCount: count,
       filters,
-      users: users?.map(u => ({ id: u.id, email: u.email })),
+      users: users?.map(u => ({ id: u.id, email: u.email, role: u.role })),
+      roles: users?.map(u => u.role),
     });
   }
   
@@ -168,6 +178,15 @@ async function fetchAdminInvestorsDirect(
       hasSession: !!session,
       userId: session?.user?.id,
     });
+  }
+  
+  // Log role distribution
+  if (users && users.length > 0) {
+    const roleCounts = users.reduce((acc: Record<string, number>, u: any) => {
+      acc[u.role || 'unknown'] = (acc[u.role || 'unknown'] || 0) + 1;
+      return acc;
+    }, {});
+    console.log('[useAdminInvestorsDirect] Role distribution:', roleCounts);
   }
 
   let userRows = (users as any[] | null) ?? [];
@@ -299,7 +318,7 @@ export function useAdminInvestorsDirect(filters: InvestorListFilters) {
           event: '*',
           schema: 'public',
           table: 'users',
-          filter: 'role=eq.investor',
+          filter: 'role=in.(investor,admin)',
         },
         () => {
           queryClient.invalidateQueries({ queryKey: ['adminInvestorsDirect'] });
