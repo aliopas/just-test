@@ -7,6 +7,7 @@ import {
 import { apiClient } from '../utils/api-client';
 import type {
   AdminCreateUserPayload,
+  AdminUpdateUserPayload,
   AdminUser,
   AdminUserFilters,
   AdminUserListResponse,
@@ -60,6 +61,33 @@ export function useCreateAdminUserMutation() {
       apiClient<AdminUser>('/admin/users', {
         method: 'POST',
         body: JSON.stringify(payload),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: USERS_ROOT });
+    },
+  });
+}
+
+export function useUpdateAdminUserMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ userId, payload }: { userId: string; payload: AdminUpdateUserPayload }) =>
+      apiClient<AdminUser>(`/admin/users/${userId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: USERS_ROOT });
+    },
+  });
+}
+
+export function useDeleteAdminUserMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (userId: string) =>
+      apiClient<{ success: boolean; deletedUserId: string }>(`/admin/users/${userId}`, {
+        method: 'DELETE',
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: USERS_ROOT });

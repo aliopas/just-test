@@ -81,4 +81,23 @@ export interface AdminCreateUserPayload {
   };
 }
 
+export interface AdminUpdateUserPayload {
+  email?: string;
+  phone?: string | null;
+  fullName?: string | null;
+  role?: string;
+  status?: AdminUserStatus;
+  locale?: InvestorLanguage;
+  investorProfile?: {
+    language?: InvestorLanguage;
+    idType?: string;
+    idNumber?: string;
+    nationality?: string;
+    residencyCountry?: string;
+    city?: string;
+    kycStatus?: Exclude<AdminUserKycStatus, null>;
+    riskProfile?: InvestorRiskProfile;
+  };
+}
+
 

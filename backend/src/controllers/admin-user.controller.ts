@@ -4,6 +4,7 @@ import {
   adminUserListQuerySchema,
   adminUserResetSchema,
   adminCreateUserSchema,
+  adminUpdateUserSchema,
 } from '../schemas/admin-users.schema';
 import type { AuthenticatedRequest } from '../middleware/auth.middleware';
 import { adminUserStatusSchema } from '../schemas/admin-users.schema';
@@ -189,6 +190,114 @@ export const adminUserController = {
         typeof error === 'object' && error && 'message' in error
           ? String((error as { message: unknown }).message)
           : 'Failed to create user';
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message,
+        },
+      });
+    }
+  },
+
+  async updateUser(req: AuthenticatedRequest, res: Response) {
+    try {
+      const parsed = adminUpdateUserSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid request body',
+            details: parsed.error.issues.map(issue => ({
+              field: issue.path.join('.'),
+              message: issue.message,
+            })),
+          },
+        });
+      }
+
+      const actorId = req.user?.id;
+      if (!actorId) {
+        return res.status(401).json({
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'User not authenticated',
+          },
+        });
+      }
+
+      const payload = await adminUserService.updateUser({
+        userId: req.params.id,
+        actorId,
+        email: parsed.data.email,
+        phone: parsed.data.phone ?? null,
+        fullName: parsed.data.fullName ?? null,
+        role: parsed.data.role,
+        status: parsed.data.status,
+        locale: parsed.data.locale,
+        investorProfile: parsed.data.investorProfile,
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'] ?? null,
+      });
+
+      return res.status(200).json({
+        message: 'User updated successfully',
+        user: payload,
+      });
+    } catch (error: unknown) {
+      console.error('Failed to update user:', error);
+      const message =
+        typeof error === 'object' && error && 'message' in error
+          ? String((error as { message: unknown }).message)
+          : 'Failed to update user';
+      return res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message,
+        },
+      });
+    }
+  },
+
+  async deleteUser(req: AuthenticatedRequest, res: Response) {
+    try {
+      const actorId = req.user?.id;
+      if (!actorId) {
+        return res.status(401).json({
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'User not authenticated',
+          },
+        });
+      }
+
+      const payload = await adminUserService.deleteUser({
+        userId: req.params.id,
+        actorId,
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'] ?? null,
+      });
+
+      return res.status(200).json({
+        message: 'User deleted successfully',
+        ...payload,
+      });
+    } catch (error: unknown) {
+      console.error('Failed to delete user:', error);
+      const message =
+        typeof error === 'object' && error && 'message' in error
+          ? String((error as { message: unknown }).message)
+          : 'Failed to delete user';
+      
+      // Check for specific error messages
+      if (message.includes('Cannot delete your own account')) {
+        return res.status(400).json({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message,
+          },
+        });
+      }
+
       return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',

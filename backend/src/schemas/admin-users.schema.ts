@@ -127,3 +127,37 @@ export const adminCreateUserSchema = z
   });
 
 export type AdminCreateUserInput = z.infer<typeof adminCreateUserSchema>;
+
+export const adminUpdateUserSchema = z
+  .object({
+    email: z.string().email('Invalid email format').optional(),
+    phone: z
+      .string()
+      .regex(phoneRegex, 'Phone must be in E.164 format (e.g., +9665xxxxxxx)')
+      .optional()
+      .nullable(),
+    fullName: z
+      .string()
+      .trim()
+      .min(3, 'Full name must be at least 3 characters')
+      .max(150, 'Full name must be 150 characters or fewer')
+      .optional()
+      .nullable(),
+    role: z
+      .string()
+      .trim()
+      .min(2, 'Role must be at least 2 characters')
+      .max(64)
+      .optional(),
+    status: z
+      .enum(['pending', 'active', 'suspended', 'deactivated'])
+      .optional(),
+    locale: z.enum(['ar', 'en']).optional(),
+    investorProfile: investorProfileInputSchema,
+  })
+  .refine(
+    data => Object.keys(data).length > 0,
+    'At least one field must be provided for update'
+  );
+
+export type AdminUpdateUserInput = z.infer<typeof adminUpdateUserSchema>;

@@ -6,6 +6,11 @@ import {
   type InvestorListFilters,
   type InvestorListItem,
 } from '../hooks/useAdminInvestorsDirect';
+import { CreateUserModal } from '../components/admin/users/CreateUserModal';
+import { EditUserModal } from '../components/admin/users/EditUserModal';
+import { DeleteUserDialog } from '../components/admin/users/DeleteUserDialog';
+import { useAdminUsers } from '../hooks/useAdminUsers';
+import type { AdminUser } from '../types/admin-users';
 
 export function AdminInvestorsPage() {
   const { language, direction } = useLanguage();
@@ -20,7 +25,19 @@ export function AdminInvestorsPage() {
     order: 'desc',
   });
 
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
+  const [deletingUser, setDeletingUser] = useState<AdminUser | null>(null);
+
   const { data, isLoading, isError, refetch } = useAdminInvestorsDirect(filters);
+  
+  // Also fetch from API to get full AdminUser objects for editing/deleting
+  const { refetch: refetchApiUsers } = useAdminUsers({
+    page: filters.page ?? 1,
+    status: filters.status === 'all' ? undefined : filters.status,
+    kycStatus: filters.kycStatus === 'all' ? undefined : filters.kycStatus,
+    search: filters.search,
+  });
 
   const investors = data?.investors ?? [];
   const meta = data?.meta ?? {
@@ -76,29 +93,56 @@ export function AdminInvestorsPage() {
         }}
       >
         {/* Header */}
-        <header>
-          <h1
+        <header
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            flexWrap: 'wrap',
+            gap: '1rem',
+          }}
+        >
+          <div>
+            <h1
+              style={{
+                margin: 0,
+                fontSize: typography.sizes.heading,
+                fontWeight: typography.weights.bold,
+                color: palette.textPrimary,
+              }}
+            >
+              {language === 'ar' ? 'المستخدمون' : 'Users'}
+            </h1>
+            <p
+              style={{
+                marginTop: '0.35rem',
+                marginBottom: 0,
+                fontSize: typography.sizes.body,
+                color: palette.textSecondary,
+              }}
+            >
+              {language === 'ar'
+                ? 'إدارة قائمة المستخدمين المسجلين في النظام (مستثمرون وأدمن).'
+                : 'Manage the list of registered users in the system (investors and admins).'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowCreateModal(true)}
             style={{
-              margin: 0,
-              fontSize: typography.sizes.heading,
-              fontWeight: typography.weights.bold,
-              color: palette.textPrimary,
-            }}
-          >
-            {language === 'ar' ? 'المستثمرون' : 'Investors'}
-          </h1>
-          <p
-            style={{
-              marginTop: '0.35rem',
-              marginBottom: 0,
+              padding: '0.75rem 1.5rem',
+              borderRadius: radius.md,
+              border: 'none',
+              background: palette.brandPrimaryStrong,
+              color: palette.textOnBrand,
               fontSize: typography.sizes.body,
-              color: palette.textSecondary,
+              cursor: 'pointer',
+              fontWeight: typography.weights.semibold,
+              whiteSpace: 'nowrap',
             }}
           >
-            {language === 'ar'
-              ? 'إدارة قائمة المستثمرين المسجلين في النظام.'
-              : 'Manage the list of registered investors in the system.'}
-          </p>
+            {language === 'ar' ? '+ إنشاء مستخدم جديد' : '+ Create New User'}
+          </button>
         </header>
 
         {/* Filters */}
@@ -541,6 +585,106 @@ export function AdminInvestorsPage() {
                         language === 'ar' ? 'ar-SA' : 'en-US'
                       )}
                     </td>
+                    <td
+                      style={{
+                        padding: '0.85rem 1rem',
+                        fontSize: typography.sizes.body,
+                        color: palette.textPrimary,
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: '0.5rem',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // Convert InvestorListItem to AdminUser format
+                            const adminUser: AdminUser = {
+                              id: investor.id,
+                              email: investor.email,
+                              phone: investor.phone,
+                              phoneCountryCode: null,
+                              role: investor.role || 'investor',
+                              status: investor.status as AdminUser['status'],
+                              createdAt: investor.createdAt,
+                              updatedAt: investor.updatedAt,
+                              roles: investor.role ? [investor.role] : [],
+                              roleNames: investor.role ? [investor.role] : [],
+                              fullName: investor.fullName,
+                              kycStatus: investor.kycStatus as AdminUser['kycStatus'],
+                              profileLanguage: 'ar',
+                              riskProfile: null,
+                              city: null,
+                              kycUpdatedAt: null,
+                              profileUpdatedAt: null,
+                              idType: null,
+                              nationality: null,
+                              residencyCountry: null,
+                              communicationPreferences: {},
+                            };
+                            setEditingUser(adminUser);
+                          }}
+                          style={{
+                            padding: '0.5rem 0.75rem',
+                            borderRadius: radius.sm,
+                            border: `1px solid ${palette.neutralBorderMuted}`,
+                            background: palette.backgroundSurface,
+                            color: palette.textPrimary,
+                            fontSize: typography.sizes.caption,
+                            cursor: 'pointer',
+                            fontWeight: typography.weights.semibold,
+                          }}
+                        >
+                          {language === 'ar' ? 'تعديل' : 'Edit'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // Convert InvestorListItem to AdminUser format
+                            const adminUser: AdminUser = {
+                              id: investor.id,
+                              email: investor.email,
+                              phone: investor.phone,
+                              phoneCountryCode: null,
+                              role: investor.role || 'investor',
+                              status: investor.status as AdminUser['status'],
+                              createdAt: investor.createdAt,
+                              updatedAt: investor.updatedAt,
+                              roles: investor.role ? [investor.role] : [],
+                              roleNames: investor.role ? [investor.role] : [],
+                              fullName: investor.fullName,
+                              kycStatus: investor.kycStatus as AdminUser['kycStatus'],
+                              profileLanguage: 'ar',
+                              riskProfile: null,
+                              city: null,
+                              kycUpdatedAt: null,
+                              profileUpdatedAt: null,
+                              idType: null,
+                              nationality: null,
+                              residencyCountry: null,
+                              communicationPreferences: {},
+                            };
+                            setDeletingUser(adminUser);
+                          }}
+                          style={{
+                            padding: '0.5rem 0.75rem',
+                            borderRadius: radius.sm,
+                            border: `1px solid ${palette.error}`,
+                            background: palette.error + '11',
+                            color: palette.error,
+                            fontSize: typography.sizes.caption,
+                            cursor: 'pointer',
+                            fontWeight: typography.weights.semibold,
+                          }}
+                        >
+                          {language === 'ar' ? 'حذف' : 'Delete'}
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -604,6 +748,38 @@ export function AdminInvestorsPage() {
           )}
         </section>
       </div>
+
+      {/* Modals */}
+      <CreateUserModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={() => {
+          refetch();
+          refetchApiUsers();
+        }}
+      />
+
+      <EditUserModal
+        isOpen={!!editingUser}
+        user={editingUser}
+        onClose={() => setEditingUser(null)}
+        onSuccess={() => {
+          refetch();
+          refetchApiUsers();
+          setEditingUser(null);
+        }}
+      />
+
+      <DeleteUserDialog
+        isOpen={!!deletingUser}
+        user={deletingUser}
+        onClose={() => setDeletingUser(null)}
+        onSuccess={() => {
+          refetch();
+          refetchApiUsers();
+          setDeletingUser(null);
+        }}
+      />
     </div>
   );
 }

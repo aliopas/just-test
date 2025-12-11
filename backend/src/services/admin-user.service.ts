@@ -461,4 +461,260 @@ export const adminUserService = {
       throw error;
     }
   },
+
+  async updateUser(params: {
+    userId: string;
+    actorId: string;
+    email?: string;
+    phone?: string | null;
+    fullName?: string | null;
+    role?: string;
+    status?: UserStatus;
+    locale?: 'ar' | 'en';
+    investorProfile?: {
+      language?: 'ar' | 'en';
+      idType?: string;
+      idNumber?: string;
+      nationality?: string;
+      residencyCountry?: string;
+      city?: string;
+      kycStatus?: 'pending' | 'in_review' | 'approved' | 'rejected';
+      riskProfile?: 'conservative' | 'balanced' | 'aggressive' | null;
+    };
+    ipAddress?: string | null;
+    userAgent?: string | null;
+  }) {
+    const adminClient = requireSupabaseAdmin();
+
+    // Fetch current user data
+    const { data: before, error: beforeError } = await adminClient
+      .from('users')
+      .select('id,email,phone,role,status')
+      .eq('id', params.userId)
+      .single();
+
+    if (beforeError || !before) {
+      throw new Error(`User ${params.userId} not found`);
+    }
+
+    const beforeData = { ...before };
+    const updates: Record<string, unknown> = {};
+
+    // Update users table
+    if (params.email !== undefined && params.email !== before.email) {
+      updates.email = params.email;
+    }
+    if (params.phone !== undefined && params.phone !== before.phone) {
+      updates.phone = params.phone;
+    }
+    if (params.status !== undefined && params.status !== before.status) {
+      updates.status = params.status;
+    }
+    if (params.role !== undefined && params.role !== before.role) {
+      updates.role = params.role;
+    }
+
+    if (Object.keys(updates).length > 0) {
+      updates.updated_at = new Date().toISOString();
+      const { error: updateError } = await adminClient
+        .from('users')
+        .update(updates)
+        .eq('id', params.userId);
+
+      if (updateError) {
+        throw new Error(`Failed to update user: ${updateError.message}`);
+      }
+
+      // Update auth user if email changed
+      if (params.email !== undefined && params.email !== before.email) {
+        const { error: authUpdateError } = await adminClient.auth.admin.updateUserById(
+          params.userId,
+          {
+            email: params.email,
+            phone: params.phone ?? undefined,
+            user_metadata: {
+              locale: params.locale ?? undefined,
+              full_name: params.fullName ?? null,
+            },
+          }
+        );
+
+        if (authUpdateError) {
+          throw new Error(`Failed to update auth user: ${authUpdateError.message}`);
+        }
+      } else if (params.phone !== undefined || params.locale !== undefined || params.fullName !== undefined) {
+        const { error: authUpdateError } = await adminClient.auth.admin.updateUserById(
+          params.userId,
+          {
+            phone: params.phone ?? undefined,
+            user_metadata: {
+              locale: params.locale ?? undefined,
+              full_name: params.fullName ?? null,
+            },
+          }
+        );
+
+        if (authUpdateError) {
+          console.error('Failed to update auth metadata:', authUpdateError);
+        }
+      }
+
+      // Revoke sessions if status changed to non-active
+      if (params.status !== undefined && params.status !== 'active' && params.status !== before.status) {
+        try {
+          await adminClient.auth.admin.signOut(params.userId);
+        } catch (signOutError) {
+          console.error('Failed to revoke sessions:', signOutError);
+        }
+      }
+    }
+
+    // Update role if changed
+    if (params.role !== undefined && params.role !== before.role) {
+      // Remove old roles and assign new role
+      const { data: currentRoles } = await adminClient
+        .from('user_roles')
+        .select('role_slug')
+        .eq('user_id', params.userId);
+
+      if (currentRoles && currentRoles.length > 0) {
+        await adminClient
+          .from('user_roles')
+          .delete()
+          .eq('user_id', params.userId);
+      }
+
+      await rbacService.assignRole(
+        params.userId,
+        params.role.toLowerCase(),
+        params.actorId
+      );
+    }
+
+    // Update investor profile if provided
+    if (params.investorProfile || params.fullName !== undefined) {
+      const profileUpdates: Record<string, unknown> = {};
+
+      if (params.fullName !== undefined) {
+        profileUpdates.full_name = params.fullName;
+      }
+      if (params.investorProfile?.language !== undefined) {
+        profileUpdates.language = params.investorProfile.language;
+      }
+      if (params.investorProfile?.idType !== undefined) {
+        profileUpdates.id_type = params.investorProfile.idType;
+      }
+      if (params.investorProfile?.idNumber !== undefined) {
+        profileUpdates.id_number = params.investorProfile.idNumber;
+      }
+      if (params.investorProfile?.nationality !== undefined) {
+        profileUpdates.nationality = params.investorProfile.nationality;
+      }
+      if (params.investorProfile?.residencyCountry !== undefined) {
+        profileUpdates.residency_country = params.investorProfile.residencyCountry;
+      }
+      if (params.investorProfile?.city !== undefined) {
+        profileUpdates.city = params.investorProfile.city;
+      }
+      if (params.investorProfile?.kycStatus !== undefined) {
+        profileUpdates.kyc_status = params.investorProfile.kycStatus;
+        profileUpdates.kyc_updated_at = new Date().toISOString();
+      }
+      if (params.investorProfile?.riskProfile !== undefined) {
+        profileUpdates.risk_profile = params.investorProfile.riskProfile;
+      }
+
+      if (Object.keys(profileUpdates).length > 0) {
+        profileUpdates.profile_updated_at = new Date().toISOString();
+        const { error: profileError } = await adminClient
+          .from('investor_profiles')
+          .upsert({
+            user_id: params.userId,
+            ...profileUpdates,
+          })
+          .eq('user_id', params.userId);
+
+        if (profileError) {
+          console.error('Failed to update investor profile:', profileError);
+        }
+      }
+    }
+
+    // Log audit
+    const afterData = {
+      email: params.email ?? before.email,
+      phone: params.phone ?? before.phone,
+      role: params.role ?? before.role,
+      status: params.status ?? before.status,
+    };
+
+    const diff = diffObjects(beforeData, afterData);
+    await logAudit({
+      actorId: params.actorId,
+      action: 'admin.users.update',
+      targetId: params.userId,
+      diff,
+      ipAddress: params.ipAddress,
+      userAgent: params.userAgent,
+    });
+
+    const current = await fetchUserFromView(params.userId);
+    return mapAdminUser(current);
+  },
+
+  async deleteUser(params: {
+    userId: string;
+    actorId: string;
+    ipAddress?: string | null;
+    userAgent?: string | null;
+  }) {
+    const adminClient = requireSupabaseAdmin();
+
+    // Fetch user before deletion for audit
+    const { data: before, error: beforeError } = await adminClient
+      .from('users')
+      .select('id,email,role,status')
+      .eq('id', params.userId)
+      .single();
+
+    if (beforeError || !before) {
+      throw new Error(`User ${params.userId} not found`);
+    }
+
+    // Prevent deleting yourself
+    if (params.userId === params.actorId) {
+      throw new Error('Cannot delete your own account');
+    }
+
+    // Delete from auth
+    const { error: authDeleteError } = await adminClient.auth.admin.deleteUser(
+      params.userId
+    );
+
+    if (authDeleteError) {
+      throw new Error(`Failed to delete auth user: ${authDeleteError.message}`);
+    }
+
+    // Delete from users table (cascade should handle related records)
+    const { error: deleteError } = await adminClient
+      .from('users')
+      .delete()
+      .eq('id', params.userId);
+
+    if (deleteError) {
+      throw new Error(`Failed to delete user: ${deleteError.message}`);
+    }
+
+    // Log audit
+    await logAudit({
+      actorId: params.actorId,
+      action: 'admin.users.delete',
+      targetId: params.userId,
+      diff: diffObjects(before, null),
+      ipAddress: params.ipAddress,
+      userAgent: params.userAgent,
+    });
+
+    return { success: true, deletedUserId: params.userId };
+  },
 };

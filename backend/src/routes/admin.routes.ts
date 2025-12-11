@@ -257,6 +257,20 @@ adminRouter.post(
   adminUserController.createUser
 );
 
+adminRouter.patch(
+  '/users/:id',
+  authenticate,
+  requirePermission('admin.users.manage'),
+  adminUserController.updateUser
+);
+
+adminRouter.delete(
+  '/users/:id',
+  authenticate,
+  requirePermission('admin.users.manage'),
+  adminUserController.deleteUser
+);
+
 adminRouter.get(
   '/account-requests',
   authenticate,
