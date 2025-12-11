@@ -22,7 +22,7 @@ export function ChatIcon({ unreadCount = 0, onClick, isActive = false }: ChatIco
           ? `1px solid ${palette.brandPrimaryStrong}`
           : `1px solid ${palette.neutralBorderMuted}`,
         background: isActive
-          ? palette.brandPrimarySoft
+          ? palette.backgroundHighlight
           : palette.backgroundBase,
         color: palette.textPrimary,
         cursor: 'pointer',
