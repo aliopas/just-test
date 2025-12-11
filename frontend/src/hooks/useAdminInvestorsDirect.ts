@@ -16,6 +16,7 @@ export type InvestorListItem = {
   preferredName: string | null;
   status: string;
   kycStatus: string | null;
+  role?: string; // 'investor' or 'admin'
   createdAt: string;
   updatedAt: string;
 };
@@ -74,11 +75,11 @@ async function fetchAdminInvestorsDirect(
   let count: number | null = null;
   let usersError: any = null;
   
-  // Try v_admin_users view first
+  // Try v_admin_users view first - get both investors and admins
   let query = supabase
     .from('v_admin_users')
-    .select('id, email, phone, phone_cc, status, created_at, updated_at, full_name, preferred_name, kyc_status', { count: 'exact' })
-    .eq('role', 'investor');
+    .select('id, email, phone, phone_cc, status, created_at, updated_at, full_name, preferred_name, kyc_status, role', { count: 'exact' })
+    .in('role', ['investor', 'admin']);
 
   // Apply status filter
   if (filters.status && filters.status !== 'all') {
@@ -105,8 +106,8 @@ async function fetchAdminInvestorsDirect(
     
     let fallbackQuery = supabase
       .from('users')
-      .select('id, email, phone, phone_cc, status, created_at, updated_at', { count: 'exact' })
-      .eq('role', 'investor');
+      .select('id, email, phone, phone_cc, status, created_at, updated_at, role', { count: 'exact' })
+      .in('role', ['investor', 'admin']);
 
     if (filters.status && filters.status !== 'all') {
       fallbackQuery = fallbackQuery.eq('status', filters.status);
@@ -230,6 +231,7 @@ async function fetchAdminInvestorsDirect(
       preferredName: profile?.preferred_name ?? null,
       status: user.status,
       kycStatus: profile?.kyc_status ?? null,
+      role: user.role || 'investor', // Include role from user data
       createdAt: user.created_at,
       updatedAt: user.updated_at,
     };

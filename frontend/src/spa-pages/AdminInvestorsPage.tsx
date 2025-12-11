@@ -363,6 +363,17 @@ export function AdminInvestorsPage() {
                       fontSize: typography.sizes.caption,
                       fontWeight: typography.weights.semibold,
                       color: palette.textSecondary,
+                    }}
+                  >
+                    {language === 'ar' ? 'النوع' : 'Role'}
+                  </th>
+                  <th
+                    style={{
+                      padding: '0.85rem 1rem',
+                      textAlign: 'start',
+                      fontSize: typography.sizes.caption,
+                      fontWeight: typography.weights.semibold,
+                      color: palette.textSecondary,
                       cursor: 'pointer',
                     }}
                     onClick={() => handleSortChange('created_at')}
@@ -492,6 +503,32 @@ export function AdminInvestorsPage() {
                       ) : (
                         '—'
                       )}
+                    </td>
+                    <td
+                      style={{
+                        padding: '0.85rem 1rem',
+                        fontSize: typography.sizes.body,
+                        color: palette.textPrimary,
+                      }}
+                    >
+                      <span
+                        style={{
+                          padding: '0.25rem 0.65rem',
+                          borderRadius: radius.sm,
+                          fontSize: typography.sizes.caption,
+                          background: (investor as any).role === 'admin' 
+                            ? palette.brandPrimaryStrong + '22'
+                            : palette.backgroundSurface,
+                          color: (investor as any).role === 'admin'
+                            ? palette.brandPrimaryStrong
+                            : palette.textSecondary,
+                          fontWeight: 600,
+                        }}
+                      >
+                        {(investor as any).role === 'admin'
+                          ? (language === 'ar' ? 'أدمن' : 'Admin')
+                          : (language === 'ar' ? 'مستثمر' : 'Investor')}
+                      </span>
                     </td>
                     <td
                       style={{
