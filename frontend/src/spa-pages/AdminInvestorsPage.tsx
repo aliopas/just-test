@@ -30,14 +30,6 @@ export function AdminInvestorsPage() {
   const [deletingUser, setDeletingUser] = useState<AdminUser | null>(null);
 
   const { data, isLoading, isError, refetch } = useAdminInvestorsDirect(filters);
-  
-  // Also fetch from API to get full AdminUser objects for editing/deleting
-  const { refetch: refetchApiUsers } = useAdminUsers({
-    page: filters.page ?? 1,
-    status: filters.status === 'all' ? undefined : filters.status,
-    kycStatus: filters.kycStatus === 'all' ? undefined : filters.kycStatus,
-    search: filters.search,
-  });
 
   const investors = data?.investors ?? [];
   const meta = data?.meta ?? {
@@ -755,7 +747,6 @@ export function AdminInvestorsPage() {
         onClose={() => setShowCreateModal(false)}
         onSuccess={() => {
           refetch();
-          refetchApiUsers();
         }}
       />
 
