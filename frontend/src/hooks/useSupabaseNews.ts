@@ -215,6 +215,7 @@ export function useInvestorNewsList(options?: {
     page,
     limit,
     audience: 'public',
+    enableRealtime: true, // Enable realtime updates for automatic refresh
   });
 
   const { data: totalCount } = useNewsCount('public');
@@ -316,6 +317,7 @@ export function useInvestorInternalNewsList(options?: {
     page,
     limit,
     audience: showAll ? undefined : 'investor_internal',
+    enableRealtime: true, // Enable realtime updates for automatic refresh
   });
 
   // If showAll is true, count all published news
