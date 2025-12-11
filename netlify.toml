@@ -1,12 +1,8 @@
 [build]
-  # Optimized build command to prevent cancellation
-  # Install function dependencies first (fast), then build frontend
+  # Simplified and optimized build command
+  # Install dependencies in parallel where possible, then build
   # Note: base is "frontend", so paths are relative to frontend directory
-  # Sequential execution ensures proper dependency installation
-  # Simplified command to reduce build time and prevent cancellation
-  # Since we use npm workspaces, install from root first, then ensure frontend dependencies are available
-  # Next.js needs react/react-dom in frontend/node_modules, so we install them locally with --no-workspaces
-  command = "cd .. && npm install --legacy-peer-deps && cd frontend && npm install --legacy-peer-deps --no-workspaces && cd ../netlify/functions && npm install --production --no-optional --legacy-peer-deps && cd ../../frontend && npm run build"
+  command = "cd .. && npm ci --legacy-peer-deps --prefer-offline --no-audit && cd frontend && npm ci --legacy-peer-deps --prefer-offline --no-audit && npm run build"
   functions = "../netlify/functions"
   publish = ".next"
   base = "frontend"
@@ -21,27 +17,17 @@
 [build.environment]
   NODE_VERSION = "22"
   # Optimize npm for faster installs
-  NPM_FLAGS = "--prefer-offline --no-audit --no-fund --no-optional"
-  # Prevent build cancellation - critical settings
-  NETLIFY_BUILD_TIMEOUT = "1200"
-  NETLIFY_BUILD_NO_CANCEL = "true"
+  NPM_FLAGS = "--prefer-offline --no-audit --no-fund"
   # Optimize Node.js memory
   NODE_OPTIONS = "--max-old-space-size=4096"
   # CI mode for better caching and performance
   CI = "true"
-  NETLIFY_CI = "true"
-  # Enable build caching
-  NETLIFY_BUILD_CACHE = "true"
-  # Prevent build cancellation
-  NETLIFY_DISABLE_BUILD_CANCEL = "true"
   # Optimize build performance
   NPM_CONFIG_PRODUCTION = "false"
   NPM_CONFIG_AUDIT = "false"
   NPM_CONFIG_FUND = "false"
-  # Keep build alive - prevent timeout
-  NETLIFY_KEEP_ALIVE = "true"
-  # Disable build cancellation completely
-  NETLIFY_CANCEL_BUILD = "false"
+  # Next.js build optimizations
+  NEXT_TELEMETRY_DISABLED = "1"
 
 # Netlify Next.js plugin - required for Next.js routing to work
 [[plugins]]
