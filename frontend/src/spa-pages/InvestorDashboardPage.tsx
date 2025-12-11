@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
 import { useInvestorDashboardDirect } from '../hooks/useInvestorDashboardDirect';
-import { useNews } from '../hooks/useSupabaseTables';
+import { useNotifications } from '../hooks/useNotifications';
+import { useConversations } from '../hooks/useChat';
+import { NotificationBadge } from '../components/notifications/NotificationBadge';
+import { ChatIcon } from '../components/chat/ChatIcon';
+import { ChatModal } from '../components/chat/ChatModal';
 import type { DashboardRecentRequest, DashboardRequestSummary } from '../types/dashboard';
 import type { RequestStatus } from '../types/request';
 
@@ -11,52 +15,21 @@ export function InvestorDashboardPage() {
   const isArabic = language === 'ar';
   const { data, isLoading, isError, refetch } = useInvestorDashboardDirect();
   const [mounted, setMounted] = useState(false);
+  const [showChatModal, setShowChatModal] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   
-  // Fetch internal news with full content directly from Supabase
-  const { data: newsData, isLoading: isLoadingNews } = useNews({
-    page: 1,
-    limit: 3, // Show only latest 3 news items for better display
-    audience: 'investor_internal',
-  });
+  // Fetch notifications
+  const { meta: notificationsMeta } = useNotifications({ status: 'unread' });
+  const unreadNotificationCount = notificationsMeta?.unreadCount ?? 0;
+  
+  // Fetch conversations for unread count
+  const { conversations } = useConversations();
+  const unreadChatCount = conversations.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const summary: DashboardRequestSummary | undefined = data?.requestSummary;
-  const recent = data?.recentRequests ?? [];
-  const pendingItems = data?.pendingActions.items ?? [];
-  const news = newsData ?? [];
-  const insights = data?.insights;
-
-  // Helper function to create excerpt from markdown
-  const createExcerpt = (bodyMd: string, maxLength: number = 200): string => {
-    const plainText = bodyMd
-      .replace(/^#+\s+/gm, '') // Remove headers
-      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
-      .replace(/\*(.*?)\*/g, '$1') // Remove italic
-      .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1') // Remove links
-      .replace(/`([^`]+)`/g, '$1') // Remove code
-      .replace(/\n+/g, ' ') // Replace newlines with spaces
-      .trim();
-
-    if (plainText.length <= maxLength) {
-      return plainText;
-    }
-
-    return plainText.substring(0, maxLength).trim() + '...';
-  };
-
-  const statusOrder: RequestStatus[] = [
-    'submitted',
-    'screening',
-    'pending_info',
-    'compliance_review',
-    'approved',
-    'rejected',
-    'settling',
-    'completed',
-  ];
 
   const formatCurrency = (amount: number, currency: string) =>
     new Intl.NumberFormat(isArabic ? 'ar-SA' : 'en-US', {
@@ -73,15 +46,6 @@ export function InvestorDashboardPage() {
 
   const formatNumber = (value: number) =>
     new Intl.NumberFormat(isArabic ? 'ar-SA' : 'en-US').format(value);
-
-  // Calculate statistics
-  const underReviewCount = (summary?.byStatus.submitted ?? 0) +
-    (summary?.byStatus.screening ?? 0) +
-    (summary?.byStatus.pending_info ?? 0) +
-    (summary?.byStatus.compliance_review ?? 0);
-
-  const approvedCompletedCount = (summary?.byStatus.approved ?? 0) +
-    (summary?.byStatus.completed ?? 0);
 
   // Show loading skeleton
   if (!mounted || isLoading) {
@@ -272,37 +236,28 @@ export function InvestorDashboardPage() {
                   : 'Track your requests, their status, alerts, and recent financial activity in Bakura.'}
               </p>
             </div>
-            {insights?.rolling30DayVolume !== undefined && (
-              <div
-                style={{
-                  padding: '1rem 1.5rem',
-                  borderRadius: radius.lg,
-                  background: `linear-gradient(135deg, ${palette.brandPrimary}15 0%, ${palette.brandPrimaryStrong}25 100%)`,
-                  border: `2px solid ${palette.brandPrimaryStrong}30`,
-                  textAlign: 'center',
-                  minWidth: 'min(100%, 200px)',
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                flexWrap: 'wrap',
+              }}
+            >
+              <NotificationBadge
+                count={unreadNotificationCount}
+                language={language}
+                onClick={() => {
+                  window.location.href = '/notifications';
                 }}
-              >
-                <div
-                  style={{
-                    fontSize: '0.85rem',
-                    color: palette.textSecondary,
-                    marginBottom: '0.25rem',
-                  }}
-                >
-                  {isArabic ? 'حجم الطلبات (30 يوم)' : '30-Day Volume'}
-                </div>
-                <div
-                  style={{
-                    fontSize: '1.5rem',
-                    fontWeight: typography.weights.bold,
-                    color: palette.brandPrimaryStrong,
-                  }}
-                >
-                  {formatCurrency(insights.rolling30DayVolume, 'SAR')}
-                </div>
-              </div>
-            )}
+                isActive={showNotifications}
+              />
+              <ChatIcon
+                unreadCount={unreadChatCount}
+                onClick={() => setShowChatModal(true)}
+                isActive={showChatModal}
+              />
+            </div>
           </div>
         </header>
 
@@ -360,481 +315,15 @@ export function InvestorDashboardPage() {
             </div>
           )}
         </section>
-
-        {/* Summary cards */}
-        <section
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
-            gap: '1.25rem',
-            animation: 'slideUp 0.5s ease-out',
-          }}
-        >
-          <SummaryCard
-            title={isArabic ? 'إجمالي الطلبات' : 'Total Requests'}
-            value={summary?.total ?? 0}
-            highlight
-            icon="📊"
-            trend={summary?.total ? undefined : undefined}
-          />
-
-          <SummaryCard
-            title={isArabic ? 'قيد المراجعة' : 'Under Review'}
-            value={underReviewCount}
-            icon="⏳"
-            color={palette.brandSecondary}
-          />
-
-          <SummaryCard
-            title={isArabic ? 'معتمدة / مكتملة' : 'Approved / Completed'}
-            value={approvedCompletedCount}
-            icon="✅"
-            color="#10B981"
-          />
-
-          <SummaryCard
-            title={isArabic ? 'تنبيهات غير مقروءة' : 'Unread Alerts'}
-            value={data?.unreadNotifications ?? 0}
-            icon="🔔"
-            color={data?.unreadNotifications ? '#F59E0B' : palette.textSecondary}
-            badge={data?.unreadNotifications ? data.unreadNotifications : undefined}
-          />
-        </section>
-
-        {/* Status distribution */}
-        <section
-          style={{
-            padding: '1.25rem 1.5rem',
-            borderRadius: radius.lg,
-            background: palette.backgroundBase,
-            boxShadow: shadow.subtle,
-            border: `1px solid ${palette.neutralBorderMuted}`,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1rem',
-          }}
-        >
-          <h2
-            style={{
-              margin: 0,
-              fontSize: '1rem',
-              fontWeight: typography.weights.semibold,
-              color: palette.textPrimary,
-            }}
-          >
-            {isArabic ? 'توزيع الطلبات حسب الحالة' : 'Requests by Status'}
-          </h2>
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '0.75rem',
-            }}
-          >
-            {statusOrder.map(statusKey => {
-              const count = summary?.byStatus[statusKey] ?? 0;
-              const label =
-                statusKey === 'submitted'
-                  ? isArabic
-                    ? 'تم الإرسال'
-                    : 'Submitted'
-                  : statusKey === 'screening'
-                    ? isArabic
-                      ? 'فرز أولي'
-                      : 'Screening'
-                    : statusKey === 'pending_info'
-                      ? isArabic
-                        ? 'بانتظار معلومات'
-                        : 'Pending info'
-                      : statusKey === 'compliance_review'
-                        ? isArabic
-                          ? 'مراجعة التوافق'
-                          : 'Compliance review'
-                        : statusKey === 'approved'
-                          ? isArabic
-                            ? 'معتمدة'
-                            : 'Approved'
-                          : statusKey === 'rejected'
-                            ? isArabic
-                              ? 'مرفوضة'
-                              : 'Rejected'
-                            : statusKey === 'settling'
-                              ? isArabic
-                                ? 'قيد التسوية'
-                                : 'Settling'
-                              : isArabic
-                                ? 'مكتملة'
-                                : 'Completed';
-
-              return (
-                <span
-                  key={statusKey}
-                  style={{
-                    padding: '0.45rem 0.85rem',
-                    borderRadius: '999px',
-                    border: `1px solid ${palette.neutralBorderMuted}`,
-                    background: palette.backgroundSurface,
-                    fontSize: '0.85rem',
-                    color: palette.textSecondary,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.4rem',
-                  }}
-                >
-                  <strong
-                    style={{
-                      fontSize: '0.9rem',
-                      color: palette.textPrimary,
-                    }}
-                  >
-                    {count}
-                  </strong>
-                  <span>{label}</span>
-                </span>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Recent requests + pending actions */}
-        <section
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))',
-            gap: '1.5rem',
-            animation: 'slideUp 0.6s ease-out',
-          }}
-        >
-          {/* Recent requests */}
-          <div
-            style={{
-              padding: '1.25rem 1.5rem',
-              borderRadius: radius.lg,
-              background: palette.backgroundBase,
-              boxShadow: shadow.subtle,
-              border: `1px solid ${palette.neutralBorderMuted}`,
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '0.75rem',
-              }}
-            >
-              <h2
-                style={{
-                  margin: 0,
-                  fontSize: '1.1rem',
-                  fontWeight: typography.weights.semibold,
-                  color: palette.textPrimary,
-                }}
-              >
-                {isArabic ? 'آخر الطلبات' : 'Recent Requests'}
-              </h2>
-              <a
-                href="/my-requests"
-                style={{
-                  fontSize: '0.85rem',
-                  color: palette.brandPrimaryStrong,
-                  textDecoration: 'none',
-                  fontWeight: 500,
-                }}
-              >
-                {isArabic ? 'عرض الكل →' : 'View All →'}
-              </a>
-            </div>
-
-            {recent.length === 0 ? (
-              <p
-                style={{
-                  margin: 0,
-                  padding: '1rem 0.25rem',
-                  fontSize: '0.9rem',
-                  color: palette.textSecondary,
-                }}
-              >
-                {isArabic
-                  ? 'لا توجد طلبات حديثة.'
-                  : 'No recent requests.'}
-              </p>
-            ) : (
-              <ul
-                style={{
-                  listStyle: 'none',
-                  margin: 0,
-                  padding: 0,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.65rem',
-                }}
-              >
-                {recent.map(item => (
-                  <RecentRequestItem
-                    key={item.id}
-                    item={item}
-                    language={language}
-                    formatCurrency={formatCurrency}
-                    formatDateTime={formatDateTime}
-                  />
-                ))}
-              </ul>
-            )}
-          </div>
-
-          {/* Pending actions */}
-          <div
-            style={{
-              padding: '1.25rem 1.5rem',
-              borderRadius: radius.lg,
-              background: palette.backgroundBase,
-              boxShadow: shadow.subtle,
-              border: `1px solid ${palette.neutralBorderMuted}`,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.75rem',
-            }}
-          >
-            <h2
-              style={{
-                margin: 0,
-                fontSize: '1.1rem',
-                fontWeight: typography.weights.semibold,
-                color: palette.textPrimary,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-              }}
-            >
-              {isArabic ? 'إجراءات مطلوبة' : 'Pending Actions'}
-              {pendingItems.length > 0 && (
-                <span
-                  style={{
-                    padding: '0.25rem 0.6rem',
-                    borderRadius: '999px',
-                    background: '#FEF2F2',
-                    color: '#DC2626',
-                    fontSize: '0.75rem',
-                    fontWeight: typography.weights.bold,
-                  }}
-                >
-                  {pendingItems.length}
-                </span>
-              )}
-            </h2>
-            {pendingItems.length === 0 ? (
-              <p
-                style={{
-                  margin: 0,
-                  padding: '0.5rem 0',
-                  fontSize: '0.9rem',
-                  color: palette.textSecondary,
-                }}
-              >
-                {isArabic
-                  ? 'لا توجد عناصر تتطلب إجراء حالياً.'
-                  : 'No items require your action at the moment.'}
-              </p>
-            ) : (
-              <ul
-                style={{
-                  listStyle: 'none',
-                  margin: 0,
-                  padding: 0,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.5rem',
-                }}
-              >
-                {pendingItems.map(item => (
-                  <li
-                    key={item.id}
-                    style={{
-                      borderRadius: radius.md,
-                      border: `1px solid ${palette.neutralBorderMuted}`,
-                      padding: '0.6rem 0.75rem',
-                      background: palette.backgroundHighlight,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '0.25rem',
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: '0.9rem',
-                        color: palette.textPrimary,
-                        fontWeight: 600,
-                      }}
-                    >
-                      {isArabic ? 'طلب' : 'Request'} #{item.requestNumber}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: '0.8rem',
-                        color: palette.textSecondary,
-                      }}
-                    >
-                      {isArabic
-                        ? `آخر تحديث: ${formatDateTime(item.updatedAt)}`
-                        : `Last updated: ${formatDateTime(item.updatedAt)}`}
-                    </span>
-                    <a
-                      href={`/requests/${item.id}`}
-                      style={{
-                        fontSize: '0.8rem',
-                        color: palette.brandPrimaryStrong,
-                        textDecoration: 'none',
-                        fontWeight: 500,
-                      }}
-                    >
-                      {isArabic ? 'فتح التفاصيل →' : 'View Details →'}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </section>
-
-        {/* Internal News Section */}
-        <section
-          style={{
-            padding: '1.5rem',
-            borderRadius: radius.lg,
-            background: palette.backgroundBase,
-            boxShadow: shadow.subtle,
-            border: `1px solid ${palette.neutralBorderMuted}`,
-            animation: 'slideUp 0.7s ease-out',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '1.25rem',
-            }}
-          >
-            <h2
-              style={{
-                margin: 0,
-                fontSize: '1.25rem',
-                fontWeight: typography.weights.bold,
-                color: palette.textPrimary,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-              }}
-            >
-              <span style={{ fontSize: '1.5rem' }}>📰</span>
-              {isArabic ? 'آخر الأخبار الداخلية' : 'Latest Internal News'}
-            </h2>
-            <a
-              href="/internal-news"
-              style={{
-                fontSize: '0.875rem',
-                color: palette.brandPrimaryStrong,
-                textDecoration: 'none',
-                fontWeight: 600,
-                transition: 'color 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = palette.brandPrimary;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = palette.brandPrimaryStrong;
-              }}
-            >
-              {isArabic ? 'عرض الكل →' : 'View All →'}
-            </a>
-          </div>
-
-          {isLoadingNews ? (
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1rem',
-              }}
-            >
-              {[1, 2, 3].map(i => (
-                <div
-                  key={i}
-                  style={{
-                    padding: '1.5rem',
-                    borderRadius: radius.md,
-                    background: palette.backgroundSurface,
-                    border: `1px solid ${palette.neutralBorderMuted}`,
-                    animation: 'pulse 2s ease-in-out infinite',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '60%',
-                      height: '20px',
-                      background: palette.neutralBorderMuted,
-                      borderRadius: radius.md,
-                      marginBottom: '0.75rem',
-                    }}
-                  />
-                  <div
-                    style={{
-                      width: '100%',
-                      height: '16px',
-                      background: palette.neutralBorderMuted,
-                      borderRadius: radius.md,
-                      marginBottom: '0.5rem',
-                    }}
-                  />
-                  <div
-                    style={{
-                      width: '80%',
-                      height: '16px',
-                      background: palette.neutralBorderMuted,
-                      borderRadius: radius.md,
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-          ) : news.length === 0 ? (
-            <div
-              style={{
-                padding: '3rem 1rem',
-                textAlign: 'center',
-                color: palette.textSecondary,
-              }}
-            >
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📭</div>
-              <p style={{ margin: 0, fontSize: '1rem' }}>
-                {isArabic
-                  ? 'لا توجد أخبار داخلية حالياً.'
-                  : 'No internal news at the moment.'}
-              </p>
-            </div>
-          ) : (
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1.5rem',
-              }}
-            >
-              {news.map((item, index) => (
-                <NewsCard
-                  key={item.id}
-                  item={item}
-                  isArabic={isArabic}
-                  formatDateTime={formatDateTime}
-                  createExcerpt={createExcerpt}
-                  index={index}
-                />
-              ))}
-            </div>
-          )}
-        </section>
       </div>
+      
+      {/* Chat Modal */}
+      {showChatModal && (
+        <ChatModal
+          isOpen={showChatModal}
+          onClose={() => setShowChatModal(false)}
+        />
+      )}
     </div>
   );
 }

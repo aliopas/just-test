@@ -5,6 +5,7 @@ import { investorRouter } from './routes/investor.routes';
 import { adminRouter } from './routes/admin.routes';
 import { newsRouter } from './routes/news.routes';
 import { notificationRouter } from './routes/notification.routes';
+import { chatRouter } from './routes/chat.routes';
 import { publicRouter } from './routes/public.routes';
 import { applySecurity, authLimiter } from './middleware/security';
 
@@ -28,6 +29,7 @@ app.get('/', (_req, res) => {
       admin: '/api/v1/admin',
       notifications: '/api/v1/notifications',
       news: '/api/v1/news',
+      chat: '/api/v1/chat',
     },
   });
 });
@@ -39,6 +41,7 @@ app.use('/api/v1/investor', investorRouter);
 app.use('/api/v1/admin', adminRouter);
 app.use('/api/v1/notifications', notificationRouter);
 app.use('/api/v1/news', newsRouter);
+app.use('/api/v1/chat', chatRouter);
 app.use('/api/v1/public', publicRouter);
 
 // Error handler middleware - must be last
