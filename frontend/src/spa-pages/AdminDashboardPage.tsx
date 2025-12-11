@@ -1,12 +1,27 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAdminDashboardStatsDirect } from '../hooks/useAdminDashboardStatsDirect';
 import { useLanguage } from '../context/LanguageContext';
+import { useNotifications } from '../hooks/useNotifications';
+import { useConversations } from '../hooks/useChat';
+import { NotificationBadge } from '../components/notifications/NotificationBadge';
+import { ChatIcon } from '../components/chat/ChatIcon';
+import { ChatModal } from '../components/chat/ChatModal';
 import { palette, radius, shadow, typography } from '../styles/theme';
 import { tAdminDashboard } from '../locales/adminDashboard';
 
 export function AdminDashboardPage() {
   const { language, direction } = useLanguage();
   const { data, isLoading, isError } = useAdminDashboardStatsDirect();
+  const [showChatModal, setShowChatModal] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  
+  // Fetch notifications
+  const { meta: notificationsMeta } = useNotifications({ status: 'unread' });
+  const unreadNotificationCount = notificationsMeta?.unreadCount ?? 0;
+  
+  // Fetch conversations for unread count
+  const { conversations } = useConversations();
+  const unreadChatCount = conversations.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0);
 
   const summary = data?.summary;
 
@@ -29,29 +44,61 @@ export function AdminDashboardPage() {
         }}
       >
         {/* Header */}
-        <header>
-          <h1
+        <header
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            flexWrap: 'wrap',
+            gap: '1rem',
+          }}
+        >
+          <div>
+            <h1
+              style={{
+                margin: 0,
+                fontSize: typography.sizes.heading,
+                fontWeight: typography.weights.bold,
+                color: palette.textPrimary,
+              }}
+            >
+              {tAdminDashboard('pageTitle', language)}
+            </h1>
+            <p
+              style={{
+                marginTop: '0.35rem',
+                marginBottom: 0,
+                fontSize: typography.sizes.body,
+                color: palette.textSecondary,
+              }}
+            >
+              {language === 'ar'
+                ? 'نظرة سريعة على أداء معالجة طلبات المستثمرين والمؤشرات التشغيلية.'
+                : 'A quick view of investor request processing performance and key operational KPIs.'}
+            </p>
+          </div>
+          <div
             style={{
-              margin: 0,
-              fontSize: typography.sizes.heading,
-              fontWeight: typography.weights.bold,
-              color: palette.textPrimary,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              flexWrap: 'wrap',
             }}
           >
-            {tAdminDashboard('pageTitle', language)}
-          </h1>
-          <p
-            style={{
-              marginTop: '0.35rem',
-              marginBottom: 0,
-              fontSize: typography.sizes.body,
-              color: palette.textSecondary,
-            }}
-          >
-            {language === 'ar'
-              ? 'نظرة سريعة على أداء معالجة طلبات المستثمرين والمؤشرات التشغيلية.'
-              : 'A quick view of investor request processing performance and key operational KPIs.'}
-          </p>
+            <NotificationBadge
+              count={unreadNotificationCount}
+              language={language}
+              onClick={() => {
+                window.location.href = '/admin/admin/notifications';
+              }}
+              isActive={showNotifications}
+            />
+            <ChatIcon
+              unreadCount={unreadChatCount}
+              onClick={() => setShowChatModal(true)}
+              isActive={showChatModal}
+            />
+          </div>
         </header>
 
         {/* Error state */}
@@ -211,6 +258,14 @@ export function AdminDashboardPage() {
           </div>
         </section>
       </div>
+      
+      {/* Chat Modal */}
+      {showChatModal && (
+        <ChatModal
+          isOpen={showChatModal}
+          onClose={() => setShowChatModal(false)}
+        />
+      )}
     </div>
   );
 }
