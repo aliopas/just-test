@@ -70,8 +70,34 @@ export function useSupabaseLogin() {
       let userRole: 'investor' | 'admin' = 'investor';
       
       // محاولة جلب role من قاعدة البيانات (مع معالجة الأخطاء)
+      // نبدأ بقراءة metadata أولاً كـ fallback سريع، ثم نحاول قاعدة البيانات
+      
+      // أولاً: فحص metadata (الأسرع والأكثر موثوقية بعد التحديث)
+      const userMetadataRole = (data.user.user_metadata as { role?: string })?.role;
+      const appMetadataRole = (data.user.app_metadata as { role?: string })?.role;
+      
+      console.log('[Login] ========== ROLE DETECTION START ==========');
+      console.log('[Login] User object:', {
+        id: data.user.id,
+        email: data.user.email,
+        user_metadata: data.user.user_metadata,
+        app_metadata: data.user.app_metadata,
+      });
+      console.log('[Login] Checking metadata first:', {
+        userMetadataRole,
+        appMetadataRole,
+      });
+      
+      if (userMetadataRole === 'admin' || appMetadataRole === 'admin') {
+        userRole = 'admin';
+        console.log('[Login] ✅ Role from metadata: admin (using as primary source)');
+      } else {
+        console.log('[Login] Metadata does not contain admin role');
+      }
+      
+      // ثانياً: محاولة جلب role من قاعدة البيانات للتأكيد
       try {
-        // أولاً: محاولة جلب role من عمود role في جدول users
+        // محاولة جلب role من عمود role في جدول users
         const { data: userData, error: userError } = await supabase
           .from('users')
           .select('role')
@@ -86,9 +112,13 @@ export function useSupabaseLogin() {
           
           if (userData.role === 'admin') {
             userRole = 'admin';
-            console.log('[Login] ✅ Role from database column: admin');
+            console.log('[Login] ✅ Role confirmed from database column: admin');
+          } else if (userData.role && userData.role !== 'admin') {
+            // إذا كانت role في قاعدة البيانات مختلفة عن metadata، نستخدم قاعدة البيانات كـ source of truth
+            userRole = userData.role === 'admin' ? 'admin' : 'investor';
+            console.log('[Login] Role from database differs from metadata, using database:', userData.role);
           } else {
-            console.log('[Login] Role from database column:', userData.role || 'null', '(defaulting to investor)');
+            console.log('[Login] Role from database column:', userData.role || 'null');
           }
         } else if (userError) {
           console.warn('[Login] ❌ Failed to fetch role from users table (RLS or other issue):', {
@@ -97,8 +127,10 @@ export function useSupabaseLogin() {
             hint: userError.hint,
             userId: data.user.id,
           });
+          console.warn('[Login] Continuing with metadata role:', userRole);
         } else {
           console.warn('[Login] ⚠️ No user data returned from database (userData is null)');
+          console.warn('[Login] Continuing with metadata role:', userRole);
         }
 
         // ثانياً: إذا لم نجد admin في عمود role، تحقق من جدول user_roles (RBAC)
@@ -153,47 +185,35 @@ export function useSupabaseLogin() {
         console.warn('[Login] Exception fetching user role from database:', err);
       }
 
-      // Fallback إلى metadata إذا لم نتمكن من جلب role من قاعدة البيانات
-      if (userRole === 'investor') {
-        const userMetadataRole = (data.user.user_metadata as { role?: string })?.role;
-        const appMetadataRole = (data.user.app_metadata as { role?: string })?.role;
-        
-        console.log('[Login] Checking metadata for role:', {
-          userMetadataRole,
-          appMetadataRole,
-        });
-        
-        if (userMetadataRole === 'admin' || appMetadataRole === 'admin') {
-          userRole = 'admin';
-          console.log('[Login] ✅ Role from metadata: admin');
-        } else {
-          console.log('[Login] No admin role in metadata, defaulting to investor');
-        }
-      }
-      
-      // محاولة أخيرة: قراءة role من JWT token إذا كان متاحاً
+      // إذا لم نجد admin حتى الآن، جرب JWT token كـ fallback أخير
       if (userRole === 'investor' && data.session?.access_token) {
         try {
-          // Decode JWT token (base64)
           const payload = JSON.parse(atob(data.session.access_token.split('.')[1]));
           const tokenRole = payload.role || payload.user_role || payload.app_metadata?.role || payload.user_metadata?.role;
+          
+          console.log('[Login] Checking JWT token for role (final fallback):', { tokenRole });
           
           if (tokenRole === 'admin') {
             userRole = 'admin';
             console.log('[Login] ✅ Role from JWT token: admin');
+          } else {
+            console.warn('[Login] ❌ No admin role found in any source (database, user_roles, metadata, JWT), defaulting to investor');
+            console.warn('[Login] This may indicate an RLS policy issue preventing database access');
+            console.warn('[Login] User ID:', data.user.id);
+            console.warn('[Login] Email:', data.user.email);
           }
         } catch (e) {
-          // Ignore JWT decode errors
           console.warn('[Login] Could not decode JWT token:', e);
         }
       }
 
-      // Log final role determination
-      console.log('[Login] Final determined role:', {
-        userId: data.user.id,
-        email: data.user.email,
-        role: userRole,
-      });
+      // Log final role determination with detailed info
+      console.log('[Login] ========== FINAL ROLE DETERMINATION ==========');
+      console.log('[Login] User ID:', data.user.id);
+      console.log('[Login] Email:', data.user.email);
+      console.log('[Login] Final Role:', userRole);
+      console.log('[Login] Will redirect to:', userRole === 'admin' ? '/admin/dashboard' : '/dashboard');
+      console.log('[Login] ===============================================');
 
       // تحديث حالة المستخدم في AuthContext أولاً
       setUser({
@@ -225,6 +245,7 @@ export function useSupabaseLogin() {
       };
     },
     onSuccess: (data) => {
+      console.log('[Login] ========== ONSUCCESS CALLBACK ==========');
       console.log('[Login] تسجيل الدخول ناجح:', {
         userId: data.user.id,
         email: data.user.email,
@@ -232,8 +253,26 @@ export function useSupabaseLogin() {
       });
 
       // التأكد من أن role محدث قبل التوجيه
-      const userRole = data.user.role || 'investor';
-      console.log('[Login] Redirecting with role:', userRole);
+      // نستخدم role من data.user.role (الذي تم تحديده في mutationFn)
+      let userRole = data.user.role || 'investor';
+      
+      // Double-check: إذا كان role لا يزال investor، جرب metadata مرة أخرى (JWT قد يكون قديم)
+      if (userRole === 'investor') {
+        // Re-fetch metadata from the session user object
+        const sessionUser = data.session?.user;
+        if (sessionUser) {
+          const metadataRole = (sessionUser.user_metadata as { role?: string })?.role || 
+                             (sessionUser.app_metadata as { role?: string })?.role;
+          if (metadataRole === 'admin') {
+            userRole = 'admin';
+            console.log('[Login] ⚠️ Role was investor from mutation, but session metadata shows admin - using admin');
+            console.log('[Login] This suggests JWT token may need refresh');
+          }
+        }
+      }
+      
+      console.log('[Login] Final userRole for redirect:', userRole);
+      console.log('[Login] ==========================================');
 
       // التوجيه حسب الدور بعد نجاح تسجيل الدخول
       const redirectPath = typeof window !== 'undefined' 
@@ -255,10 +294,16 @@ export function useSupabaseLogin() {
         ? '/admin/dashboard' 
         : '/dashboard';
       
-      console.log('[Login] Redirecting to:', dashboardPath, 'for role:', userRole);
+      console.log('[Login] ========== REDIRECT DECISION ==========');
+      console.log('[Login] User Role:', userRole);
+      console.log('[Login] Redirect Path:', dashboardPath);
+      console.log('[Login] Expected for admin: /admin/dashboard');
+      console.log('[Login] Expected for investor: /dashboard');
+      console.log('[Login] ========================================');
       
       // تأخير بسيط للتأكد من تحديث AuthContext قبل التوجيه
       setTimeout(() => {
+        console.log('[Login] Executing redirect to:', dashboardPath);
         // استخدام replace بدلاً من push لتجنب إضافة صفحة تسجيل الدخول للتاريخ
         router.replace(dashboardPath);
       }, 100);
