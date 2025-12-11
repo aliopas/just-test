@@ -305,20 +305,24 @@ export function useInvestorNewsDetail(newsId?: string | null) {
 export function useInvestorInternalNewsList(options?: {
   page?: number;
   limit?: number;
+  showAll?: boolean; // New option to show all news regardless of audience
 }) {
   const page = options?.page ?? DEFAULT_PAGE;
   const limit = options?.limit ?? DEFAULT_LIMIT;
+  const showAll = options?.showAll ?? false;
 
+  // If showAll is true, don't filter by audience
   const { data: news, isLoading: isLoadingNews, isError: isErrorNews, error: errorNews, refetch: refetchNews } = useNews({
     page,
     limit,
-    audience: 'investor_internal',
+    audience: showAll ? undefined : 'investor_internal',
   });
 
-  const { data: totalCount, isLoading: isLoadingCount } = useNewsCount('investor_internal');
+  // If showAll is true, count all published news
+  const { data: totalCount, isLoading: isLoadingCount } = useNewsCount(showAll ? undefined : 'investor_internal');
 
   const queryResult = useQuery<InvestorInternalNewsListResponse>({
-    queryKey: ['investorInternalNews', 'list', { page, limit }],
+    queryKey: ['investorInternalNews', 'list', { page, limit, showAll }],
     queryFn: async () => {
       // Handle case when data is still loading or not available
       if (news === undefined || totalCount === undefined) {
