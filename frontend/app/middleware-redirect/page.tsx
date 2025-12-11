@@ -11,11 +11,11 @@ function AuthRedirect() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.push('/login');
+      router.replace('/login');
     } else if (user?.role === 'admin') {
-      router.push('/admin/dashboard');
+      router.replace('/admin/dashboard');
     } else {
-      router.push('/dashboard');
+      router.replace('/dashboard');
     }
   }, [isAuthenticated, user, router]);
 
