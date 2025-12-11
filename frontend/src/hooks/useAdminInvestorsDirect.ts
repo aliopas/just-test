@@ -51,15 +51,33 @@ async function fetchAdminInvestorsDirect(
     throw new Error('Supabase client غير متاح');
   }
 
+  // Check session first
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError) {
+    console.error('[useAdminInvestorsDirect] Session error:', sessionError);
+  }
+  
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[useAdminInvestorsDirect] Current session:', {
+      hasSession: !!session,
+      userId: session?.user?.id,
+    });
+  }
+
   const page = filters.page ?? 1;
   const limit = filters.limit ?? 25;
   const offset = (page - 1) * limit;
 
-  // Step 1: Query investors from users table (role = 'investor')
-  // Simplified: Just get all investors first, we'll filter client-side
+  // Step 1: Try using v_admin_users view first (includes profile data)
+  // Fallback to users table if view fails
+  let users: any[] | null = null;
+  let count: number | null = null;
+  let usersError: any = null;
+  
+  // Try v_admin_users view first
   let query = supabase
-    .from('users')
-    .select('id, email, phone, phone_cc, status, created_at, updated_at', { count: 'exact' })
+    .from('v_admin_users')
+    .select('id, email, phone, phone_cc, status, created_at, updated_at, full_name, preferred_name, kyc_status', { count: 'exact' })
     .eq('role', 'investor');
 
   // Apply status filter
@@ -67,7 +85,7 @@ async function fetchAdminInvestorsDirect(
     query = query.eq('status', filters.status);
   }
 
-  // Apply search filter on email/phone (profile name search will be done client-side)
+  // Apply search filter on email/phone
   if (filters.search && filters.search.trim().length > 0) {
     const pattern = `%${filters.search.trim()}%`;
     query = query.or(`email.ilike.${pattern},phone.ilike.${pattern}`);
@@ -79,8 +97,38 @@ async function fetchAdminInvestorsDirect(
   query = query.order(sortBy, { ascending: order });
 
   // Apply pagination
-  const { data: users, error: usersError, count } = await query
-    .range(offset, offset + limit - 1);
+  let result = await query.range(offset, offset + limit - 1);
+  
+  // If view fails, try users table as fallback
+  if (result.error && (result.error.code === '42P01' || result.error.message?.includes('does not exist') || result.error.message?.includes('permission'))) {
+    console.warn('[useAdminInvestorsDirect] View access failed, falling back to users table:', result.error);
+    
+    let fallbackQuery = supabase
+      .from('users')
+      .select('id, email, phone, phone_cc, status, created_at, updated_at', { count: 'exact' })
+      .eq('role', 'investor');
+
+    if (filters.status && filters.status !== 'all') {
+      fallbackQuery = fallbackQuery.eq('status', filters.status);
+    }
+
+    if (filters.search && filters.search.trim().length > 0) {
+      const pattern = `%${filters.search.trim()}%`;
+      fallbackQuery = fallbackQuery.or(`email.ilike.${pattern},phone.ilike.${pattern}`);
+    }
+
+    fallbackQuery = fallbackQuery.order(sortBy, { ascending: order });
+    const fallbackResult = await fallbackQuery.range(offset, offset + limit - 1);
+    
+    // Add null values for profile fields to match view structure
+    users = fallbackResult.data?.map(u => ({ ...u, full_name: null, preferred_name: null, kyc_status: null })) ?? null;
+    count = fallbackResult.count;
+    usersError = fallbackResult.error;
+  } else {
+    users = result.data;
+    count = result.count;
+    usersError = result.error;
+  }
 
   if (usersError) {
     console.error('[useAdminInvestorsDirect] Error fetching users:', usersError);
@@ -108,29 +156,35 @@ async function fetchAdminInvestorsDirect(
       count: users?.length ?? 0,
       totalCount: count,
       filters,
+      users: users?.map(u => ({ id: u.id, email: u.email })),
+    });
+  }
+  
+  // If no users but no error, log warning
+  if (!usersError && (!users || users.length === 0)) {
+    console.warn('[useAdminInvestorsDirect] No users returned, but no error. Possible RLS issue.');
+    console.warn('[useAdminInvestorsDirect] Session info:', {
+      hasSession: !!session,
+      userId: session?.user?.id,
     });
   }
 
   let userRows = (users as any[] | null) ?? [];
 
-  // Step 2: Fetch profiles for the users we got
+  // Step 2: Create profiles map from view data (already includes profile info)
   const profilesMap = new Map<string, { user_id: string; full_name: string | null; preferred_name: string | null; kyc_status: string | null }>();
   
   if (userRows.length > 0) {
-    const userIds = userRows.map(u => u.id);
-    const { data: userProfiles, error: profilesError } = await supabase
-      .from('investor_profiles')
-      .select('user_id, full_name, preferred_name, kyc_status')
-      .in('user_id', userIds);
-    
-    if (!profilesError && userProfiles) {
-      userProfiles.forEach(p => {
-        profilesMap.set(p.user_id, p);
-      });
-    } else if (profilesError) {
-      console.warn('[useAdminInvestorsDirect] Could not fetch investor profiles:', profilesError);
-      // Continue without profiles - users will show without profile data
-    }
+    userRows.forEach(user => {
+      if (user.full_name !== undefined || user.preferred_name !== undefined || user.kyc_status !== undefined) {
+        profilesMap.set(user.id, {
+          user_id: user.id,
+          full_name: user.full_name ?? null,
+          preferred_name: user.preferred_name ?? null,
+          kyc_status: user.kyc_status ?? null,
+        });
+      }
+    });
   }
 
   // Step 3: Apply client-side filtering for search (profile names)
