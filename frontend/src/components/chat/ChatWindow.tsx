@@ -54,7 +54,7 @@ export function ChatWindow({ conversation, onClose }: ChatWindowProps) {
         conversationId: conversation.id || undefined,
         content: messageText.trim(),
         ...(isInvestor && !conversation.id ? { investorId: user?.id } : {}),
-        ...(!isInvestor && !conversation.id ? { adminId: user?.id } : {}),
+        ...(!isInvestor && !conversation.id ? { investorId: conversation.investorId, adminId: user?.id } : {}),
       });
       setMessageText('');
     } catch (error) {
