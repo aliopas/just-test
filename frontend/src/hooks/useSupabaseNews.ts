@@ -313,9 +313,8 @@ export function useInvestorInternalNewsList(options?: {
 }) {
   const page = options?.page ?? DEFAULT_PAGE;
   const limit = options?.limit ?? DEFAULT_LIMIT;
-  // نتجاهل الآن showAll / includeAllStatuses في واجهة المستثمر
-  // ونقوم دائماً بعرض جميع الأخبار الداخلية للمستثمرين (بكل الحالات)
-  const audience = 'investor_internal' as const;
+  // في هذه الصفحة نريد عرض "جميع الأخبار" بدون أي فلاتر audience أو status
+  const audience = undefined;
   const statusFilter = 'all' as const;
 
   // If showAll is true, don't filter by audience
