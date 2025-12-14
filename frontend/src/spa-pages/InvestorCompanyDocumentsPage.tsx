@@ -499,6 +499,36 @@ export function InvestorCompanyDocumentsPage() {
                             ? 'Category: Internal financial reports'
                             : 'Category: External financial resources'}
                     </span>
+                    <span
+                      style={{
+                        padding: '0.05rem 0.5rem',
+                        borderRadius: radius.pill,
+                        background: palette.backgroundSurface,
+                        border: `1px solid ${palette.neutralBorderMuted}`,
+                      }}
+                    >
+                      {(() => {
+                        const created = new Date(selectedDoc.createdAt);
+                        const updated = new Date(selectedDoc.updatedAt);
+                        const locale = isArabic ? 'ar-SA' : 'en-US';
+                        const formatOpts: Intl.DateTimeFormatOptions = {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        };
+                        const createdLabel = created.toLocaleDateString(
+                          locale,
+                          formatOpts,
+                        );
+                        const updatedLabel = updated.toLocaleDateString(
+                          locale,
+                          formatOpts,
+                        );
+                        return isArabic
+                          ? `تاريخ الإضافة: ${createdLabel}  •  آخر تحديث: ${updatedLabel}`
+                          : `Created: ${createdLabel}  •  Last updated: ${updatedLabel}`;
+                      })()}
+                    </span>
                   </div>
                 </div>
               </div>
