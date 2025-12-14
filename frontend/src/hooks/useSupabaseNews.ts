@@ -215,7 +215,8 @@ export function useInvestorNewsList(options?: {
     page,
     limit,
     audience: 'public',
-    enableRealtime: true, // Enable realtime updates for automatic refresh
+    // إيقاف التحديث التلقائي عبر realtime لتجنّب إعادة تحميل الصفحة
+    enableRealtime: false,
   });
 
   const { data: totalCount } = useNewsCount('public');
@@ -320,7 +321,8 @@ export function useInvestorInternalNewsList(options?: {
     limit,
     audience: showAll ? undefined : 'investor_internal',
     status: includeAllStatuses ? 'all' : undefined,
-    enableRealtime: true, // Enable realtime updates for automatic refresh
+    // إيقاف التحديث التلقائي عبر realtime لتجنّب إعادة تحميل الصفحة
+    enableRealtime: false,
   });
 
   // If showAll/includeAllStatuses are true, count كل الأخبار بدون قيد للحالة أو الـ audience

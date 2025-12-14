@@ -58,10 +58,6 @@ export function InvestorCompanyDocumentsPage() {
     includeInactive: false,
   });
 
-  const [selectedDoc, setSelectedDoc] = useState<InvestorDocumentCamel | null>(
-    null,
-  );
-
   const grouped = useMemo(() => {
     const map: Record<DocumentCategory, InvestorDocumentCamel[]> = {
       company_static: [],
@@ -282,210 +278,95 @@ export function InvestorCompanyDocumentsPage() {
                     gap: '0.75rem',
                   }}
                 >
-                  {items.map((doc) => (
-                    <button
-                      key={doc.id}
-                      type="button"
-                      onClick={() => setSelectedDoc(doc)}
-                      style={{
-                        textAlign: 'start',
-                        padding: '0.85rem 1rem',
-                        borderRadius: radius.md,
-                        border: `1px solid ${palette.neutralBorderMuted}`,
-                        background: palette.backgroundSurface,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.35rem',
-                        boxShadow: shadow.subtle,
-                      }}
-                    >
-                      <div
+                  {items.map((doc) => {
+                    const href = doc.storageUrl || '#';
+                    const disabled = !doc.storageUrl;
+
+                    return (
+                      <a
+                        key={doc.id}
+                        href={href}
+                        target="_blank"
+                        rel="noreferrer"
                         style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: '0.5rem',
+                          textDecoration: 'none',
+                          pointerEvents: disabled ? 'none' : 'auto',
                         }}
                       >
-                        <span
+                        <div
                           style={{
-                            fontSize: '1.1rem',
+                            textAlign: 'start',
+                            padding: '0.85rem 1rem',
+                            borderRadius: radius.md,
+                            border: `1px solid ${palette.neutralBorderMuted}`,
+                            background: palette.backgroundSurface,
+                            cursor: disabled ? 'default' : 'pointer',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '0.35rem',
+                            boxShadow: shadow.subtle,
                           }}
                         >
-                          {doc.iconEmoji || '📄'}
-                        </span>
-                        <span
-                          style={{
-                            fontSize: '0.75rem',
-                            padding: '0.15rem 0.55rem',
-                            borderRadius: radius.pill,
-                            background: palette.backgroundHighlight,
-                            color: palette.textSecondary,
-                          }}
-                        >
-                          {isArabic ? 'عرض الملف' : 'Open'}
-                        </span>
-                      </div>
-                      <strong
-                        style={{
-                          fontSize: '0.95rem',
-                          color: palette.textPrimary,
-                          fontWeight: typography.weights.semibold,
-                        }}
-                      >
-                        {isArabic ? doc.titleAr : doc.titleEn}
-                      </strong>
-                      {((isArabic ? doc.descriptionAr : doc.descriptionEn) ??
-                        '') && (
-                        <p
-                          style={{
-                            margin: 0,
-                            fontSize: '0.8rem',
-                            color: palette.textSecondary,
-                          }}
-                        >
-                          {(isArabic
-                            ? doc.descriptionAr
-                            : doc.descriptionEn) || ''}
-                        </p>
-                      )}
-                    </button>
-                  ))}
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              gap: '0.5rem',
+                            }}
+                          >
+                            <span
+                              style={{
+                                fontSize: '1.1rem',
+                              }}
+                            >
+                              {doc.iconEmoji || '📄'}
+                            </span>
+                            <span
+                              style={{
+                                fontSize: '0.75rem',
+                                padding: '0.15rem 0.55rem',
+                                borderRadius: radius.pill,
+                                background: palette.backgroundHighlight,
+                                color: palette.textSecondary,
+                              }}
+                            >
+                              {isArabic ? 'فتح في تبويب جديد' : 'Open in new tab'}
+                            </span>
+                          </div>
+                          <strong
+                            style={{
+                              fontSize: '0.95rem',
+                              color: palette.textPrimary,
+                              fontWeight: typography.weights.semibold,
+                            }}
+                          >
+                            {isArabic ? doc.titleAr : doc.titleEn}
+                          </strong>
+                          {((isArabic ? doc.descriptionAr : doc.descriptionEn) ??
+                            '') && (
+                            <p
+                              style={{
+                                margin: 0,
+                                fontSize: '0.8rem',
+                                color: palette.textSecondary,
+                              }}
+                            >
+                              {(isArabic
+                                ? doc.descriptionAr
+                                : doc.descriptionEn) || ''}
+                            </p>
+                          )}
+                        </div>
+                      </a>
+                    );
+                  })}
                 </div>
               )}
             </section>
           );
         })}
       </div>
-
-      {/* Simple viewer modal */}
-      {selectedDoc && (
-        <div
-          onClick={() => setSelectedDoc(null)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(15, 23, 42, 0.55)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 40,
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: 'min(960px, 95vw)',
-              height: 'min(640px, 90vh)',
-              background: palette.backgroundBase,
-              borderRadius: radius.lg,
-              boxShadow: shadow.medium,
-              border: `1px solid ${palette.neutralBorderMuted}`,
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-          >
-            <div
-              style={{
-                padding: '0.85rem 1.25rem',
-                borderBottom: `1px solid ${palette.neutralBorderMuted}`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '0.75rem',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                }}
-              >
-                <span style={{ fontSize: '1.2rem' }}>
-                  {selectedDoc.iconEmoji || '📄'}
-                </span>
-                <div>
-                  <div
-                    style={{
-                      fontSize: '0.95rem',
-                      fontWeight: typography.weights.semibold,
-                      color: palette.textPrimary,
-                    }}
-                  >
-                    {isArabic
-                      ? selectedDoc.titleAr
-                      : selectedDoc.titleEn}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: '0.8rem',
-                      color: palette.textSecondary,
-                    }}
-                  >
-                    {isArabic
-                      ? 'ملف داخلي للعرض فقط'
-                      : 'Internal view‑only document'}
-                  </div>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedDoc(null)}
-                style={{
-                  borderRadius: radius.pill,
-                  border: `1px solid ${palette.neutralBorderMuted}`,
-                  background: palette.backgroundSurface,
-                  padding: '0.35rem 0.9rem',
-                  fontSize: '0.85rem',
-                  cursor: 'pointer',
-                  color: palette.textSecondary,
-                }}
-              >
-                {isArabic ? 'إغلاق' : 'Close'}
-              </button>
-            </div>
-            <div
-              style={{
-                flex: 1,
-                borderTop: `1px solid ${palette.backgroundSurface}`,
-                background: palette.backgroundSurface,
-              }}
-            >
-              {selectedDoc.storageUrl ? (
-                <iframe
-                  title={isArabic ? selectedDoc.titleAr : selectedDoc.titleEn}
-                  src={selectedDoc.storageUrl}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    border: 'none',
-                  }}
-                />
-              ) : (
-                <div
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '0.95rem',
-                    color: palette.textSecondary,
-                    padding: '1.5rem',
-                    textAlign: 'center',
-                  }}
-                >
-                  {isArabic
-                    ? 'رابط الملف غير متوفر حالياً.'
-                    : 'Document URL is not available at the moment.'}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
