@@ -1375,14 +1375,20 @@ export function AdminCompanyContentPage() {
                           COMPANY_CONTENT_IMAGES_BUCKET,
                           path,
                         );
-                        if (publicUrl) {
-                          setInvestorDocForm((prev) => ({
-                            ...prev,
-                            storageUrl: publicUrl,
-                          }));
+                        if (!publicUrl) {
+                          throw new Error('Failed to resolve public URL for uploaded file');
                         }
+                        setInvestorDocForm((prev) => ({
+                          ...prev,
+                          storageUrl: publicUrl,
+                        }));
                       } catch (error) {
                         console.error('Failed to upload investor document:', error);
+                        window.alert(
+                          isArabic
+                            ? 'حدث خطأ أثناء رفع الملف أو إنشاء رابطه. يرجى المحاولة مرة أخرى أو استخدام ملف أصغر.'
+                            : 'An error occurred while uploading the document or creating its URL. Please try again or use a smaller file.',
+                        );
                       } finally {
                         setIsUploadingInvestorDoc(false);
                         e.target.value = '';

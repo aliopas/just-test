@@ -171,17 +171,8 @@
   </div>
 
   <script>
-    // Auto-retry when connection is restored
-    window.addEventListener('online', () => {
-      window.location.reload();
-    });
-
-    // Check connection periodically
-    setInterval(() => {
-      if (navigator.onLine) {
-        window.location.reload();
-      }
-    }, 5000);
+    // تم تعطيل إعادة التحميل التلقائية.
+    // يمكن للمستخدم إعادة المحاولة يدويًا عن طريق زر "Try Again" فقط.
   </script>
 </body>
 </html>

@@ -225,7 +225,22 @@ export function InvestorCompanyDocumentsPage() {
                     flexWrap: 'wrap',
                   }}
                 >
-                  <span style={{ fontSize: '1.5rem' }}>{cat.icon}</span>
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '2.3rem',
+                      height: '2.3rem',
+                      borderRadius: radius.pill,
+                      background: `linear-gradient(135deg, ${palette.brandPrimary} 0%, ${palette.brandPrimaryStrong} 100%)`,
+                      boxShadow: shadow.subtle,
+                      color: palette.textOnBrand,
+                      fontSize: '1.3rem',
+                    }}
+                  >
+                    {cat.icon}
+                  </span>
                   <div>
                     <h2
                       style={{
@@ -314,7 +329,15 @@ export function InvestorCompanyDocumentsPage() {
                         >
                           <span
                             style={{
-                              fontSize: '1.1rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '2rem',
+                              height: '2rem',
+                              borderRadius: radius.pill,
+                              background: `${palette.brandPrimary}12`,
+                              color: palette.brandPrimaryStrong,
+                              fontSize: '1.05rem',
                             }}
                           >
                             {doc.iconEmoji || '📄'}

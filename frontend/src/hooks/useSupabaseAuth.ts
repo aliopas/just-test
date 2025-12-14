@@ -94,11 +94,9 @@ export function useSupabaseAuth(): UseSupabaseAuthReturn {
 
   // Use refs to store latest functions to avoid dependency issues
   const checkSessionRef = useRef(checkSession);
-  const refreshSessionRef = useRef(refreshSession);
 
   useEffect(() => {
     checkSessionRef.current = checkSession;
-    refreshSessionRef.current = refreshSession;
   }, [checkSession, refreshSession]);
 
   useEffect(() => {
@@ -134,17 +132,9 @@ export function useSupabaseAuth(): UseSupabaseAuthReturn {
       }
     );
 
-    // Set up periodic session refresh (every 5 minutes)
-    const refreshInterval = setInterval(() => {
-      if (isMounted) {
-        checkSessionRef.current();
-      }
-    }, 5 * 60 * 1000); // 5 minutes
-
     return () => {
       isMounted = false;
       subscription.unsubscribe();
-      clearInterval(refreshInterval);
     };
   }, [supabase]); // Only depend on supabase
 
