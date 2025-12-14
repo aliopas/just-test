@@ -1186,13 +1186,22 @@ export function AdminCompanyContentPage() {
             <form
               onSubmit={async (e) => {
                 e.preventDefault();
+                const storageUrl = investorDocForm.storageUrl.trim();
+                if (!storageUrl) {
+                  window.alert(
+                    isArabic
+                      ? 'يرجى رفع ملف أولاً قبل الحفظ.'
+                      : 'Please upload a file first before saving.',
+                  );
+                  return;
+                }
                 const payload = {
                   category: investorDocForm.category,
                   titleAr: investorDocForm.titleAr.trim(),
                   titleEn: investorDocForm.titleEn.trim(),
                   descriptionAr: investorDocForm.descriptionAr.trim() || null,
                   descriptionEn: investorDocForm.descriptionEn.trim() || null,
-                  storageUrl: investorDocForm.storageUrl.trim(),
+                  storageUrl,
                   iconEmoji: investorDocForm.iconEmoji.trim() || null,
                   displayOrder: investorDocForm.displayOrder || 0,
                   isActive: investorDocForm.isActive,
@@ -1306,7 +1315,7 @@ export function AdminCompanyContentPage() {
                 />
               </div>
 
-              {/* URL & upload */}
+              {/* File upload only */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                 <label
                   style={{
@@ -1314,24 +1323,8 @@ export function AdminCompanyContentPage() {
                     color: palette.textSecondary,
                   }}
                 >
-                  {isArabic ? 'رفع الملف' : 'Secure document URL'}
+                  {isArabic ? 'رفع الملف' : 'Upload document'}
                 </label>
-                <input
-                  type="url"
-                  required
-                  placeholder={isArabic ? 'https://...' : 'https://...'}
-                  value={investorDocForm.storageUrl}
-                  onChange={(e) =>
-                    setInvestorDocForm((prev) => ({ ...prev, storageUrl: e.target.value }))
-                  }
-                  style={{
-                    padding: '0.5rem 0.6rem',
-                    borderRadius: radius.md,
-                    border: `1px solid ${palette.neutralBorderMuted}`,
-                    fontSize: '0.85rem',
-                    marginBottom: '0.25rem',
-                  }}
-                />
                 <div
                   style={{
                     display: 'flex',
@@ -1355,7 +1348,6 @@ export function AdminCompanyContentPage() {
                           fileName: file.name,
                           fileType: file.type,
                           fileSize: file.size,
-                          // نستخدم نفس الغرض المستخدم لأيقونات المحتوى
                           purpose: 'icon',
                         });
                         await fetch(result.uploadUrl, {
@@ -1374,11 +1366,9 @@ export function AdminCompanyContentPage() {
                           }));
                         }
                       } catch (error) {
-                        // يمكن عرض رسالة لاحقاً في حال احتجنا
                         console.error('Failed to upload investor document:', error);
                       } finally {
                         setIsUploadingInvestorDoc(false);
-                        // إعادة تعيين حقل الملف حتى يمكن اختيار نفس الملف مرة أخرى
                         e.target.value = '';
                       }
                     }}
@@ -1394,8 +1384,8 @@ export function AdminCompanyContentPage() {
                         ? 'جاري رفع الملف...'
                         : 'Uploading file...'
                       : isArabic
-                        ? 'يمكنك اختيار ملف لرفعه وسيتم تعبئة الرابط تلقائياً.'
-                        : 'You can upload a file and the URL will be filled automatically.'}
+                        ? 'اختر ملفاً ليتم رفعه وتخزين رابطه تلقائياً.'
+                        : 'Choose a file to upload and its URL will be stored automatically.'}
                   </span>
                 </div>
               </div>
