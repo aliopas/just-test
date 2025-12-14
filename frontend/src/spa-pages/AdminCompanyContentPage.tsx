@@ -40,6 +40,7 @@ import {
   useDeleteInvestorDocumentMutation,
 } from '../hooks/useSupabaseTables';
 import { useCompanyContentImagePresignMutation } from '../hooks/useAdminCompanyContent';
+import { getStoragePublicUrl, COMPANY_CONTENT_IMAGES_BUCKET } from '../utils/supabase-storage';
 import { CompanyProfilesTable } from '../components/admin/company-content/CompanyProfilesTable';
 import { CompanyProfileFormDrawer } from '../components/admin/company-content/CompanyProfileFormDrawer';
 import { CompanyPartnersTable } from '../components/admin/company-content/CompanyPartnersTable';
@@ -234,6 +235,8 @@ export function AdminCompanyContentPage() {
     displayOrder: 0,
     isActive: true,
   });
+
+  const [isUploadingInvestorDoc, setIsUploadingInvestorDoc] = useState(false);
 
   function resetInvestorDocForm() {
     setEditingInvestorDocumentId(null);
@@ -1303,8 +1306,8 @@ export function AdminCompanyContentPage() {
                 />
               </div>
 
-              {/* URL & icon */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              {/* URL & upload */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                 <label
                   style={{
                     fontSize: '0.8rem',
@@ -1326,8 +1329,75 @@ export function AdminCompanyContentPage() {
                     borderRadius: radius.md,
                     border: `1px solid ${palette.neutralBorderMuted}`,
                     fontSize: '0.85rem',
+                    marginBottom: '0.25rem',
                   }}
                 />
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  <input
+                    id="investor-doc-file-input"
+                    type="file"
+                    accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,image/*"
+                    style={{ maxWidth: '260px' }}
+                    disabled={isUploadingInvestorDoc}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      try {
+                        setIsUploadingInvestorDoc(true);
+                        const result = await presignImage.mutateAsync({
+                          fileName: file.name,
+                          fileType: file.type,
+                          fileSize: file.size,
+                          // نستخدم نفس الغرض المستخدم لأيقونات المحتوى
+                          purpose: 'icon',
+                        });
+                        await fetch(result.uploadUrl, {
+                          method: 'PUT',
+                          headers: result.headers,
+                          body: file,
+                        });
+                        const publicUrl = getStoragePublicUrl(
+                          COMPANY_CONTENT_IMAGES_BUCKET,
+                          result.storageKey,
+                        );
+                        if (publicUrl) {
+                          setInvestorDocForm((prev) => ({
+                            ...prev,
+                            storageUrl: publicUrl,
+                          }));
+                        }
+                      } catch (error) {
+                        // يمكن عرض رسالة لاحقاً في حال احتجنا
+                        console.error('Failed to upload investor document:', error);
+                      } finally {
+                        setIsUploadingInvestorDoc(false);
+                        // إعادة تعيين حقل الملف حتى يمكن اختيار نفس الملف مرة أخرى
+                        e.target.value = '';
+                      }
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontSize: '0.8rem',
+                      color: palette.textSecondary,
+                    }}
+                  >
+                    {isUploadingInvestorDoc
+                      ? isArabic
+                        ? 'جاري رفع الملف...'
+                        : 'Uploading file...'
+                      : isArabic
+                        ? 'يمكنك اختيار ملف لرفعه وسيتم تعبئة الرابط تلقائياً.'
+                        : 'You can upload a file and the URL will be filled automatically.'}
+                  </span>
+                </div>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
