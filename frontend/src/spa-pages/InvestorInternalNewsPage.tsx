@@ -7,11 +7,13 @@ import { tInvestorInternalNews } from '../locales/investorInternalNews';
 export function InvestorInternalNewsPage() {
   const { language, direction } = useLanguage();
   const [page, setPage] = useState(1);
-  const [showAll, setShowAll] = useState(true); // Show all news by default
+  const [showAll, setShowAll] = useState(true); // عرض جميع الأخبار بدون قيود بشكل افتراضي
   const { data, isLoading, isError, refetch } = useInvestorInternalNewsList({
+    // عند تفعيل showAll نستخدم حد كبير حتى نعرض كل الأخبار في صفحة واحدة قدر الإمكان
     page,
-    limit: 20, // Increase limit to show more news
-    showAll, // Show all news from Supabase
+    limit: showAll ? 500 : 20,
+    showAll, // إلغاء فلتر audience عند تفعيل "عرض جميع الأخبار"
+    includeAllStatuses: showAll, // عند تفعيل "عرض جميع الأخبار" نلغي قيد حالة الخبر (published فقط)
   });
 
   const news = data?.news ?? [];
@@ -135,7 +137,7 @@ export function InvestorInternalNewsPage() {
                 checked={showAll}
                 onChange={(e) => {
                   setShowAll(e.target.checked);
-                  setPage(1); // Reset to first page when toggling
+                  setPage(1); // إعادة الترقيم عند تغيير وضع العرض
                 }}
                 style={{
                   cursor: 'pointer',

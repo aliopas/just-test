@@ -306,22 +306,28 @@ export function useInvestorNewsDetail(newsId?: string | null) {
 export function useInvestorInternalNewsList(options?: {
   page?: number;
   limit?: number;
-  showAll?: boolean; // New option to show all news regardless of audience
+  showAll?: boolean; // إلغاء فلتر audience
+  includeAllStatuses?: boolean; // إلغاء قيد حالة الخبر (published فقط)
 }) {
   const page = options?.page ?? DEFAULT_PAGE;
   const limit = options?.limit ?? DEFAULT_LIMIT;
   const showAll = options?.showAll ?? false;
+  const includeAllStatuses = options?.includeAllStatuses ?? false;
 
   // If showAll is true, don't filter by audience
   const { data: news, isLoading: isLoadingNews, isError: isErrorNews, error: errorNews, refetch: refetchNews } = useNews({
     page,
     limit,
     audience: showAll ? undefined : 'investor_internal',
+    status: includeAllStatuses ? 'all' : undefined,
     enableRealtime: true, // Enable realtime updates for automatic refresh
   });
 
-  // If showAll is true, count all published news
-  const { data: totalCount, isLoading: isLoadingCount } = useNewsCount(showAll ? undefined : 'investor_internal');
+  // If showAll/includeAllStatuses are true, count كل الأخبار بدون قيد للحالة أو الـ audience
+  const { data: totalCount, isLoading: isLoadingCount } = useNewsCount(
+    showAll ? undefined : 'investor_internal',
+    includeAllStatuses ? 'all' : undefined,
+  );
 
   const queryResult = useQuery<InvestorInternalNewsListResponse>({
     queryKey: ['investorInternalNews', 'list', { page, limit, showAll }],
@@ -395,7 +401,10 @@ export function useInvestorInternalNewsList(options?: {
  * Hook لجلب تفاصيل خبر داخلي واحد
  */
 export function useInvestorInternalNewsDetail(newsId?: string | null) {
-  const { data: newsItem, isLoading, isError, error } = useNewsById(newsId || '');
+  // للأخبار الداخلية نسمح بجلب جميع الحالات (ليس فقط المنشورة)
+  const { data: newsItem, isLoading, isError, error } = useNewsById(newsId || '', {
+    status: 'all',
+  });
 
   return useQuery<InvestorInternalNewsDetail>({
     queryKey: ['investorInternalNews', 'detail', newsId],

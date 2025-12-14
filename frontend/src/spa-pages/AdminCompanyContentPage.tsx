@@ -34,6 +34,10 @@ import {
   useCompanyStrengths,
   useCompanyResources,
   usePartnershipInfo,
+  useInvestorDocuments,
+  useCreateInvestorDocumentMutation,
+  useUpdateInvestorDocumentMutation,
+  useDeleteInvestorDocumentMutation,
 } from '../hooks/useSupabaseTables';
 import { useCompanyContentImagePresignMutation } from '../hooks/useAdminCompanyContent';
 import { CompanyProfilesTable } from '../components/admin/company-content/CompanyProfilesTable';
@@ -57,7 +61,17 @@ export function AdminCompanyContentPage() {
   const { language, direction } = useLanguage();
   const isArabic = language === 'ar';
 
-  const [activeTab, setActiveTab] = useState<'profiles' | 'partners' | 'clients' | 'marketValue' | 'goals' | 'strengths' | 'resources' | 'partnership'>('profiles');
+  const [activeTab, setActiveTab] = useState<
+    | 'profiles'
+    | 'partners'
+    | 'clients'
+    | 'marketValue'
+    | 'goals'
+    | 'strengths'
+    | 'resources'
+    | 'partnership'
+    | 'investorDocuments'
+  >('profiles');
 
   const [isProfileDrawerOpen, setIsProfileDrawerOpen] = useState(false);
   const [profileDrawerMode, setProfileDrawerMode] = useState<'create' | 'edit'>('create');
@@ -185,6 +199,56 @@ export function AdminCompanyContentPage() {
   const createPartnership = useCreatePartnershipInfoMutation();
   const updatePartnership = useUpdatePartnershipInfoMutation();
   const deletePartnership = useDeletePartnershipInfoMutation();
+
+  // Investor documents (files & reports for investors)
+  const {
+    data: investorDocuments,
+    isLoading: isLoadingInvestorDocuments,
+    isError: isErrorInvestorDocuments,
+    refetch: refetchInvestorDocuments,
+  } = useInvestorDocuments({ includeInactive: true });
+
+  const createInvestorDocument = useCreateInvestorDocumentMutation();
+  const updateInvestorDocument = useUpdateInvestorDocumentMutation();
+  const deleteInvestorDocument = useDeleteInvestorDocumentMutation();
+
+  const [editingInvestorDocumentId, setEditingInvestorDocumentId] = useState<string | null>(null);
+  const [investorDocForm, setInvestorDocForm] = useState<{
+    category: 'company_static' | 'financial_report' | 'external_resource';
+    titleAr: string;
+    titleEn: string;
+    descriptionAr: string;
+    descriptionEn: string;
+    storageUrl: string;
+    iconEmoji: string;
+    displayOrder: number;
+    isActive: boolean;
+  }>({
+    category: 'company_static',
+    titleAr: '',
+    titleEn: '',
+    descriptionAr: '',
+    descriptionEn: '',
+    storageUrl: '',
+    iconEmoji: '',
+    displayOrder: 0,
+    isActive: true,
+  });
+
+  function resetInvestorDocForm() {
+    setEditingInvestorDocumentId(null);
+    setInvestorDocForm({
+      category: 'company_static',
+      titleAr: '',
+      titleEn: '',
+      descriptionAr: '',
+      descriptionEn: '',
+      storageUrl: '',
+      iconEmoji: '',
+      displayOrder: 0,
+      isActive: true,
+    });
+  }
 
   const openCreateProfile = () => {
     setActiveTab('profiles');
@@ -340,6 +404,7 @@ export function AdminCompanyContentPage() {
               { id: 'strengths', ar: 'نقاط القوة', en: 'Strengths' },
               { id: 'resources', ar: 'الموارد', en: 'Resources' },
               { id: 'partnership', ar: 'معلومات الشراكة', en: 'Partnership Info' },
+              { id: 'investorDocuments', ar: 'ملفات وتقارير المستثمر', en: 'Investor Documents' },
             ] as const
           ).map((tab) => {
             const isActive = activeTab === tab.id;
@@ -1044,6 +1109,631 @@ export function AdminCompanyContentPage() {
                 setIsPartnershipDrawerOpen(true);
               }}
             />
+          </section>
+        )}
+
+        {activeTab === 'investorDocuments' && (
+          <section
+            style={{
+              padding: '1.25rem 1.5rem',
+              borderRadius: radius.lg,
+              background: palette.backgroundBase,
+              boxShadow: shadow.subtle,
+              border: `1px solid ${palette.neutralBorderMuted}`,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1rem',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '0.75rem',
+                flexWrap: 'wrap',
+              }}
+            >
+              <div>
+                <h2
+                  style={{
+                    margin: 0,
+                    fontSize: typography.sizes.subheading,
+                    fontWeight: typography.weights.semibold,
+                    color: palette.textPrimary,
+                  }}
+                >
+                  {isArabic
+                    ? 'ملفات وتقارير المستثمر الداخلية'
+                    : 'Internal investor documents & reports'}
+                </h2>
+                <p
+                  style={{
+                    margin: 0,
+                    marginTop: '0.25rem',
+                    fontSize: typography.sizes.caption,
+                    color: palette.textSecondary,
+                    maxWidth: '640px',
+                  }}
+                >
+                  {isArabic
+                    ? 'إدارة الملفات الثابتة للشركة، التقارير المالية، وتقارير الموارد المالية الخارجية الظاهرة في لوحة المستثمر. يتم إدخال رابط الملف (مثلاً من Supabase Storage أو أي مستودع آمن) ويُعرض للمستثمر للاطلاع فقط.'
+                    : 'Manage static company files, financial reports, and external financial resource reports that appear in the investor portal. Provide a secure document URL (e.g. from Supabase Storage) and it will be shown to investors as view‑only.'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={resetInvestorDocForm}
+                style={{
+                  padding: '0.7rem 1.4rem',
+                  borderRadius: radius.md,
+                  border: 'none',
+                  background: palette.brandPrimaryStrong,
+                  color: palette.textOnBrand,
+                  fontWeight: typography.weights.semibold,
+                  fontSize: typography.sizes.body,
+                  cursor: 'pointer',
+                }}
+              >
+                {isArabic ? 'إضافة ملف جديد' : 'Add new document'}
+              </button>
+            </div>
+
+            {/* Simple inline form */}
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const payload = {
+                  category: investorDocForm.category,
+                  titleAr: investorDocForm.titleAr.trim(),
+                  titleEn: investorDocForm.titleEn.trim(),
+                  descriptionAr: investorDocForm.descriptionAr.trim() || null,
+                  descriptionEn: investorDocForm.descriptionEn.trim() || null,
+                  storageUrl: investorDocForm.storageUrl.trim(),
+                  iconEmoji: investorDocForm.iconEmoji.trim() || null,
+                  displayOrder: investorDocForm.displayOrder || 0,
+                  isActive: investorDocForm.isActive,
+                };
+                if (editingInvestorDocumentId) {
+                  await updateInvestorDocument.mutateAsync({
+                    id: editingInvestorDocumentId,
+                    payload,
+                  });
+                } else {
+                  await createInvestorDocument.mutateAsync(payload);
+                }
+                resetInvestorDocForm();
+                await refetchInvestorDocuments();
+              }}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                gap: '0.75rem 1rem',
+                padding: '0.75rem 0.75rem 1rem',
+                borderRadius: radius.md,
+                background: palette.backgroundSurface,
+                border: `1px solid ${palette.neutralBorderMuted}`,
+              }}
+            >
+              {/* Category */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <label
+                  style={{
+                    fontSize: '0.8rem',
+                    color: palette.textSecondary,
+                  }}
+                >
+                  {isArabic ? 'القسم' : 'Category'}
+                </label>
+                <select
+                  value={investorDocForm.category}
+                  onChange={(e) =>
+                    setInvestorDocForm((prev) => ({
+                      ...prev,
+                      category: e.target.value as any,
+                    }))
+                  }
+                  style={{
+                    padding: '0.5rem 0.6rem',
+                    borderRadius: radius.md,
+                    border: `1px solid ${palette.neutralBorderMuted}`,
+                    fontSize: '0.85rem',
+                  }}
+                >
+                  <option value="company_static">
+                    {isArabic ? 'ملفات الشركة الثابتة' : 'Company static files'}
+                  </option>
+                  <option value="financial_report">
+                    {isArabic ? 'التقارير المالية' : 'Financial reports'}
+                  </option>
+                  <option value="external_resource">
+                    {isArabic ? 'تقارير موارد مالية خارجية' : 'External financial resources'}
+                  </option>
+                </select>
+              </div>
+
+              {/* Titles */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <label
+                  style={{
+                    fontSize: '0.8rem',
+                    color: palette.textSecondary,
+                  }}
+                >
+                  {isArabic ? 'العنوان (عربي)' : 'Title (Arabic)'}
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={investorDocForm.titleAr}
+                  onChange={(e) =>
+                    setInvestorDocForm((prev) => ({ ...prev, titleAr: e.target.value }))
+                  }
+                  style={{
+                    padding: '0.5rem 0.6rem',
+                    borderRadius: radius.md,
+                    border: `1px solid ${palette.neutralBorderMuted}`,
+                    fontSize: '0.85rem',
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <label
+                  style={{
+                    fontSize: '0.8rem',
+                    color: palette.textSecondary,
+                  }}
+                >
+                  {isArabic ? 'العنوان (إنجليزي)' : 'Title (English)'}
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={investorDocForm.titleEn}
+                  onChange={(e) =>
+                    setInvestorDocForm((prev) => ({ ...prev, titleEn: e.target.value }))
+                  }
+                  style={{
+                    padding: '0.5rem 0.6rem',
+                    borderRadius: radius.md,
+                    border: `1px solid ${palette.neutralBorderMuted}`,
+                    fontSize: '0.85rem',
+                  }}
+                />
+              </div>
+
+              {/* URL & icon */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <label
+                  style={{
+                    fontSize: '0.8rem',
+                    color: palette.textSecondary,
+                  }}
+                >
+                  {isArabic ? 'رابط الملف الآمن' : 'Secure document URL'}
+                </label>
+                <input
+                  type="url"
+                  required
+                  placeholder={isArabic ? 'https://...' : 'https://...'}
+                  value={investorDocForm.storageUrl}
+                  onChange={(e) =>
+                    setInvestorDocForm((prev) => ({ ...prev, storageUrl: e.target.value }))
+                  }
+                  style={{
+                    padding: '0.5rem 0.6rem',
+                    borderRadius: radius.md,
+                    border: `1px solid ${palette.neutralBorderMuted}`,
+                    fontSize: '0.85rem',
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <label
+                  style={{
+                    fontSize: '0.8rem',
+                    color: palette.textSecondary,
+                  }}
+                >
+                  {isArabic ? 'أيقونة (رمز تعبيري اختياري)' : 'Icon (optional emoji)'}
+                </label>
+                <input
+                  type="text"
+                  maxLength={4}
+                  value={investorDocForm.iconEmoji}
+                  onChange={(e) =>
+                    setInvestorDocForm((prev) => ({ ...prev, iconEmoji: e.target.value }))
+                  }
+                  style={{
+                    padding: '0.5rem 0.6rem',
+                    borderRadius: radius.md,
+                    border: `1px solid ${palette.neutralBorderMuted}`,
+                    fontSize: '0.85rem',
+                  }}
+                />
+              </div>
+
+              {/* Order */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <label
+                  style={{
+                    fontSize: '0.8rem',
+                    color: palette.textSecondary,
+                  }}
+                >
+                  {isArabic ? 'ترتيب العرض' : 'Display order'}
+                </label>
+                <input
+                  type="number"
+                  value={investorDocForm.displayOrder}
+                  onChange={(e) =>
+                    setInvestorDocForm((prev) => ({
+                      ...prev,
+                      displayOrder: Number(e.target.value) || 0,
+                    }))
+                  }
+                  style={{
+                    padding: '0.5rem 0.6rem',
+                    borderRadius: radius.md,
+                    border: `1px solid ${palette.neutralBorderMuted}`,
+                    fontSize: '0.85rem',
+                  }}
+                />
+              </div>
+
+              {/* Descriptions */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <label
+                  style={{
+                    fontSize: '0.8rem',
+                    color: palette.textSecondary,
+                  }}
+                >
+                  {isArabic ? 'وصف مختصر (عربي)' : 'Short description (Arabic)'}
+                </label>
+                <textarea
+                  rows={2}
+                  value={investorDocForm.descriptionAr}
+                  onChange={(e) =>
+                    setInvestorDocForm((prev) => ({
+                      ...prev,
+                      descriptionAr: e.target.value,
+                    }))
+                  }
+                  style={{
+                    padding: '0.5rem 0.6rem',
+                    borderRadius: radius.md,
+                    border: `1px solid ${palette.neutralBorderMuted}`,
+                    fontSize: '0.85rem',
+                    resize: 'vertical',
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <label
+                  style={{
+                    fontSize: '0.8rem',
+                    color: palette.textSecondary,
+                  }}
+                >
+                  {isArabic ? 'وصف مختصر (إنجليزي)' : 'Short description (English)'}
+                </label>
+                <textarea
+                  rows={2}
+                  value={investorDocForm.descriptionEn}
+                  onChange={(e) =>
+                    setInvestorDocForm((prev) => ({
+                      ...prev,
+                      descriptionEn: e.target.value,
+                    }))
+                  }
+                  style={{
+                    padding: '0.5rem 0.6rem',
+                    borderRadius: radius.md,
+                    border: `1px solid ${palette.neutralBorderMuted}`,
+                    fontSize: '0.85rem',
+                    resize: 'vertical',
+                  }}
+                />
+              </div>
+
+              {/* Active */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  marginTop: '0.9rem',
+                }}
+              >
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    fontSize: '0.85rem',
+                    color: palette.textSecondary,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={investorDocForm.isActive}
+                    onChange={(e) =>
+                      setInvestorDocForm((prev) => ({
+                        ...prev,
+                        isActive: e.target.checked,
+                      }))
+                    }
+                  />
+                  <span>{isArabic ? 'مفعّل للمستثمرين' : 'Visible to investors'}</span>
+                </label>
+              </div>
+
+              {/* Actions */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  marginTop: '0.9rem',
+                }}
+              >
+                <button
+                  type="submit"
+                  disabled={
+                    createInvestorDocument.isPending ||
+                    updateInvestorDocument.isPending
+                  }
+                  style={{
+                    padding: '0.6rem 1.3rem',
+                    borderRadius: radius.md,
+                    border: 'none',
+                    background: palette.brandPrimaryStrong,
+                    color: palette.textOnBrand,
+                    fontSize: '0.9rem',
+                    fontWeight: typography.weights.semibold,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {editingInvestorDocumentId
+                    ? isArabic
+                      ? 'حفظ التعديلات'
+                      : 'Save changes'
+                    : isArabic
+                      ? '保存 الملف'
+                      : 'Save document'}
+                </button>
+                {editingInvestorDocumentId && (
+                  <button
+                    type="button"
+                    onClick={resetInvestorDocForm}
+                    style={{
+                      padding: '0.6rem 1rem',
+                      borderRadius: radius.md,
+                      border: `1px solid ${palette.neutralBorderMuted}`,
+                      background: palette.backgroundSurface,
+                      fontSize: '0.85rem',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {isArabic ? 'إلغاء التعديل' : 'Cancel edit'}
+                  </button>
+                )}
+              </div>
+            </form>
+
+            {/* Existing documents table */}
+            <div
+              style={{
+                borderRadius: radius.md,
+                border: `1px solid ${palette.neutralBorderMuted}`,
+                overflow: 'hidden',
+              }}
+            >
+              <table
+                style={{
+                  width: '100%',
+                  borderCollapse: 'collapse',
+                  fontSize: '0.85rem',
+                }}
+              >
+                <thead
+                  style={{
+                    background: palette.backgroundSurface,
+                    color: palette.textSecondary,
+                  }}
+                >
+                  <tr>
+                    <th style={{ padding: '0.6rem 0.75rem', textAlign: 'start' }}>
+                      {isArabic ? 'القسم' : 'Category'}
+                    </th>
+                    <th style={{ padding: '0.6rem 0.75rem', textAlign: 'start' }}>
+                      {isArabic ? 'العنوان' : 'Title'}
+                    </th>
+                    <th style={{ padding: '0.6rem 0.75rem', textAlign: 'start' }}>
+                      {isArabic ? 'حالة الظهور' : 'Visibility'}
+                    </th>
+                    <th style={{ padding: '0.6rem 0.75rem', textAlign: 'start' }}>
+                      {isArabic ? 'الترتيب' : 'Order'}
+                    </th>
+                    <th style={{ padding: '0.6rem 0.75rem' }} />
+                  </tr>
+                </thead>
+                <tbody>
+                  {isLoadingInvestorDocuments ? (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        style={{
+                          padding: '0.9rem 0.75rem',
+                          textAlign: 'center',
+                          color: palette.textSecondary,
+                        }}
+                      >
+                        {isArabic ? 'جارٍ تحميل الملفات…' : 'Loading documents…'}
+                      </td>
+                    </tr>
+                  ) : isErrorInvestorDocuments ? (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        style={{
+                          padding: '0.9rem 0.75rem',
+                          textAlign: 'center',
+                          color: palette.error,
+                        }}
+                      >
+                        {isArabic
+                          ? 'تعذر تحميل الملفات. يرجى المحاولة مرة أخرى.'
+                          : 'Failed to load documents. Please try again.'}
+                      </td>
+                    </tr>
+                  ) : !investorDocuments || investorDocuments.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        style={{
+                          padding: '0.9rem 0.75rem',
+                          textAlign: 'center',
+                          color: palette.textSecondary,
+                        }}
+                      >
+                        {isArabic
+                          ? 'لا توجد ملفات مضافة حتى الآن.'
+                          : 'No documents have been added yet.'}
+                      </td>
+                    </tr>
+                  ) : (
+                    investorDocuments
+                      .slice()
+                      .sort((a, b) => a.displayOrder - b.displayOrder)
+                      .map((doc) => (
+                        <tr
+                          key={doc.id}
+                          style={{
+                            borderTop: `1px solid ${palette.neutralBorderMuted}`,
+                          }}
+                        >
+                          <td style={{ padding: '0.6rem 0.75rem' }}>
+                            {doc.category === 'company_static'
+                              ? isArabic
+                                ? 'ملفات الشركة الثابتة'
+                                : 'Company static files'
+                              : doc.category === 'financial_report'
+                                ? isArabic
+                                  ? 'التقارير المالية'
+                                  : 'Financial reports'
+                                : isArabic
+                                  ? 'تقارير موارد مالية خارجية'
+                                  : 'External financial resources'}
+                          </td>
+                          <td style={{ padding: '0.6rem 0.75rem' }}>
+                            {isArabic ? doc.titleAr : doc.titleEn}
+                          </td>
+                          <td style={{ padding: '0.6rem 0.75rem' }}>
+                            <span
+                              style={{
+                                padding: '0.15rem 0.6rem',
+                                borderRadius: radius.pill,
+                                fontSize: '0.75rem',
+                                background: doc.isActive
+                                  ? '#ECFDF3'
+                                  : palette.backgroundSurface,
+                                color: doc.isActive ? '#15803D' : palette.textSecondary,
+                                border: `1px solid ${
+                                  doc.isActive ? '#BBF7D0' : palette.neutralBorderMuted
+                                }`,
+                              }}
+                            >
+                              {doc.isActive
+                                ? isArabic
+                                  ? 'مفعل'
+                                  : 'Active'
+                                : isArabic
+                                  ? 'مخفي'
+                                  : 'Hidden'}
+                            </span>
+                          </td>
+                          <td style={{ padding: '0.6rem 0.75rem' }}>
+                            {doc.displayOrder}
+                          </td>
+                          <td
+                            style={{
+                              padding: '0.6rem 0.75rem',
+                              textAlign: 'end',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingInvestorDocumentId(doc.id);
+                                setActiveTab('investorDocuments');
+                                setInvestorDocForm({
+                                  category: doc.category,
+                                  titleAr: doc.titleAr,
+                                  titleEn: doc.titleEn,
+                                  descriptionAr: doc.descriptionAr || '',
+                                  descriptionEn: doc.descriptionEn || '',
+                                  storageUrl: doc.storageUrl,
+                                  iconEmoji: doc.iconEmoji || '',
+                                  displayOrder: doc.displayOrder,
+                                  isActive: doc.isActive,
+                                });
+                              }}
+                              style={{
+                                padding: '0.35rem 0.7rem',
+                                borderRadius: radius.md,
+                                border: `1px solid ${palette.neutralBorderMuted}`,
+                                background: palette.backgroundSurface,
+                                fontSize: '0.8rem',
+                                cursor: 'pointer',
+                                marginInlineEnd: '0.35rem',
+                              }}
+                            >
+                              {isArabic ? 'تعديل' : 'Edit'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                if (
+                                  !window.confirm(
+                                    isArabic
+                                      ? 'هل أنت متأكد من حذف هذا الملف؟'
+                                      : 'Are you sure you want to delete this document?',
+                                  )
+                                ) {
+                                  return;
+                                }
+                                await deleteInvestorDocument.mutateAsync(doc.id);
+                                if (editingInvestorDocumentId === doc.id) {
+                                  resetInvestorDocForm();
+                                }
+                                await refetchInvestorDocuments();
+                              }}
+                              style={{
+                                padding: '0.35rem 0.7rem',
+                                borderRadius: radius.md,
+                                border: `1px solid ${palette.error}33`,
+                                background: '#FEF2F2',
+                                color: palette.error,
+                                fontSize: '0.8rem',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              {isArabic ? 'حذف' : 'Delete'}
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </section>
         )}
       </div>

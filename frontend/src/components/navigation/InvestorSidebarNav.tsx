@@ -40,6 +40,11 @@ export function InvestorSidebarNav() {
       labelEn: 'Company Projects',
     },
     {
+      to: '/company-documents',
+      labelAr: 'ملفات وتقارير الشركة',
+      labelEn: 'Company Documents',
+    },
+    {
       to: '/internal-news',
       labelAr: 'الأخبار الداخلية',
       labelEn: 'Internal News',

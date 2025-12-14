@@ -6,6 +6,7 @@
 
 import { useSupabaseData, useSupabaseSingle, useSupabaseCount } from './useSupabaseData';
 import { useLanguage } from '../context/LanguageContext';
+import type { NewsStatus, NewsAudience } from '../types/news';
 // Import camelCase types from useAdminCompanyContent for compatibility
 import type {
   CompanyProfile as CompanyProfileCamel,
@@ -70,24 +71,33 @@ export interface NewsItem {
 }
 
 /**
- * Hook لجلب الأخبار المنشورة مع دعم pagination
+ * Hook لجلب الأخبار مع دعم pagination
+ * 
+ * بشكل افتراضي يجلب الأخبار ذات الحالة "published" فقط.
+ * يمكن تمرير status = 'all' لإلغاء قيد الحالة وجلب جميع الحالات.
  */
 export function useNews(options?: {
   page?: number;
   limit?: number;
-  audience?: 'public' | 'investor_internal';
+  audience?: NewsAudience;
+  status?: NewsStatus | 'all';
   enableRealtime?: boolean;
 }) {
   const page = options?.page || 1;
   const limit = options?.limit || 12;
   const offset = (page - 1) * limit;
 
+  const filters = [
+    // إذا لم يحدد status نستخدم published كقيمة افتراضية
+    ...(options?.status === 'all'
+      ? []
+      : [{ column: 'status', value: options?.status ?? 'published' }]),
+    ...(options?.audience ? [{ column: 'audience', value: options.audience }] : []),
+  ];
+
   return useSupabaseData<NewsItem>({
     table: 'news',
-    filters: [
-      { column: 'status', value: 'published' },
-      ...(options?.audience ? [{ column: 'audience', value: options.audience }] : []),
-    ],
+    filters,
     orderBy: { column: 'published_at', ascending: false },
     limit,
     offset,
@@ -110,14 +120,26 @@ export function useNewsBySlug(slug: string) {
 
 /**
  * Hook لجلب خبر واحد بالـ ID
+ *
+ * افتراضيًا يجلب الأخبار ذات الحالة "published" فقط.
+ * يمكن تمرير status = 'all' لإلغاء قيد الحالة (مفيد للأخبار الداخلية).
  */
-export function useNewsById(id: string) {
+export function useNewsById(
+  id: string,
+  options?: {
+    status?: NewsStatus | 'all';
+  },
+) {
+  const filters = [
+    { column: 'id', value: id },
+    ...(options?.status === 'all'
+      ? []
+      : [{ column: 'status', value: options?.status ?? 'published' }]),
+  ];
+
   return useSupabaseSingle<NewsItem>({
     table: 'news',
-    filters: [
-      { column: 'id', value: id },
-      { column: 'status', value: 'published' },
-    ],
+    filters,
   });
 }
 
@@ -168,10 +190,18 @@ export function useProjectById(id: string) {
 
 /**
  * Hook لجلب عدد الأخبار (للـ pagination)
+ * 
+ * بشكل افتراضي يحسب الأخبار ذات الحالة "published" فقط.
+ * يمكن تمرير status = 'all' لإلغاء قيد الحالة وحساب جميع الحالات.
  */
-export function useNewsCount(audience?: 'public' | 'investor_internal') {
+export function useNewsCount(
+  audience?: NewsAudience,
+  status?: NewsStatus | 'all',
+) {
   const filters = [
-    { column: 'status', value: 'published' },
+    ...(status === 'all'
+      ? []
+      : [{ column: 'status', value: status ?? 'published' }]),
     ...(audience ? [{ column: 'audience', value: audience }] : []),
   ];
 
@@ -284,6 +314,38 @@ export interface CompanyGoal {
   display_order: number;
   created_at: string;
   updated_at: string;
+}
+
+// مستندات المستثمر الداخلية (ملفات وتقارير)
+export interface InvestorDocument {
+  id: string;
+  category: 'company_static' | 'financial_report' | 'external_resource';
+  title_ar: string;
+  title_en: string;
+  description_ar: string | null;
+  description_en: string | null;
+  storage_url: string;
+  icon_emoji: string | null;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// شكل البيانات بعد التحويل إلى camelCase للاستخدام في الواجهات
+export interface InvestorDocumentCamel {
+  id: string;
+  category: 'company_static' | 'financial_report' | 'external_resource';
+  titleAr: string;
+  titleEn: string;
+  descriptionAr: string | null;
+  descriptionEn: string | null;
+  storageUrl: string;
+  iconEmoji: string | null;
+  displayOrder: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 /**
@@ -416,6 +478,31 @@ export function useCompanyGoals() {
   return {
     ...query,
     data: query.data ? query.data.map(snakeToCamel) as CompanyGoalCamel[] : [],
+  };
+}
+
+/**
+ * Hook لجلب مستندات المستثمر الداخلية (ملفات الشركة والتقارير)
+ * يمكن التصفية حسب الفئة (category)، مع إمكانية تضمين/استثناء العناصر غير المفعلة.
+ */
+export function useInvestorDocuments(options?: {
+  category?: InvestorDocument['category'];
+  includeInactive?: boolean;
+}) {
+  const filters = [
+    ...(options?.category ? [{ column: 'category', value: options.category }] : []),
+    ...(options?.includeInactive ? [] : [{ column: 'is_active', value: true }]),
+  ];
+
+  const query = useSupabaseData<InvestorDocument>({
+    table: 'investor_documents',
+    filters,
+    orderBy: { column: 'display_order', ascending: true },
+  });
+
+  return {
+    ...query,
+    data: query.data ? query.data.map(snakeToCamel) as InvestorDocumentCamel[] : [],
   };
 }
 
@@ -1161,6 +1248,87 @@ export function useDeleteCompanyGoalMutation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['supabase', 'company_goals'] });
+    },
+  });
+}
+
+// ========== Investor Documents (مستندات المستثمر) ==========
+
+/**
+ * Hook لإنشاء مستند مستثمر جديد
+ * يقبل بيانات camelCase ويحولها إلى snake_case تلقائياً
+ */
+export function useCreateInvestorDocumentMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: Record<string, unknown>) => {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client غير متاح');
+      }
+      const snakePayload = camelToSnake(payload);
+      const { data, error } = await supabase
+        .from('investor_documents')
+        .insert(snakePayload)
+        .select()
+        .single();
+      if (error) throw error;
+      return snakeToCamel(data) as InvestorDocumentCamel;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'investor_documents'] });
+    },
+  });
+}
+
+/**
+ * Hook لتحديث مستند مستثمر
+ * يقبل بيانات camelCase ويحولها إلى snake_case تلقائياً
+ */
+export function useUpdateInvestorDocumentMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, payload }: { id: string; payload: Record<string, unknown> }) => {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client غير متاح');
+      }
+      const snakePayload = camelToSnake(payload);
+      const { data, error } = await supabase
+        .from('investor_documents')
+        .update(snakePayload)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return snakeToCamel(data) as InvestorDocumentCamel;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'investor_documents'] });
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'investor_documents', variables.id] });
+    },
+  });
+}
+
+/**
+ * Hook لحذف مستند مستثمر
+ */
+export function useDeleteInvestorDocumentMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client غير متاح');
+      }
+      const { error } = await supabase
+        .from('investor_documents')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supabase', 'investor_documents'] });
     },
   });
 }
