@@ -1314,7 +1314,7 @@ export function AdminCompanyContentPage() {
                     color: palette.textSecondary,
                   }}
                 >
-                  {isArabic ? 'رابط الملف الآمن' : 'Secure document URL'}
+                  {isArabic ? 'رفع الملف' : 'Secure document URL'}
                 </label>
                 <input
                   type="url"
