@@ -313,12 +313,10 @@ export function useInvestorInternalNewsList(options?: {
 }) {
   const page = options?.page ?? DEFAULT_PAGE;
   const limit = options?.limit ?? DEFAULT_LIMIT;
-  const showAll = options?.showAll ?? false;
-  const includeAllStatuses = options?.includeAllStatuses ?? false;
-  // في واجهة المستثمر نعرض دائماً الأخبار ذات audience = 'investor_internal'
-  // ونعطي خيار "عرض جميع الأخبار" فقط للتحكم في حالة الخبر (published أو كل الحالات)
-  const audience: 'investor_internal' = 'investor_internal';
-  const statusFilter = showAll || includeAllStatuses ? 'all' : undefined;
+  // نتجاهل الآن showAll / includeAllStatuses في واجهة المستثمر
+  // ونقوم دائماً بعرض جميع الأخبار الداخلية للمستثمرين (بكل الحالات)
+  const audience = 'investor_internal' as const;
+  const statusFilter = 'all' as const;
 
   // If showAll is true, don't filter by audience
   const {
