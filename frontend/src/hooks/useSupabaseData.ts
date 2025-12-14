@@ -143,6 +143,11 @@ export function useSupabaseData<T = Record<string, unknown>>(
     },
     enabled: typeof window !== 'undefined', // فقط على الـ client
     staleTime: 5 * 60 * 1000, // 5 دقائق
+    // إلغاء أي تحديثات تلقائية افتراضية حتى لا تتغير البيانات
+    // أثناء إدخال المستخدم (تحديث عند التركيز، إعادة الاتصال، أو interval)
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchInterval: false,
     ...queryOptions,
   });
 
