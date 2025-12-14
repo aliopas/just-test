@@ -39,8 +39,8 @@ import {
   useUpdateInvestorDocumentMutation,
   useDeleteInvestorDocumentMutation,
 } from '../hooks/useSupabaseTables';
-import { useCompanyContentImagePresignMutation } from '../hooks/useAdminCompanyContent';
 import { getStoragePublicUrl, COMPANY_CONTENT_IMAGES_BUCKET } from '../utils/supabase-storage';
+import { getSupabaseBrowserClient } from '../utils/supabase-client';
 import { CompanyProfilesTable } from '../components/admin/company-content/CompanyProfilesTable';
 import { CompanyProfileFormDrawer } from '../components/admin/company-content/CompanyProfileFormDrawer';
 import { CompanyPartnersTable } from '../components/admin/company-content/CompanyPartnersTable';
@@ -88,7 +88,6 @@ export function AdminCompanyContentPage() {
   const createProfile = useCreateCompanyProfileMutation();
   const updateProfile = useUpdateCompanyProfileMutation();
   const deleteProfile = useDeleteCompanyProfileMutation();
-  const presignImage = useCompanyContentImagePresignMutation();
 
   // Partners
   const [isPartnerDrawerOpen, setIsPartnerDrawerOpen] = useState(false);
@@ -323,13 +322,24 @@ export function AdminCompanyContentPage() {
   }
 
   async function handlePresignImage(file: File) {
-    const result = await presignImage.mutateAsync({
-      fileName: file.name,
-      fileType: file.type,
-      fileSize: file.size,
-      purpose: 'icon',
-    });
-    return { storageKey: result.storageKey };
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      throw new Error('Supabase client غير متاح');
+    }
+    const ext = file.name.split('.').pop() || 'file';
+    const path = `company-icons/${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2)}.${ext}`;
+    const { error } = await supabase.storage
+      .from(COMPANY_CONTENT_IMAGES_BUCKET)
+      .upload(path, file, {
+        upsert: false,
+        contentType: file.type,
+      });
+    if (error) {
+      throw error;
+    }
+    return { storageKey: path };
   }
 
   return (
@@ -1344,20 +1354,26 @@ export function AdminCompanyContentPage() {
                       if (!file) return;
                       try {
                         setIsUploadingInvestorDoc(true);
-                        const result = await presignImage.mutateAsync({
-                          fileName: file.name,
-                          fileType: file.type,
-                          fileSize: file.size,
-                          purpose: 'icon',
-                        });
-                        await fetch(result.uploadUrl, {
-                          method: 'PUT',
-                          headers: result.headers,
-                          body: file,
-                        });
+                        const supabase = getSupabaseBrowserClient();
+                        if (!supabase) {
+                          throw new Error('Supabase client غير متاح في المتصفح');
+                        }
+                        const ext = file.name.split('.').pop() || 'file';
+                        const path = `investor-docs/${Date.now()}-${Math.random()
+                          .toString(36)
+                          .slice(2)}.${ext}`;
+                        const { error } = await supabase.storage
+                          .from(COMPANY_CONTENT_IMAGES_BUCKET)
+                          .upload(path, file, {
+                            upsert: false,
+                            contentType: file.type,
+                          });
+                        if (error) {
+                          throw error;
+                        }
                         const publicUrl = getStoragePublicUrl(
                           COMPANY_CONTENT_IMAGES_BUCKET,
-                          result.storageKey,
+                          path,
                         );
                         if (publicUrl) {
                           setInvestorDocForm((prev) => ({
