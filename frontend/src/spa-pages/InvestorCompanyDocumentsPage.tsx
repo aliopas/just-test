@@ -454,6 +454,52 @@ export function InvestorCompanyDocumentsPage() {
                       ? 'ملف داخلي للعرض فقط داخل المنصة'
                       : 'Internal view‑only document inside the portal'}
                   </div>
+                  {(selectedDoc.descriptionAr || selectedDoc.descriptionEn) && (
+                    <div
+                      style={{
+                        marginTop: '0.2rem',
+                        fontSize: '0.8rem',
+                        color: palette.textSecondary,
+                        maxWidth: '520px',
+                        lineHeight: typography.lineHeights.relaxed,
+                      }}
+                    >
+                      {isArabic
+                        ? selectedDoc.descriptionAr || selectedDoc.descriptionEn
+                        : selectedDoc.descriptionEn || selectedDoc.descriptionAr}
+                    </div>
+                  )}
+                  <div
+                    style={{
+                      marginTop: '0.25rem',
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '0.35rem',
+                      fontSize: '0.75rem',
+                      color: palette.textSecondary,
+                    }}
+                  >
+                    <span
+                      style={{
+                        padding: '0.05rem 0.5rem',
+                        borderRadius: radius.pill,
+                        background: palette.backgroundSurface,
+                        border: `1px solid ${palette.neutralBorderMuted}`,
+                      }}
+                    >
+                      {isArabic
+                        ? selectedDoc.category === 'company_static'
+                          ? 'قسم: ملفات الشركة الثابتة'
+                          : selectedDoc.category === 'financial_report'
+                            ? 'قسم: التقارير المالية الداخلية'
+                            : 'قسم: تقارير الموارد المالية الخارجية'
+                        : selectedDoc.category === 'company_static'
+                          ? 'Category: Company static files'
+                          : selectedDoc.category === 'financial_report'
+                            ? 'Category: Internal financial reports'
+                            : 'Category: External financial resources'}
+                    </span>
+                  </div>
                 </div>
               </div>
               <button
