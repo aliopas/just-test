@@ -213,6 +213,7 @@ export function AdminCompanyContentPage() {
   const deleteInvestorDocument = useDeleteInvestorDocumentMutation();
 
   const [editingInvestorDocumentId, setEditingInvestorDocumentId] = useState<string | null>(null);
+  const [uploadedInvestorDocName, setUploadedInvestorDocName] = useState<string | null>(null);
   const [investorDocForm, setInvestorDocForm] = useState<{
     category: 'company_static' | 'financial_report' | 'external_resource';
     titleAr: string;
@@ -239,6 +240,7 @@ export function AdminCompanyContentPage() {
 
   function resetInvestorDocForm() {
     setEditingInvestorDocumentId(null);
+    setUploadedInvestorDocName(null);
     setInvestorDocForm({
       category: 'company_static',
       titleAr: '',
@@ -1378,6 +1380,7 @@ export function AdminCompanyContentPage() {
                         if (!publicUrl) {
                           throw new Error('Failed to resolve public URL for uploaded file');
                         }
+                        setUploadedInvestorDocName(file.name);
                         setInvestorDocForm((prev) => ({
                           ...prev,
                           storageUrl: publicUrl,
@@ -1405,9 +1408,13 @@ export function AdminCompanyContentPage() {
                       ? isArabic
                         ? 'جاري رفع الملف...'
                         : 'Uploading file...'
-                      : isArabic
-                        ? 'اختر ملفاً ليتم رفعه وتخزين رابطه تلقائياً.'
-                        : 'Choose a file to upload and its URL will be stored automatically.'}
+                      : investorDocForm.storageUrl
+                        ? (isArabic
+                            ? `تم رفع الملف: ${uploadedInvestorDocName ?? 'تم الحفظ في Supabase'}`
+                            : `File uploaded: ${uploadedInvestorDocName ?? 'Saved to Supabase'}`)
+                        : isArabic
+                          ? 'اختر ملفاً (مستند أو صورة) ليتم رفعه وتخزين رابطه تلقائياً. لن يظهر للمستثمر إلا للعرض داخل المنصة.'
+                          : 'Choose a document or image to upload; its URL will be stored automatically and shown to investors as view‑only inside the portal.'}
                   </span>
                 </div>
               </div>
