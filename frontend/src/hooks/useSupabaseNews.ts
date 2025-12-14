@@ -335,24 +335,12 @@ export function useInvestorInternalNewsList(options?: {
   const queryResult = useQuery<InvestorInternalNewsListResponse>({
     queryKey: ['investorInternalNews', 'list', { page, limit, showAll }],
     queryFn: async () => {
-      // Handle case when data is still loading or not available
-      if (news === undefined || totalCount === undefined) {
-        // Return empty result while loading
-        return {
-          news: [],
-          meta: {
-            page,
-            limit,
-            total: 0,
-            pageCount: 0,
-            hasNext: false,
-          },
-        };
-      }
+      // في هذه المرحلة news و totalCount مضمون أنها ليست undefined (بسبب enabled)
+      const safeNews = news ?? [];
+      const total = totalCount || 0;
+      const pageCount = Math.ceil(total / limit) || 0;
 
-      if (!news || news.length === 0) {
-        const total = totalCount || 0;
-        const pageCount = Math.ceil(total / limit) || 0;
+      if (safeNews.length === 0) {
         return {
           news: [],
           meta: {
@@ -366,10 +354,8 @@ export function useInvestorInternalNewsList(options?: {
       }
 
       const transformedNews = await Promise.all(
-        news.map(item => transformInternalNewsItem(item))
+        safeNews.map(item => transformInternalNewsItem(item))
       );
-      const total = totalCount || 0;
-      const pageCount = Math.ceil(total / limit) || 0;
 
       return {
         news: transformedNews,
@@ -382,7 +368,11 @@ export function useInvestorInternalNewsList(options?: {
         },
       };
     },
-    enabled: typeof window !== 'undefined',
+    // ننتظر حتى تنتهي useNews و useNewsCount من الجلب لأول مرة
+    enabled:
+      typeof window !== 'undefined' &&
+      news !== undefined &&
+      totalCount !== undefined,
     placeholderData: keepPreviousData,
     // Removed refetchInterval to prevent automatic page refreshes
   });
