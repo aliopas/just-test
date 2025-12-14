@@ -1504,7 +1504,7 @@ export function AdminCompanyContentPage() {
                       ? 'حفظ التعديلات'
                       : 'Save changes'
                     : isArabic
-                      ? '保存 الملف'
+                      ? 'حفظ الملف'
                       : 'Save document'}
                 </button>
                 {editingInvestorDocumentId && (
