@@ -479,38 +479,125 @@ export function InvestorCompanyDocumentsPage() {
                 background: palette.backgroundSurface,
               }}
             >
-              {selectedDoc.storageUrl ? (
-                <iframe
-                  title={isArabic ? selectedDoc.titleAr : selectedDoc.titleEn}
-                  src={selectedDoc.storageUrl}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    border: 'none',
-                  }}
-                  // منع الصفحة داخل iframe من التحكم في نافذة المتصفح الرئيسية
-                  sandbox="allow-same-origin allow-scripts allow-forms"
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                <div
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '0.95rem',
-                    color: palette.textSecondary,
-                    padding: '1.5rem',
-                    textAlign: 'center',
-                  }}
-                >
-                  {isArabic
-                    ? 'رابط الملف غير متوفر حالياً.'
-                    : 'Document URL is not available at the moment.'}
-                </div>
-              )}
+              {(() => {
+                const url = selectedDoc.storageUrl;
+                if (!url) {
+                  return (
+                    <div
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '0.95rem',
+                        color: palette.textSecondary,
+                        padding: '1.5rem',
+                        textAlign: 'center',
+                      }}
+                    >
+                      {isArabic
+                        ? 'رابط الملف غير متوفر حالياً.'
+                        : 'Document URL is not available at the moment.'}
+                    </div>
+                  );
+                }
+
+                const cleanUrl = url.split('?')[0] || '';
+                const ext = cleanUrl.split('.').pop()?.toLowerCase() ?? '';
+                const imageExts = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg'];
+                const isImage = imageExts.includes(ext);
+                const isPdf = ext === 'pdf';
+
+                if (isImage) {
+                  return (
+                    <div
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '0.75rem',
+                        background: '#0f172a',
+                      }}
+                    >
+                      {/* عرض الصور بشكل يناسب مساحة النافذة */}
+                      <img
+                        src={url}
+                        alt={isArabic ? selectedDoc.titleAr : selectedDoc.titleEn}
+                        style={{
+                          maxWidth: '100%',
+                          maxHeight: '100%',
+                          objectFit: 'contain',
+                          borderRadius: radius.md,
+                          boxShadow: shadow.subtle,
+                          background: '#ffffff',
+                        }}
+                      />
+                    </div>
+                  );
+                }
+
+                if (isPdf) {
+                  return (
+                    <iframe
+                      title={isArabic ? selectedDoc.titleAr : selectedDoc.titleEn}
+                      src={url}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        border: 'none',
+                        backgroundColor: '#111827',
+                      }}
+                      // نكتفي بالاعتماد على صلاحيات Supabase والـ browser بدون sandbox إضافي
+                      referrerPolicy="no-referrer"
+                    />
+                  );
+                }
+
+                // أنواع الملفات الأخرى (Word, Excel, PowerPoint, إلخ) لا يمكن عرضها داخل iframe بشكل موثوق
+                return (
+                  <div
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.75rem',
+                      fontSize: '0.95rem',
+                      color: palette.textSecondary,
+                      padding: '1.5rem',
+                      textAlign: 'center',
+                    }}
+                  >
+                    <div>
+                      {isArabic
+                        ? 'لا يمكن عرض هذا النوع من الملفات مباشرة داخل المنصة.'
+                        : 'This type of document cannot be displayed directly inside the portal.'}
+                    </div>
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{
+                        marginTop: '0.25rem',
+                        padding: '0.6rem 1.2rem',
+                        borderRadius: radius.md,
+                        background: `linear-gradient(135deg, ${palette.brandPrimary} 0%, ${palette.brandPrimaryStrong} 100%)`,
+                        color: '#ffffff',
+                        textDecoration: 'none',
+                        fontSize: '0.9rem',
+                        fontWeight: typography.weights.semibold,
+                      }}
+                    >
+                      {isArabic ? 'فتح الملف في نافذة جديدة' : 'Open document in new tab'}
+                    </a>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
