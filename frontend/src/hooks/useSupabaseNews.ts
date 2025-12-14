@@ -4,6 +4,7 @@
  * هذه الـ hooks تحل محل useInvestorNews و useInvestorInternalNews
  */
 
+import { useEffect, useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useNews, useNewsById, useNewsBySlug, useNewsCount, type NewsItem } from './useSupabaseTables';
 import { getStoragePublicUrl, getStorageSignedUrl, NEWS_IMAGES_BUCKET } from '../utils/supabase-storage';
@@ -314,78 +315,80 @@ export function useInvestorInternalNewsList(options?: {
   const limit = options?.limit ?? DEFAULT_LIMIT;
   const showAll = options?.showAll ?? false;
   const includeAllStatuses = options?.includeAllStatuses ?? false;
+  // في واجهة المستثمر نعرض دائماً الأخبار ذات audience = 'investor_internal'
+  // ونعطي خيار "عرض جميع الأخبار" فقط للتحكم في حالة الخبر (published أو كل الحالات)
+  const audience: 'investor_internal' = 'investor_internal';
+  const statusFilter = showAll || includeAllStatuses ? 'all' : undefined;
 
   // If showAll is true, don't filter by audience
-  const { data: news, isLoading: isLoadingNews, isError: isErrorNews, error: errorNews, refetch: refetchNews } = useNews({
+  const {
+    data: rawNews,
+    isLoading: isLoadingNews,
+    isError: isErrorNews,
+    error: errorNews,
+    refetch: refetchNews,
+  } = useNews({
     page,
     limit,
-    audience: showAll ? undefined : 'investor_internal',
-    status: includeAllStatuses ? 'all' : undefined,
-    // تفعيل التحديث الفوري للأخبار الداخلية عبر Supabase Realtime
-    // حتى تظهر الأخبار الجديدة للمستثمرين بدون الحاجة لتحديث الصفحة
-    enableRealtime: true,
+    audience,
+    status: statusFilter,
   });
 
   // If showAll/includeAllStatuses are true, count كل الأخبار بدون قيد للحالة أو الـ audience
-  const { data: totalCount, isLoading: isLoadingCount } = useNewsCount(
-    showAll ? undefined : 'investor_internal',
-    includeAllStatuses ? 'all' : undefined,
-  );
+  const {
+    data: totalCount,
+    isLoading: isLoadingCount,
+    isError: isErrorCount,
+    error: errorCount,
+    refetch: refetchCount,
+  } = useNewsCount(audience, statusFilter);
 
-  const queryResult = useQuery<InvestorInternalNewsListResponse>({
-    queryKey: ['investorInternalNews', 'list', { page, limit, showAll }],
-    queryFn: async () => {
-      // في هذه المرحلة news و totalCount مضمون أنها ليست undefined (بسبب enabled)
-      const safeNews = news ?? [];
-      const total = totalCount || 0;
-      const pageCount = Math.ceil(total / limit) || 0;
+  // تحويل الأخبار + المرفقات إلى الشكل المناسب للمستثمر
+  const [transformedNews, setTransformedNews] = useState<InvestorInternalNewsListResponse['news']>([]);
+  const [isTransforming, setIsTransforming] = useState(false);
 
-      if (safeNews.length === 0) {
-        return {
-          news: [],
-          meta: {
-            page,
-            limit,
-            total,
-            pageCount,
-            hasNext: page < pageCount,
-          },
-        };
+  useEffect(() => {
+    const run = async () => {
+      if (!rawNews || rawNews.length === 0) {
+        setTransformedNews([]);
+        return;
       }
+      setIsTransforming(true);
+      try {
+        const result = await Promise.all(rawNews.map(item => transformInternalNewsItem(item)));
+        setTransformedNews(result);
+      } finally {
+        setIsTransforming(false);
+      }
+    };
 
-      const transformedNews = await Promise.all(
-        safeNews.map(item => transformInternalNewsItem(item))
-      );
+    // لا نبدأ التحويل إلا بعد انتهاء الجلب الأولي
+    if (!isLoadingNews && rawNews) {
+      void run();
+    }
+  }, [rawNews, isLoadingNews]);
 
-      return {
-        news: transformedNews,
-        meta: {
-          page,
-          limit,
-          total,
-          pageCount,
-          hasNext: page < pageCount,
-        },
-      };
+  const total = totalCount ?? transformedNews.length;
+  const pageCount = Math.ceil(total / limit) || 0;
+
+  const data: InvestorInternalNewsListResponse = {
+    news: transformedNews,
+    meta: {
+      page,
+      limit,
+      total,
+      pageCount,
+      hasNext: page < pageCount,
     },
-    // ننتظر حتى تنتهي useNews و useNewsCount من الجلب لأول مرة
-    enabled:
-      typeof window !== 'undefined' &&
-      news !== undefined &&
-      totalCount !== undefined,
-    placeholderData: keepPreviousData,
-    // Removed refetchInterval to prevent automatic page refreshes
-  });
+  };
 
-  // Combine loading and error states from both hooks
   return {
-    ...queryResult,
-    isLoading: queryResult.isLoading || isLoadingNews || isLoadingCount,
-    isError: queryResult.isError || isErrorNews,
-    error: queryResult.error || errorNews,
-    refetch: () => {
-      refetchNews();
-      return queryResult.refetch();
+    data,
+    isLoading: isLoadingNews || isLoadingCount || isTransforming,
+    isError: isErrorNews || isErrorCount,
+    error: errorNews ?? errorCount ?? null,
+    refetch: async () => {
+      await Promise.all([refetchNews(), refetchCount()]);
     },
   };
 }
