@@ -10,7 +10,8 @@ import type { NotificationStatusFilter } from '../types/notification';
 export function NotificationsPage() {
   const { language, direction } = useLanguage();
   const isArabic = language === 'ar';
-  const [statusFilter, setStatusFilter] = useState<NotificationStatusFilter>('all');
+  // افتراضياً نعرض الإشعارات غير المقروءة فقط
+  const [statusFilter, setStatusFilter] = useState<NotificationStatusFilter>('unread');
   const [page, setPage] = useState(1);
 
   const { notifications, meta, isLoading, isError, refetch } = useNotifications({
