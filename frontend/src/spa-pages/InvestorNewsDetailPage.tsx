@@ -131,21 +131,88 @@ export function InvestorNewsDetailPage() {
                 </div>
               </header>
 
-              {/* Body as simple pre-wrapped text */}
+              {/* Body - basic Markdown render (عناوين + فقرات + قوائم) */}
               <section
                 style={{
                   marginTop: '0.75rem',
                   fontSize: '0.95rem',
                   color: palette.textPrimary,
                   lineHeight: 1.7,
-                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
                 }}
               >
-                {data.bodyMd}
+                {data.bodyMd
+                  .split('\n\n')
+                  .map((block, index) => {
+                    const text = block.trim();
+                    if (!text) return null;
+
+                    // عناوين Markdown (#, ##, ...)
+                    if (/^#{1,6}\s/.test(text)) {
+                      const level = Math.min(text.match(/^#{1,6}/)?.[0].length || 1, 6);
+                      const content = text.replace(/^#{1,6}\s+/, '');
+                      const commonStyle = {
+                        marginTop: index === 0 ? 0 : '1.25rem',
+                        marginBottom: '0.5rem',
+                        fontWeight: typography.weights.bold,
+                        color: palette.textPrimary,
+                      } as const;
+
+                      switch (level) {
+                        case 1:
+                          return (
+                            <h1 key={index} style={{ ...commonStyle, fontSize: '1.5rem' }}>
+                              {content}
+                            </h1>
+                          );
+                        case 2:
+                          return (
+                            <h2 key={index} style={{ ...commonStyle, fontSize: '1.3rem' }}>
+                              {content}
+                            </h2>
+                          );
+                        default:
+                          return (
+                            <h3 key={index} style={{ ...commonStyle, fontSize: '1.1rem' }}>
+                              {content}
+                            </h3>
+                          );
+                      }
+                    }
+
+                    // قوائم بسيطة (- أو *)
+                    if (/^[-*]\s+/m.test(text)) {
+                      const items = text
+                        .split('\n')
+                        .map(line => line.trim())
+                        .filter(line => /^[-*]\s+/.test(line))
+                        .map(line => line.replace(/^[-*]\s+/, ''));
+
+                      return (
+                        <ul
+                          key={index}
+                          style={{
+                            margin: '0.5rem 1.25rem',
+                            paddingInlineStart: '1.75rem',
+                          }}
+                        >
+                          {items.map((item, i) => (
+                            <li key={i}>{item}</li>
+                          ))}
+                        </ul>
+                      );
+                    }
+
+                    // فقرة عادية
+                    return (
+                      <p key={index} style={{ margin: '0.45rem 0' }}>
+                        {text}
+                      </p>
+                    );
+                  })}
               </section>
 
-              {/* Note: Attachments are not included in the simplified response */}
-              {/* If needed, they can be added later by fetching from the attachments field */}
+              {/* Note: Attachments are not included in this simplified response */}
             </article>
           )}
         </section>
