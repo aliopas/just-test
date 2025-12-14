@@ -321,8 +321,9 @@ export function useInvestorInternalNewsList(options?: {
     limit,
     audience: showAll ? undefined : 'investor_internal',
     status: includeAllStatuses ? 'all' : undefined,
-    // إيقاف التحديث التلقائي عبر realtime لتجنّب إعادة تحميل الصفحة
-    enableRealtime: false,
+    // تفعيل التحديث الفوري للأخبار الداخلية عبر Supabase Realtime
+    // حتى تظهر الأخبار الجديدة للمستثمرين بدون الحاجة لتحديث الصفحة
+    enableRealtime: true,
   });
 
   // If showAll/includeAllStatuses are true, count كل الأخبار بدون قيد للحالة أو الـ audience
