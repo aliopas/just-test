@@ -272,9 +272,15 @@ export function useInvestorNewsList(options?: {
  * ```
  */
 export function useInvestorNewsDetail(newsId?: string | null) {
-  const { data: newsItem, isLoading, isError, error } = useNewsById(newsId || '');
+  const {
+    data: newsItem,
+    isLoading: baseLoading,
+    isError: baseIsError,
+    error: baseError,
+    refetch: baseRefetch,
+  } = useNewsById(newsId || '');
 
-  return useQuery<NewsDetailResponse>({
+  const detailQuery = useQuery<NewsDetailResponse>({
     queryKey: ['investorNews', 'detail', newsId],
     queryFn: () => {
       if (!newsItem) {
@@ -287,14 +293,27 @@ export function useInvestorNewsDetail(newsId?: string | null) {
         slug: newsItem.slug,
         bodyMd: newsItem.body_md,
         coverKey: newsItem.cover_key,
-        coverUrl: newsItem.cover_key ? getStoragePublicUrl(NEWS_IMAGES_BUCKET, newsItem.cover_key) : null,
+        coverUrl: newsItem.cover_key
+          ? getStoragePublicUrl(NEWS_IMAGES_BUCKET, newsItem.cover_key)
+          : null,
         publishedAt: newsItem.published_at || newsItem.created_at,
         createdAt: newsItem.created_at,
         updatedAt: newsItem.updated_at,
       };
     },
-    enabled: Boolean(newsId) && typeof window !== 'undefined',
+    // لا نقوم بتحويل البيانات إلا بعد جلب الخبر الأساسي
+    enabled: Boolean(newsId) && typeof window !== 'undefined' && Boolean(newsItem),
   });
+
+  return {
+    data: detailQuery.data ?? null,
+    isLoading: baseLoading || detailQuery.isLoading,
+    isError: baseIsError || detailQuery.isError,
+    error: baseError ?? detailQuery.error ?? null,
+    refetch: async () => {
+      await Promise.all([baseRefetch(), detailQuery.refetch()]);
+    },
+  };
 }
 
 /**
@@ -395,11 +414,17 @@ export function useInvestorInternalNewsList(options?: {
  */
 export function useInvestorInternalNewsDetail(newsId?: string | null) {
   // للأخبار الداخلية نسمح بجلب جميع الحالات (ليس فقط المنشورة)
-  const { data: newsItem, isLoading, isError, error } = useNewsById(newsId || '', {
+  const {
+    data: newsItem,
+    isLoading: baseLoading,
+    isError: baseIsError,
+    error: baseError,
+    refetch: baseRefetch,
+  } = useNewsById(newsId || '', {
     status: 'all',
   });
 
-  return useQuery<InvestorInternalNewsDetail>({
+  const detailQuery = useQuery<InvestorInternalNewsDetail>({
     queryKey: ['investorInternalNews', 'detail', newsId],
     queryFn: async () => {
       if (!newsItem) {
@@ -433,7 +458,18 @@ export function useInvestorInternalNewsDetail(newsId?: string | null) {
         attachments,
       };
     },
-    enabled: Boolean(newsId) && typeof window !== 'undefined',
+    // لا نقوم بتحويل البيانات إلا بعد جلب الخبر الأساسي
+    enabled: Boolean(newsId) && typeof window !== 'undefined' && Boolean(newsItem),
   });
+
+  return {
+    data: detailQuery.data ?? null,
+    isLoading: baseLoading || detailQuery.isLoading,
+    isError: baseIsError || detailQuery.isError,
+    error: baseError ?? detailQuery.error ?? null,
+    refetch: async () => {
+      await Promise.all([baseRefetch(), detailQuery.refetch()]);
+    },
+  };
 }
 

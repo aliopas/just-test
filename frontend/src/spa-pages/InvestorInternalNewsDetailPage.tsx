@@ -10,12 +10,12 @@ import { formatInvestorDateTime } from '../utils/date';
 
 export function InvestorInternalNewsDetailPage() {
   const { language, direction } = useLanguage();
-  const params = useParams();
+  const params = useParams<{ id?: string }>();
   const navigate = useNextNavigate();
-  const id = params?.id as string | undefined;
+  const id = params?.id;
   const isArabic = language === 'ar';
 
-  const { data, isLoading, isError, error, refetch } = useInvestorInternalNewsDetail(id);
+  const { data, isLoading, isError, error, refetch } = useInvestorInternalNewsDetail(id ?? null);
 
   const formatDateTime = (value: string) => formatInvestorDateTime(value, language);
 
@@ -159,6 +159,28 @@ export function InvestorInternalNewsDetailPage() {
               >
                 {isArabic ? 'إعادة المحاولة' : 'Retry'}
               </button>
+            </div>
+          )}
+
+          {/* حالة عدم وجود بيانات */}
+          {!isLoading && !isError && id && !data && (
+            <div
+              style={{
+                padding: '3rem 2rem',
+                textAlign: 'center',
+              }}
+            >
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: typography.sizes.body,
+                  color: palette.textSecondary,
+                }}
+              >
+                {isArabic
+                  ? 'لم يتم العثور على تفاصيل هذا الخبر الداخلي.'
+                  : 'Details for this internal news item could not be found.'}
+              </p>
             </div>
           )}
 
