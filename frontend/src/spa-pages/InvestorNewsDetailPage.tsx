@@ -8,6 +8,7 @@ import { palette, radius, shadow, typography } from '../styles/theme';
 import { useInvestorNewsDetail } from '../hooks/useSupabaseNews';
 import { tInvestorNews } from '../locales/investorNews';
 import { formatInvestorDateTime } from '../utils/date';
+import { analytics } from '../utils/analytics';
 
 export function InvestorNewsDetailPage() {
   const { language, direction } = useLanguage();
@@ -25,6 +26,16 @@ export function InvestorNewsDetailPage() {
       setShareUrl(window.location.href);
     }
   }, []);
+
+  React.useEffect(() => {
+    if (data?.id) {
+      analytics.track('investor_news_view', {
+        id: data.id,
+        title: data.title,
+        language,
+      });
+    }
+  }, [data?.id, data?.title, language]);
 
   const markdownComponents: Components = {
     h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
@@ -441,12 +452,20 @@ export function InvestorNewsDetailPage() {
                     }}
                   >
                     {(() => {
-                      const encodedUrl = encodeURIComponent(shareUrl);
+                      const baseUrl = shareUrl;
+                      const buildShareLink = (source: string) => {
+                        const separator = baseUrl.includes('?') ? '&' : '?';
+                        return `${baseUrl}${separator}utm_source=${source}&utm_medium=share&utm_campaign=investor_news_detail`;
+                      };
+
+                      const encodedWhatsappUrl = encodeURIComponent(buildShareLink('whatsapp'));
+                      const encodedTwitterUrl = encodeURIComponent(buildShareLink('twitter'));
+                      const encodedLinkedinUrl = encodeURIComponent(buildShareLink('linkedin'));
                       const encodedTitle = encodeURIComponent(data.title);
                       return (
                         <>
                           <a
-                            href={`https://wa.me/?text=${encodedTitle}%20-%20${encodedUrl}`}
+                            href={`https://wa.me/?text=${encodedTitle}%20-%20${encodedWhatsappUrl}`}
                             target="_blank"
                             rel="noreferrer"
                             style={{
@@ -463,7 +482,7 @@ export function InvestorNewsDetailPage() {
                             WhatsApp
                           </a>
                           <a
-                            href={`https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`}
+                            href={`https://twitter.com/intent/tweet?url=${encodedTwitterUrl}&text=${encodedTitle}`}
                             target="_blank"
                             rel="noreferrer"
                             style={{
@@ -480,7 +499,7 @@ export function InvestorNewsDetailPage() {
                             X (Twitter)
                           </a>
                           <a
-                            href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`}
+                            href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodedLinkedinUrl}`}
                             target="_blank"
                             rel="noreferrer"
                             style={{

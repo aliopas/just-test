@@ -2,7 +2,8 @@
   | 'investor_profile_viewed'
   | 'investor_profile_updated'
   | 'investor_language_changed'
-  | 'request_created';
+  | 'request_created'
+  | 'investor_news_view';
 
 // Placeholder analytics adapter until Segment (or similar) is wired.
 class AnalyticsClient {
