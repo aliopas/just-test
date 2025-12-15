@@ -1258,9 +1258,13 @@ export async function getInternalInvestorNewsById(
     }>();
 
   if (error) {
-    if (error.code === 'PGRST116') {
+    // PGRST116: no rows found for .single()
+    // PGRST301 (and some other PostgREST errors) can happen with RLS,
+    // and from وجهة نظر المستثمر نعاملها كعدم وجود خبر بدلاً من خطأ 500.
+    if (error.code === 'PGRST116' || error.code === 'PGRST301') {
       throw new Error('NEWS_NOT_FOUND');
     }
+
     throw new Error(`Failed to load internal news detail: ${error.message}`);
   }
 
@@ -1272,9 +1276,18 @@ export async function getInternalInvestorNewsById(
     throw new Error('NEWS_NOT_FOUND');
   }
 
-  const attachments = await enrichAttachmentsWithSignedUrls(
-    sanitizeNewsAttachments(data.attachments)
-  );
+  let attachments: InvestorInternalNewsAttachment[] = [];
+  try {
+    attachments = await enrichAttachmentsWithSignedUrls(
+      sanitizeNewsAttachments(data.attachments)
+    );
+  } catch (error) {
+    // لا نسمح لأخطاء المرفقات أن تتسبب في 500 للمستثمر
+    // نكتفي بتسجيل الخطأ وإرجاع الخبر بدون مرفقات
+    // eslint-disable-next-line no-console
+    console.error('Failed to enrich internal news attachments:', error);
+    attachments = [];
+  }
 
   return {
     id: data.id,
