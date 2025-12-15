@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { useNextNavigate } from '../utils/next-router';
 import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
-import { useInvestorNewsDetail } from '../hooks/useInvestorNews';
+import { useInvestorNewsDetail } from '../hooks/useSupabaseNews';
 import { tInvestorNews } from '../locales/investorNews';
 import { formatInvestorDateTime } from '../utils/date';
 import { analytics } from '../utils/analytics';

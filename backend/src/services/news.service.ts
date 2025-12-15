@@ -1259,9 +1259,13 @@ export async function getInternalInvestorNewsById(
 
   if (error) {
     // PGRST116: no rows found for .single()
-    // PGRST301 (and some other PostgREST errors) can happen with RLS,
-    // and from وجهة نظر المستثمر نعاملها كعدم وجود خبر بدلاً من خطأ 500.
-    if (error.code === 'PGRST116' || error.code === 'PGRST301') {
+    // PGRST301 / 42501: يمكن أن تحدث مع RLS أو صلاحيات غير كافية.
+    // من وجهة نظر المستثمر نعامل هذه الحالات كعدم وجود خبر بدلاً من 500.
+    if (
+      error.code === 'PGRST116' ||
+      error.code === 'PGRST301' ||
+      error.code === '42501'
+    ) {
       throw new Error('NEWS_NOT_FOUND');
     }
 
