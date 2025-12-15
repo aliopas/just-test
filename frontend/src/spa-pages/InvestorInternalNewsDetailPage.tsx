@@ -6,6 +6,7 @@ import { palette, radius, shadow, typography } from '../styles/theme';
 import { useInvestorInternalNewsDetail } from '../hooks/useSupabaseNews';
 import { tInvestorInternalNews } from '../locales/investorInternalNews';
 import { getStoragePublicUrl, NEWS_IMAGES_BUCKET } from '../utils/supabase-storage';
+import { formatInvestorDateTime } from '../utils/date';
 
 export function InvestorInternalNewsDetailPage() {
   const { language, direction } = useLanguage();
@@ -16,11 +17,7 @@ export function InvestorInternalNewsDetailPage() {
 
   const { data, isLoading, isError, error, refetch } = useInvestorInternalNewsDetail(id);
 
-  const formatDateTime = (value: string) =>
-    new Date(value).toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    });
+  const formatDateTime = (value: string) => formatInvestorDateTime(value, language);
 
   return (
     <div

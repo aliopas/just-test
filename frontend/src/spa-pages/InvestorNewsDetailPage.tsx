@@ -7,6 +7,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
 import { useInvestorNewsDetail } from '../hooks/useSupabaseNews';
 import { tInvestorNews } from '../locales/investorNews';
+import { formatInvestorDateTime } from '../utils/date';
 
 export function InvestorNewsDetailPage() {
   const { language, direction } = useLanguage();
@@ -14,10 +15,19 @@ export function InvestorNewsDetailPage() {
   const navigate = useNextNavigate();
   const id = params?.id;
 
-  const { data, isLoading, isError } = useInvestorNewsDetail(id ?? null);
+  const { data, isLoading, isError, refetch } = useInvestorNewsDetail(id ?? null);
+
+  const [shareUrl, setShareUrl] = React.useState('');
+  const [copyStatus, setCopyStatus] = React.useState<'idle' | 'success' | 'error'>('idle');
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setShareUrl(window.location.href);
+    }
+  }, []);
 
   const markdownComponents: Components = {
-    h1: ({ node, ...props }) => (
+    h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
       // نستخدم h2 بدل h1 داخل المتن للحفاظ على h1 واحد في الصفحة (عنوان الخبر)
       <h2
         style={{
@@ -30,7 +40,7 @@ export function InvestorNewsDetailPage() {
         {...props}
       />
     ),
-    h2: ({ node, ...props }) => (
+    h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
       <h3
         style={{
           marginTop: '1.25rem',
@@ -42,7 +52,7 @@ export function InvestorNewsDetailPage() {
         {...props}
       />
     ),
-    h3: ({ node, ...props }) => (
+    h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
       <h4
         style={{
           marginTop: '1.25rem',
@@ -54,7 +64,7 @@ export function InvestorNewsDetailPage() {
         {...props}
       />
     ),
-    p: ({ node, ...props }) => (
+    p: (props: React.HTMLAttributes<HTMLParagraphElement>) => (
       <p
         style={{
           margin: '0.45rem 0',
@@ -62,7 +72,7 @@ export function InvestorNewsDetailPage() {
         {...props}
       />
     ),
-    ul: ({ node, ordered, ...props }) => (
+    ul: (props: React.HTMLAttributes<HTMLUListElement>) => (
       <ul
         style={{
           margin: '0.5rem 1.25rem',
@@ -71,7 +81,7 @@ export function InvestorNewsDetailPage() {
         {...props}
       />
     ),
-    ol: ({ node, ordered, ...props }) => (
+    ol: (props: React.OlHTMLAttributes<HTMLOListElement>) => (
       <ol
         style={{
           margin: '0.5rem 1.25rem',
@@ -82,11 +92,28 @@ export function InvestorNewsDetailPage() {
     ),
   };
 
-  const formatDateTime = (value: string) =>
-    new Date(value).toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    });
+  const formatDateTime = (value: string) => formatInvestorDateTime(value, language);
+
+  const handleCopyLink = async () => {
+    if (!shareUrl) return;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = shareUrl;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setCopyStatus('success');
+      window.setTimeout(() => setCopyStatus('idle'), 2000);
+    } catch {
+      setCopyStatus('error');
+      window.setTimeout(() => setCopyStatus('idle'), 2000);
+    }
+  };
 
   return (
     <div
@@ -250,15 +277,39 @@ export function InvestorNewsDetailPage() {
           )}
 
           {isError && !isLoading && (
-            <p
+            <div
               style={{
-                margin: 0,
-                fontSize: '0.95rem',
-                color: palette.error,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.75rem',
               }}
             >
-              {tInvestorNews('detail.error', language)}
-            </p>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: '0.95rem',
+                  color: palette.error,
+                }}
+              >
+                {tInvestorNews('detail.error', language)}
+              </p>
+              <button
+                type="button"
+                onClick={() => refetch()}
+                style={{
+                  alignSelf: direction === 'rtl' ? 'flex-start' : 'flex-start',
+                  padding: '0.4rem 0.8rem',
+                  borderRadius: radius.md,
+                  border: `1px solid ${palette.brandPrimaryStrong}`,
+                  background: palette.brandPrimaryStrong,
+                  color: palette.textOnBrand,
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                }}
+              >
+                {tInvestorNews('detail.retry', language)}
+              </button>
+            </div>
           )}
 
           {/* حالة عدم وجود بيانات بعد الجلب */}
@@ -301,6 +352,8 @@ export function InvestorNewsDetailPage() {
 
           {!isLoading && !isError && data && (
             <article
+              aria-labelledby="investor-news-detail-title"
+              dir={direction}
               style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -309,6 +362,7 @@ export function InvestorNewsDetailPage() {
             >
               <header>
                 <h1
+                  id="investor-news-detail-title"
                   style={{
                     margin: 0,
                     fontSize: '1.4rem',
@@ -358,6 +412,122 @@ export function InvestorNewsDetailPage() {
                   {data.bodyMd}
                 </ReactMarkdown>
               </section>
+
+              {/* Share section */}
+              {shareUrl && (
+                <section
+                  style={{
+                    marginTop: '1.25rem',
+                    paddingTop: '0.75rem',
+                    borderTop: `1px solid ${palette.neutralBorderMuted}`,
+                  }}
+                >
+                  <span
+                    style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
+                      fontSize: '0.9rem',
+                      fontWeight: typography.weights.medium,
+                      color: palette.textSecondary,
+                    }}
+                  >
+                    {tInvestorNews('detail.share.title', language)}
+                  </span>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '0.5rem',
+                    }}
+                  >
+                    {(() => {
+                      const encodedUrl = encodeURIComponent(shareUrl);
+                      const encodedTitle = encodeURIComponent(data.title);
+                      return (
+                        <>
+                          <a
+                            href={`https://wa.me/?text=${encodedTitle}%20-%20${encodedUrl}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{
+                              padding: '0.4rem 0.8rem',
+                              borderRadius: radius.md,
+                              border: `1px solid #25D366`,
+                              background: '#25D36610',
+                              color: '#25D366',
+                              fontSize: '0.85rem',
+                              cursor: 'pointer',
+                              textDecoration: 'none',
+                            }}
+                          >
+                            WhatsApp
+                          </a>
+                          <a
+                            href={`https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{
+                              padding: '0.4rem 0.8rem',
+                              borderRadius: radius.md,
+                              border: `1px solid #1DA1F2`,
+                              background: '#1DA1F210',
+                              color: '#1DA1F2',
+                              fontSize: '0.85rem',
+                              cursor: 'pointer',
+                              textDecoration: 'none',
+                            }}
+                          >
+                            X (Twitter)
+                          </a>
+                          <a
+                            href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{
+                              padding: '0.4rem 0.8rem',
+                              borderRadius: radius.md,
+                              border: `1px solid #0A66C2`,
+                              background: '#0A66C210',
+                              color: '#0A66C2',
+                              fontSize: '0.85rem',
+                              cursor: 'pointer',
+                              textDecoration: 'none',
+                            }}
+                          >
+                            LinkedIn
+                          </a>
+                        </>
+                      );
+                    })()}
+                    <button
+                      type="button"
+                      onClick={handleCopyLink}
+                      style={{
+                        padding: '0.4rem 0.8rem',
+                        borderRadius: radius.md,
+                        border: `1px solid ${palette.neutralBorderMuted}`,
+                        background: palette.backgroundBase,
+                        color: palette.textSecondary,
+                        fontSize: '0.85rem',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {tInvestorNews('detail.share.copy', language)}
+                    </button>
+                  </div>
+                  {copyStatus === 'success' && (
+                    <p
+                      style={{
+                        margin: '0.35rem 0 0',
+                        fontSize: '0.8rem',
+                        color: palette.textSecondary,
+                      }}
+                    >
+                      {tInvestorNews('detail.share.copied', language)}
+                    </p>
+                  )}
+                </section>
+              )}
 
               {/* Note: Attachments are not included in this simplified response */}
             </article>

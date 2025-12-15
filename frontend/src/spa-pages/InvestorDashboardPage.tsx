@@ -7,6 +7,7 @@ import { useConversations } from '../hooks/useChat';
 import { NotificationBadge } from '../components/notifications/NotificationBadge';
 import { ChatIcon } from '../components/chat/ChatIcon';
 import { ChatModal } from '../components/chat/ChatModal';
+import { formatInvestorDateTime } from '../utils/date';
 import type { DashboardRecentRequest, DashboardRequestSummary } from '../types/dashboard';
 import type { RequestStatus } from '../types/request';
 
@@ -39,10 +40,7 @@ export function InvestorDashboardPage() {
     }).format(amount);
 
   const formatDateTime = (value: string) =>
-    new Date(value).toLocaleString(isArabic ? 'ar-SA' : 'en-US', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    });
+    formatInvestorDateTime(value, isArabic ? 'ar' : 'en');
 
   const formatNumber = (value: number) =>
     new Intl.NumberFormat(isArabic ? 'ar-SA' : 'en-US').format(value);
