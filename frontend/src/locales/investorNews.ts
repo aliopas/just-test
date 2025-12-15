@@ -12,6 +12,8 @@ type MessageKey =
   | 'detail.updatedAt'
   | 'detail.loading'
   | 'detail.error'
+  | 'detail.missingId'
+  | 'detail.noData'
   | 'detail.attachments.title'
   | 'detail.attachments.imagesTitle'
   | 'detail.attachments.filesTitle'
@@ -36,6 +38,8 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'detail.updatedAt': 'Last updated',
     'detail.loading': 'Loading article…',
     'detail.error': 'Failed to load article. Please try again.',
+    'detail.missingId': 'Invalid article link. Please go back to the news list.',
+    'detail.noData': 'This article could not be found or is no longer available.',
     'detail.attachments.title': 'Attachments',
     'detail.attachments.imagesTitle': 'Image gallery',
     'detail.attachments.filesTitle': 'Files & downloads',
@@ -57,6 +61,8 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'detail.updatedAt': 'آخر تحديث',
     'detail.loading': 'جارٍ تحميل المقال…',
     'detail.error': 'تعذّر تحميل المقال. حاول مرة أخرى.',
+    'detail.missingId': 'رابط المقال غير صالح. الرجاء العودة لقائمة الأخبار.',
+    'detail.noData': 'لم يتم العثور على هذا المقال أو لم يعد متاحًا.',
     'detail.attachments.title': 'المرفقات',
     'detail.attachments.imagesTitle': 'معرض الصور',
     'detail.attachments.filesTitle': 'الملفات والتنزيلات',
