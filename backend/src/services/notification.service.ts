@@ -242,6 +242,7 @@ async function createNotificationRecord(params: {
   userId: string;
   type: NotificationType;
   payload: Record<string, unknown>;
+  channel?: NotificationChannel;
 }) {
   try {
     const adminClient = requireSupabaseAdmin();
@@ -250,7 +251,7 @@ async function createNotificationRecord(params: {
       .insert({
         user_id: params.userId,
         type: params.type,
-        channel: 'email',
+        channel: params.channel ?? 'email',
         payload: params.payload,
       })
       .select('id')
@@ -636,30 +637,17 @@ async function notifyAdminRequestEvent<
 
   for (const recipient of recipients) {
     try {
-      const context = buildContext(recipient, summary);
       const notificationId = await createNotificationRecord({
         userId: recipient.userId,
         type: notificationType,
         payload: {
           requestId: summary.id,
           requestNumber: summary.number,
-          channel: 'admin_email',
+          channel: 'admin_in_app',
         },
+        channel: 'in_app',
       });
-
-      await enqueueEmailNotification({
-        userId: recipient.userId,
-        templateId,
-        language: recipient.language,
-        recipientEmail: recipient.email,
-        context,
-        metadata: {
-          requestId: summary.id,
-          requestNumber: summary.number,
-          notificationId,
-          ...metadata,
-        },
-      });
+      void notificationId;
     } catch (err) {
       console.error(`Failed to queue admin notification (${templateId})`, err);
     }
