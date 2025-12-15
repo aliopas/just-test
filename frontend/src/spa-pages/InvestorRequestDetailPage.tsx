@@ -2,7 +2,7 @@ import React from 'react';
 import { useParams } from 'next/navigation';
 import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
-import { useInvestorRequestDetailDirect } from '../hooks/useInvestorRequestDetailDirect';
+import { useInvestorRequestDetail } from '../hooks/useInvestorRequestDetail';
 import { useRequestTimelineDirect } from '../hooks/useRequestTimelineDirect';
 import { tRequestList, type MessageKey } from '../locales/requestList';
 import { useNextNavigate } from '../utils/next-router';
@@ -14,7 +14,7 @@ export function InvestorRequestDetailPage() {
   const navigate = useNextNavigate();
   const requestId = params?.id as string | undefined;
 
-  const { data: requestDetail, isLoading, isError } = useInvestorRequestDetailDirect(requestId);
+  const { data: requestDetail, isLoading, isError } = useInvestorRequestDetail(requestId);
   const { data: timelineData, isLoading: timelineLoading } = useRequestTimelineDirect(
     requestId,
     'investor'

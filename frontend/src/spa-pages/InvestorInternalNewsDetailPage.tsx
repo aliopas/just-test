@@ -3,7 +3,7 @@ import { useParams } from 'next/navigation';
 import { useNextNavigate } from '../utils/next-router';
 import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
-import { useInvestorInternalNewsDetail } from '../hooks/useSupabaseNews';
+import { useInvestorInternalNewsDetail } from '../hooks/useInvestorInternalNews';
 import { tInvestorInternalNews } from '../locales/investorInternalNews';
 import { getStoragePublicUrl, NEWS_IMAGES_BUCKET } from '../utils/supabase-storage';
 import { formatInvestorDateTime } from '../utils/date';
