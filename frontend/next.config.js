@@ -8,9 +8,6 @@ const nextConfig = {
   // Next.js 16 requires app and pages directories to be in the same location
   // The pre-build script removes src/pages to avoid conflicts
   pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
-  experimental: {
-    optimizePackageImports: ['@tanstack/react-query', '@supabase/supabase-js'],
-  },
   // Only use App Router, ignore Pages Router
   // Next.js should automatically use app/ directory when it exists
   // Transpile packages if needed
@@ -88,8 +85,9 @@ const nextConfig = {
   },
   // Skip static generation for pages that use client-side features
   // This prevents SSR errors during build
+  // Disable optimizePackageImports entirely to avoid Supabase wrapper.mjs issues
   experimental: {
-    optimizePackageImports: ['@tanstack/react-query'],
+    optimizePackageImports: false,
   },
   // Image optimization configuration
   images: {
