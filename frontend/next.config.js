@@ -89,8 +89,7 @@ const nextConfig = {
   // Skip static generation for pages that use client-side features
   // This prevents SSR errors during build
   experimental: {
-    // Optimize package imports
-    optimizePackageImports: ['@tanstack/react-query', '@supabase/supabase-js'],
+    optimizePackageImports: ['@tanstack/react-query'],
   },
   // Image optimization configuration
   images: {
