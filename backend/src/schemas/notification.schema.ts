@@ -8,6 +8,10 @@ export const NOTIFICATION_TYPES = [
   'request_rejected',
   'request_settling',
   'request_completed',
+  // News & content notifications
+  'news_published',
+  'news_approved',
+  'news_rejected',
 ] as const;
 
 export const notificationChannelEnum = z.enum(NOTIFICATION_CHANNELS);

@@ -38,7 +38,14 @@ type MessageKey =
   | 'type.request_settling.title'
   | 'type.request_settling.body'
   | 'type.request_completed.title'
-  | 'type.request_completed.body';
+  | 'type.request_completed.body'
+  // News & content notifications
+  | 'type.news_published.title'
+  | 'type.news_published.body'
+  | 'type.news_approved.title'
+  | 'type.news_approved.body'
+  | 'type.news_rejected.title'
+  | 'type.news_rejected.body';
 
 type MessageDictionary = Record<MessageKey, string>;
 
@@ -93,6 +100,15 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'type.request_completed.title': 'Settlement completed',
     'type.request_completed.body':
       'Settlement is complete for request {requestNumber}.',
+    'type.news_published.title': 'New internal news',
+    'type.news_published.body':
+      '{title} has been published in your investor news feed.',
+    'type.news_approved.title': 'News item approved',
+    'type.news_approved.body':
+      'Your news "{title}" has been approved and may now be visible to investors.',
+    'type.news_rejected.title': 'News item rejected',
+    'type.news_rejected.body':
+      'Your news "{title}" was rejected. Review comments from the reviewer and update if needed.',
   },
   ar: {
     pageTitle: 'الإشعارات',
@@ -142,6 +158,15 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'type.request_completed.title': 'اكتملت عملية التسوية',
     'type.request_completed.body':
       'اكتملت التسوية للطلب رقم {requestNumber}.',
+    'type.news_published.title': 'خبر داخلي جديد',
+    'type.news_published.body':
+      'تم نشر الخبر "{title}" في قسم أخبار المستثمرين.',
+    'type.news_approved.title': 'تمت الموافقة على الخبر',
+    'type.news_approved.body':
+      'تمت الموافقة على خبرك "{title}" ويمكن أن يكون الآن ظاهرًا للمستثمرين.',
+    'type.news_rejected.title': 'تم رفض الخبر',
+    'type.news_rejected.body':
+      'تم رفض خبرك "{title}". راجع ملاحظات المراجع وعدِّل المحتوى إذا لزم الأمر.',
   },
 };
 

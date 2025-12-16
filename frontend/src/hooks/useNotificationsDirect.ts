@@ -46,6 +46,9 @@ function toNotificationType(value: string): NotificationType {
     'request_rejected',
     'request_settling',
     'request_completed',
+    'news_published',
+    'news_approved',
+    'news_rejected',
   ];
   return validTypes.includes(value as NotificationType)
     ? (value as NotificationType)

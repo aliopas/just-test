@@ -637,12 +637,16 @@ async function notifyAdminRequestEvent<
 
   for (const recipient of recipients) {
     try {
+      const context = buildContext(recipient, summary);
+
       const notificationId = await createNotificationRecord({
         userId: recipient.userId,
         type: notificationType,
         payload: {
           requestId: summary.id,
-          requestNumber: summary.number,
+          // نضيف تفاصيل إضافية حتى تظهر كاملة في الإشعارات الداخلية للأدمن
+          ...context,
+          ...(metadata ?? {}),
           channel: 'admin_in_app',
         },
         channel: 'in_app',
@@ -989,20 +993,113 @@ export async function notifyInvestorOfSettlement(
 export async function notifyInvestorsOfPublishedNews(
   payload: NewsPublishNotification
 ) {
-  void payload;
-  return Promise.resolve();
+  try {
+    const adminClient = requireSupabaseAdmin();
+
+    // نتأكد أن الخبر موجه للجمهور الداخلي للمستثمر قبل إرسال إشعار
+    const { data: newsRow, error: newsError } = await adminClient
+      .from('news')
+      .select('id,audience')
+      .eq('id', payload.newsId)
+      .maybeSingle<{ id: string; audience: string }>();
+
+    if (newsError || !newsRow) {
+      console.error(
+        'Failed to load news for investor notification',
+        newsError
+      );
+      return;
+    }
+
+    if (newsRow.audience !== 'investor_internal') {
+      // الأخبار العامة لا نرسل لها إشعارات داخلية للمستثمرين في الوقت الحالي
+      return;
+    }
+
+    const { data: profiles, error: profilesError } = await adminClient
+      .from('investor_profiles')
+      .select('user_id');
+
+    if (profilesError) {
+      console.error(
+        'Failed to load investor profiles for news notification',
+        profilesError
+      );
+      return;
+    }
+
+    const userIds = Array.from(
+      new Set(
+        (profiles ?? [])
+          .map(row => row.user_id)
+          .filter((id): id is string => typeof id === 'string' && id.length > 0)
+      )
+    );
+
+    await Promise.all(
+      userIds.map(async userId => {
+        try {
+          await createNotificationRecord({
+            userId,
+            type: 'news_published',
+            channel: 'in_app',
+            payload: {
+              newsId: payload.newsId,
+              title: payload.title,
+              slug: payload.slug,
+              publishedAt: payload.publishedAt,
+            },
+          });
+        } catch (err) {
+          console.error(
+            `Failed to create news_published notification for investor ${userId}`,
+            err
+          );
+        }
+      })
+    );
+  } catch (error) {
+    console.error('Failed to notify investors of published news', error);
+  }
 }
 
 export async function notifyAuthorOfNewsApproval(
   payload: NewsAuthorApprovalNotification
 ) {
-  void payload;
-  return Promise.resolve();
+  try {
+    await createNotificationRecord({
+      userId: payload.authorId,
+      type: 'news_approved',
+      channel: 'in_app',
+      payload: {
+        newsId: payload.newsId,
+        title: payload.title,
+        status: payload.status,
+        reviewerId: payload.reviewerId,
+        comment: payload.comment ?? null,
+      },
+    });
+  } catch (error) {
+    console.error('Failed to queue author news approval notification', error);
+  }
 }
 
 export async function notifyAuthorOfNewsRejection(
   payload: NewsAuthorRejectionNotification
 ) {
-  void payload;
-  return Promise.resolve();
+  try {
+    await createNotificationRecord({
+      userId: payload.authorId,
+      type: 'news_rejected',
+      channel: 'in_app',
+      payload: {
+        newsId: payload.newsId,
+        title: payload.title,
+        reviewerId: payload.reviewerId,
+        comment: payload.comment ?? null,
+      },
+    });
+  } catch (error) {
+    console.error('Failed to queue author news rejection notification', error);
+  }
 }

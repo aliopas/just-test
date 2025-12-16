@@ -6,7 +6,11 @@ export type NotificationType =
   | 'request_approved'
   | 'request_rejected'
   | 'request_settling'
-  | 'request_completed';
+  | 'request_completed'
+  // News & content notifications
+  | 'news_published'
+  | 'news_approved'
+  | 'news_rejected';
 
 export type NotificationStatusFilter = 'all' | 'unread' | 'read';
 
