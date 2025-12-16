@@ -2,8 +2,13 @@
  * Supabase Client - مبسط
  * 
  * يستخدم الإعدادات الموحدة من config/supabase.config.ts
+ * 
+ * NOTE: We import from the internal ESM module entrypoint instead of the
+ * top-level '@supabase/supabase-js' to avoid Next.js optimizePackageImports
+ * transforming this import into 'dist/esm/wrapper.mjs', which can cause
+ * default export errors in Netlify builds.
  */
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js/dist/module/index.js';
 import { SUPABASE, validateSupabaseConfig } from '../config/supabase.config';
 
 let client: SupabaseClient | null = null;
