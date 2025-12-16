@@ -16,11 +16,12 @@ const nextConfig = {
   // Transpile packages if needed
   transpilePackages: [],
   // Turbopack configuration (Next.js 16 uses Turbopack by default)
-  // The @ alias is already configured in tsconfig.json and works with Turbopack
-  // Note: We removed webpack config as Turbopack doesn't support it
-  // All imports should use @/ alias which is configured in tsconfig.json
-  // The src/pages directory is removed by pre-build script to avoid conflicts
+  // Explicitly set the workspace root so Turbopack does not try to infer it
+  // from multiple lockfiles (repo root + frontend). This also silences the
+  // "Next.js inferred your workspace root" warning in Netlify builds and
+  // prevents some internal Turbopack bugs.
   turbopack: {
+    root: __dirname,
     resolveAlias: {
       '@': './src',
     },

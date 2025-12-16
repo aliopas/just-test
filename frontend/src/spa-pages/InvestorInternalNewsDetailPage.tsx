@@ -1,3 +1,5 @@
+ 'use client';
+
 import React from 'react';
 import { useParams } from 'next/navigation';
 import { useNextNavigate } from '../utils/next-router';
@@ -35,6 +37,8 @@ export function InvestorInternalNewsDetailPage() {
           display: 'flex',
           flexDirection: 'column',
           gap: '1.5rem',
+          textAlign: 'center',
+          border: '1px solid var(--color-neutral-divider)',
         }}
       >
         {/* Back link */}

@@ -1,4 +1,6 @@
-﻿import React, {
+'use client';
+
+import React, {
   createContext,
   useCallback,
   useContext,

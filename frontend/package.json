@@ -5,9 +5,9 @@
   "author": "Bacura Technologies Team",
   "scripts": {
     "predev": "node scripts/pre-build.js",
-    "dev": "next dev -p 3002",
+    "dev": "next dev -p 3002 --webpack",
     "prebuild": "node scripts/pre-build.js",
-    "build": "next build && node scripts/fix-validator-types.js",
+    "build": "next build --webpack && node scripts/fix-validator-types.js",
     "postbuild": "node scripts/post-build.js && node scripts/fix-validator-types.js",
     "fix:validator": "node scripts/fix-validator-types.js",
     "start": "next start -p 3002",
