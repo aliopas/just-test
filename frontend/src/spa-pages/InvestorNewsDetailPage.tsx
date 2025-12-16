@@ -9,6 +9,9 @@ import { useInvestorNewsDetail } from '../hooks/useSupabaseNews';
 import { tInvestorNews } from '../locales/investorNews';
 import { formatInvestorDateTime } from '../utils/date';
 import { analytics } from '../utils/analytics';
+import { PageContainer } from '../components/ui/PageContainer';
+import { Card } from '../components/ui/Card';
+import { BackButton } from '../components/ui/BackButton';
 
 export function InvestorNewsDetailPage() {
   const { language, direction } = useLanguage();
@@ -127,56 +130,22 @@ export function InvestorNewsDetailPage() {
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        padding: '2rem',
-        background: palette.backgroundSurface,
-        direction,
-      }}
-    >
-      <div
-        style={{
-          maxWidth: '800px',
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '1.5rem',
+    <PageContainer direction={direction} maxWidth={800}>
+      {/* Back link */}
+      <BackButton
+        direction={direction}
+        onClick={() => {
+          if (typeof window !== 'undefined' && window.history.length > 1) {
+            navigate(-1);
+          } else {
+            navigate('/investor/news');
+          }
         }}
       >
-        {/* Back link */}
-        <button
-          type="button"
-          onClick={() => {
-            if (typeof window !== 'undefined' && window.history.length > 1) {
-              navigate(-1);
-            } else {
-              navigate('/investor/news');
-            }
-          }}
-          style={{
-            alignSelf: direction === 'rtl' ? 'flex-end' : 'flex-start',
-            padding: '0.45rem 0.9rem',
-            borderRadius: radius.md,
-            border: `1px solid ${palette.neutralBorderMuted}`,
-            background: palette.backgroundBase,
-            color: palette.textSecondary,
-            fontSize: '0.85rem',
-            cursor: 'pointer',
-          }}
-        >
-          {tInvestorNews('detail.back', language)}
-        </button>
+        {tInvestorNews('detail.back', language)}
+      </BackButton>
 
-        <section
-          style={{
-            padding: '1.6rem 1.7rem',
-            borderRadius: radius.lg,
-            background: palette.backgroundBase,
-            boxShadow: shadow.subtle,
-            border: `1px solid ${palette.neutralBorderMuted}`,
-          }}
-        >
+      <Card>
           {/* حالة عدم وجود معرّف صالح في المسار */}
           {!id && !isLoading && !isError && (
             <div
@@ -570,9 +539,8 @@ export function InvestorNewsDetailPage() {
               }
             `}
           </style>
-        </section>
-      </div>
-    </div>
+      </Card>
+    </PageContainer>
   );
 }
 
