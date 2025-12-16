@@ -82,6 +82,10 @@ export function useNews(options?: {
   audience?: NewsAudience;
   status?: NewsStatus | 'all';
   enableRealtime?: boolean;
+  /** فلترة حسب التصنيف لاستخدامها في "أخبار ذات صلة" وغيرها */
+  categoryId?: string | null;
+  /** استثناء خبر معيّن (مثلاً الخبر الحالي في صفحة التفاصيل) */
+  excludeId?: string | null;
 }) {
   const page = options?.page || 1;
   const limit = options?.limit || 12;
@@ -93,6 +97,12 @@ export function useNews(options?: {
       ? []
       : [{ column: 'status', value: options?.status ?? 'published' }]),
     ...(options?.audience ? [{ column: 'audience', value: options.audience }] : []),
+    ...(options?.categoryId
+      ? [{ column: 'category_id', value: options.categoryId }]
+      : []),
+    ...(options?.excludeId
+      ? [{ column: 'id', operator: 'neq', value: options.excludeId }]
+      : []),
   ];
 
   return useSupabaseData<NewsItem>({

@@ -1,5 +1,3 @@
-'use client';
-
 import { Suspense } from 'react';
 import { InvestorInternalNewsDetailPage } from '@/spa-pages/InvestorInternalNewsDetailPage';
 import { ClientOnly } from '../../../components/ClientOnly';

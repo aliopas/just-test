@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { useNextNavigate } from '../utils/next-router';
 import { useLanguage } from '../context/LanguageContext';
 import { palette, radius, shadow, typography } from '../styles/theme';
-import { useInvestorNewsDetail } from '../hooks/useSupabaseNews';
+import { useInvestorNewsDetail, useInvestorRelatedNews } from '../hooks/useSupabaseNews';
 import { tInvestorNews } from '../locales/investorNews';
 import { formatInvestorDateTime } from '../utils/date';
 import { analytics } from '../utils/analytics';
@@ -20,6 +20,11 @@ export function InvestorNewsDetailPage() {
   const id = params?.id;
 
   const { data, isLoading, isError, refetch } = useInvestorNewsDetail(id ?? null);
+  const related = useInvestorRelatedNews({
+    currentId: id ?? null,
+    categoryId: data?.categoryId ?? null,
+    limit: 3,
+  });
 
   const [shareUrl, setShareUrl] = React.useState('');
   const [copyStatus, setCopyStatus] = React.useState<'idle' | 'success' | 'error'>('idle');
@@ -194,6 +199,7 @@ export function InvestorNewsDetailPage() {
                 gap: '0.9rem',
               }}
             >
+              
               {/* Skeleton للعنوان والتواريخ - موحّد مع باقي الصفحات */}
               <header>
                 <div
@@ -525,6 +531,83 @@ export function InvestorNewsDetailPage() {
               )}
 
               {/* Note: Attachments are not included in this simplified response */}
+              {/* Related news */}
+              {related.data.length > 0 && (
+                <section
+                  style={{
+                    marginTop: '1.75rem',
+                    paddingTop: '1.25rem',
+                    borderTop: `1px solid ${palette.neutralBorderMuted}`,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.9rem',
+                  }}
+                >
+                  <h2
+                    style={{
+                      margin: 0,
+                      fontSize: '1.05rem',
+                      fontWeight: typography.weights.semibold,
+                      color: palette.textPrimary,
+                    }}
+                  >
+                    {tInvestorNews('detail.related.title', language)}
+                  </h2>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                      gap: '0.9rem',
+                    }}
+                  >
+                    {related.data.map(item => (
+                      <article
+                        key={item.id}
+                        style={{
+                          borderRadius: radius.md,
+                          border: `1px solid ${palette.neutralBorderMuted}`,
+                          background: palette.backgroundSurface,
+                          padding: '0.8rem 0.9rem',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '0.4rem',
+                        }}
+                      >
+                        <a
+                          href={`/news/${item.slug || item.id}`}
+                          style={{
+                            textDecoration: 'none',
+                            color: palette.textPrimary,
+                            fontSize: '0.95rem',
+                            fontWeight: typography.weights.medium,
+                          }}
+                        >
+                          {item.title}
+                        </a>
+                        <span
+                          style={{
+                            fontSize: '0.8rem',
+                            color: palette.textSecondary,
+                          }}
+                        >
+                          {formatDateTime(item.publishedAt)}
+                        </span>
+                        {item.excerpt && (
+                          <p
+                            style={{
+                              margin: 0,
+                              fontSize: '0.85rem',
+                              color: palette.textSecondary,
+                            }}
+                          >
+                            {item.excerpt}
+                          </p>
+                        )}
+                      </article>
+                    ))}
+                  </div>
+                </section>
+              )}
             </article>
           )}
           <style>

@@ -192,6 +192,8 @@ export interface NewsDetailResponse {
   publishedAt: string;
   createdAt: string;
   updatedAt: string;
+  /** معرّف التصنيف لاستخدامه في "أخبار ذات صلة" */
+  categoryId: string | null;
 }
 
 const DEFAULT_PAGE = 1;
@@ -299,6 +301,7 @@ export function useInvestorNewsDetail(newsId?: string | null) {
         publishedAt: newsItem.published_at || newsItem.created_at,
         createdAt: newsItem.created_at,
         updatedAt: newsItem.updated_at,
+        categoryId: newsItem.category_id,
       };
     },
     // لا نقوم بتحويل البيانات إلا بعد جلب الخبر الأساسي
@@ -312,6 +315,64 @@ export function useInvestorNewsDetail(newsId?: string | null) {
     error: baseError ?? detailQuery.error ?? null,
     refetch: async () => {
       await Promise.all([baseRefetch(), detailQuery.refetch()]);
+    },
+  };
+}
+
+/**
+ * Hook لجلب أخبار ذات صلة (نفس التصنيف إن وُجد، أو أحدث الأخبار العامة باستثناء الخبر الحالي)
+ */
+export function useInvestorRelatedNews(options: {
+  currentId?: string | null;
+  categoryId?: string | null;
+  limit?: number;
+}) {
+  const currentId = options.currentId ?? null;
+  const categoryId = options.categoryId ?? null;
+  const limit = options.limit ?? 3;
+
+  // جلب الأخبار الخام من Supabase مع الفلاتر المناسبة
+  const {
+    data: rawNews,
+    isLoading: baseLoading,
+    isError: baseIsError,
+    error: baseError,
+    refetch: baseRefetch,
+  } = useNews({
+    page: 1,
+    limit,
+    audience: 'public',
+    enableRealtime: false,
+    excludeId: currentId,
+    categoryId,
+  });
+
+  const relatedQuery = useQuery<NewsListResponse['news']>({
+    queryKey: ['investorNews', 'related', { currentId, categoryId, limit }],
+    queryFn: async () => {
+      if (!rawNews || rawNews.length === 0) {
+        return [];
+      }
+
+      const transformed = await Promise.all(
+        rawNews.map(item => transformPublicNewsItem(item))
+      );
+      return transformed;
+    },
+    enabled:
+      typeof window !== 'undefined' &&
+      Boolean(currentId) &&
+      rawNews !== undefined,
+    placeholderData: keepPreviousData,
+  });
+
+  return {
+    data: relatedQuery.data ?? [],
+    isLoading: baseLoading || relatedQuery.isLoading,
+    isError: baseIsError || relatedQuery.isError,
+    error: baseError ?? relatedQuery.error ?? null,
+    refetch: async () => {
+      await Promise.all([baseRefetch(), relatedQuery.refetch()]);
     },
   };
 }

@@ -1,4 +1,4 @@
-﻿import type { InvestorLanguage } from '../types/investor';
+import type { InvestorLanguage } from '../types/investor';
 
 type MessageKey =
   | 'pageTitle'
@@ -22,6 +22,7 @@ type MessageKey =
   | 'detail.attachments.imagesTitle'
   | 'detail.attachments.filesTitle'
   | 'detail.attachments.download'
+  | 'detail.related.title'
   | 'toast.loadError'
   | 'toast.detailError';
 
@@ -52,6 +53,7 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'detail.attachments.imagesTitle': 'Image gallery',
     'detail.attachments.filesTitle': 'Files & downloads',
     'detail.attachments.download': 'Download',
+    'detail.related.title': 'Related news',
     'toast.loadError': 'Unable to load news. Please try again.',
     'toast.detailError': 'Unable to load article. Please try again.',
   },
@@ -79,6 +81,7 @@ const messages: Record<InvestorLanguage, MessageDictionary> = {
     'detail.attachments.imagesTitle': 'معرض الصور',
     'detail.attachments.filesTitle': 'الملفات والتنزيلات',
     'detail.attachments.download': 'تحميل',
+    'detail.related.title': 'أخبار ذات صلة',
     'toast.loadError': 'تعذّر تحميل الأخبار. حاول مرة أخرى.',
     'toast.detailError': 'تعذّر تحميل المقال. حاول مرة أخرى.',
   },
