@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { CompanyContentSection } from '../components/landing/CompanyContentSection';
 import { StatisticsSection } from '../components/landing/StatisticsSection';
-import { PublicNewsSection } from '../components/landing/PublicNewsSection';
 import { ScrollToTopButton } from '../components/landing/ScrollToTopButton';
 import { AppFooter } from '../components/AppFooter';
 import { Logo } from '../components/Logo';
@@ -312,9 +311,6 @@ export function PublicLandingPage() {
         >
           <StatisticsSection />
         </section>
-
-        {/* Public News Section */}
-        <PublicNewsSection />
 
         <section
           style={{
