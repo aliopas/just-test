@@ -85,9 +85,11 @@ const nextConfig = {
   },
   // Skip static generation for pages that use client-side features
   // This prevents SSR errors during build
-  // Disable optimizePackageImports entirely to avoid Supabase wrapper.mjs issues
+  // Configure optimizePackageImports with an empty array so that
+  // Next.js does NOT try to optimize @supabase/supabase-js (which
+  // causes wrapper.mjs default export errors in Netlify).
   experimental: {
-    optimizePackageImports: false,
+    optimizePackageImports: [],
   },
   // Image optimization configuration
   images: {
