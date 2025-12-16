@@ -225,15 +225,16 @@ export function InvestorNewsDetailPage() {
                 gap: '0.9rem',
               }}
             >
-              {/* Skeleton للعنوان والتواريخ */}
+              {/* Skeleton للعنوان والتواريخ - موحّد مع باقي الصفحات */}
               <header>
                 <div
                   style={{
                     width: '70%',
-                    height: '1.6rem',
-                    borderRadius: radius.sm,
+                    height: '1.8rem',
+                    borderRadius: radius.md,
                     background: palette.neutralBorderMuted,
                     marginBottom: '0.6rem',
+                    animation: 'pulse 1.6s ease-in-out infinite',
                   }}
                 />
                 <div
@@ -247,16 +248,20 @@ export function InvestorNewsDetailPage() {
                     style={{
                       width: '9rem',
                       height: '0.9rem',
-                      borderRadius: radius.sm,
+                      borderRadius: radius.md,
                       background: palette.neutralBorderMuted,
+                      animation: 'pulse 1.6s ease-in-out infinite',
+                      animationDelay: '0.05s',
                     }}
                   />
                   <div
                     style={{
                       width: '7rem',
                       height: '0.9rem',
-                      borderRadius: radius.sm,
+                      borderRadius: radius.md,
                       background: palette.neutralBorderMuted,
+                      animation: 'pulse 1.6s ease-in-out infinite',
+                      animationDelay: '0.1s',
                     }}
                   />
                 </div>
@@ -268,7 +273,7 @@ export function InvestorNewsDetailPage() {
                   marginTop: '0.75rem',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '0.5rem',
+                  gap: '0.6rem',
                 }}
               >
                 {[0, 1, 2, 3].map(i => (
@@ -277,9 +282,11 @@ export function InvestorNewsDetailPage() {
                     key={i}
                     style={{
                       width: i === 3 ? '60%' : '100%',
-                      height: '0.9rem',
-                      borderRadius: radius.sm,
+                      height: '1rem',
+                      borderRadius: radius.md,
                       background: palette.neutralBorderMuted,
+                      animation: 'pulse 1.6s ease-in-out infinite',
+                      animationDelay: `${0.15 + i * 0.05}s`,
                     }}
                   />
                 ))}
@@ -551,6 +558,18 @@ export function InvestorNewsDetailPage() {
               {/* Note: Attachments are not included in this simplified response */}
             </article>
           )}
+          <style>
+            {`
+              @keyframes pulse {
+                0%, 100% {
+                  opacity: 1;
+                }
+                50% {
+                  opacity: 0.5;
+                }
+              }
+            `}
+          </style>
         </section>
       </div>
     </div>
