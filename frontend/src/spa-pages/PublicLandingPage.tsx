@@ -328,3 +328,5 @@ export function PublicLandingPage() {
     </div>
   );
 }
+
+export default PublicLandingPage;

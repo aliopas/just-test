@@ -7,35 +7,32 @@ import { useAuth } from '@/context/AuthContext';
 import { palette } from '@/styles/theme';
 
 // Dynamic import with SSR disabled
-const PublicLandingPage = dynamic(
-  () => import('@/spa-pages/PublicLandingPage').then((mod) => mod.PublicLandingPage),
-  {
-    ssr: false,
-    loading: () => (
+const PublicLandingPage = dynamic(() => import('@/spa-pages/PublicLandingPage'), {
+  ssr: false,
+  loading: () => (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        width: '100%',
+        background: palette.backgroundBase,
+      }}
+    >
       <div
+        className="spinner"
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '100vh',
-          width: '100%',
-          background: palette.backgroundBase,
+          width: '48px',
+          height: '48px',
+          border: `4px solid ${palette.neutralBorder}`,
+          borderTopColor: palette.brandPrimaryStrong,
+          borderRadius: '50%',
         }}
-      >
-        <div
-          className="spinner"
-          style={{
-            width: '48px',
-            height: '48px',
-            border: `4px solid ${palette.neutralBorder}`,
-            borderTopColor: palette.brandPrimaryStrong,
-            borderRadius: '50%',
-          }}
-        />
-      </div>
-    ),
-  }
-);
+      />
+    </div>
+  ),
+});
 
 function LoadingSpinner() {
   return (
@@ -63,7 +60,7 @@ function LoadingSpinner() {
   );
 }
 
-export function RootPageClient() {
+function RootPageClient() {
   const { isAuthenticated, user } = useAuth();
   const router = useRouter();
 
@@ -83,4 +80,7 @@ export function RootPageClient() {
 
   return <PublicLandingPage />;
 }
+
+export default RootPageClient;
+export { RootPageClient };
 
