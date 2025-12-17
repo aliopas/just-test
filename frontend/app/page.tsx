@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect } from 'react';
-import nextDynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { palette } from '@/styles/theme';
+import PublicLandingPage from '@/spa-pages/PublicLandingPage';
 
 // Force dynamic rendering to avoid static generation issues on Netlify
 export const dynamic = 'force-dynamic';
@@ -34,12 +34,6 @@ function LoadingSpinner() {
     </div>
   );
 }
-
-// Public landing page (client only)
-const PublicLandingPage = nextDynamic(() => import('@/spa-pages/PublicLandingPage'), {
-  ssr: false,
-  loading: () => <LoadingSpinner />,
-});
 
 export default function RootPage() {
   const { isAuthenticated, user } = useAuth();
