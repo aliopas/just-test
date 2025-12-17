@@ -7,7 +7,6 @@ import { useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '../utils/supabase-client';
 import type { RequestTimelineResponse, RequestTimelineEntry } from '../types/request';
-import type { RealtimeChannel } from '@supabase/supabase-js';
 
 type EventRow = {
   id: string;
@@ -198,7 +197,8 @@ export function useRequestTimelineDirect(
   scope: 'investor' | 'admin' = 'investor'
 ) {
   const queryClient = useQueryClient();
-  const channelRef = useRef<RealtimeChannel | null>(null);
+  // Use a loose type here to avoid cross-package RealtimeChannel type mismatches in Netlify builds
+  const channelRef = useRef<unknown | null>(null);
 
   const query = useQuery({
     queryKey: ['requestTimelineDirect', scope, requestId],
@@ -259,7 +259,8 @@ export function useRequestTimelineDirect(
 
     return () => {
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+        // Type cast is safe here because channelRef is only ever assigned from supabase.channel(...)
+        supabase.removeChannel(channelRef.current as any);
         channelRef.current = null;
       }
     };

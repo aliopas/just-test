@@ -8,7 +8,6 @@ import { useQuery, UseQueryOptions } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '../utils/supabase-client';
 import { PostgrestFilterBuilder } from '@supabase/postgrest-js';
 import { useEffect, useState } from 'react';
-import { RealtimeChannel } from '@supabase/supabase-js';
 
 export interface UseSupabaseDataOptions<T> {
   /** اسم الجدول في Supabase */
@@ -65,7 +64,8 @@ export function useSupabaseData<T = Record<string, unknown>>(
     queryOptions = {},
   } = options;
 
-  const [channel, setChannel] = useState<RealtimeChannel | null>(null);
+  // Use a loose type here to avoid cross-package RealtimeChannel type mismatches in Netlify builds
+  const [channel, setChannel] = useState<unknown | null>(null);
 
   const queryKey = [
     'supabase',
