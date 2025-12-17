@@ -8,7 +8,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '../utils/supabase-client';
 import type { AdminRequestDetail } from '../types/admin';
 import type { RequestStatus, RequestType, RequestCurrency } from '../types/request';
-import type { RealtimeChannel } from '@supabase/supabase-js';
+// Use RealtimeChannel directly from @supabase/realtime-js to avoid cross-package type mismatches in Netlify builds
+import type { RealtimeChannel } from '@supabase/realtime-js';
 
 type RequestRow = {
   id: string;
