@@ -5,6 +5,24 @@ import { ClientProviders } from './components/ClientProviders';
 import '@/styles/global.css';
 import '@/styles/responsive.css';
 
+// Safely construct metadataBase URL to avoid runtime errors if env is misconfigured
+function getMetadataBase(): URL | undefined {
+  const fallback = 'https://investor-bacura.netlify.app';
+  const rawBase = process.env.NEXT_PUBLIC_SITE_URL || fallback;
+
+  try {
+    return new URL(rawBase);
+  } catch (error) {
+    console.error('[metadataBase] Invalid NEXT_PUBLIC_SITE_URL value:', rawBase);
+    try {
+      return new URL(fallback);
+    } catch {
+      // As a last resort, skip metadataBase to prevent crashing the app
+      return undefined;
+    }
+  }
+}
+
 // Optimize font loading - disable preload to prevent warnings
 const inter = Inter({
   subsets: ['latin'],
@@ -22,9 +40,8 @@ const notoSansArabic = Noto_Sans_Arabic({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || 'https://investor-bacura.netlify.app'
-  ),
+  // If getMetadataBase returns undefined, Next.js will omit metadataBase instead of throwing
+  ...(getMetadataBase() && { metadataBase: getMetadataBase() }),
   title: 'شركاء باكورة',
   description: 'منصة آمنة لإدارة طلبات الاستثمار ومتابعة أداء المحفظة والاطلاع على آخر الأخبار والرؤى السوقية.',
   manifest: '/manifest.json',
