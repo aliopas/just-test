@@ -1,9 +1,9 @@
-﻿import React from 'react';
+import React from 'react';
 import { palette } from '../styles/theme';
 
-// Logo files are in public/ folder: logo.jpg (primary) and logo.png (fallback)
-const primaryLogoSrc = '/logo.jpg';
-const fallbackLogoSrc = '/logo.png';
+// Logo files are in public/ folder: logo.png (primary) and logo.jpg (fallback)
+const primaryLogoSrc = '/logo.png';
+const fallbackLogoSrc = '/logo.jpg';
 
 export interface LogoProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   size?: number; // Minimum: 96px for web, 72px for mobile (per PRD)
@@ -69,7 +69,7 @@ export function Logo({
   };
 
   // Determine which logo source to use
-  // Primary is logo.jpg, fallback is logo.png
+  // Primary is logo.png, fallback is logo.jpg (if added later)
   const logoSrc = logoUrl || (useFallbackAsset ? fallbackLogoSrc : primaryLogoSrc);
 
   return (

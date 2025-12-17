@@ -1,9 +1,8 @@
-﻿import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../utils/api-client';
 import { getSupabaseBrowserClient } from '../utils/supabase-client';
 import type { AdminRequestDetail } from '../types/admin';
-import type { RealtimeChannel } from '@supabase/supabase-js';
 
 async function fetchAdminRequestDetail(requestId: string) {
   return apiClient<AdminRequestDetail>(`/admin/requests/${requestId}`);
@@ -11,7 +10,8 @@ async function fetchAdminRequestDetail(requestId: string) {
 
 export function useAdminRequestDetail(requestId?: string | null) {
   const queryClient = useQueryClient();
-  const channelRef = useRef<RealtimeChannel | null>(null);
+  // Use a loose type here to avoid cross-package RealtimeChannel type mismatches in mono-repo builds (Netlify)
+  const channelRef = useRef<unknown | null>(null);
 
   const query = useQuery({
     queryKey: ['adminRequestDetail', requestId],
@@ -100,7 +100,8 @@ export function useAdminRequestDetail(requestId?: string | null) {
     // Cleanup: unsubscribe when component unmounts or requestId changes
     return () => {
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+        // Type cast is safe here because channelRef is only ever assigned from supabase.channel(...)
+        supabase.removeChannel(channelRef.current as any);
         channelRef.current = null;
       }
     };
