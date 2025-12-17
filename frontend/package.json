@@ -4,7 +4,6 @@
   "private": true,
   "author": "Bacura Technologies Team",
   "scripts": {
-    "predev": "node scripts/pre-build.js",
     "dev": "next dev -p 3002",
     "prebuild": "node scripts/pre-build.js",
     "build": "next build && node scripts/fix-validator-types.js",
@@ -20,8 +19,8 @@
     "@supabase/supabase-js": "^2.43.5",
     "@tanstack/react-query": "^5.60.5",
     "next": "14.2.15",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
     "react-hook-form": "^7.53.0",
     "react-markdown": "^9.1.0",
     "remark-gfm": "^4.0.1",
