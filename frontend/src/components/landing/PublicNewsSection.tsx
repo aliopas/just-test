@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { useInvestorNewsList } from '../../hooks/useInvestorNews';
 import { palette } from '../../styles/theme';
 import { useLanguage } from '../../context/LanguageContext';
@@ -205,30 +206,31 @@ export function PublicNewsSection() {
           {title}
         </h2>
         {news.length > 0 && (
-          <a
-            href="/news"
-            style={{
-              padding: isMobile ? '0.5rem 1rem' : '0.6rem 1.2rem',
-              borderRadius: '999px',
-              border: `1px solid ${palette.neutralBorderSoft}`,
-              background: palette.backgroundSurface,
-              color: palette.textPrimary,
-              textDecoration: 'none',
-              fontWeight: 600,
-              fontSize: isMobile ? '0.85rem' : '0.9rem',
-              transition: 'all 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = palette.brandPrimaryStrong;
-              e.currentTarget.style.color = palette.brandPrimaryStrong;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = palette.neutralBorderSoft;
-              e.currentTarget.style.color = palette.textPrimary;
-            }}
-          >
-            {isArabic ? 'عرض الكل' : 'View all'}
-          </a>
+          <Link href="/news" legacyBehavior>
+            <a
+              style={{
+                padding: isMobile ? '0.5rem 1rem' : '0.6rem 1.2rem',
+                borderRadius: '999px',
+                border: `1px solid ${palette.neutralBorderSoft}`,
+                background: palette.backgroundSurface,
+                color: palette.textPrimary,
+                textDecoration: 'none',
+                fontWeight: 600,
+                fontSize: isMobile ? '0.85rem' : '0.9rem',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = palette.brandPrimaryStrong;
+                e.currentTarget.style.color = palette.brandPrimaryStrong;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = palette.neutralBorderSoft;
+                e.currentTarget.style.color = palette.textPrimary;
+              }}
+            >
+              {isArabic ? 'عرض الكل' : 'View all'}
+            </a>
+          </Link>
         )}
       </div>
 

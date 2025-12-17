@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import Link from 'next/link';
 import { CompanyContentSection } from '../components/landing/CompanyContentSection';
 import { StatisticsSection } from '../components/landing/StatisticsSection';
 import { ScrollToTopButton } from '../components/landing/ScrollToTopButton';
@@ -188,36 +189,38 @@ export function PublicLandingPage() {
               alignItems: 'center',
             }}
           >
-            <a
-              href="/requests/new"
-              style={{
-                padding: '0.85rem 1.8rem',
-                borderRadius: '999px',
-                border: 'none',
-                background: palette.brandPrimaryStrong,
-                color: palette.textOnBrand,
-                textDecoration: 'none',
-                fontWeight: 700,
-                fontSize: '1rem',
-              }}
-            >
-              {isArabic ? 'قدّم طلب استثمار الآن' : 'Submit an investment request'}
-            </a>
-            <a
-              href="/dashboard"
-              style={{
-                padding: '0.8rem 1.4rem',
-                borderRadius: '999px',
-                border: `1px solid ${palette.neutralBorderSoft}`,
-                background: 'transparent',
-                color: palette.textSecondary,
-                textDecoration: 'none',
-                fontWeight: 500,
-                fontSize: '0.95rem',
-              }}
-            >
-              {isArabic ? 'استعرض تجربة المستثمر' : 'Preview investor experience'}
-            </a>
+            <Link href="/requests/new" legacyBehavior>
+              <a
+                style={{
+                  padding: '0.85rem 1.8rem',
+                  borderRadius: '999px',
+                  border: 'none',
+                  background: palette.brandPrimaryStrong,
+                  color: palette.textOnBrand,
+                  textDecoration: 'none',
+                  fontWeight: 700,
+                  fontSize: '1rem',
+                }}
+              >
+                {isArabic ? 'قدّم طلب استثمار الآن' : 'Submit an investment request'}
+              </a>
+            </Link>
+            <Link href="/dashboard" legacyBehavior>
+              <a
+                style={{
+                  padding: '0.8rem 1.4rem',
+                  borderRadius: '999px',
+                  border: `1px solid ${palette.neutralBorderSoft}`,
+                  background: 'transparent',
+                  color: palette.textSecondary,
+                  textDecoration: 'none',
+                  fontWeight: 500,
+                  fontSize: '0.95rem',
+                }}
+              >
+                {isArabic ? 'استعرض تجربة المستثمر' : 'Preview investor experience'}
+              </a>
+            </Link>
           </div>
         </section>
 
