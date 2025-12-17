@@ -15,7 +15,8 @@
   processing = { css = { bundle = true }, js = { bundle = true } }
 
 [build.environment]
-  NODE_VERSION = "22"
+  # Use a Node.js version that is fully supported by Next.js 14 and Netlify's Next runtime
+  NODE_VERSION = "20"
   # Optimize npm for faster installs
   NPM_FLAGS = "--prefer-offline --no-audit --no-fund"
   # Optimize Node.js memory
