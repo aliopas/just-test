@@ -1,12 +1,15 @@
 'use client';
 
-import { ClientOnly } from './components/ClientOnly';
-import dynamic from 'next/dynamic';
+import { useEffect } from 'react';
+import nextDynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import { palette } from '@/styles/theme';
 
-// No SSR configuration - render only on client side
+// Force dynamic rendering to avoid static generation issues on Netlify
+export const dynamic = 'force-dynamic';
 
-function LoadingFallback() {
+function LoadingSpinner() {
   return (
     <div
       style={{
@@ -32,16 +35,32 @@ function LoadingFallback() {
   );
 }
 
-// Load entire page dynamically on client side only - no SSR
-const RootPageClient = dynamic(() => import('./components/RootPageClient'), {
+// Public landing page (client only)
+const PublicLandingPage = nextDynamic(() => import('@/spa-pages/PublicLandingPage'), {
   ssr: false,
-  loading: () => <LoadingFallback />,
+  loading: () => <LoadingSpinner />,
 });
 
 export default function RootPage() {
-  return (
-    <ClientOnly>
-      <RootPageClient />
-    </ClientOnly>
-  );
+  const { isAuthenticated, user } = useAuth();
+  const router = useRouter();
+
+  // If المستخدم مسجل دخول، نعيد توجيهه مباشرة للوحة التحكم المناسبة
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (user?.role === 'admin') {
+        router.replace('/admin/dashboard');
+      } else {
+        router.replace('/dashboard');
+      }
+    }
+  }, [isAuthenticated, user, router]);
+
+  // أثناء التوجيه، نعرض سبينر بسيط
+  if (isAuthenticated) {
+    return <LoadingSpinner />;
+  }
+
+  // للمستخدمين غير المسجلين، نعرض صفحة الهبوط العامة
+  return <PublicLandingPage />;
 }
