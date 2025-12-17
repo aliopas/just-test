@@ -34,7 +34,7 @@ function LoadingFallback() {
 
 // Load entire page dynamically on client side only - no SSR
 const RootPageClient = dynamic(
-  () => import('./components/RootPageClient').then((mod) => ({ default: mod.RootPageClient })),
+  () => import('./components/RootPageClient').then((mod) => mod.RootPageClient),
   {
     ssr: false,
     loading: () => <LoadingFallback />,
