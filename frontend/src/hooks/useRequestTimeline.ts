@@ -3,7 +3,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../utils/api-client';
 import { getSupabaseBrowserClient } from '../utils/supabase-client';
 import type { RequestTimelineResponse } from '../types/request';
-import type { RealtimeChannel } from '@supabase/supabase-js';
 
 function fetchRequestTimeline(requestId: string, scope: 'investor' | 'admin') {
   const path =
@@ -18,7 +17,8 @@ export function useRequestTimeline(
   scope: 'investor' | 'admin' = 'investor'
 ) {
   const queryClient = useQueryClient();
-  const channelRef = useRef<RealtimeChannel | null>(null);
+  // Use a loose type here to avoid cross-package RealtimeChannel type mismatches in Netlify builds
+  const channelRef = useRef<unknown | null>(null);
 
   const query = useQuery({
     queryKey: ['requestTimeline', scope, requestId],
@@ -88,7 +88,8 @@ export function useRequestTimeline(
     // Cleanup: unsubscribe when component unmounts or requestId/scope changes
     return () => {
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+        // Type cast is safe here because channelRef is only ever assigned from supabase.channel(...)
+        supabase.removeChannel(channelRef.current as any);
         channelRef.current = null;
       }
     };
