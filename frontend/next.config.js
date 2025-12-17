@@ -12,17 +12,8 @@ const nextConfig = {
   // Next.js should automatically use app/ directory when it exists
   // Transpile packages if needed
   transpilePackages: [],
-  // Turbopack configuration (Next.js 16 uses Turbopack by default)
-  // Explicitly set the workspace root so Turbopack does not try to infer it
-  // from multiple lockfiles (repo root + frontend). This also silences the
-  // "Next.js inferred your workspace root" warning in Netlify builds and
-  // prevents some internal Turbopack bugs.
-  turbopack: {
-    root: __dirname,
-    resolveAlias: {
-      '@': './src',
-    },
-  },
+  // NOTE: Turbopack options were used for Next.js 16 canary.
+  // They are not supported in Next.js 15 and cause config warnings, so we disable them.
   // Environment variables
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
