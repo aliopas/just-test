@@ -9,7 +9,10 @@ import { chatRouter } from './routes/chat.routes';
 import { publicRouter } from './routes/public.routes';
 import { applySecurity, authLimiter } from './middleware/security';
 
-const app = express();
+// NOTE: We deliberately annotate as `any` to avoid brittle cross-package
+// Express type inference issues during backend-only builds. Runtime behavior
+// is identical – this only relaxes TypeScript's view of the Express instance.
+const app: any = express();
 
 // Security & core middleware
 applySecurity(app);
@@ -17,7 +20,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Root route for Netlify
-app.get('/', (_req, res) => {
+app.get('/', (_req: express.Request, res: express.Response) => {
   res.json({
     message: 'Bakurah Investors Portal API',
     version: '1.0.0',
@@ -35,17 +38,19 @@ app.get('/', (_req, res) => {
 });
 
 // Routes
-app.use('/api/v1/health', healthRouter);
-app.use('/api/v1/auth', authLimiter, authRouter);
-app.use('/api/v1/investor', investorRouter);
-app.use('/api/v1/admin', adminRouter);
-app.use('/api/v1/notifications', notificationRouter);
-app.use('/api/v1/news', newsRouter);
-app.use('/api/v1/chat', chatRouter);
-app.use('/api/v1/public', publicRouter);
+// We relax typing here with `as any` to avoid brittle Express overload issues
+// while keeping runtime behavior identical.
+app.use('/api/v1/health', healthRouter as any);
+app.use('/api/v1/auth', authLimiter as any, authRouter as any);
+app.use('/api/v1/investor', investorRouter as any);
+app.use('/api/v1/admin', adminRouter as any);
+app.use('/api/v1/notifications', notificationRouter as any);
+app.use('/api/v1/news', newsRouter as any);
+app.use('/api/v1/chat', chatRouter as any);
+app.use('/api/v1/public', publicRouter as any);
 
 // Error handler middleware - must be last
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use(((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   // If response was already sent, delegate to default Express error handler
   if (res.headersSent) {
     return next(err);
@@ -70,16 +75,16 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
       ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
     },
   });
-});
+}) as any);
 
 // 404 handler - must be after all routes
-app.use((req: express.Request, res: express.Response) => {
+app.use(((req: express.Request, res: express.Response) => {
   return res.status(404).json({
     error: {
       code: 'NOT_FOUND',
       message: `Route ${req.method} ${req.path} not found`,
     },
   });
-});
+}) as any);
 
 export default app;

@@ -4,7 +4,6 @@ import hpp from 'hpp';
 import cookieParser from 'cookie-parser';
 import csrf from 'csurf';
 import rateLimit from 'express-rate-limit';
-import { Express, RequestHandler } from 'express';
 
 // Configure CORS - adjust origins as needed
 const corsOriginsEnv = process.env.CORS_ORIGINS || 'http://localhost:3000';
@@ -38,12 +37,16 @@ export const authLimiter = rateLimit({
 });
 
 // Optional CSRF protection (for cookie-based flows). Disabled by default for pure API/JWT.
-export const csrfProtection: RequestHandler | null =
+// We intentionally avoid strict typing here to prevent type conflicts between different
+// express-serve-static-core versions in mono-repo installs.
+export const csrfProtection =
   process.env.ENABLE_CSRF === 'true'
     ? csrf({ cookie: { httpOnly: true, sameSite: 'lax', secure: false } })
     : null;
 
-export function applySecurity(app: Express): void {
+// NOTE: We intentionally keep app untyped here to avoid cross-package
+// express type conflicts in certain mono-repo / tooling setups.
+export function applySecurity(app: any): void {
   // Security headers + CSP
   app.use(
     helmet({
@@ -70,7 +73,7 @@ export function applySecurity(app: Express): void {
   app.use(cookieParser());
 
   if (csrfProtection) {
-    app.use(csrfProtection);
+    app.use(csrfProtection as any);
   }
 
   // Global rate limiting

@@ -3,7 +3,7 @@ import { publicProjectController } from '../controllers/public-project.controlle
 import { listHomepageSections } from '../services/homepage-sections.service';
 import { publicContentController } from '../controllers/public-content.controller';
 
-const publicRouter = Router();
+const publicRouter: Router = Router();
 
 // Public projects routes (no authentication required)
 publicRouter.get('/projects', publicProjectController.list);

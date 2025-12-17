@@ -3,7 +3,7 @@ import { notificationController } from '../controllers/notification.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { requirePermission } from '../middleware/rbac.middleware';
 
-const notificationRouter = Router();
+const notificationRouter: Router = Router();
 
 notificationRouter.get(
   '/',

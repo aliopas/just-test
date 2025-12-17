@@ -13,7 +13,7 @@ import { companyContentController } from '../controllers/company-content.control
 import { authenticate } from '../middleware/auth.middleware';
 import { requirePermission } from '../middleware/rbac.middleware';
 
-const adminRouter = Router();
+const adminRouter: Router = Router();
 
 // Async error wrapper to catch errors from async route handlers
 // This ensures all unhandled promise rejections are caught and passed to Express error handler

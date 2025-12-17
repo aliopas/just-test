@@ -9,7 +9,7 @@ import { investorDashboardController } from '../controllers/investor-dashboard.c
 import { investorStocksController } from '../controllers/investor-stocks.controller';
 import { investorInternalNewsController } from '../controllers/investor-internal-news.controller';
 
-const investorRouter = Router();
+const investorRouter: Router = Router();
 
 investorRouter.get(
   '/requests',

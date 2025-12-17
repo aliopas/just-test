@@ -15,7 +15,7 @@ import {
   updatePasswordSchema,
 } from '../schemas/auth.schema';
 
-const authRouter = Router();
+const authRouter: Router = Router();
 
 // Async error wrapper to catch errors from async route handlers
 // Uses type assertion to handle different Request types safely

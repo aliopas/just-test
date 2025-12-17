@@ -3,7 +3,7 @@ import { chatController } from '../controllers/chat.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { requirePermission } from '../middleware/rbac.middleware';
 
-const chatRouter = Router();
+const chatRouter: Router = Router();
 
 chatRouter.get(
   '/conversations',
