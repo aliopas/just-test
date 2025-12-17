@@ -8,8 +8,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '../utils/supabase-client';
 import type { AdminRequestDetail } from '../types/admin';
 import type { RequestStatus, RequestType, RequestCurrency } from '../types/request';
-// Use RealtimeChannel directly from @supabase/realtime-js to avoid cross-package type mismatches in Netlify builds
-import type { RealtimeChannel } from '@supabase/realtime-js';
 
 type RequestRow = {
   id: string;
@@ -426,7 +424,8 @@ async function fetchAdminRequestDetailDirect(requestId: string): Promise<AdminRe
 
 export function useAdminRequestDetailDirect(requestId?: string | null) {
   const queryClient = useQueryClient();
-  const channelRef = useRef<RealtimeChannel | null>(null);
+  // Use a loose type here to avoid cross-package RealtimeChannel type mismatches in Netlify builds
+  const channelRef = useRef<unknown | null>(null);
 
   const query = useQuery({
     queryKey: ['adminRequestDetailDirect', requestId],
@@ -501,7 +500,8 @@ export function useAdminRequestDetailDirect(requestId?: string | null) {
 
     return () => {
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+        // Type cast is safe here because channelRef is only ever assigned from supabase.channel(...)
+        supabase.removeChannel(channelRef.current as any);
         channelRef.current = null;
       }
     };
