@@ -6,21 +6,18 @@
   "scripts": {
     "dev": "next dev -p 3002",
     "prebuild": "node scripts/pre-build.js",
-    "build": "next build && node scripts/fix-validator-types.js",
-    "postbuild": "node scripts/post-build.js && node scripts/fix-validator-types.js",
-    "fix:validator": "node scripts/fix-validator-types.js",
+    "build": "next build",
     "start": "next start -p 3002",
-    "lint": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
-    "clean": "rm -rf .next out dist node_modules/.cache",
-    "clean:all": "rm -rf .next out dist node_modules node_modules/.cache package-lock.json"
+    "lint": "next lint",
+    "clean": "rm -rf .next out dist node_modules/.cache"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
     "@supabase/supabase-js": "^2.43.5",
     "@tanstack/react-query": "^5.60.5",
     "next": "14.2.15",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
     "react-hook-form": "^7.53.0",
     "react-markdown": "^9.1.0",
     "remark-gfm": "^4.0.1",
