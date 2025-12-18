@@ -86,11 +86,21 @@ export const dynamic = 'force-dynamic';
 
 // No SSR - all rendering happens on client side
 
-export default function RootLayout({ children }: any) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="ar" dir="rtl" suppressHydrationWarning className={`${inter.variable} ${notoSansArabic.variable}`}>
+    <html
+      lang="ar"
+      dir="rtl"
+      suppressHydrationWarning
+      className={`${inter.variable} ${notoSansArabic.variable}`}
+    >
       <head>
         <script
+          id="env-config"
           dangerouslySetInnerHTML={{
             __html: `
               window.__ENV__ = {
@@ -104,7 +114,7 @@ export default function RootLayout({ children }: any) {
           }}
         />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         <ClientProviders>
           {children}
         </ClientProviders>

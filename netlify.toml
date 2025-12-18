@@ -3,9 +3,13 @@
   # Note: base is "frontend", so paths are relative to frontend directory
   # We need to install frontend dependencies locally (not hoisted) for Next.js to find react/react-dom
   command = "npm run build"
-  functions = "../netlify/functions"
   publish = ".next"
   base = "frontend"
+
+[build.environment]
+  NEXT_PRIVATE_STANDALONE_VERIFY_IGNORE = "true"
+  NETLIFY_NEXT_V5_ENABLED = "true"
+
   # Increase build timeout to maximum (20 minutes = 1200 seconds)
   # This is the maximum allowed timeout for Pro/Team plans
   timeout = 1200
