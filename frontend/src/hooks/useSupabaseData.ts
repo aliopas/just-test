@@ -80,9 +80,16 @@ export function useSupabaseData<T = Record<string, unknown>>(
   const query = useQuery<T[], Error>({
     queryKey,
     queryFn: async () => {
+      // التحقق من أننا على الـ client side
+      if (typeof window === 'undefined') {
+        return [];
+      }
+
       const supabase = getSupabaseBrowserClient();
       if (!supabase) {
-        throw new Error('Supabase client غير متاح');
+        // بدلاً من رمي خطأ، نعيد array فارغ
+        console.warn('[useSupabaseData] Supabase client غير متاح');
+        return [];
       }
 
       let queryBuilder = supabase
@@ -136,7 +143,9 @@ export function useSupabaseData<T = Record<string, unknown>>(
       const { data, error } = await queryBuilder;
 
       if (error) {
-        throw new Error(`خطأ في جلب البيانات: ${error.message}`);
+        // تسجيل الخطأ ولكن لا نرميه حتى لا يسبب 500
+        console.error(`[useSupabaseData] خطأ في جلب البيانات من ${table}:`, error.message);
+        return [];
       }
 
       return (data as T[]) || [];
@@ -148,6 +157,7 @@ export function useSupabaseData<T = Record<string, unknown>>(
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchInterval: false,
+    retry: false, // عدم إعادة المحاولة لتجنب الأخطاء المتكررة
     ...queryOptions,
   });
 
@@ -244,8 +254,15 @@ export function useSupabaseCount(
   return useQuery<number, Error>({
     queryKey: ['supabase-count', table, filters],
     queryFn: async () => {
+      // التحقق من أننا على الـ client side
+      if (typeof window === 'undefined') {
+        return 0;
+      }
+
       if (!supabase) {
-        throw new Error('Supabase client غير متاح');
+        // بدلاً من رمي خطأ، نعيد 0
+        console.warn('[useSupabaseCount] Supabase client غير متاح');
+        return 0;
       }
 
       let queryBuilder = supabase
@@ -280,13 +297,16 @@ export function useSupabaseCount(
       const { count, error } = await queryBuilder;
 
       if (error) {
-        throw new Error(`خطأ في العد: ${error.message}`);
+        // تسجيل الخطأ ولكن لا نرميه حتى لا يسبب 500
+        console.error(`[useSupabaseCount] خطأ في العد من ${table}:`, error.message);
+        return 0;
       }
 
       return count || 0;
     },
     enabled: typeof window !== 'undefined',
     staleTime: 5 * 60 * 1000,
+    retry: false, // عدم إعادة المحاولة لتجنب الأخطاء المتكررة
   });
 }
 

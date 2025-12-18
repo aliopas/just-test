@@ -21,8 +21,8 @@ export function PublicLandingPage() {
   const isMobile = useIsMobile();
 
   // Public, admin-managed content for hero and header
-  const { data: profiles } = useCompanyProfiles();
-  const { data: partnershipInfo } = usePartnershipInfo();
+  const { data: profiles, isError: profilesError } = useCompanyProfiles();
+  const { data: partnershipInfo, isError: partnershipError } = usePartnershipInfo();
 
   const mainProfile = profiles && profiles.length > 0 
     ? profiles.sort((a, b) => a.displayOrder - b.displayOrder)[0]
