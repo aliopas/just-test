@@ -30,9 +30,9 @@
   # Next.js build optimizations
   NEXT_TELEMETRY_DISABLED = "1"
 
-# Netlify Next.js plugin - required for Next.js routing to work
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
+# Netlify handles Next.js runtime automatically in modern builds.
+# Manual plugin declaration can cause 500 errors.
+
 
 # API redirects - must come before other redirects
 # This redirects all /api/v1/* requests to the serverless function

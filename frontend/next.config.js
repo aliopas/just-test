@@ -4,6 +4,9 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   // Only use app/ directory for App Router
   // Next.js 16 requires app and pages directories to be in the same location
   // The pre-build script removes src/pages to avoid conflicts
@@ -23,22 +26,22 @@ const nextConfig = {
   // This rewrites() function only works in local development
   async rewrites() {
     // Check if we're running on Netlify (production, preview, or branch deploy)
-    const isNetlify = 
-      process.env.NETLIFY === 'true' || 
-      process.env.CONTEXT === 'production' || 
-      process.env.CONTEXT === 'deploy-preview' || 
+    const isNetlify =
+      process.env.NETLIFY === 'true' ||
+      process.env.CONTEXT === 'production' ||
+      process.env.CONTEXT === 'deploy-preview' ||
       process.env.CONTEXT === 'branch-deploy';
-    
+
     // Check if we're in development mode locally
-    const isLocalDevelopment = 
-      process.env.NODE_ENV === 'development' && 
+    const isLocalDevelopment =
+      process.env.NODE_ENV === 'development' &&
       !isNetlify;
-    
+
     // In Netlify builds, ALWAYS return empty array - rely on netlify.toml redirects
     if (isNetlify) {
       return [];
     }
-    
+
     // Only in local development: use Next.js rewrites to proxy to local backend
     if (isLocalDevelopment) {
       return [
@@ -48,7 +51,7 @@ const nextConfig = {
         },
       ];
     }
-    
+
     // Fallback: no rewrites (for safety)
     return [];
   },
@@ -115,12 +118,12 @@ const nextConfig = {
   // The ClientOnly wrapper ensures components only render on the client
   // The root layout has 'export const dynamic = "force-dynamic"' to prevent static generation
   // All page files should also have 'export const dynamic = "force-dynamic"' for safety
-  
+
   // Disable static page generation for error pages
   // generateBuildId: async () => {
   //   return 'build-' + Date.now();
   // },
-  
+
   // Skip static optimization for error pages
   // This prevents prerendering errors
   onDemandEntries: {

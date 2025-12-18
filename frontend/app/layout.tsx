@@ -105,7 +105,9 @@ export default function RootLayout({ children }: any) {
         />
       </head>
       <body>
-        {React.createElement(ClientProviders, null, children)}
+        <ClientProviders>
+          {children}
+        </ClientProviders>
         <div id="drawer-root"></div>
       </body>
     </html>
