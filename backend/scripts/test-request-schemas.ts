@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Test script to validate all request types against the schema
  * This script tests that all request types can be created successfully
@@ -100,7 +101,7 @@ function testRequest(name: string, data: unknown) {
     } else {
       console.log('❌ Validation FAILED');
       console.log('🚫 Errors:');
-      result.error.issues.forEach((issue, index) => {
+      result.error.issues.forEach((issue: any, index: any) => {
         console.log(
           `   ${index + 1}. ${issue.path.join('.')}: ${issue.message}`
         );

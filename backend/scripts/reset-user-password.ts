@@ -36,26 +36,26 @@ const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
 
 async function findUserByEmail(email: string) {
   const { data, error } = await supabaseAdmin.auth.admin.listUsers();
-  
+
   if (error) {
     throw new Error(`Failed to list users: ${error.message}`);
   }
 
-  const user = data.users.find(u => u.email === email);
+  const user = data.users.find((u: any) => u.email === email);
   return user;
 }
 
 async function resetPassword(email: string, newPassword: string) {
   console.log(`\n🔐 إعادة تعيين كلمة المرور للمستخدم: ${email}`);
-  
+
   // البحث عن المستخدم
   const user = await findUserByEmail(email);
-  
+
   if (!user) {
     console.error(`❌ المستخدم غير موجود: ${email}`);
     console.log('\n💡 المستخدمون الموجودون:');
     const { data: allUsers } = await supabaseAdmin.auth.admin.listUsers();
-    allUsers?.users.forEach(u => {
+    allUsers?.users.forEach((u: any) => {
       console.log(`   - ${u.email} (${u.id})`);
     });
     process.exit(1);
@@ -66,7 +66,7 @@ async function resetPassword(email: string, newPassword: string) {
   console.log(`   Email Confirmed: ${user.email_confirmed_at ? '✅' : '❌'}`);
 
   // إعادة تعيين كلمة المرور
-  const { data, error } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
+  const { error } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
     password: newPassword,
   });
 

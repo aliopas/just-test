@@ -12,6 +12,7 @@ import { applySecurity, authLimiter } from './middleware/security';
 // NOTE: We deliberately annotate as `any` to avoid brittle cross-package
 // Express type inference issues during backend-only builds. Runtime behavior
 // is identical – this only relaxes TypeScript's view of the Express instance.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const app: any = express();
 
 // Security & core middleware
@@ -40,6 +41,7 @@ app.get('/', (_req: express.Request, res: express.Response) => {
 // Routes
 // We relax typing here with `as any` to avoid brittle Express overload issues
 // while keeping runtime behavior identical.
+/* eslint-disable @typescript-eslint/no-explicit-any */
 app.use('/api/v1/health', healthRouter as any);
 app.use('/api/v1/auth', authLimiter as any, authRouter as any);
 app.use('/api/v1/investor', investorRouter as any);
@@ -48,8 +50,10 @@ app.use('/api/v1/notifications', notificationRouter as any);
 app.use('/api/v1/news', newsRouter as any);
 app.use('/api/v1/chat', chatRouter as any);
 app.use('/api/v1/public', publicRouter as any);
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 // Error handler middleware - must be last
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 app.use(((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   // If response was already sent, delegate to default Express error handler
   if (res.headersSent) {
@@ -75,7 +79,7 @@ app.use(((err: any, req: express.Request, res: express.Response, next: express.N
       ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
     },
   });
-}) as any);
+}) as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
 // 404 handler - must be after all routes
 app.use(((req: express.Request, res: express.Response) => {
@@ -85,6 +89,6 @@ app.use(((req: express.Request, res: express.Response) => {
       message: `Route ${req.method} ${req.path} not found`,
     },
   });
-}) as any);
+}) as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
 export default app;
