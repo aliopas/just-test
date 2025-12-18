@@ -117,9 +117,9 @@ const nextConfig = {
   // All page files should also have 'export const dynamic = "force-dynamic"' for safety
   
   // Disable static page generation for error pages
-  generateBuildId: async () => {
-    return 'build-' + Date.now();
-  },
+  // generateBuildId: async () => {
+  //   return 'build-' + Date.now();
+  // },
   
   // Skip static optimization for error pages
   // This prevents prerendering errors

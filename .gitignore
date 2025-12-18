@@ -7,26 +7,31 @@ node_modules/
 coverage/
 .nyc_output
 
-# Production
+# Production & Build (Backend/Frontend)
 dist/
 build/
+backend/dist/
+frontend/dist/
 *.tsbuildinfo
 
 # Next.js
 .next/
 out/
-.next/
 frontend/.next/
 frontend/out/
 
-# Environment variables
+# Environment variables & Secrets
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.production
-frontend/.env.production
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+*.crt
+id_rsa
+id_rsa.pub
+secrets.js
+secrets.json
 
 # Logs
 logs
@@ -47,5 +52,11 @@ Thumbs.db
 *.swo
 *~
 
+# Supabase
+supabase/functions/**/.env
+
 # Netlify
 .netlify/
+
+# Vercel
+.vercel/
